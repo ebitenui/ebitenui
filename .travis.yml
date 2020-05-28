@@ -1,18 +1,14 @@
-sudo: false
-
+dist: xenial
+os: linux
 addons:
   apt_packages:
   - libgl1-mesa-dev
   - xorg-dev
-
 services:
 - xvfb
-
 language: go
-
 go:
 - "1.14"
-
 before_script:
 - "export DISPLAY=:99.0"
 - sleep 3 # give xvfb some time to start
