@@ -13,13 +13,9 @@ type images struct {
 	buttonFlatLeft  *widget.ButtonImage
 	buttonNoLeft    *widget.ButtonImage
 	sliderTrack     *widget.SliderTrackImage
-	arrowDown       *graphicImage
+	arrowDown       *widget.ButtonImageImage
 	scrollContainer *widget.ScrollContainerImage
-}
-
-type graphicImage struct {
-	idle     *ebiten.Image
-	disabled *ebiten.Image
+	checkbox        *widget.CheckboxGraphicImage
 }
 
 func loadImages() (*images, error) {
@@ -65,6 +61,27 @@ func loadImages() (*images, error) {
 		return nil, err
 	}
 
+	checkboxUnchecked, err := loadGraphicImages(
+		"graphics/checkbox-unchecked.png",
+		"graphics/checkbox-unchecked.png")
+	if err != nil {
+		return nil, err
+	}
+
+	checkboxChecked, err := loadGraphicImages(
+		"graphics/checkbox-checked-idle.png",
+		"graphics/checkbox-checked-disabled.png")
+	if err != nil {
+		return nil, err
+	}
+
+	checkboxGreyed, err := loadGraphicImages(
+		"graphics/checkbox-greyed-idle.png",
+		"graphics/checkbox-greyed-disabled.png")
+	if err != nil {
+		return nil, err
+	}
+
 	return &images{
 		button:         button,
 		buttonFlatLeft: buttonFlatLeft,
@@ -79,6 +96,11 @@ func loadImages() (*images, error) {
 			Idle:     button.Idle,
 			Disabled: button.Disabled,
 			Mask:     mask,
+		},
+		checkbox: &widget.CheckboxGraphicImage{
+			Unchecked: checkboxUnchecked,
+			Checked:   checkboxChecked,
+			Greyed:    checkboxGreyed,
 		},
 	}, nil
 }
@@ -112,7 +134,7 @@ func loadButtonImages(idle string, hover string, pressed string, disabled string
 	}, nil
 }
 
-func loadGraphicImages(idle string, disabled string) (*graphicImage, error) {
+func loadGraphicImages(idle string, disabled string) (*widget.ButtonImageImage, error) {
 	idleImage, _, err := ebitenutil.NewImageFromFile(idle, ebiten.FilterDefault)
 	if err != nil {
 		return nil, err
@@ -126,9 +148,9 @@ func loadGraphicImages(idle string, disabled string) (*graphicImage, error) {
 		}
 	}
 
-	return &graphicImage{
-		idle:     idleImage,
-		disabled: disabledImage,
+	return &widget.ButtonImageImage{
+		Idle:     idleImage,
+		Disabled: disabledImage,
 	}, nil
 }
 

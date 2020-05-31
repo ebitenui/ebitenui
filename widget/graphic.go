@@ -9,8 +9,8 @@ import (
 )
 
 type Graphic struct {
-	image          *ebiten.Image
-	imageNineSlice *image.NineSlice
+	Image          *ebiten.Image
+	ImageNineSlice *image.NineSlice
 
 	widget *Widget
 }
@@ -41,13 +41,13 @@ func (o graphicOpts) WithLayoutData(ld interface{}) GraphicOpt {
 
 func (o graphicOpts) WithImage(i *ebiten.Image) GraphicOpt {
 	return func(g *Graphic) {
-		g.image = i
+		g.Image = i
 	}
 }
 
 func (o graphicOpts) WithImageNineSlice(i *image.NineSlice) GraphicOpt {
 	return func(g *Graphic) {
-		g.imageNineSlice = i
+		g.ImageNineSlice = i
 	}
 }
 
@@ -60,8 +60,8 @@ func (g *Graphic) SetLocation(rect img.Rectangle) {
 }
 
 func (g *Graphic) PreferredSize() (int, int) {
-	if g.image != nil {
-		return g.image.Size()
+	if g.Image != nil {
+		return g.Image.Size()
 	}
 	return 50, 50
 }
@@ -72,13 +72,13 @@ func (g *Graphic) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 }
 
 func (g *Graphic) draw(screen *ebiten.Image) {
-	if g.image != nil {
+	if g.Image != nil {
 		opts := ebiten.DrawImageOptions{}
-		w, h := g.image.Size()
+		w, h := g.Image.Size()
 		opts.GeoM.Translate(float64((g.widget.Rect.Dx()-w)/2), float64((g.widget.Rect.Dy()-h)/2))
 		g.widget.drawImageOptions(&opts)
-		_ = screen.DrawImage(g.image, &opts)
-	} else if g.imageNineSlice != nil {
-		g.imageNineSlice.Draw(screen, g.widget.Rect.Dx(), g.widget.Rect.Dy(), g.widget.drawImageOptions)
+		_ = screen.DrawImage(g.Image, &opts)
+	} else if g.ImageNineSlice != nil {
+		g.ImageNineSlice.Draw(screen, g.widget.Rect.Dx(), g.widget.Rect.Dy(), g.widget.drawImageOptions)
 	}
 }

@@ -15,6 +15,7 @@ import (
 type Button struct {
 	Image             *ButtonImage
 	KeepPressedOnExit bool
+	GraphicImage      *ButtonImageImage
 
 	PressedEvent  *event.Event
 	ReleasedEvent *event.Event
@@ -22,7 +23,6 @@ type Button struct {
 
 	widgetOpts               []WidgetOpt
 	autoUpdateTextAndGraphic bool
-	graphicImage             *ButtonImageImage
 	textColor                *ButtonTextColor
 
 	init      *MultiOnce
@@ -87,7 +87,7 @@ func NewButton(opts ...ButtonOpt) *Button {
 		ClickedEvent:  &event.Event{},
 
 		Image:        &ButtonImage{},
-		graphicImage: &ButtonImageImage{},
+		GraphicImage: &ButtonImageImage{},
 		textColor:    &ButtonTextColor{},
 
 		init: &MultiOnce{},
@@ -183,7 +183,7 @@ func (o buttonOpts) WithTextAndImage(label string, face font.Face, image *Button
 			b.container.AddChild(b.graphic)
 
 			b.autoUpdateTextAndGraphic = true
-			b.graphicImage = image
+			b.GraphicImage = image
 			b.textColor = color
 		})
 	}
@@ -203,7 +203,11 @@ func (o buttonOpts) withGraphic(opt GraphicOpt) ButtonOpt {
 			b.container = NewContainer(
 				ContainerOpts.WithLayout(NewFillLayout(FillLayoutOpts.WithPadding(NewInsetsSimple(4)))),
 				ContainerOpts.WithAutoDisableChildren())
-			b.container.AddChild(NewGraphic(opt))
+
+			b.graphic = NewGraphic(opt)
+			b.container.AddChild(b.graphic)
+
+			b.autoUpdateTextAndGraphic = true
 		})
 	}
 }
@@ -301,9 +305,9 @@ func (b *Button) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	if b.autoUpdateTextAndGraphic {
 		if b.graphic != nil {
 			if b.widget.Disabled {
-				b.graphic.image = b.graphicImage.Disabled
+				b.graphic.Image = b.GraphicImage.Disabled
 			} else {
-				b.graphic.image = b.graphicImage.Idle
+				b.graphic.Image = b.GraphicImage.Idle
 			}
 		}
 

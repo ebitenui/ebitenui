@@ -122,10 +122,7 @@ func createGUI() *UI {
 
 	rootContainer.AddChild(widget.NewComboButton(
 		widget.ComboButtonOpts.WithImage(images.button),
-		widget.ComboButtonOpts.WithTextAndImage("Combo", fontFace, &widget.ButtonImageImage{
-			Idle:     images.arrowDown.idle,
-			Disabled: images.arrowDown.disabled,
-		}, &widget.ButtonTextColor{
+		widget.ComboButtonOpts.WithTextAndImage("Combo", fontFace, images.arrowDown, &widget.ButtonTextColor{
 			Idle:     color.Black,
 			Disabled: color.RGBA{128, 128, 128, 255},
 		}),
@@ -143,10 +140,7 @@ func createGUI() *UI {
 
 	rootContainer.AddChild(widget.NewListComboButton(
 		widget.ListComboButtonOpts.WithImage(images.button),
-		widget.ListComboButtonOpts.WithText(fontFace, &widget.ButtonImageImage{
-			Idle:     images.arrowDown.idle,
-			Disabled: images.arrowDown.disabled,
-		}, &widget.ButtonTextColor{
+		widget.ListComboButtonOpts.WithText(fontFace, images.arrowDown, &widget.ButtonTextColor{
 			Idle:     color.Black,
 			Disabled: color.RGBA{128, 128, 128, 255},
 		}),
@@ -289,6 +283,14 @@ func createGUI() *UI {
 
 	rootContainer.AddChild(widget.NewText(
 		widget.TextOpts.WithText("test 2", fontFace, color.Black)))
+
+	rootContainer.AddChild(widget.NewCheckbox(
+		widget.CheckboxOpts.WithTriState(),
+		widget.CheckboxOpts.WithImage(&widget.CheckboxImage{
+			Button:  images.button,
+			Graphic: images.checkbox,
+		}),
+	))
 
 	return &UI{
 		Container: rootContainer,
