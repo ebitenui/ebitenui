@@ -89,6 +89,12 @@ func (f *FlipBook) SetLocation(rect img.Rectangle) {
 	f.container.SetLocation(rect)
 }
 
+// RequestRelayout implements Relayoutable.
+func (f *FlipBook) RequestRelayout() {
+	f.init.Do()
+	f.container.RequestRelayout()
+}
+
 // Render implements Renderer.
 func (f *FlipBook) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	f.init.Do()
