@@ -126,6 +126,10 @@ func (n *NineSlice) Draw(screen *ebiten.Image, width int, height int, optsFunc D
 }
 
 func (n *NineSlice) createSubImages() {
+	defer func() {
+		n.image = nil
+	}()
+
 	n.subImages = make([]*ebiten.Image, 9)
 
 	// short-circuit if only the center tile is used
