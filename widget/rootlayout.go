@@ -23,7 +23,7 @@ func (r *RootLayout) MarkDirty() {
 	r.layout.(Dirtyable).MarkDirty()
 }
 
-func (r *RootLayout) PreferredSize(widgets []HasWidget, rect image.Rectangle) (width int, height int) {
+func (r *RootLayout) PreferredSize(widgets []HasWidget, rect image.Rectangle) (int, int) {
 	return 0, 0
 }
 

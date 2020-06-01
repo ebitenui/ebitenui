@@ -5,7 +5,7 @@ import (
 )
 
 type Layouter interface {
-	PreferredSize(widgets []HasWidget) (width int, height int)
+	PreferredSize(widgets []HasWidget) (int, int)
 	Layout(widgets []HasWidget, rect image.Rectangle)
 }
 

@@ -72,7 +72,7 @@ type DeferredRenderFunc func(r RenderFunc)
 
 // PreferredSizer may be implemented by concrete widget types that can report a preferred size.
 type PreferredSizer interface {
-	PreferredSize() (width int, height int)
+	PreferredSize() (int, int)
 }
 
 // WidgetCursorEnterEventArgs are the arguments for cursor enter events.
