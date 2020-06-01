@@ -9,8 +9,8 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "debug",
-			"program": "${workspaceFolder}",
-			"cwd": "${workspaceFolder}",
+			"program": "${workspaceFolder}/cmd/demo",
+			"cwd": "${workspaceFolder}/cmd/demo",
 			"env": {},
 			"args": []
 		}
