@@ -30,7 +30,7 @@ func main() {
 	// 	stopProfiler()
 	// }()
 
-	ebiten.SetWindowSize(640, 900)
+	ebiten.SetWindowSize(640, 1000)
 	ebiten.SetWindowTitle("Hello, World!")
 	ebiten.SetWindowResizable(true)
 
@@ -49,21 +49,10 @@ func createUI() *ebitenui.UI {
 		panic(err)
 	}
 
-	fontData, err := ioutil.ReadFile("fonts/JetBrainsMonoNL-Regular.ttf")
+	fontFace, err := loadFont()
 	if err != nil {
 		panic(err)
 	}
-
-	ttfFont, err := truetype.Parse(fontData)
-	if err != nil {
-		panic(err)
-	}
-
-	fontFace := truetype.NewFace(ttfFont, &truetype.Options{
-		Size:    20,
-		DPI:     72,
-		Hinting: font.HintingFull,
-	})
 
 	rootContainer := widget.NewContainer(
 		widget.ContainerOpts.WithLayout(widget.NewRowLayout(
@@ -285,6 +274,42 @@ func createUI() *ebitenui.UI {
 	rootContainer.AddChild(widget.NewText(
 		widget.TextOpts.WithText("test 2", fontFace, color.Black)))
 
+	pageButtonsContainer := widget.NewContainer(
+		widget.ContainerOpts.WithLayout(widget.NewRowLayout(
+			widget.RowLayoutOpts.WithSpacing(10))))
+	rootContainer.AddChild(pageButtonsContainer)
+
+	flipBook := widget.NewFlipBook(
+		widget.FlipBookOpts.WithLayoutData(&widget.RowLayoutData{
+			Stretch: true,
+		}))
+	rootContainer.AddChild(flipBook)
+
+	pages := []widget.HasWidget{}
+	for i := 0; i < 5; i++ {
+		c := widget.NewContainer(
+			widget.ContainerOpts.WithLayout(widget.NewFillLayout()))
+		c.AddChild(widget.NewText(
+			widget.TextOpts.WithText(fmt.Sprintf("This is page %d", i+1), fontFace, color.Black)))
+		pages = append(pages, c)
+	}
+
+	flipBook.SetPage(pages[0])
+
+	for i := 0; i < 5; i++ {
+		i := i
+		pageButtonsContainer.AddChild(widget.NewButton(
+			widget.ButtonOpts.WithImage(images.button),
+			widget.ButtonOpts.WithText(fmt.Sprintf("Page %d", i+1), fontFace, &widget.ButtonTextColor{
+				Idle:     color.Black,
+				Disabled: color.RGBA{128, 128, 128, 255},
+			}),
+
+			widget.ButtonOpts.WithClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+				flipBook.SetPage(pages[i])
+			})))
+	}
+
 	rootContainer.AddChild(widget.NewCheckbox(
 		widget.CheckboxOpts.WithTriState(),
 		widget.CheckboxOpts.WithImage(&widget.CheckboxImage{
@@ -296,6 +321,24 @@ func createUI() *ebitenui.UI {
 	return &ebitenui.UI{
 		Container: rootContainer,
 	}
+}
+
+func loadFont() (font.Face, error) {
+	fontData, err := ioutil.ReadFile("fonts/JetBrainsMonoNL-Regular.ttf")
+	if err != nil {
+		return nil, err
+	}
+
+	ttfFont, err := truetype.Parse(fontData)
+	if err != nil {
+		return nil, err
+	}
+
+	return truetype.NewFace(ttfFont, &truetype.Options{
+		Size:    20,
+		DPI:     72,
+		Hinting: font.HintingFull,
+	}), nil
 }
 
 func (g *game) Layout(outsideWidth int, outsideHeight int) (int, int) {
