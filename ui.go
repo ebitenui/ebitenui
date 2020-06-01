@@ -31,6 +31,8 @@ func (u *UI) Update() {
 
 // Draw renders u onto screen, with rect as the area reserved for rendering.
 // This function should be called in the Ebiten Draw function.
+//
+// If rect changes from one frame to the next, u.Container.RequestRelayout is called.
 func (u *UI) Draw(screen *ebiten.Image, rect image.Rectangle) {
 	u.init.Do(u.initUI)
 
