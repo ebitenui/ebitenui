@@ -64,6 +64,10 @@ func (o containerOpts) WithLayout(layout Layouter) ContainerOpt {
 }
 
 func (c *Container) AddChild(child HasWidget) RemoveChildFunc {
+	if child == nil {
+		panic("cannot add nil child")
+	}
+
 	c.children = append(c.children, child)
 
 	child.GetWidget().parent = c.widget
