@@ -27,8 +27,7 @@ type deferredAddHandler struct {
 	handler handler
 }
 
-var deferredEvents []*firedEvent
-var deferredAddHandlers []deferredAddHandler
+var deferredEvents []interface{}
 
 // AddHandler registers handler h with e. It returns a function to remove h from e if desired.
 func (e *Event) AddHandler(h HandlerFunc) RemoveHandlerFunc {
@@ -40,7 +39,7 @@ func (e *Event) AddHandler(h HandlerFunc) RemoveHandlerFunc {
 		h:  h,
 	}
 
-	deferredAddHandlers = append(deferredAddHandlers, deferredAddHandler{
+	deferredEvents = append(deferredEvents, &deferredAddHandler{
 		event:   e,
 		handler: handler,
 	})
@@ -87,14 +86,15 @@ func (e *Event) handle(args interface{}) {
 // This function should not be called directly.
 func FireDeferredEvents() {
 	for len(deferredEvents) > 0 {
-		f := deferredEvents[0]
+		d := deferredEvents[0]
 		deferredEvents = deferredEvents[1:]
 
-		f.event.handle(f.args)
-	}
+		if e, ok := d.(*firedEvent); ok {
+			e.event.handle(e.args)
+		}
 
-	for _, d := range deferredAddHandlers {
-		d.event.handlers = append(d.event.handlers, d.handler)
+		if a, ok := d.(*deferredAddHandler); ok {
+			a.event.handlers = append(a.event.handlers, a.handler)
+		}
 	}
-	deferredAddHandlers = deferredAddHandlers[:0]
 }
