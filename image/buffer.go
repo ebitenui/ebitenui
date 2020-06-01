@@ -2,6 +2,8 @@ package image
 
 import "github.com/hajimehoshi/ebiten"
 
+// BufferedImage is a wrapper for an Ebiten Image that helps with caching the Image.
+// As long as Width and Height stay the same, no new Image will be created.
 type BufferedImage struct {
 	Width  int
 	Height int
@@ -9,6 +11,8 @@ type BufferedImage struct {
 	image *ebiten.Image
 }
 
+// Image returns the internal Ebiten Image. If b.Width or b.Height have changed, a new Image
+// will be created and returned, otherwise the cached Image will be returned.
 func (b *BufferedImage) Image() *ebiten.Image {
 	w, h := -1, -1
 	if b.image != nil {

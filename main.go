@@ -34,7 +34,7 @@ func main() {
 	ebiten.SetWindowResizable(true)
 
 	game := game{
-		ui: createGUI(),
+		ui: createUI(),
 	}
 
 	if err := ebiten.RunGame(&game); err != nil {
@@ -42,7 +42,7 @@ func main() {
 	}
 }
 
-func createGUI() *UI {
+func createUI() *UI {
 	images, err := loadImages()
 	if err != nil {
 		panic(err)

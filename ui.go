@@ -11,6 +11,8 @@ import (
 	"github.com/hajimehoshi/ebiten"
 )
 
+// UI encapsulates a complete user interface that can be rendered onto the screen.
+// There should only be exactly one UI per application.
 type UI struct {
 	Container *widget.Container
 
@@ -19,6 +21,7 @@ type UI struct {
 	lastRect image.Rectangle
 }
 
+// Update updates u. This function should be called in the Ebiten Update function.
 func (u *UI) Update() {
 	u.init.Do(u.initUI)
 
@@ -26,6 +29,8 @@ func (u *UI) Update() {
 	input.Update()
 }
 
+// Draw renders u onto screen, with rect as the area reserved for rendering.
+// This function should be called in the Ebiten Draw function.
 func (u *UI) Draw(screen *ebiten.Image, rect image.Rectangle) {
 	u.init.Do(u.initUI)
 

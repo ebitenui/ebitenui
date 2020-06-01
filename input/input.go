@@ -20,6 +20,7 @@ var (
 	lastRightMouseButtonPressed  bool
 )
 
+// Update updates the input system. This function should not be called directly.
 func Update() {
 	leftMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft)
 	middleMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle)
@@ -28,6 +29,7 @@ func Update() {
 	wheelX, wheelY = ebiten.Wheel()
 }
 
+// Draw updates the input system. This function should not be called directly.
 func Draw() {
 	leftMouseButtonJustPressed = leftMouseButtonPressed && leftMouseButtonPressed != lastLeftMouseButtonPressed
 	middleMouseButtonJustPressed = middleMouseButtonPressed && middleMouseButtonPressed != lastMiddleMouseButtonPressed
@@ -38,6 +40,7 @@ func Draw() {
 	lastRightMouseButtonPressed = rightMouseButtonPressed
 }
 
+// MouseButtonPressed returns whether mouse button b is currently pressed.
 func MouseButtonPressed(b ebiten.MouseButton) bool {
 	switch b {
 	case ebiten.MouseButtonLeft:
@@ -51,6 +54,8 @@ func MouseButtonPressed(b ebiten.MouseButton) bool {
 	}
 }
 
+// MouseButtonJustPressed returns whether mouse button b has just been pressed.
+// It only returns true during the first frame that the button is pressed.
 func MouseButtonJustPressed(b ebiten.MouseButton) bool {
 	switch b {
 	case ebiten.MouseButtonLeft:
@@ -64,6 +69,8 @@ func MouseButtonJustPressed(b ebiten.MouseButton) bool {
 	}
 }
 
+// MouseButtonPressedLayer returns whether mouse button b is currently pressed and input layer l is
+// eligible to handle it.
 func MouseButtonPressedLayer(b ebiten.MouseButton, l *Layer) bool {
 	if !MouseButtonPressed(b) {
 		return false
@@ -73,6 +80,8 @@ func MouseButtonPressedLayer(b ebiten.MouseButton, l *Layer) bool {
 	return l.ActiveFor(x, y, LayerEventTypeMouseButton)
 }
 
+// MouseButtonJustPressedLayer returns whether mouse button b has just been pressed and input layer l
+// is eligible to handle it. It only returns true during the first frame that the button is pressed.
 func MouseButtonJustPressedLayer(b ebiten.MouseButton, l *Layer) bool {
 	if !MouseButtonJustPressed(b) {
 		return false
@@ -82,14 +91,18 @@ func MouseButtonJustPressedLayer(b ebiten.MouseButton, l *Layer) bool {
 	return l.ActiveFor(x, y, LayerEventTypeMouseButton)
 }
 
+// CursorPosition returns the current cursor position.
 func CursorPosition() (int, int) {
 	return cursorX, cursorY
 }
 
+// Wheel returns current mouse wheel movement.
 func Wheel() (float64, float64) {
 	return wheelX, wheelY
 }
 
+// WheelLayer returns current mouse wheel movement if input layer l is eligible to handle it.
+// If l is not eligible, it returns 0, 0.
 func WheelLayer(l *Layer) (float64, float64) {
 	x, y := Wheel()
 	if x == 0 && y == 0 {

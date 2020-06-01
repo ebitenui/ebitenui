@@ -8,6 +8,9 @@ import (
 	"github.com/hajimehoshi/ebiten"
 )
 
+// A NineSlice is an image that can be drawn with any width and height. It is basically a 3x3 grid of image tiles:
+// The corner tiles be drawn as-is, while the center columns and rows of tiles will be stretched to fit the desired
+// width and height.
 type NineSlice struct {
 	image   *ebiten.Image
 	widths  []int
@@ -17,12 +20,17 @@ type NineSlice struct {
 	subImages []*ebiten.Image
 }
 
+// A DrawImageOptionsFunc is responsible for setting DrawImageOptions when drawing an image.
+// This is usually used to translate the image.
 type DrawImageOptionsFunc func(opts *ebiten.DrawImageOptions)
 
 var colorImages map[color.Color]*ebiten.Image = map[color.Color]*ebiten.Image{}
 
 var colorNineSlices map[color.Color]*NineSlice = map[color.Color]*NineSlice{}
 
+// NewNineSliceSimple constructs a new NineSlice from image. borderWidthHeight specifies the width of the
+// left and right column and the height of the top and bottom row. centerWidthHeight specifies the width
+// of the center column and row.
 func NewNineSliceSimple(image *ebiten.Image, borderWidthHeight int, centerWidthHeight int) *NineSlice {
 	return &NineSlice{
 		image:   image,
@@ -31,6 +39,7 @@ func NewNineSliceSimple(image *ebiten.Image, borderWidthHeight int, centerWidthH
 	}
 }
 
+// NewNineSliceColor constructs a new NineSlice that when drawn fills with color c.
 func NewNineSliceColor(c color.Color) *NineSlice {
 	if n, ok := colorNineSlices[c]; ok {
 		return n
@@ -45,6 +54,7 @@ func NewNineSliceColor(c color.Color) *NineSlice {
 	return n
 }
 
+// NewImageColor constructs a new Image that when drawn fills with color c.
 func NewImageColor(c color.Color) *ebiten.Image {
 	if i, ok := colorImages[c]; ok {
 		return i
@@ -56,6 +66,8 @@ func NewImageColor(c color.Color) *ebiten.Image {
 	return i
 }
 
+// Draw draws n onto screen, with the size specified by width and height. If optsFunc is not nil, it is used to set
+// DrawImageOptions for each tile drawn.
 func (n *NineSlice) Draw(screen *ebiten.Image, width int, height int, optsFunc DrawImageOptionsFunc) {
 	n.init.Do(n.createSubImages)
 
