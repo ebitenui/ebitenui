@@ -159,28 +159,37 @@ func (o buttonOpts) WithTextAndImage(label string, face font.Face, image *Button
 		b.init.Append(func() {
 			b.container = NewContainer(
 				ContainerOpts.WithLayout(NewRowLayout(
+					RowLayoutOpts.WithDirection(DirectionVertical),
 					RowLayoutOpts.WithPadding(Insets{
 						Left:   10,
 						Right:  10,
 						Top:    6,
 						Bottom: 6,
-					}),
-					RowLayoutOpts.WithSpacing(8))),
+					}))),
 				ContainerOpts.WithAutoDisableChildren())
+
+			c := NewContainer(
+				ContainerOpts.WithLayoutData(&RowLayoutData{
+					Position: RowLayoutPositionCenter,
+				}),
+				ContainerOpts.WithLayout(NewRowLayout(
+					RowLayoutOpts.WithSpacing(10))),
+				ContainerOpts.WithAutoDisableChildren())
+			b.container.AddChild(c)
 
 			b.text = NewText(
 				WithTextLayoutData(&RowLayoutData{
 					Stretch: true,
 				}),
 				TextOpts.WithText(label, face, color.Idle))
-			b.container.AddChild(b.text)
+			c.AddChild(b.text)
 
 			b.graphic = NewGraphic(
 				GraphicOpts.WithLayoutData(&RowLayoutData{
 					Stretch: true,
 				}),
 				GraphicOpts.WithImage(image.Idle))
-			b.container.AddChild(b.graphic)
+			c.AddChild(b.graphic)
 
 			b.autoUpdateTextAndGraphic = true
 			b.GraphicImage = image
