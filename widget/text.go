@@ -9,6 +9,7 @@ import (
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/text"
 	"golang.org/x/image/font"
+	"golang.org/x/image/math/fixed"
 )
 
 type Text struct {
@@ -68,7 +69,10 @@ func (t *Text) PreferredSize() (int, int) {
 		return t.preferredWidth, t.preferredHeight
 	}
 
-	lh := t.Face.Metrics().Height.Round()
+	m := t.Face.Metrics()
+	fh := m.Ascent + m.Descent
+	lh := m.Height
+	ld := lh - fh
 
 	lines := 0
 	w := 0
@@ -76,13 +80,14 @@ func (t *Text) PreferredSize() (int, int) {
 	for s.Scan() {
 		lines++
 
-		lw := font.MeasureString(t.Face, s.Text()).Round()
+		lw := font.MeasureString(t.Face, s.Text()).Ceil()
 		if lw > w {
 			w = lw
 		}
 	}
 
-	t.preferredWidth, t.preferredHeight = w, lh*lines
+	t.preferredWidth, t.preferredHeight = w, (fixed.I(lines).Mul(lh) - ld).Ceil()
+
 	t.lastLabelForPreferredSize = t.Label
 	t.lastFaceForPreferredSize = t.Face
 
@@ -98,10 +103,11 @@ func (t *Text) draw(screen *ebiten.Image) {
 	w, h := t.PreferredSize()
 
 	r := t.widget.Rect
+	p := r.Min
 
 	// TODO: add alignment options
-	x := (r.Dx()-w)/2 + r.Min.X - 1
-	y := (r.Dy()-h)/2 + r.Min.Y - 1
+	x := p.X + (r.Dx()-w)/2
+	y := p.Y + (r.Dy()-h)/2 + t.Face.Metrics().Ascent.Round()
 
-	text.Draw(screen, t.Label, t.Face, x, y+t.Face.Metrics().Ascent.Round(), t.Color)
+	text.Draw(screen, t.Label, t.Face, x, y, t.Color)
 }
