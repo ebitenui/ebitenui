@@ -4,6 +4,7 @@ import (
 	"image"
 
 	"github.com/blizzy78/ebitenui/event"
+	"github.com/blizzy78/ebitenui/input"
 	"github.com/hajimehoshi/ebiten"
 )
 
@@ -101,6 +102,11 @@ func (c *Checkbox) PreferredSize() (int, int) {
 func (c *Checkbox) SetLocation(rect image.Rectangle) {
 	c.init.Do()
 	c.button.SetLocation(rect)
+}
+
+func (c *Checkbox) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
+	c.init.Do()
+	c.button.SetupInputLayer(def)
 }
 
 func (c *Checkbox) Render(screen *ebiten.Image, def DeferredRenderFunc) {

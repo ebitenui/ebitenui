@@ -3,6 +3,7 @@ package widget
 import (
 	"image"
 
+	"github.com/blizzy78/ebitenui/input"
 	"github.com/hajimehoshi/ebiten"
 )
 
@@ -62,6 +63,11 @@ func (l *LabeledCheckbox) PreferredSize() (int, int) {
 func (l *LabeledCheckbox) SetLocation(rect image.Rectangle) {
 	l.init.Do()
 	l.container.SetLocation(rect)
+}
+
+func (l *LabeledCheckbox) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
+	l.init.Do()
+	l.checkbox.SetupInputLayer(def)
 }
 
 func (l *LabeledCheckbox) Render(screen *ebiten.Image, def DeferredRenderFunc) {

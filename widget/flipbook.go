@@ -3,6 +3,7 @@ package widget
 import (
 	img "image"
 
+	"github.com/blizzy78/ebitenui/input"
 	"github.com/hajimehoshi/ebiten"
 )
 
@@ -76,6 +77,12 @@ func (f *FlipBook) SetLocation(rect img.Rectangle) {
 func (f *FlipBook) RequestRelayout() {
 	f.init.Do()
 	f.container.RequestRelayout()
+}
+
+// SetupInputLayer implements InputLayerer.
+func (f *FlipBook) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
+	f.init.Do()
+	f.container.SetupInputLayer(def)
 }
 
 // Render implements Renderer.
