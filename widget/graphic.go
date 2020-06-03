@@ -12,6 +12,9 @@ type Graphic struct {
 	Image          *ebiten.Image
 	ImageNineSlice *image.NineSlice
 
+	widgetOpts []WidgetOpt
+
+	init   *MultiOnce
 	widget *Widget
 }
 
@@ -23,8 +26,10 @@ type graphicOpts bool
 
 func NewGraphic(opts ...GraphicOpt) *Graphic {
 	g := &Graphic{
-		widget: NewWidget(),
+		init: &MultiOnce{},
 	}
+
+	g.init.Append(g.createWidget)
 
 	for _, o := range opts {
 		o(g)
@@ -33,9 +38,9 @@ func NewGraphic(opts ...GraphicOpt) *Graphic {
 	return g
 }
 
-func (o graphicOpts) WithLayoutData(ld interface{}) GraphicOpt {
+func (o graphicOpts) WithWidgetOpt(opt WidgetOpt) GraphicOpt {
 	return func(g *Graphic) {
-		WidgetOpts.WithLayoutData(ld)(g.widget)
+		g.widgetOpts = append(g.widgetOpts, opt)
 	}
 }
 
@@ -52,14 +57,17 @@ func (o graphicOpts) WithImageNineSlice(i *image.NineSlice) GraphicOpt {
 }
 
 func (g *Graphic) GetWidget() *Widget {
+	g.init.Do()
 	return g.widget
 }
 
 func (g *Graphic) SetLocation(rect img.Rectangle) {
+	g.init.Do()
 	g.widget.Rect = rect
 }
 
 func (g *Graphic) PreferredSize() (int, int) {
+	g.init.Do()
 	if g.Image != nil {
 		return g.Image.Size()
 	}
@@ -67,6 +75,7 @@ func (g *Graphic) PreferredSize() (int, int) {
 }
 
 func (g *Graphic) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+	g.init.Do()
 	g.widget.Render(screen, def)
 	g.draw(screen)
 }
@@ -81,4 +90,9 @@ func (g *Graphic) draw(screen *ebiten.Image) {
 	} else if g.ImageNineSlice != nil {
 		g.ImageNineSlice.Draw(screen, g.widget.Rect.Dx(), g.widget.Rect.Dy(), g.widget.drawImageOptions)
 	}
+}
+
+func (g *Graphic) createWidget() {
+	g.widget = NewWidget(g.widgetOpts...)
+	g.widgetOpts = nil
 }

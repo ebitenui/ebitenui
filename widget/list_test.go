@@ -131,11 +131,11 @@ func newList(t *testing.T, opts ...ListOpt) *List {
 
 	l := NewList(
 		append(opts, []ListOpt{
-			ListOpts.WithImage(&ScrollContainerImage{
+			ListOpts.WithScrollContainerOpt(ScrollContainerOpts.WithImage(&ScrollContainerImage{
 				Idle:     newNineSliceEmpty(t),
 				Disabled: newNineSliceEmpty(t),
 				Mask:     newNineSliceEmpty(t),
-			}),
+			})),
 
 			ListOpts.WithEntryFontFace(loadFont(t)),
 

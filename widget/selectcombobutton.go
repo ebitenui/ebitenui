@@ -7,7 +7,6 @@ import (
 	"github.com/blizzy78/ebitenui/input"
 
 	"github.com/hajimehoshi/ebiten"
-	"golang.org/x/image/font"
 )
 
 type SelectComboButton struct {
@@ -55,33 +54,9 @@ func NewSelectComboButton(opts ...SelectComboButtonOpt) *SelectComboButton {
 	return s
 }
 
-func (o selectComboButtonOpts) WithLayoutData(ld interface{}) SelectComboButtonOpt {
+func (o selectComboButtonOpts) WithComboButtonOpt(opt ComboButtonOpt) SelectComboButtonOpt {
 	return func(s *SelectComboButton) {
-		s.buttonOpts = append(s.buttonOpts, ComboButtonOpts.WithLayoutData(ld))
-	}
-}
-
-func (o selectComboButtonOpts) WithImage(i *ButtonImage) SelectComboButtonOpt {
-	return func(s *SelectComboButton) {
-		s.buttonOpts = append(s.buttonOpts, ComboButtonOpts.WithImage(i))
-	}
-}
-
-func (o selectComboButtonOpts) WithTextAndImage(label string, face font.Face, image *ButtonImageImage, color *ButtonTextColor) SelectComboButtonOpt {
-	return func(s *SelectComboButton) {
-		s.buttonOpts = append(s.buttonOpts, ComboButtonOpts.WithTextAndImage(label, face, image, color))
-	}
-}
-
-func (o selectComboButtonOpts) WithContent(c HasWidget) SelectComboButtonOpt {
-	return func(s *SelectComboButton) {
-		s.buttonOpts = append(s.buttonOpts, ComboButtonOpts.WithContent(c))
-	}
-}
-
-func (o selectComboButtonOpts) WithContentMaxHeight(h int) SelectComboButtonOpt {
-	return func(s *SelectComboButton) {
-		s.buttonOpts = append(s.buttonOpts, ComboButtonOpts.WithMaxContentHeight(h))
+		s.buttonOpts = append(s.buttonOpts, opt)
 	}
 }
 

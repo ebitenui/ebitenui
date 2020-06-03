@@ -6,39 +6,31 @@ import (
 	"github.com/blizzy78/ebitenui/input"
 
 	"github.com/hajimehoshi/ebiten"
-	"golang.org/x/image/font"
 )
 
 type ComboButton struct {
 	ContentVisible bool
 
+	buttonOpts       []ButtonOpt
 	maxContentHeight int
 
+	init    *MultiOnce
 	button  *Button
 	content HasWidget
 }
 
 type ComboButtonOpt func(c *ComboButton)
 
-type ComboButtonClickedEventArgs struct {
-	ComboButton *ComboButton
-}
-
-type ComboButtonClickedHandlerFunc func(args *ComboButtonClickedEventArgs)
-
 const ComboButtonOpts = comboButtonOpts(true)
 
 type comboButtonOpts bool
 
 func NewComboButton(opts ...ComboButtonOpt) *ComboButton {
-	var c *ComboButton
-	c = &ComboButton{
-		button: NewButton(
-			ButtonOpts.WithClickedHandler(func(args *ButtonClickedEventArgs) {
-				c.ContentVisible = !c.ContentVisible
-			}),
-		),
+	c := &ComboButton{
+		init: &MultiOnce{},
 	}
+
+	c.init.Append(c.createWidget)
 
 	for _, o := range opts {
 		o(c)
@@ -47,37 +39,15 @@ func NewComboButton(opts ...ComboButtonOpt) *ComboButton {
 	return c
 }
 
-func (o comboButtonOpts) WithLayoutData(ld interface{}) ComboButtonOpt {
+func (o comboButtonOpts) WithButtonOpt(opt ButtonOpt) ComboButtonOpt {
 	return func(c *ComboButton) {
-		ButtonOpts.WithLayoutData(ld)(c.button)
-	}
-}
-
-func (o comboButtonOpts) WithImage(i *ButtonImage) ComboButtonOpt {
-	return func(c *ComboButton) {
-		ButtonOpts.WithImage(i)(c.button)
-	}
-}
-
-func (o comboButtonOpts) WithTextAndImage(label string, face font.Face, image *ButtonImageImage, color *ButtonTextColor) ComboButtonOpt {
-	return func(c *ComboButton) {
-		ButtonOpts.WithTextAndImage(label, face, image, color)(c.button)
+		c.buttonOpts = append(c.buttonOpts, opt)
 	}
 }
 
 func (o comboButtonOpts) WithContent(c HasWidget) ComboButtonOpt {
 	return func(cb *ComboButton) {
 		cb.content = c
-	}
-}
-
-func (o comboButtonOpts) WithClickedHandler(f ComboButtonClickedHandlerFunc) ComboButtonOpt {
-	return func(c *ComboButton) {
-		ButtonOpts.WithClickedHandler(func(args *ButtonClickedEventArgs) {
-			f(&ComboButtonClickedEventArgs{
-				ComboButton: c,
-			})
-		})(c.button)
 	}
 }
 
@@ -88,27 +58,34 @@ func (o comboButtonOpts) WithMaxContentHeight(h int) ComboButtonOpt {
 }
 
 func (c *ComboButton) GetWidget() *Widget {
+	c.init.Do()
 	return c.button.GetWidget()
 }
 
 func (c *ComboButton) SetLocation(rect image.Rectangle) {
+	c.init.Do()
 	c.button.GetWidget().Rect = rect
 }
 
 func (c *ComboButton) PreferredSize() (int, int) {
+	c.init.Do()
 	return c.button.PreferredSize()
 }
 
 func (c *ComboButton) SetLabel(l string) {
+	c.init.Do()
 	c.button.Text().Label = l
 	c.button.RequestRelayout()
 }
 
 func (c *ComboButton) Label() string {
+	c.init.Do()
 	return c.button.Text().Label
 }
 
 func (c *ComboButton) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
+	c.init.Do()
+
 	c.button.SetupInputLayer(def)
 
 	if c.content != nil && c.ContentVisible {
@@ -131,6 +108,8 @@ func (c *ComboButton) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 }
 
 func (c *ComboButton) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+	c.init.Do()
+
 	c.button.Render(screen, def)
 
 	if c.content != nil && c.ContentVisible {
@@ -176,4 +155,13 @@ func (c *ComboButton) renderContent(screen *ebiten.Image, def DeferredRenderFunc
 	}
 
 	r.Render(screen, def)
+}
+
+func (c *ComboButton) createWidget() {
+	c.button = NewButton(append(c.buttonOpts, []ButtonOpt{
+		ButtonOpts.WithClickedHandler(func(args *ButtonClickedEventArgs) {
+			c.ContentVisible = !c.ContentVisible
+		}),
+	}...)...)
+	c.buttonOpts = nil
 }

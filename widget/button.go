@@ -102,9 +102,9 @@ func NewButton(opts ...ButtonOpt) *Button {
 	return b
 }
 
-func (o buttonOpts) WithLayoutData(ld interface{}) ButtonOpt {
+func (o buttonOpts) WithWidgetOpt(opt WidgetOpt) ButtonOpt {
 	return func(b *Button) {
-		b.widgetOpts = append(b.widgetOpts, WidgetOpts.WithLayoutData(ld))
+		b.widgetOpts = append(b.widgetOpts, opt)
 	}
 }
 
@@ -169,25 +169,25 @@ func (o buttonOpts) WithTextAndImage(label string, face font.Face, image *Button
 				ContainerOpts.WithAutoDisableChildren())
 
 			c := NewContainer(
-				ContainerOpts.WithLayoutData(&RowLayoutData{
+				ContainerOpts.WithWidgetOpt(WidgetOpts.WithLayoutData(&RowLayoutData{
 					Position: RowLayoutPositionCenter,
-				}),
+				})),
 				ContainerOpts.WithLayout(NewRowLayout(
 					RowLayoutOpts.WithSpacing(10))),
 				ContainerOpts.WithAutoDisableChildren())
 			b.container.AddChild(c)
 
 			b.text = NewText(
-				WithTextLayoutData(&RowLayoutData{
+				TextOpts.WithWidgetOpt(WidgetOpts.WithLayoutData(&RowLayoutData{
 					Stretch: true,
-				}),
+				})),
 				TextOpts.WithText(label, face, color.Idle))
 			c.AddChild(b.text)
 
 			b.graphic = NewGraphic(
-				GraphicOpts.WithLayoutData(&RowLayoutData{
+				GraphicOpts.WithWidgetOpt(WidgetOpts.WithLayoutData(&RowLayoutData{
 					Stretch: true,
-				}),
+				})),
 				GraphicOpts.WithImage(image.Idle))
 			c.AddChild(b.graphic)
 

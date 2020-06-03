@@ -11,7 +11,7 @@ type Checkbox struct {
 	ChangedEvent *event.Event
 
 	buttonOpts []ButtonOpt
-	image      *CheckboxImage
+	image      *CheckboxGraphicImage
 	triState   bool
 
 	init   *MultiOnce
@@ -20,11 +20,6 @@ type Checkbox struct {
 }
 
 type CheckboxOpt func(c *Checkbox)
-
-type CheckboxImage struct {
-	Button  *ButtonImage
-	Graphic *CheckboxGraphicImage
-}
 
 type CheckboxGraphicImage struct {
 	Unchecked *ButtonImageImage
@@ -67,13 +62,13 @@ func NewCheckbox(opts ...CheckboxOpt) *Checkbox {
 	return c
 }
 
-func (o checkboxOpts) WithLayoutData(ld interface{}) CheckboxOpt {
+func (o checkboxOpts) WithButtonOpt(opt ButtonOpt) CheckboxOpt {
 	return func(c *Checkbox) {
-		c.buttonOpts = append(c.buttonOpts, ButtonOpts.WithLayoutData(ld))
+		c.buttonOpts = append(c.buttonOpts, opt)
 	}
 }
 
-func (o checkboxOpts) WithImage(i *CheckboxImage) CheckboxOpt {
+func (o checkboxOpts) WithImage(i *CheckboxGraphicImage) CheckboxOpt {
 	return func(c *Checkbox) {
 		c.image = i
 	}
@@ -111,7 +106,7 @@ func (c *Checkbox) SetLocation(rect image.Rectangle) {
 func (c *Checkbox) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	c.init.Do()
 
-	c.button.GraphicImage = c.state.graphicImage(c.image.Graphic)
+	c.button.GraphicImage = c.state.graphicImage(c.image)
 
 	c.button.Render(screen, def)
 }
@@ -119,8 +114,7 @@ func (c *Checkbox) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 func (c *Checkbox) createWidget() {
 	c.button = NewButton(
 		append(c.buttonOpts, []ButtonOpt{
-			ButtonOpts.WithImage(c.image.Button),
-			ButtonOpts.WithGraphic(c.image.Graphic.Unchecked.Idle),
+			ButtonOpts.WithGraphic(c.image.Unchecked.Idle),
 
 			ButtonOpts.WithClickedHandler(func(args *ButtonClickedEventArgs) {
 				c.SetState(c.state.advance(c.triState))

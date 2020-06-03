@@ -82,27 +82,21 @@ func NewList(opts ...ListOpt) *List {
 	return l
 }
 
-func (o listOpts) WithLayoutData(ld interface{}) ListOpt {
+func (o listOpts) WithContainerOpt(opt ContainerOpt) ListOpt {
 	return func(l *List) {
-		l.containerOpts = append(l.containerOpts, ContainerOpts.WithLayoutData(ld))
+		l.containerOpts = append(l.containerOpts, opt)
 	}
 }
 
-func (o listOpts) WithImage(i *ScrollContainerImage) ListOpt {
+func (o listOpts) WithScrollContainerOpt(opt ScrollContainerOpt) ListOpt {
 	return func(l *List) {
-		l.scrollContainerOpts = append(l.scrollContainerOpts, ScrollContainerOpts.WithImage(i))
+		l.scrollContainerOpts = append(l.scrollContainerOpts, opt)
 	}
 }
 
-func (o listOpts) WithPadding(p Insets) ListOpt {
+func (o listOpts) WithSliderOpt(opt SliderOpt) ListOpt {
 	return func(l *List) {
-		l.scrollContainerOpts = append(l.scrollContainerOpts, ScrollContainerOpts.WithPadding(p))
-	}
-}
-
-func (o listOpts) WithSliderImages(track *SliderTrackImage, handle *ButtonImage) ListOpt {
-	return func(l *List) {
-		l.sliderOpts = append(l.sliderOpts, SliderOpts.WithImages(track, handle))
+		l.sliderOpts = append(l.sliderOpts, opt)
 	}
 }
 
@@ -230,9 +224,9 @@ func (l *List) createWidget() {
 	for _, e := range l.entries {
 		e := e
 		but := NewButton(
-			ButtonOpts.WithLayoutData(&RowLayoutData{
+			ButtonOpts.WithWidgetOpt(WidgetOpts.WithLayoutData(&RowLayoutData{
 				Stretch: true,
-			}),
+			})),
 			ButtonOpts.WithImage(l.entryUnselectedColor),
 			ButtonOpts.WithTextSimpleLeft(l.entryLabelFunc(e), l.entryFace, l.entryTextColor, Insets{
 				Left:   6,

@@ -15,7 +15,6 @@ type ListComboButton struct {
 
 	buttonOpts []SelectComboButtonOpt
 	listOpts   []ListOpt
-	firstEntry interface{}
 
 	init               *MultiOnce
 	button             *SelectComboButton
@@ -53,48 +52,19 @@ func NewListComboButton(opts ...ListComboButtonOpt) *ListComboButton {
 	return l
 }
 
-func (o listComboButtonOpts) WithLayoutData(ld interface{}) ListComboButtonOpt {
+func (o listComboButtonOpts) WithSelectComboButtonOpt(opt SelectComboButtonOpt) ListComboButtonOpt {
 	return func(l *ListComboButton) {
-		l.buttonOpts = append(l.buttonOpts, SelectComboButtonOpts.WithLayoutData(ld))
-	}
-}
-
-func (o listComboButtonOpts) WithImage(i *ButtonImage) ListComboButtonOpt {
-	return func(l *ListComboButton) {
-		l.buttonOpts = append(l.buttonOpts, SelectComboButtonOpts.WithImage(i))
+		l.buttonOpts = append(l.buttonOpts, opt)
 	}
 }
 
 func (o listComboButtonOpts) WithText(face font.Face, image *ButtonImageImage, color *ButtonTextColor) ListComboButtonOpt {
-	return func(l *ListComboButton) {
-		l.buttonOpts = append(l.buttonOpts, SelectComboButtonOpts.WithTextAndImage("", face, image, color))
-	}
+	return o.WithSelectComboButtonOpt(SelectComboButtonOpts.WithComboButtonOpt(ComboButtonOpts.WithButtonOpt(ButtonOpts.WithTextAndImage("", face, image, color))))
 }
 
-func (o listComboButtonOpts) WithListImage(i *ScrollContainerImage) ListComboButtonOpt {
+func (o listComboButtonOpts) WithListOpt(opt ListOpt) ListComboButtonOpt {
 	return func(l *ListComboButton) {
-		l.listOpts = append(l.listOpts, ListOpts.WithImage(i))
-	}
-}
-
-func (o listComboButtonOpts) WithListPadding(p Insets) ListComboButtonOpt {
-	return func(l *ListComboButton) {
-		l.listOpts = append(l.listOpts, ListOpts.WithPadding(p))
-	}
-}
-
-func (o listComboButtonOpts) WithListSliderImages(track *SliderTrackImage, handle *ButtonImage) ListComboButtonOpt {
-	return func(l *ListComboButton) {
-		l.listOpts = append(l.listOpts, ListOpts.WithSliderImages(track, handle))
-	}
-}
-
-func (o listComboButtonOpts) WithEntries(e []interface{}) ListComboButtonOpt {
-	return func(l *ListComboButton) {
-		l.listOpts = append(l.listOpts, ListOpts.WithEntries(e))
-		if len(e) > 0 {
-			l.firstEntry = e[0]
-		}
+		l.listOpts = append(l.listOpts, opt)
 	}
 }
 
@@ -102,18 +72,6 @@ func (o listComboButtonOpts) WithEntryLabelFunc(button SelectComboButtonEntryLab
 	return func(l *ListComboButton) {
 		l.buttonOpts = append(l.buttonOpts, SelectComboButtonOpts.WithEntryLabelFunc(button))
 		l.listOpts = append(l.listOpts, ListOpts.WithEntryLabelFunc(list))
-	}
-}
-
-func (o listComboButtonOpts) WithEntryFontFace(f font.Face) ListComboButtonOpt {
-	return func(l *ListComboButton) {
-		l.listOpts = append(l.listOpts, ListOpts.WithEntryFontFace(f))
-	}
-}
-
-func (o listComboButtonOpts) WithEntryColor(c *ListEntryColor) ListComboButtonOpt {
-	return func(l *ListComboButton) {
-		l.listOpts = append(l.listOpts, ListOpts.WithEntryColor(c))
 	}
 }
 
@@ -168,12 +126,16 @@ func (l *ListComboButton) createWidget() {
 	l.listOpts = nil
 
 	l.button = NewSelectComboButton(append(l.buttonOpts,
-		SelectComboButtonOpts.WithContent(l.list),
+		SelectComboButtonOpts.WithComboButtonOpt(ComboButtonOpts.WithContent(l.list)),
 	)...)
 	l.buttonOpts = nil
 
-	l.button.SetSelectedEntry(l.firstEntry)
-	l.list.SetSelectedEntry(l.firstEntry)
+	// FIXME: shouldn't access list.entries directly
+	if len(l.list.entries) > 0 {
+		firstEntry := l.list.entries[0]
+		l.button.SetSelectedEntry(firstEntry)
+		l.list.SetSelectedEntry(firstEntry)
+	}
 
 	l.button.EntrySelectedEvent.AddHandler(func(args interface{}) {
 		a := args.(*SelectComboButtonEntrySelectedEventArgs)

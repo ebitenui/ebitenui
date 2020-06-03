@@ -77,14 +77,15 @@ func newSelectComboButton(t *testing.T, opts ...SelectComboButtonOpt) *SelectCom
 	t.Helper()
 
 	b := NewSelectComboButton(append(opts, []SelectComboButtonOpt{
-		SelectComboButtonOpts.WithTextAndImage("", loadFont(t), &ButtonImageImage{
+		SelectComboButtonOpts.WithComboButtonOpt(ComboButtonOpts.WithButtonOpt(ButtonOpts.WithTextAndImage("", loadFont(t), &ButtonImageImage{
 			Idle:     newImageEmpty(t),
 			Disabled: newImageEmpty(t),
 		}, &ButtonTextColor{
 			Idle:     color.Transparent,
 			Disabled: color.Transparent,
-		}),
-		SelectComboButtonOpts.WithContent(newButton(t)),
+		}))),
+
+		SelectComboButtonOpts.WithComboButtonOpt(ComboButtonOpts.WithContent(newButton(t))),
 	}...)...)
 
 	event.FireDeferredEvents()

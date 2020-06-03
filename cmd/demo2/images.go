@@ -84,8 +84,8 @@ func loadImages() (*images, error) {
 	}
 
 	heart, err := loadGraphicImages(
-		"graphics/heart.png",
-		"graphics/heart.png")
+		"graphics/heart-idle.png",
+		"graphics/heart-disabled.png")
 	if err != nil {
 		return nil, err
 	}

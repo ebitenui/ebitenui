@@ -17,6 +17,9 @@ type Text struct {
 	Face  font.Face
 	Color color.Color
 
+	widgetOpts []WidgetOpt
+
+	init                      *MultiOnce
 	widget                    *Widget
 	lastLabelForPreferredSize string
 	lastFaceForPreferredSize  font.Face
@@ -32,8 +35,10 @@ type textOpts bool
 
 func NewText(opts ...TextOpt) *Text {
 	t := &Text{
-		widget: NewWidget(),
+		init: &MultiOnce{},
 	}
+
+	t.init.Append(t.createWidget)
 
 	for _, o := range opts {
 		o(t)
@@ -42,9 +47,9 @@ func NewText(opts ...TextOpt) *Text {
 	return t
 }
 
-func WithTextLayoutData(ld interface{}) TextOpt {
+func (o textOpts) WithWidgetOpt(opt WidgetOpt) TextOpt {
 	return func(t *Text) {
-		WidgetOpts.WithLayoutData(ld)(t.widget)
+		t.widgetOpts = append(t.widgetOpts, opt)
 	}
 }
 
@@ -57,14 +62,18 @@ func (o textOpts) WithText(label string, face font.Face, color color.Color) Text
 }
 
 func (t *Text) GetWidget() *Widget {
+	t.init.Do()
 	return t.widget
 }
 
 func (t *Text) SetLocation(rect image.Rectangle) {
+	t.init.Do()
 	t.widget.Rect = rect
 }
 
 func (t *Text) PreferredSize() (int, int) {
+	t.init.Do()
+
 	if t.Label == t.lastLabelForPreferredSize && t.Face == t.lastFaceForPreferredSize {
 		return t.preferredWidth, t.preferredHeight
 	}
@@ -95,6 +104,7 @@ func (t *Text) PreferredSize() (int, int) {
 }
 
 func (t *Text) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+	t.init.Do()
 	t.widget.Render(screen, def)
 	t.draw(screen)
 }
@@ -110,4 +120,9 @@ func (t *Text) draw(screen *ebiten.Image) {
 	y := p.Y + (r.Dy()-h)/2 + t.Face.Metrics().Ascent.Round()
 
 	text.Draw(screen, t.Label, t.Face, x, y, t.Color)
+}
+
+func (t *Text) createWidget() {
+	t.widget = NewWidget(t.widgetOpts...)
+	t.widgetOpts = nil
 }

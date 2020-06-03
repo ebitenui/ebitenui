@@ -84,14 +84,13 @@ func newCheckbox(t *testing.T, opts ...CheckboxOpt) *Checkbox {
 	t.Helper()
 
 	c := NewCheckbox(append(opts, []CheckboxOpt{
-		CheckboxOpts.WithImage(&CheckboxImage{
-			Button: &ButtonImage{
-				Idle: newNineSliceEmpty(t),
-			},
-			Graphic: &CheckboxGraphicImage{
-				Unchecked: &ButtonImageImage{
-					Idle: newImageEmpty(t),
-				},
+		CheckboxOpts.WithButtonOpt(ButtonOpts.WithImage(&ButtonImage{
+			Idle: newNineSliceEmpty(t),
+		})),
+
+		CheckboxOpts.WithImage(&CheckboxGraphicImage{
+			Unchecked: &ButtonImageImage{
+				Idle: newImageEmpty(t),
 			},
 		}),
 	}...)...)

@@ -65,9 +65,9 @@ func createUI() *ebitenui.UI {
 	var button2 *widget.Button
 
 	button1 = widget.NewButton(
-		widget.ButtonOpts.WithLayoutData(&widget.RowLayoutData{
+		widget.ButtonOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 			Stretch: true,
-		}),
+		})),
 		widget.ButtonOpts.WithImage(images.button),
 
 		widget.ButtonOpts.WithClickedHandler(func(args *widget.ButtonClickedEventArgs) {
@@ -77,9 +77,9 @@ func createUI() *ebitenui.UI {
 	rootContainer.AddChild(button1)
 
 	button2 = widget.NewButton(
-		widget.ButtonOpts.WithLayoutData(&widget.RowLayoutData{
+		widget.ButtonOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 			Stretch: true,
-		}),
+		})),
 		widget.ButtonOpts.WithImage(images.button),
 		widget.ButtonOpts.WithText("foobar\nTy", fontFace, &widget.ButtonTextColor{
 			Idle:     color.Black,
@@ -93,17 +93,17 @@ func createUI() *ebitenui.UI {
 	rootContainer.AddChild(button2)
 
 	label := widget.NewText(
-		widget.WithTextLayoutData(&widget.RowLayoutData{
+		widget.TextOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 			Stretch: true,
-		}),
+		})),
 		widget.TextOpts.WithText("hallo", fontFace, color.Black))
 
 	rootContainer.AddChild(label)
 
 	rootContainer.AddChild(widget.NewButton(
-		widget.ButtonOpts.WithLayoutData(&widget.RowLayoutData{
+		widget.ButtonOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 			Stretch: true,
-		}),
+		})),
 		widget.ButtonOpts.WithImage(images.button),
 		widget.ButtonOpts.WithText("bleh", fontFace, &widget.ButtonTextColor{
 			Idle:     color.Black,
@@ -111,11 +111,11 @@ func createUI() *ebitenui.UI {
 		})))
 
 	rootContainer.AddChild(widget.NewComboButton(
-		widget.ComboButtonOpts.WithImage(images.button),
-		widget.ComboButtonOpts.WithTextAndImage("Combo", fontFace, images.arrowDown, &widget.ButtonTextColor{
+		widget.ComboButtonOpts.WithButtonOpt(widget.ButtonOpts.WithImage(images.button)),
+		widget.ComboButtonOpts.WithButtonOpt(widget.ButtonOpts.WithTextAndImage("Combo", fontFace, images.arrowDown, &widget.ButtonTextColor{
 			Idle:     color.Black,
 			Disabled: color.RGBA{128, 128, 128, 255},
-		}),
+		})),
 		widget.ComboButtonOpts.WithContent(widget.NewButton(
 			widget.ButtonOpts.WithImage(images.button),
 			widget.ButtonOpts.WithText("foobar qux", fontFace, &widget.ButtonTextColor{
@@ -129,15 +129,15 @@ func createUI() *ebitenui.UI {
 	}
 
 	rootContainer.AddChild(widget.NewListComboButton(
-		widget.ListComboButtonOpts.WithImage(images.button),
+		widget.ListComboButtonOpts.WithSelectComboButtonOpt(widget.SelectComboButtonOpts.WithComboButtonOpt(widget.ComboButtonOpts.WithButtonOpt(widget.ButtonOpts.WithImage(images.button)))),
 		widget.ListComboButtonOpts.WithText(fontFace, images.arrowDown, &widget.ButtonTextColor{
 			Idle:     color.Black,
 			Disabled: color.RGBA{128, 128, 128, 255},
 		}),
-		widget.ListComboButtonOpts.WithListImage(images.scrollContainer),
-		widget.ListComboButtonOpts.WithListPadding(widget.NewInsetsSimple(2)),
-		widget.ListComboButtonOpts.WithListSliderImages(images.sliderTrack, images.button),
-		widget.ListComboButtonOpts.WithEntries(entries),
+		widget.ListComboButtonOpts.WithListOpt(widget.ListOpts.WithScrollContainerOpt(widget.ScrollContainerOpts.WithImage(images.scrollContainer))),
+		widget.ListComboButtonOpts.WithListOpt(widget.ListOpts.WithScrollContainerOpt(widget.ScrollContainerOpts.WithPadding(widget.NewInsetsSimple(2)))),
+		widget.ListComboButtonOpts.WithListOpt(widget.ListOpts.WithSliderOpt(widget.SliderOpts.WithImages(images.sliderTrack, images.button))),
+		widget.ListComboButtonOpts.WithListOpt(widget.ListOpts.WithEntries(entries)),
 		widget.ListComboButtonOpts.WithEntryLabelFunc(
 			func(e interface{}) string {
 				return fmt.Sprintf("Entry %d", e.(int))
@@ -145,8 +145,8 @@ func createUI() *ebitenui.UI {
 			func(e interface{}) string {
 				return fmt.Sprintf("Entry %d", e.(int))
 			}),
-		widget.ListComboButtonOpts.WithEntryFontFace(fontFace),
-		widget.ListComboButtonOpts.WithEntryColor(&widget.ListEntryColor{
+		widget.ListComboButtonOpts.WithListOpt(widget.ListOpts.WithEntryFontFace(fontFace)),
+		widget.ListComboButtonOpts.WithListOpt(widget.ListOpts.WithEntryColor(&widget.ListEntryColor{
 			Unselected:           color.Black,
 			Selected:             color.Black,
 			UnselectedBackground: color.White,
@@ -156,7 +156,7 @@ func createUI() *ebitenui.UI {
 			DisabledSelected:             color.Black,
 			DisabledUnselectedBackground: color.White,
 			DisabledSelectedBackground:   color.RGBA{128, 128, 128, 255},
-		}),
+		})),
 
 		widget.ListComboButtonOpts.WithEntrySelectedHandler(func(args *widget.ListComboButtonEntrySelectedEventArgs) {
 			println("entry selected:", args.Entry.(int))
@@ -164,11 +164,11 @@ func createUI() *ebitenui.UI {
 	))
 
 	slider := widget.NewSlider(
-		widget.SliderOpts.WithDirection(widget.DirectionHorizontal),
-		widget.SliderOpts.WithLayoutData(&widget.RowLayoutData{
+		widget.SliderOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 			Stretch:  true,
 			MaxWidth: 250,
-		}),
+		})),
+		widget.SliderOpts.WithDirection(widget.DirectionHorizontal),
 		widget.SliderOpts.WithImages(images.sliderTrack, images.button),
 
 		widget.SliderOpts.WithChangedHandler(func(args *widget.SliderChangedEventArgs) {
@@ -178,10 +178,10 @@ func createUI() *ebitenui.UI {
 	rootContainer.AddChild(slider)
 
 	rootContainer.AddChild(widget.NewButton(
-		widget.ButtonOpts.WithLayoutData(&widget.RowLayoutData{
+		widget.ButtonOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 			Stretch:  true,
 			MaxWidth: 250,
-		}),
+		})),
 		widget.ButtonOpts.WithImage(images.button),
 		widget.ButtonOpts.WithText("Disable", fontFace, &widget.ButtonTextColor{
 			Idle:     color.Black,
@@ -204,10 +204,10 @@ func createUI() *ebitenui.UI {
 		})))
 
 	rootContainer.AddChild(widget.NewList(
-		widget.ListOpts.WithLayoutData(&widget.RowLayoutData{
+		widget.ListOpts.WithContainerOpt(widget.ContainerOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 			Stretch:   true,
 			MaxHeight: 200,
-		}),
+		}))),
 		widget.ListOpts.WithEntries(entries),
 		widget.ListOpts.WithEntryLabelFunc(func(e interface{}) string {
 			return fmt.Sprintf("Entry %d", e.(int))
@@ -224,10 +224,10 @@ func createUI() *ebitenui.UI {
 			DisabledSelectedBackground:   color.RGBA{128, 128, 128, 255},
 		}),
 		widget.ListOpts.WithEntryFontFace(fontFace),
-		widget.ListOpts.WithImage(images.scrollContainer),
-		widget.ListOpts.WithSliderImages(images.sliderTrack, images.button),
+		widget.ListOpts.WithScrollContainerOpt(widget.ScrollContainerOpts.WithImage(images.scrollContainer)),
+		widget.ListOpts.WithSliderOpt(widget.SliderOpts.WithImages(images.sliderTrack, images.button)),
 		widget.ListOpts.WithControlWidgetSpacing(2),
-		widget.ListOpts.WithPadding(widget.NewInsetsSimple(2)),
+		widget.ListOpts.WithScrollContainerOpt(widget.ScrollContainerOpts.WithPadding(widget.NewInsetsSimple(2))),
 
 		widget.ListOpts.WithEntrySelectedHandler(func(args *widget.ListEntrySelectedEventArgs) {
 			if args.Entry != args.PreviousEntry {
@@ -239,9 +239,9 @@ func createUI() *ebitenui.UI {
 		widget.TextOpts.WithText("test", fontFace, color.Black)))
 
 	container := widget.NewContainer(
-		widget.ContainerOpts.WithLayoutData(&widget.RowLayoutData{
+		widget.ContainerOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 			Stretch: true,
-		}),
+		})),
 		widget.ContainerOpts.WithLayout(widget.NewGridLayout(
 			widget.GridLayoutOpts.WithPadding(widget.NewInsetsSimple(10)),
 			widget.GridLayoutOpts.WithColumns(3),
@@ -280,9 +280,9 @@ func createUI() *ebitenui.UI {
 	rootContainer.AddChild(pageButtonsContainer)
 
 	flipBook := widget.NewFlipBook(
-		widget.FlipBookOpts.WithLayoutData(&widget.RowLayoutData{
+		widget.FlipBookOpts.WithContainerOpt(widget.ContainerOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 			Stretch: true,
-		}))
+		}))))
 	rootContainer.AddChild(flipBook)
 
 	pages := []widget.HasWidget{}
@@ -312,11 +312,8 @@ func createUI() *ebitenui.UI {
 
 	rootContainer.AddChild(widget.NewCheckbox(
 		widget.CheckboxOpts.WithTriState(),
-		widget.CheckboxOpts.WithImage(&widget.CheckboxImage{
-			Button:  images.button,
-			Graphic: images.checkbox,
-		}),
-	))
+		widget.CheckboxOpts.WithButtonOpt(widget.ButtonOpts.WithImage(images.button)),
+		widget.CheckboxOpts.WithImage(images.checkbox)))
 
 	return &ebitenui.UI{
 		Container: rootContainer,

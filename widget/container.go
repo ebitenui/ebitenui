@@ -13,8 +13,10 @@ type Container struct {
 	BackgroundImage     *image.NineSlice
 	AutoDisableChildren bool
 
-	layout Layouter
+	widgetOpts []WidgetOpt
+	layout     Layouter
 
+	init     *MultiOnce
 	widget   *Widget
 	children []HasWidget
 }
@@ -29,8 +31,10 @@ type containerOpts bool
 
 func NewContainer(opts ...ContainerOpt) *Container {
 	c := &Container{
-		widget: NewWidget(),
+		init: &MultiOnce{},
 	}
+
+	c.init.Append(c.createWidget)
 
 	for _, o := range opts {
 		o(c)
@@ -39,9 +43,9 @@ func NewContainer(opts ...ContainerOpt) *Container {
 	return c
 }
 
-func (o containerOpts) WithLayoutData(ld interface{}) ContainerOpt {
+func (o containerOpts) WithWidgetOpt(opt WidgetOpt) ContainerOpt {
 	return func(c *Container) {
-		WidgetOpts.WithLayoutData(ld)(c.widget)
+		c.widgetOpts = append(c.widgetOpts, opt)
 	}
 }
 
@@ -64,6 +68,8 @@ func (o containerOpts) WithLayout(layout Layouter) ContainerOpt {
 }
 
 func (c *Container) AddChild(child HasWidget) RemoveChildFunc {
+	c.init.Do()
+
 	if child == nil {
 		panic("cannot add nil child")
 	}
@@ -100,6 +106,8 @@ func (c *Container) removeChild(child HasWidget) {
 }
 
 func (c *Container) RequestRelayout() {
+	c.init.Do()
+
 	if c.layout != nil {
 		if d, ok := c.layout.(Dirtyable); ok {
 			d.MarkDirty()
@@ -114,10 +122,13 @@ func (c *Container) RequestRelayout() {
 }
 
 func (c *Container) GetWidget() *Widget {
+	c.init.Do()
 	return c.widget
 }
 
 func (c *Container) PreferredSize() (int, int) {
+	c.init.Do()
+
 	if c.layout == nil {
 		return 50, 50
 	}
@@ -126,10 +137,13 @@ func (c *Container) PreferredSize() (int, int) {
 }
 
 func (c *Container) SetLocation(rect img.Rectangle) {
+	c.init.Do()
 	c.widget.Rect = rect
 }
 
 func (c *Container) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+	c.init.Do()
+
 	if c.AutoDisableChildren {
 		for _, ch := range c.children {
 			ch.GetWidget().Disabled = c.widget.Disabled
@@ -156,6 +170,8 @@ func (c *Container) doLayout() {
 }
 
 func (c *Container) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
+	c.init.Do()
+
 	for _, ch := range c.children {
 		if il, ok := ch.(input.InputLayerer); ok {
 			il.SetupInputLayer(def)
@@ -167,4 +183,9 @@ func (c *Container) draw(screen *ebiten.Image) {
 	if c.BackgroundImage != nil {
 		c.BackgroundImage.Draw(screen, c.widget.Rect.Dx(), c.widget.Rect.Dy(), c.widget.drawImageOptions)
 	}
+}
+
+func (c *Container) createWidget() {
+	c.widget = NewWidget(c.widgetOpts...)
+	c.widgetOpts = nil
 }

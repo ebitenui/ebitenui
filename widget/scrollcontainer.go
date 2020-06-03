@@ -14,11 +14,13 @@ type ScrollContainer struct {
 	ScrollLeft float64
 	ScrollTop  float64
 
+	widgetOpts          []WidgetOpt
 	image               *ScrollContainerImage
 	content             HasWidget
 	padding             Insets
 	stretchContentWidth bool
 
+	init      *MultiOnce
 	widget    *Widget
 	renderBuf *image.BufferedImage
 	maskedBuf *image.BufferedImage
@@ -38,11 +40,13 @@ type scrollContainerOpts bool
 
 func NewScrollContainer(opts ...ScrollContainerOpt) *ScrollContainer {
 	s := &ScrollContainer{
-		widget: NewWidget(),
+		init: &MultiOnce{},
 
 		renderBuf: &image.BufferedImage{},
 		maskedBuf: &image.BufferedImage{},
 	}
+
+	s.init.Append(s.createWidget)
 
 	for _, o := range opts {
 		o(s)
@@ -51,9 +55,9 @@ func NewScrollContainer(opts ...ScrollContainerOpt) *ScrollContainer {
 	return s
 }
 
-func (o scrollContainerOpts) WithLayoutData(ld interface{}) ScrollContainerOpt {
+func (o scrollContainerOpts) WithWidgetOpt(opt WidgetOpt) ScrollContainerOpt {
 	return func(s *ScrollContainer) {
-		WidgetOpts.WithLayoutData(ld)(s.widget)
+		s.widgetOpts = append(s.widgetOpts, opt)
 	}
 }
 
@@ -82,14 +86,18 @@ func (o scrollContainerOpts) WithStretchContentWidth() ScrollContainerOpt {
 }
 
 func (s *ScrollContainer) GetWidget() *Widget {
+	s.init.Do()
 	return s.widget
 }
 
 func (s *ScrollContainer) SetLocation(rect img.Rectangle) {
+	s.init.Do()
 	s.widget.Rect = rect
 }
 
 func (s *ScrollContainer) PreferredSize() (int, int) {
+	s.init.Do()
+
 	if s.content == nil {
 		return 50, 50
 	}
@@ -104,6 +112,8 @@ func (s *ScrollContainer) PreferredSize() (int, int) {
 }
 
 func (s *ScrollContainer) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
+	s.init.Do()
+
 	s.content.GetWidget().ElevateToNewInputLayer(&input.Layer{
 		DebugLabel: "scroll container content",
 		EventTypes: input.LayerEventTypeAll ^ input.LayerEventTypeWheel,
@@ -118,6 +128,8 @@ func (s *ScrollContainer) SetupInputLayer(def input.DeferredSetupInputLayerFunc)
 }
 
 func (s *ScrollContainer) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+	s.init.Do()
+
 	s.clampScroll()
 
 	s.widget.Render(screen, def)
@@ -212,6 +224,7 @@ func (s *ScrollContainer) renderContent(screen *ebiten.Image, def DeferredRender
 }
 
 func (s *ScrollContainer) ContentRect() img.Rectangle {
+	s.init.Do()
 	return s.padding.Apply(s.widget.Rect)
 }
 
@@ -227,4 +240,9 @@ func (s *ScrollContainer) clampScroll() {
 	} else if s.ScrollLeft > 1 {
 		s.ScrollLeft = 1
 	}
+}
+
+func (s *ScrollContainer) createWidget() {
+	s.widget = NewWidget(s.widgetOpts...)
+	s.widgetOpts = nil
 }

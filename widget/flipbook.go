@@ -3,8 +3,6 @@ package widget
 import (
 	img "image"
 
-	"github.com/blizzy78/ebitenui/image"
-
 	"github.com/hajimehoshi/ebiten"
 )
 
@@ -42,10 +40,10 @@ func NewFlipBook(opts ...FlipBookOpt) *FlipBook {
 	return f
 }
 
-// WithLayoutData configures a FlipBook with layout data ld.
-func (o flipBookOpts) WithLayoutData(ld interface{}) FlipBookOpt {
+// WithContainerOpt configures a FlipBook with opt.
+func (o flipBookOpts) WithContainerOpt(opt ContainerOpt) FlipBookOpt {
 	return func(f *FlipBook) {
-		f.containerOpts = append(f.containerOpts, ContainerOpts.WithLayoutData(ld))
+		f.containerOpts = append(f.containerOpts, opt)
 	}
 }
 
@@ -53,21 +51,6 @@ func (o flipBookOpts) WithLayoutData(ld interface{}) FlipBookOpt {
 func (o flipBookOpts) WithPadding(i Insets) FlipBookOpt {
 	return func(f *FlipBook) {
 		f.fillLayoutOpts = append(f.fillLayoutOpts, FillLayoutOpts.WithPadding(i))
-	}
-}
-
-// WithBackgroundImage configures a FlipBook to use background image i.
-func (o flipBookOpts) WithBackgroundImage(i *image.NineSlice) FlipBookOpt {
-	return func(f *FlipBook) {
-		f.containerOpts = append(f.containerOpts, ContainerOpts.WithBackgroundImage(i))
-	}
-}
-
-// WithAutoDisableChildren configures a FlipBook to automatically enable or disable the current page's
-// Widget when the FlipBook is enabled or disabled.
-func (o flipBookOpts) WithAutoDisableChildren() FlipBookOpt {
-	return func(f *FlipBook) {
-		f.containerOpts = append(f.containerOpts, ContainerOpts.WithAutoDisableChildren())
 	}
 }
 

@@ -79,8 +79,8 @@ func createUI() (*ebitenui.UI, font.Face, font.Face) {
 		widget.ListOpts.WithEntryLabelFunc(func(e interface{}) string {
 			return e.(*page).title
 		}),
-		widget.ListOpts.WithImage(images.scrollContainer),
-		widget.ListOpts.WithPadding(widget.NewInsetsSimple(2)),
+		widget.ListOpts.WithScrollContainerOpt(widget.ScrollContainerOpts.WithImage(images.scrollContainer)),
+		widget.ListOpts.WithScrollContainerOpt(widget.ScrollContainerOpts.WithPadding(widget.NewInsetsSimple(2))),
 		widget.ListOpts.WithEntryColor(&widget.ListEntryColor{
 			Unselected:           color.Black,
 			Selected:             color.Black,
@@ -93,7 +93,7 @@ func createUI() (*ebitenui.UI, font.Face, font.Face) {
 			DisabledSelectedBackground:   color.RGBA{128, 128, 128, 255},
 		}),
 		widget.ListOpts.WithEntryFontFace(fontFace),
-		widget.ListOpts.WithSliderImages(images.sliderTrack, images.button),
+		widget.ListOpts.WithSliderOpt(widget.SliderOpts.WithImages(images.sliderTrack, images.button)),
 		widget.ListOpts.WithHideHorizontalSlider(),
 		widget.ListOpts.WithHideVerticalSlider(),
 		widget.ListOpts.WithControlWidgetSpacing(2),
@@ -120,9 +120,9 @@ func createUI() (*ebitenui.UI, font.Face, font.Face) {
 	pageContainer.AddChild(pageTitleText)
 
 	pageFlipBook = widget.NewFlipBook(
-		widget.FlipBookOpts.WithLayoutData(&widget.RowLayoutData{
+		widget.FlipBookOpts.WithContainerOpt(widget.ContainerOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 			Stretch: true,
-		}))
+		}))))
 	pageContainer.AddChild(pageFlipBook)
 
 	pageList.SetSelectedEntry(pages[0])
@@ -398,42 +398,69 @@ func buttonPage(images *images, fontFace font.Face) *page {
 			widget.RowLayoutOpts.WithSpacing(10),
 		)))
 
-	c.AddChild(widget.NewButton(
-		widget.ButtonOpts.WithLayoutData(&widget.RowLayoutData{
+	b1 := widget.NewButton(
+		widget.ButtonOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 			Stretch: true,
-		}),
+		})),
 		widget.ButtonOpts.WithImage(images.button),
 		widget.ButtonOpts.WithText("Button", fontFace, &widget.ButtonTextColor{
 			Idle:     color.Black,
 			Disabled: color.RGBA{128, 128, 128, 255},
-		})))
-
-	b := widget.NewButton(
-		widget.ButtonOpts.WithLayoutData(&widget.RowLayoutData{
-			Stretch: true,
-		}),
-		widget.ButtonOpts.WithImage(images.button),
-		widget.ButtonOpts.WithText("Disabled Button", fontFace, &widget.ButtonTextColor{
-			Idle:     color.Black,
-			Disabled: color.RGBA{128, 128, 128, 255},
 		}))
-	b.GetWidget().Disabled = true
-	c.AddChild(b)
+	c.AddChild(b1)
 
-	c.AddChild(widget.NewButton(
-		widget.ButtonOpts.WithLayoutData(&widget.RowLayoutData{
+	b2 := widget.NewButton(
+		widget.ButtonOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 			Stretch: true,
-		}),
+		})),
 		widget.ButtonOpts.WithImage(images.button),
 		widget.ButtonOpts.WithTextAndImage("Button with Graphic", fontFace, images.heart, &widget.ButtonTextColor{
 			Idle:     color.Black,
 			Disabled: color.RGBA{128, 128, 128, 255},
-		})))
+		}))
+	c.AddChild(b2)
+
+	c.AddChild(newSeparator(&widget.RowLayoutData{
+		Stretch: true,
+	}))
+
+	c.AddChild(widget.NewLabeledCheckbox(
+		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithButtonOpt(widget.ButtonOpts.WithImage(images.button))),
+		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithImage(images.checkbox)),
+		widget.LabeledCheckboxOpts.WithTextOpt(widget.TextOpts.WithText("Disabled", fontFace, color.Black)),
+
+		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
+			b1.GetWidget().Disabled = args.State == widget.CheckboxChecked
+			b2.GetWidget().Disabled = args.State == widget.CheckboxChecked
+		})),
+	))
 
 	return &page{
 		title:   "Button",
 		content: c,
 	}
+}
+
+func newSeparator(ld interface{}) widget.HasWidget {
+	c := widget.NewContainer(
+		widget.ContainerOpts.WithLayout(
+			widget.NewRowLayout(
+				widget.RowLayoutOpts.WithDirection(widget.DirectionVertical),
+				widget.RowLayoutOpts.WithPadding(widget.Insets{
+					Top:    15,
+					Bottom: 15,
+				}))),
+		widget.ContainerOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(ld)))
+
+	c.AddChild(widget.NewGraphic(
+		widget.GraphicOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+			Stretch:   true,
+			MaxHeight: 2,
+		})),
+		widget.GraphicOpts.WithImageNineSlice(ebimage.NewNineSliceColor(color.RGBA{192, 192, 192, 255})),
+	))
+
+	return c
 }
 
 func loadFonts() (font.Face, font.Face, error) {
