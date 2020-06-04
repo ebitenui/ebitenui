@@ -144,7 +144,9 @@ func (o buttonOpts) WithText(label string, face font.Face, color *ButtonTextColo
 					}))),
 				ContainerOpts.WithAutoDisableChildren())
 
-			b.text = NewText(TextOpts.WithText(label, face, color.Idle))
+			b.text = NewText(
+				TextOpts.WithText(label, face, color.Idle),
+				TextOpts.WithPosition(TextPositionCenter))
 			b.container.AddChild(b.text)
 
 			b.autoUpdateTextAndGraphic = true
