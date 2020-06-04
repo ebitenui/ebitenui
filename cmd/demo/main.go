@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"image"
+	img "image"
 	"io/ioutil"
 	"log"
 
@@ -14,7 +14,7 @@ import (
 	_ "image/png"
 
 	"github.com/blizzy78/ebitenui"
-	ebimage "github.com/blizzy78/ebitenui/image"
+	"github.com/blizzy78/ebitenui/image"
 	"github.com/blizzy78/ebitenui/widget"
 )
 
@@ -59,7 +59,7 @@ func createUI() *ebitenui.UI {
 			widget.RowLayoutOpts.WithDirection(widget.DirectionVertical),
 			widget.RowLayoutOpts.WithPadding(widget.NewInsetsSimple(20)),
 			widget.RowLayoutOpts.WithSpacing(10))),
-		widget.ContainerOpts.WithBackgroundImage(ebimage.NewNineSliceColor(color.White)))
+		widget.ContainerOpts.WithBackgroundImage(image.NewNineSliceColor(color.White)))
 
 	var button1 *widget.Button
 	var button2 *widget.Button
@@ -243,7 +243,7 @@ func createUI() *ebitenui.UI {
 			widget.GridLayoutOpts.WithColumns(3),
 			widget.GridLayoutOpts.WithStretch([]bool{false, true, true}, nil),
 			widget.GridLayoutOpts.WithSpacing(2, 2))),
-		widget.ContainerOpts.WithBackgroundImage(ebimage.NewNineSliceColor(color.RGBA{0, 0, 255, 255})))
+		widget.ContainerOpts.WithBackgroundImage(image.NewNineSliceColor(color.RGBA{0, 0, 255, 255})))
 
 	for i := 0; i < 9; i++ {
 		var c color.Color
@@ -254,7 +254,7 @@ func createUI() *ebitenui.UI {
 		}
 
 		cont := widget.NewContainer(
-			widget.ContainerOpts.WithBackgroundImage(ebimage.NewNineSliceColor(c)))
+			widget.ContainerOpts.WithBackgroundImage(image.NewNineSliceColor(c)))
 
 		if i%3 == 0 {
 			cont.GetWidget().LayoutData = &widget.GridLayoutData{
@@ -345,7 +345,7 @@ func (g *game) Update(screen *ebiten.Image) error {
 
 func (g *game) Draw(screen *ebiten.Image) {
 	w, h := screen.Size()
-	g.ui.Draw(screen, image.Rect(0, 0, w, h))
+	g.ui.Draw(screen, img.Rect(0, 0, w, h))
 
 	// if firstRender {
 	// 	stopper := profile.Start(profile.CPUProfile, profile.ProfilePath("."), profile.NoShutdownHook)

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"image"
+	img "image"
 	"log"
 
 	"github.com/hajimehoshi/ebiten"
@@ -10,7 +10,7 @@ import (
 	_ "image/png"
 
 	"github.com/blizzy78/ebitenui"
-	ebimage "github.com/blizzy78/ebitenui/image"
+	"github.com/blizzy78/ebitenui/image"
 	"github.com/blizzy78/ebitenui/widget"
 )
 
@@ -60,7 +60,7 @@ func createUI() (*ebitenui.UI, *fonts) {
 			widget.GridLayoutOpts.WithStretch([]bool{true}, []bool{false, true}),
 			widget.GridLayoutOpts.WithPadding(widget.NewInsetsSimple(20)),
 			widget.GridLayoutOpts.WithSpacing(0, 20))),
-		widget.ContainerOpts.WithBackgroundImage(ebimage.NewNineSliceColor(color.White)))
+		widget.ContainerOpts.WithBackgroundImage(image.NewNineSliceColor(color.White)))
 
 	rootContainer.AddChild(widget.NewText(
 		widget.TextOpts.WithText("Ebiten UI Demo", fonts.bigTitleFace, color.Black)))
@@ -612,7 +612,7 @@ func newSeparator(widgetOpts ...widget.WidgetOpt) widget.HasWidget {
 			Stretch:   true,
 			MaxHeight: 2,
 		})),
-		widget.GraphicOpts.WithImageNineSlice(ebimage.NewNineSliceColor(color.RGBA{192, 192, 192, 255})),
+		widget.GraphicOpts.WithImageNineSlice(image.NewNineSliceColor(color.RGBA{192, 192, 192, 255})),
 	))
 
 	return c
@@ -629,5 +629,5 @@ func (g *game) Update(screen *ebiten.Image) error {
 
 func (g *game) Draw(screen *ebiten.Image) {
 	w, h := screen.Size()
-	g.ui.Draw(screen, image.Rect(0, 0, w, h))
+	g.ui.Draw(screen, img.Rect(0, 0, w, h))
 }

@@ -1,12 +1,12 @@
 package widget
 
 import (
-	"image"
+	img "image"
 	"image/color"
 	"math"
 
 	"github.com/blizzy78/ebitenui/event"
-	ebimage "github.com/blizzy78/ebitenui/image"
+	"github.com/blizzy78/ebitenui/image"
 	"github.com/blizzy78/ebitenui/input"
 
 	"github.com/hajimehoshi/ebiten"
@@ -137,13 +137,13 @@ func (o listOpts) WithEntryFontFace(f font.Face) ListOpt {
 func (o listOpts) WithEntryColor(c *ListEntryColor) ListOpt {
 	return func(l *List) {
 		l.entryUnselectedColor = &ButtonImage{
-			Idle:     ebimage.NewNineSliceColor(color.Transparent),
-			Disabled: ebimage.NewNineSliceColor(color.Transparent),
+			Idle:     image.NewNineSliceColor(color.Transparent),
+			Disabled: image.NewNineSliceColor(color.Transparent),
 		}
 
 		l.entrySelectedColor = &ButtonImage{
-			Idle:     ebimage.NewNineSliceColor(c.SelectedBackground),
-			Disabled: ebimage.NewNineSliceColor(c.DisabledSelectedBackground),
+			Idle:     image.NewNineSliceColor(c.SelectedBackground),
+			Disabled: image.NewNineSliceColor(c.DisabledSelectedBackground),
 		}
 
 		l.entryTextColor = &ButtonTextColor{
@@ -177,7 +177,7 @@ func (l *List) PreferredSize() (int, int) {
 	return l.container.PreferredSize()
 }
 
-func (l *List) SetLocation(rect image.Rectangle) {
+func (l *List) SetLocation(rect img.Rectangle) {
 	l.init.Do()
 	l.container.GetWidget().Rect = rect
 }
