@@ -451,11 +451,18 @@ func checkboxPage(images *images, fontFace font.Face) *page {
 			widget.RowLayoutOpts.WithSpacing(10),
 		)))
 
-	cb := widget.NewLabeledCheckbox(
+	cb1 := widget.NewLabeledCheckbox(
 		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithButtonOpt(widget.ButtonOpts.WithImage(images.button))),
 		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithImage(images.checkbox)),
-		widget.LabeledCheckboxOpts.WithTextOpt(widget.TextOpts.WithText("Disabled", fontFace, color.Black)))
-	c.AddChild(cb)
+		widget.LabeledCheckboxOpts.WithTextOpt(widget.TextOpts.WithText("Two-State Checkbox", fontFace, color.Black)))
+	c.AddChild(cb1)
+
+	cb2 := widget.NewLabeledCheckbox(
+		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithButtonOpt(widget.ButtonOpts.WithImage(images.button))),
+		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithImage(images.checkbox)),
+		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithTriState()),
+		widget.LabeledCheckboxOpts.WithTextOpt(widget.TextOpts.WithText("Tri-State Checkbox", fontFace, color.Black)))
+	c.AddChild(cb2)
 
 	c.AddChild(newSeparator(&widget.RowLayoutData{
 		Stretch: true,
@@ -467,7 +474,8 @@ func checkboxPage(images *images, fontFace font.Face) *page {
 		widget.LabeledCheckboxOpts.WithTextOpt(widget.TextOpts.WithText("Disabled", fontFace, color.Black)),
 
 		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
-			cb.GetWidget().Disabled = args.State == widget.CheckboxChecked
+			cb1.GetWidget().Disabled = args.State == widget.CheckboxChecked
+			cb2.GetWidget().Disabled = args.State == widget.CheckboxChecked
 		})),
 	))
 

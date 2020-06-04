@@ -89,6 +89,7 @@ func (l *LabeledCheckbox) createWidget() {
 	l.container.AddChild(l.checkbox)
 	l.checkboxOpts = nil
 
+	// TODO: this should really be a Label instead of a Text so that it can be disabled
 	l.text = NewText(append(l.textOpts, []TextOpt{
 		TextOpts.WithWidgetOpt(WidgetOpts.WithLayoutData(&RowLayoutData{
 			Position: RowLayoutPositionCenter,
