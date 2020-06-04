@@ -70,6 +70,7 @@ func createUI() (*ebitenui.UI, font.Face, font.Face) {
 	pages := []interface{}{
 		buttonPage(images, fontFace),
 		checkboxPage(images, fontFace),
+		listPage(images, fontFace),
 	}
 
 	var pageContainer *widget.Container
@@ -84,15 +85,13 @@ func createUI() (*ebitenui.UI, font.Face, font.Face) {
 		widget.ListOpts.WithScrollContainerOpt(widget.ScrollContainerOpts.WithImage(images.scrollContainer)),
 		widget.ListOpts.WithScrollContainerOpt(widget.ScrollContainerOpts.WithPadding(widget.NewInsetsSimple(2))),
 		widget.ListOpts.WithEntryColor(&widget.ListEntryColor{
-			Unselected:           color.Black,
-			Selected:             color.Black,
-			UnselectedBackground: color.White,
-			SelectedBackground:   color.RGBA{128, 128, 128, 255},
+			Unselected:         color.Black,
+			Selected:           color.Black,
+			SelectedBackground: color.RGBA{128, 128, 128, 255},
 
-			DisabledUnselected:           color.Black,
-			DisabledSelected:             color.Black,
-			DisabledUnselectedBackground: color.White,
-			DisabledSelectedBackground:   color.RGBA{128, 128, 128, 255},
+			DisabledUnselected:         color.Black,
+			DisabledSelected:           color.Black,
+			DisabledSelectedBackground: color.RGBA{128, 128, 128, 255},
 		}),
 		widget.ListOpts.WithEntryFontFace(fontFace),
 		widget.ListOpts.WithSliderOpt(widget.SliderOpts.WithImages(images.sliderTrack, images.button)),
@@ -423,9 +422,9 @@ func buttonPage(images *images, fontFace font.Face) *page {
 		}))
 	c.AddChild(b2)
 
-	c.AddChild(newSeparator(&widget.RowLayoutData{
+	c.AddChild(newSeparator(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 		Stretch: true,
-	}))
+	})))
 
 	c.AddChild(widget.NewLabeledCheckbox(
 		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithButtonOpt(widget.ButtonOpts.WithImage(images.button))),
@@ -464,9 +463,9 @@ func checkboxPage(images *images, fontFace font.Face) *page {
 		widget.LabeledCheckboxOpts.WithTextOpt(widget.TextOpts.WithText("Tri-State Checkbox", fontFace, color.Black)))
 	c.AddChild(cb2)
 
-	c.AddChild(newSeparator(&widget.RowLayoutData{
+	c.AddChild(newSeparator(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 		Stretch: true,
-	}))
+	})))
 
 	c.AddChild(widget.NewLabeledCheckbox(
 		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithButtonOpt(widget.ButtonOpts.WithImage(images.button))),
@@ -485,7 +484,109 @@ func checkboxPage(images *images, fontFace font.Face) *page {
 	}
 }
 
-func newSeparator(ld interface{}) widget.HasWidget {
+func listPage(images *images, fontFace font.Face) *page {
+	c := widget.NewContainer(
+		widget.ContainerOpts.WithLayout(widget.NewRowLayout(
+			widget.RowLayoutOpts.WithDirection(widget.DirectionVertical),
+			widget.RowLayoutOpts.WithSpacing(10),
+		)))
+
+	listsContainer := widget.NewContainer(
+		widget.ContainerOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+			Stretch: true,
+		})),
+		widget.ContainerOpts.WithLayout(widget.NewGridLayout(
+			widget.GridLayoutOpts.WithColumns(3),
+			widget.GridLayoutOpts.WithStretch([]bool{true, false, true}, []bool{true}),
+			widget.GridLayoutOpts.WithSpacing(10, 0))))
+	c.AddChild(listsContainer)
+
+	entries1 := []interface{}{"One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"}
+	list1 := newList(entries1, images, fontFace, widget.WidgetOpts.WithLayoutData(&widget.GridLayoutData{
+		MaxHeight: 220,
+	}))
+	listsContainer.AddChild(list1)
+
+	buttonsContainer := widget.NewContainer(
+		widget.ContainerOpts.WithLayout(widget.NewRowLayout(
+			widget.RowLayoutOpts.WithDirection(widget.DirectionVertical),
+			widget.RowLayoutOpts.WithSpacing(10),
+		)))
+	listsContainer.AddChild(buttonsContainer)
+
+	buttonsContainer.AddChild(widget.NewButton(
+		widget.ButtonOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+			Stretch: true,
+		})),
+		widget.ButtonOpts.WithImage(images.button),
+		widget.ButtonOpts.WithText("Add", fontFace, &widget.ButtonTextColor{
+			Idle:     color.Black,
+			Disabled: color.RGBA{128, 128, 128, 255},
+		})))
+
+	buttonsContainer.AddChild(widget.NewButton(
+		widget.ButtonOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+			Stretch: true,
+		})),
+		widget.ButtonOpts.WithImage(images.button),
+		widget.ButtonOpts.WithText("Remove", fontFace, &widget.ButtonTextColor{
+			Idle:     color.Black,
+			Disabled: color.RGBA{128, 128, 128, 255},
+		})))
+
+	entries2 := []interface{}{"Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen", "Twenty"}
+	list2 := newList(entries2, images, fontFace, widget.WidgetOpts.WithLayoutData(&widget.GridLayoutData{
+		MaxHeight: 220,
+	}))
+	listsContainer.AddChild(list2)
+
+	c.AddChild(newSeparator(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+		Stretch: true,
+	})))
+
+	c.AddChild(widget.NewLabeledCheckbox(
+		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithButtonOpt(widget.ButtonOpts.WithImage(images.button))),
+		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithImage(images.checkbox)),
+		widget.LabeledCheckboxOpts.WithTextOpt(widget.TextOpts.WithText("Disabled", fontFace, color.Black)),
+
+		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
+			list1.GetWidget().Disabled = args.State == widget.CheckboxChecked
+			list2.GetWidget().Disabled = args.State == widget.CheckboxChecked
+		})),
+	))
+
+	return &page{
+		title:   "List",
+		content: c,
+	}
+}
+
+func newList(entries []interface{}, images *images, fontFace font.Face, widgetOpts ...widget.WidgetOpt) *widget.List {
+	return widget.NewList(
+		widget.ListOpts.WithContainerOpt(widget.ContainerOpts.WithWidgetOpts(widgetOpts...)),
+		widget.ListOpts.WithScrollContainerOpt(widget.ScrollContainerOpts.WithImage(images.scrollContainer)),
+		widget.ListOpts.WithScrollContainerOpt(widget.ScrollContainerOpts.WithPadding(widget.NewInsetsSimple(2))),
+		widget.ListOpts.WithSliderOpt(widget.SliderOpts.WithImages(images.sliderTrack, images.button)),
+		widget.ListOpts.WithHideHorizontalSlider(),
+		widget.ListOpts.WithControlWidgetSpacing(2),
+		widget.ListOpts.WithEntries(entries),
+		widget.ListOpts.WithEntryLabelFunc(func(e interface{}) string {
+			return e.(string)
+		}),
+		widget.ListOpts.WithEntryFontFace(fontFace),
+		widget.ListOpts.WithEntryColor(&widget.ListEntryColor{
+			Unselected:         color.Black,
+			Selected:           color.Black,
+			SelectedBackground: color.RGBA{128, 128, 128, 255},
+
+			DisabledUnselected:         color.RGBA{128, 128, 128, 255},
+			DisabledSelected:           color.RGBA{128, 128, 128, 255},
+			DisabledSelectedBackground: color.RGBA{192, 192, 192, 255},
+		}),
+	)
+}
+
+func newSeparator(widgetOpts ...widget.WidgetOpt) widget.HasWidget {
 	c := widget.NewContainer(
 		widget.ContainerOpts.WithLayout(
 			widget.NewRowLayout(
@@ -494,7 +595,7 @@ func newSeparator(ld interface{}) widget.HasWidget {
 					Top:    15,
 					Bottom: 15,
 				}))),
-		widget.ContainerOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(ld)))
+		widget.ContainerOpts.WithWidgetOpts(widgetOpts...))
 
 	c.AddChild(widget.NewGraphic(
 		widget.GraphicOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{

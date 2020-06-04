@@ -90,6 +90,16 @@ func loadImages() (*images, error) {
 		return nil, err
 	}
 
+	containerIdle, err := loadImageNineSlice("graphics/container-2px-idle.png", 5, 6)
+	if err != nil {
+		return nil, err
+	}
+
+	containerDisabled, err := loadImageNineSlice("graphics/container-2px-disabled.png", 5, 6)
+	if err != nil {
+		return nil, err
+	}
+
 	return &images{
 		button:         button,
 		buttonFlatLeft: buttonFlatLeft,
@@ -101,8 +111,8 @@ func loadImages() (*images, error) {
 		},
 		arrowDown: arrowDown,
 		scrollContainer: &widget.ScrollContainerImage{
-			Idle:     button.Idle,
-			Disabled: button.Disabled,
+			Idle:     containerIdle,
+			Disabled: containerDisabled,
 			Mask:     mask,
 		},
 		checkbox: &widget.CheckboxGraphicImage{
@@ -114,23 +124,23 @@ func loadImages() (*images, error) {
 	}, nil
 }
 
-func loadButtonImages(idle string, hover string, pressed string, disabled string, w int, h int) (*widget.ButtonImage, error) {
-	idleImage, err := loadImageNineSlice(idle, w, h)
+func loadButtonImages(idle string, hover string, pressed string, disabled string, border int, center int) (*widget.ButtonImage, error) {
+	idleImage, err := loadImageNineSlice(idle, border, center)
 	if err != nil {
 		return nil, err
 	}
 
-	hoverImage, err := loadImageNineSlice(hover, w, h)
+	hoverImage, err := loadImageNineSlice(hover, border, center)
 	if err != nil {
 		return nil, err
 	}
 
-	pressedImage, err := loadImageNineSlice(pressed, w, h)
+	pressedImage, err := loadImageNineSlice(pressed, border, center)
 	if err != nil {
 		return nil, err
 	}
 
-	disabledImage, err := loadImageNineSlice(disabled, w, h)
+	disabledImage, err := loadImageNineSlice(disabled, border, center)
 	if err != nil {
 		return nil, err
 	}
@@ -163,11 +173,11 @@ func loadGraphicImages(idle string, disabled string) (*widget.ButtonImageImage, 
 	}, nil
 }
 
-func loadImageNineSlice(path string, w int, h int) (*image.NineSlice, error) {
+func loadImageNineSlice(path string, border int, center int) (*image.NineSlice, error) {
 	i, _, err := ebitenutil.NewImageFromFile(path, ebiten.FilterDefault)
 	if err != nil {
 		return nil, err
 	}
 
-	return image.NewNineSliceSimple(i, w, h), nil
+	return image.NewNineSliceSimple(i, border, center), nil
 }
