@@ -18,6 +18,7 @@ type Text struct {
 	Color color.Color
 
 	widgetOpts []WidgetOpt
+	position   TextPosition
 
 	init                      *MultiOnce
 	widget                    *Widget
@@ -28,6 +29,14 @@ type Text struct {
 }
 
 type TextOpt func(t *Text)
+
+type TextPosition int
+
+const (
+	TextPositionStart = TextPosition(iota)
+	TextPositionCenter
+	TextPositionEnd
+)
 
 const TextOpts = textOpts(true)
 
@@ -58,6 +67,12 @@ func (o textOpts) WithText(label string, face font.Face, color color.Color) Text
 		t.Label = label
 		t.Face = face
 		t.Color = color
+	}
+}
+
+func (o textOpts) WithPosition(p TextPosition) TextOpt {
+	return func(t *Text) {
+		t.position = p
 	}
 }
 
@@ -115,8 +130,13 @@ func (t *Text) draw(screen *ebiten.Image) {
 	r := t.widget.Rect
 	p := r.Min
 
-	// TODO: add alignment options
-	x := p.X + (r.Dx()-w)/2
+	x := p.X
+	switch t.position {
+	case TextPositionCenter:
+		x += (r.Dx() - w) / 2
+	case TextPositionEnd:
+		x += r.Dx() - w
+	}
 	y := p.Y + (r.Dy()-h)/2 + t.Face.Metrics().Ascent.Round()
 
 	text.Draw(screen, t.Label, t.Face, x, y, t.Color)
