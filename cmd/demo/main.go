@@ -147,15 +147,13 @@ func createUI() *ebitenui.UI {
 			}),
 		widget.ListComboButtonOpts.WithListOpt(widget.ListOpts.WithEntryFontFace(fontFace)),
 		widget.ListComboButtonOpts.WithListOpt(widget.ListOpts.WithEntryColor(&widget.ListEntryColor{
-			Unselected:           color.Black,
-			Selected:             color.Black,
-			UnselectedBackground: color.White,
-			SelectedBackground:   color.RGBA{128, 128, 128, 255},
+			Unselected:         color.Black,
+			Selected:           color.Black,
+			SelectedBackground: color.RGBA{128, 128, 128, 255},
 
-			DisabledUnselected:           color.Black,
-			DisabledSelected:             color.Black,
-			DisabledUnselectedBackground: color.White,
-			DisabledSelectedBackground:   color.RGBA{128, 128, 128, 255},
+			DisabledUnselected:         color.Black,
+			DisabledSelected:           color.Black,
+			DisabledSelectedBackground: color.RGBA{128, 128, 128, 255},
 		})),
 
 		widget.ListComboButtonOpts.WithEntrySelectedHandler(func(args *widget.ListComboButtonEntrySelectedEventArgs) {
@@ -213,15 +211,13 @@ func createUI() *ebitenui.UI {
 			return fmt.Sprintf("Entry %d", e.(int))
 		}),
 		widget.ListOpts.WithEntryColor(&widget.ListEntryColor{
-			Unselected:           color.Black,
-			Selected:             color.Black,
-			UnselectedBackground: color.White,
-			SelectedBackground:   color.RGBA{128, 128, 128, 255},
+			Unselected:         color.Black,
+			Selected:           color.Black,
+			SelectedBackground: color.RGBA{128, 128, 128, 255},
 
-			DisabledUnselected:           color.Black,
-			DisabledSelected:             color.Black,
-			DisabledUnselectedBackground: color.White,
-			DisabledSelectedBackground:   color.RGBA{128, 128, 128, 255},
+			DisabledUnselected:         color.Black,
+			DisabledSelected:           color.Black,
+			DisabledSelectedBackground: color.RGBA{128, 128, 128, 255},
 		}),
 		widget.ListOpts.WithEntryFontFace(fontFace),
 		widget.ListOpts.WithScrollContainerOpt(widget.ScrollContainerOpts.WithImage(images.scrollContainer)),

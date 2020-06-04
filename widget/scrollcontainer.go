@@ -131,6 +131,7 @@ func (s *ScrollContainer) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	s.init.Do()
 
 	s.clampScroll()
+	s.content.GetWidget().Disabled = s.widget.Disabled
 
 	s.widget.Render(screen, def)
 

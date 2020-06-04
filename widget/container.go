@@ -49,6 +49,12 @@ func (o containerOpts) WithWidgetOpt(opt WidgetOpt) ContainerOpt {
 	}
 }
 
+func (o containerOpts) WithWidgetOpts(opts ...WidgetOpt) ContainerOpt {
+	return func(c *Container) {
+		c.widgetOpts = append(c.widgetOpts, opts...)
+	}
+}
+
 func (o containerOpts) WithBackgroundImage(i *image.NineSlice) ContainerOpt {
 	return func(c *Container) {
 		c.BackgroundImage = i

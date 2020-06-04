@@ -140,14 +140,12 @@ func newList(t *testing.T, opts ...ListOpt) *List {
 			ListOpts.WithEntryFontFace(loadFont(t)),
 
 			ListOpts.WithEntryColor(&ListEntryColor{
-				Unselected:                   color.Transparent,
-				Selected:                     color.Transparent,
-				DisabledUnselected:           color.Transparent,
-				DisabledSelected:             color.Transparent,
-				UnselectedBackground:         color.Transparent,
-				SelectedBackground:           color.Transparent,
-				DisabledUnselectedBackground: color.Transparent,
-				DisabledSelectedBackground:   color.Transparent,
+				Unselected:                 color.Transparent,
+				Selected:                   color.Transparent,
+				DisabledUnselected:         color.Transparent,
+				DisabledSelected:           color.Transparent,
+				SelectedBackground:         color.Transparent,
+				DisabledSelectedBackground: color.Transparent,
 			}),
 		}...)...)
 

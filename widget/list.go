@@ -44,14 +44,12 @@ type ListOpt func(l *List)
 type ListEntryLabelFunc func(e interface{}) string
 
 type ListEntryColor struct {
-	Unselected                   color.Color
-	Selected                     color.Color
-	DisabledUnselected           color.Color
-	DisabledSelected             color.Color
-	UnselectedBackground         color.Color
-	SelectedBackground           color.Color
-	DisabledUnselectedBackground color.Color
-	DisabledSelectedBackground   color.Color
+	Unselected                 color.Color
+	Selected                   color.Color
+	DisabledUnselected         color.Color
+	DisabledSelected           color.Color
+	SelectedBackground         color.Color
+	DisabledSelectedBackground color.Color
 }
 
 type ListEntrySelectedEventArgs struct {
@@ -139,8 +137,8 @@ func (o listOpts) WithEntryFontFace(f font.Face) ListOpt {
 func (o listOpts) WithEntryColor(c *ListEntryColor) ListOpt {
 	return func(l *List) {
 		l.entryUnselectedColor = &ButtonImage{
-			Idle:     ebimage.NewNineSliceColor(c.UnselectedBackground),
-			Disabled: ebimage.NewNineSliceColor(c.DisabledUnselectedBackground),
+			Idle:     ebimage.NewNineSliceColor(color.Transparent),
+			Disabled: ebimage.NewNineSliceColor(color.Transparent),
 		}
 
 		l.entrySelectedColor = &ButtonImage{
@@ -196,6 +194,9 @@ func (l *List) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 
 func (l *List) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	l.init.Do()
+
+	l.scrollContainer.GetWidget().Disabled = l.container.GetWidget().Disabled
+
 	l.container.Render(screen, def)
 }
 
@@ -209,16 +210,16 @@ func (l *List) createWidget() {
 
 	l.container = NewContainer(
 		append(l.containerOpts,
-			ContainerOpts.WithLayout(
-				NewGridLayout(
-					GridLayoutOpts.WithColumns(cols),
-					GridLayoutOpts.WithStretch([]bool{true, false}, []bool{true, false}),
-					GridLayoutOpts.WithSpacing(l.controlWidgetSpacing, l.controlWidgetSpacing))))...)
+			ContainerOpts.WithLayout(NewGridLayout(
+				GridLayoutOpts.WithColumns(cols),
+				GridLayoutOpts.WithStretch([]bool{true, false}, []bool{true, false}),
+				GridLayoutOpts.WithSpacing(l.controlWidgetSpacing, l.controlWidgetSpacing))))...)
 	l.containerOpts = nil
 
 	content := NewContainer(
 		ContainerOpts.WithLayout(NewRowLayout(
-			RowLayoutOpts.WithDirection(DirectionVertical))))
+			RowLayoutOpts.WithDirection(DirectionVertical))),
+		ContainerOpts.WithAutoDisableChildren())
 
 	l.buttons = make([]*Button, 0, len(l.entries))
 	for _, e := range l.entries {

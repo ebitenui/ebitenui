@@ -12,9 +12,10 @@ import (
 // The corner tiles be drawn as-is, while the center columns and rows of tiles will be stretched to fit the desired
 // width and height.
 type NineSlice struct {
-	image   *ebiten.Image
-	widths  []int
-	heights []int
+	image       *ebiten.Image
+	widths      []int
+	heights     []int
+	transparent bool
 
 	init      sync.Once
 	subImages []*ebiten.Image
@@ -45,10 +46,17 @@ func NewNineSliceColor(c color.Color) *NineSlice {
 		return n
 	}
 
-	n := &NineSlice{
-		image:   NewImageColor(c),
-		widths:  []int{0, 1, 0},
-		heights: []int{0, 1, 0},
+	var n *NineSlice
+	if c == color.Transparent {
+		n = &NineSlice{
+			transparent: true,
+		}
+	} else {
+		n = &NineSlice{
+			image:   NewImageColor(c),
+			widths:  []int{0, 1, 0},
+			heights: []int{0, 1, 0},
+		}
 	}
 	colorNineSlices[c] = n
 	return n
@@ -69,6 +77,10 @@ func NewImageColor(c color.Color) *ebiten.Image {
 // Draw draws n onto screen, with the size specified by width and height. If optsFunc is not nil, it is used to set
 // DrawImageOptions for each tile drawn.
 func (n *NineSlice) Draw(screen *ebiten.Image, width int, height int, optsFunc DrawImageOptionsFunc) {
+	if n.transparent {
+		return
+	}
+
 	n.init.Do(n.createSubImages)
 
 	sy := 0
