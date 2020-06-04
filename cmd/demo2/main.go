@@ -69,8 +69,10 @@ func createUI() (*ebitenui.UI, font.Face, font.Face) {
 
 	pages := []interface{}{
 		buttonPage(images, fontFace),
+		checkboxPage(images, fontFace),
 	}
 
+	var pageContainer *widget.Container
 	var pageTitleText *widget.Text
 	var pageFlipBook *widget.FlipBook
 
@@ -102,10 +104,11 @@ func createUI() (*ebitenui.UI, font.Face, font.Face) {
 			p := args.Entry.(*page)
 			pageTitleText.Label = p.title
 			pageFlipBook.SetPage(p.content)
+			pageFlipBook.RequestRelayout()
 		}))
 	rootContainer.AddChild(pageList)
 
-	pageContainer := widget.NewContainer(
+	pageContainer = widget.NewContainer(
 		widget.ContainerOpts.WithLayout(widget.NewRowLayout(
 			widget.RowLayoutOpts.WithDirection(widget.DirectionVertical),
 			widget.RowLayoutOpts.WithSpacing(20))),
@@ -113,9 +116,9 @@ func createUI() (*ebitenui.UI, font.Face, font.Face) {
 	rootContainer.AddChild(pageContainer)
 
 	pageTitleText = widget.NewText(
-		// widget.WithTextLayoutData(&widget.RowLayoutData{
-		// 	Stretch:  true,
-		// }),
+		widget.TextOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+			Stretch: true,
+		})),
 		widget.TextOpts.WithText("", titleFontFace, color.Black))
 	pageContainer.AddChild(pageTitleText)
 
@@ -437,6 +440,39 @@ func buttonPage(images *images, fontFace font.Face) *page {
 
 	return &page{
 		title:   "Button",
+		content: c,
+	}
+}
+
+func checkboxPage(images *images, fontFace font.Face) *page {
+	c := widget.NewContainer(
+		widget.ContainerOpts.WithLayout(widget.NewRowLayout(
+			widget.RowLayoutOpts.WithDirection(widget.DirectionVertical),
+			widget.RowLayoutOpts.WithSpacing(10),
+		)))
+
+	cb := widget.NewLabeledCheckbox(
+		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithButtonOpt(widget.ButtonOpts.WithImage(images.button))),
+		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithImage(images.checkbox)),
+		widget.LabeledCheckboxOpts.WithTextOpt(widget.TextOpts.WithText("Disabled", fontFace, color.Black)))
+	c.AddChild(cb)
+
+	c.AddChild(newSeparator(&widget.RowLayoutData{
+		Stretch: true,
+	}))
+
+	c.AddChild(widget.NewLabeledCheckbox(
+		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithButtonOpt(widget.ButtonOpts.WithImage(images.button))),
+		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithImage(images.checkbox)),
+		widget.LabeledCheckboxOpts.WithTextOpt(widget.TextOpts.WithText("Disabled", fontFace, color.Black)),
+
+		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
+			cb.GetWidget().Disabled = args.State == widget.CheckboxChecked
+		})),
+	))
+
+	return &page{
+		title:   "Checkbox",
 		content: c,
 	}
 }
