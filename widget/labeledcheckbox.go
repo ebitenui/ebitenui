@@ -38,15 +38,15 @@ func NewLabeledCheckbox(opts ...LabeledCheckboxOpt) *LabeledCheckbox {
 	return l
 }
 
-func (o labeledCheckboxOpts) WithCheckboxOpt(opt CheckboxOpt) LabeledCheckboxOpt {
+func (o labeledCheckboxOpts) WithCheckboxOpts(opts ...CheckboxOpt) LabeledCheckboxOpt {
 	return func(l *LabeledCheckbox) {
-		l.checkboxOpts = append(l.checkboxOpts, opt)
+		l.checkboxOpts = append(l.checkboxOpts, opts...)
 	}
 }
 
-func (o labeledCheckboxOpts) WithTextOpt(opt TextOpt) LabeledCheckboxOpt {
+func (o labeledCheckboxOpts) WithTextOpts(opts ...TextOpt) LabeledCheckboxOpt {
 	return func(l *LabeledCheckbox) {
-		l.textOpts = append(l.textOpts, opt)
+		l.textOpts = append(l.textOpts, opts...)
 	}
 }
 
@@ -82,7 +82,7 @@ func (l *LabeledCheckbox) createWidget() {
 		ContainerOpts.WithAutoDisableChildren())
 
 	l.checkbox = NewCheckbox(append(l.checkboxOpts, []CheckboxOpt{
-		CheckboxOpts.WithButtonOpt(ButtonOpts.WithWidgetOpt(WidgetOpts.WithLayoutData(&RowLayoutData{
+		CheckboxOpts.WithButtonOpts(ButtonOpts.WithWidgetOpts(WidgetOpts.WithLayoutData(&RowLayoutData{
 			Position: RowLayoutPositionCenter,
 		}))),
 	}...)...)
@@ -91,7 +91,7 @@ func (l *LabeledCheckbox) createWidget() {
 
 	// TODO: this should really be a Label instead of a Text so that it can be disabled
 	l.text = NewText(append(l.textOpts, []TextOpt{
-		TextOpts.WithWidgetOpt(WidgetOpts.WithLayoutData(&RowLayoutData{
+		TextOpts.WithWidgetOpts(WidgetOpts.WithLayoutData(&RowLayoutData{
 			Position: RowLayoutPositionCenter,
 		})),
 	}...)...)

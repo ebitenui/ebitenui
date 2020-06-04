@@ -90,9 +90,9 @@ func NewSlider(opts ...SliderOpt) *Slider {
 	return s
 }
 
-func (o sliderOpts) WithWidgetOpt(opt WidgetOpt) SliderOpt {
+func (o sliderOpts) WithWidgetOpts(opts ...WidgetOpt) SliderOpt {
 	return func(s *Slider) {
-		s.widgetOpts = append(s.widgetOpts, opt)
+		s.widgetOpts = append(s.widgetOpts, opts...)
 	}
 }
 

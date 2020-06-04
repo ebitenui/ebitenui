@@ -56,9 +56,9 @@ func NewText(opts ...TextOpt) *Text {
 	return t
 }
 
-func (o textOpts) WithWidgetOpt(opt WidgetOpt) TextOpt {
+func (o textOpts) WithWidgetOpts(opts ...WidgetOpt) TextOpt {
 	return func(t *Text) {
-		t.widgetOpts = append(t.widgetOpts, opt)
+		t.widgetOpts = append(t.widgetOpts, opts...)
 	}
 }
 

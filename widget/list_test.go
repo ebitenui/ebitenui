@@ -131,7 +131,7 @@ func newList(t *testing.T, opts ...ListOpt) *List {
 
 	l := NewList(
 		append(opts, []ListOpt{
-			ListOpts.WithScrollContainerOpt(ScrollContainerOpts.WithImage(&ScrollContainerImage{
+			ListOpts.WithScrollContainerOpts(ScrollContainerOpts.WithImage(&ScrollContainerImage{
 				Idle:     newNineSliceEmpty(t),
 				Disabled: newNineSliceEmpty(t),
 				Mask:     newNineSliceEmpty(t),

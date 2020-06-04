@@ -52,20 +52,20 @@ func NewListComboButton(opts ...ListComboButtonOpt) *ListComboButton {
 	return l
 }
 
-func (o listComboButtonOpts) WithSelectComboButtonOpt(opt SelectComboButtonOpt) ListComboButtonOpt {
+func (o listComboButtonOpts) WithSelectComboButtonOpts(opts ...SelectComboButtonOpt) ListComboButtonOpt {
 	return func(l *ListComboButton) {
-		l.buttonOpts = append(l.buttonOpts, opt)
+		l.buttonOpts = append(l.buttonOpts, opts...)
+	}
+}
+
+func (o listComboButtonOpts) WithListOpts(opts ...ListOpt) ListComboButtonOpt {
+	return func(l *ListComboButton) {
+		l.listOpts = append(l.listOpts, opts...)
 	}
 }
 
 func (o listComboButtonOpts) WithText(face font.Face, image *ButtonImageImage, color *ButtonTextColor) ListComboButtonOpt {
-	return o.WithSelectComboButtonOpt(SelectComboButtonOpts.WithComboButtonOpt(ComboButtonOpts.WithButtonOpt(ButtonOpts.WithTextAndImage("", face, image, color))))
-}
-
-func (o listComboButtonOpts) WithListOpt(opt ListOpt) ListComboButtonOpt {
-	return func(l *ListComboButton) {
-		l.listOpts = append(l.listOpts, opt)
-	}
+	return o.WithSelectComboButtonOpts(SelectComboButtonOpts.WithComboButtonOpts(ComboButtonOpts.WithButtonOpts(ButtonOpts.WithTextAndImage("", face, image, color))))
 }
 
 func (o listComboButtonOpts) WithEntryLabelFunc(button SelectComboButtonEntryLabelFunc, list ListEntryLabelFunc) ListComboButtonOpt {
@@ -126,7 +126,7 @@ func (l *ListComboButton) createWidget() {
 	l.listOpts = nil
 
 	l.button = NewSelectComboButton(append(l.buttonOpts,
-		SelectComboButtonOpts.WithComboButtonOpt(ComboButtonOpts.WithContent(l.list)),
+		SelectComboButtonOpts.WithComboButtonOpts(ComboButtonOpts.WithContent(l.list)),
 	)...)
 	l.buttonOpts = nil
 

@@ -38,9 +38,9 @@ func NewGraphic(opts ...GraphicOpt) *Graphic {
 	return g
 }
 
-func (o graphicOpts) WithWidgetOpt(opt WidgetOpt) GraphicOpt {
+func (o graphicOpts) WithWidgetOpts(opts ...WidgetOpt) GraphicOpt {
 	return func(g *Graphic) {
-		g.widgetOpts = append(g.widgetOpts, opt)
+		g.widgetOpts = append(g.widgetOpts, opts...)
 	}
 }
 

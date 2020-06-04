@@ -63,9 +63,9 @@ func NewCheckbox(opts ...CheckboxOpt) *Checkbox {
 	return c
 }
 
-func (o checkboxOpts) WithButtonOpt(opt ButtonOpt) CheckboxOpt {
+func (o checkboxOpts) WithButtonOpts(opts ...ButtonOpt) CheckboxOpt {
 	return func(c *Checkbox) {
-		c.buttonOpts = append(c.buttonOpts, opt)
+		c.buttonOpts = append(c.buttonOpts, opts...)
 	}
 }
 

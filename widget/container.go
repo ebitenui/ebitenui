@@ -43,12 +43,6 @@ func NewContainer(opts ...ContainerOpt) *Container {
 	return c
 }
 
-func (o containerOpts) WithWidgetOpt(opt WidgetOpt) ContainerOpt {
-	return func(c *Container) {
-		c.widgetOpts = append(c.widgetOpts, opt)
-	}
-}
-
 func (o containerOpts) WithWidgetOpts(opts ...WidgetOpt) ContainerOpt {
 	return func(c *Container) {
 		c.widgetOpts = append(c.widgetOpts, opts...)

@@ -82,8 +82,9 @@ func createUI() (*ebitenui.UI, font.Face, font.Face) {
 		widget.ListOpts.WithEntryLabelFunc(func(e interface{}) string {
 			return e.(*page).title
 		}),
-		widget.ListOpts.WithScrollContainerOpt(widget.ScrollContainerOpts.WithImage(images.scrollContainer)),
-		widget.ListOpts.WithScrollContainerOpt(widget.ScrollContainerOpts.WithPadding(widget.NewInsetsSimple(2))),
+		widget.ListOpts.WithScrollContainerOpts(
+			widget.ScrollContainerOpts.WithImage(images.scrollContainer),
+			widget.ScrollContainerOpts.WithPadding(widget.NewInsetsSimple(2))),
 		widget.ListOpts.WithEntryColor(&widget.ListEntryColor{
 			Unselected:         color.Black,
 			Selected:           color.Black,
@@ -94,7 +95,7 @@ func createUI() (*ebitenui.UI, font.Face, font.Face) {
 			DisabledSelectedBackground: color.RGBA{128, 128, 128, 255},
 		}),
 		widget.ListOpts.WithEntryFontFace(fontFace),
-		widget.ListOpts.WithSliderOpt(widget.SliderOpts.WithImages(images.sliderTrack, images.button)),
+		widget.ListOpts.WithSliderOpts(widget.SliderOpts.WithImages(images.sliderTrack, images.button)),
 		widget.ListOpts.WithHideHorizontalSlider(),
 		widget.ListOpts.WithHideVerticalSlider(),
 		widget.ListOpts.WithControlWidgetSpacing(2),
@@ -115,14 +116,14 @@ func createUI() (*ebitenui.UI, font.Face, font.Face) {
 	rootContainer.AddChild(pageContainer)
 
 	pageTitleText = widget.NewText(
-		widget.TextOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+		widget.TextOpts.WithWidgetOpts(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 			Stretch: true,
 		})),
 		widget.TextOpts.WithText("", titleFontFace, color.Black))
 	pageContainer.AddChild(pageTitleText)
 
 	pageFlipBook = widget.NewFlipBook(
-		widget.FlipBookOpts.WithContainerOpt(widget.ContainerOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+		widget.FlipBookOpts.WithContainerOpts(widget.ContainerOpts.WithWidgetOpts(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 			Stretch: true,
 		}))))
 	pageContainer.AddChild(pageFlipBook)
@@ -401,7 +402,7 @@ func buttonPage(images *images, fontFace font.Face) *page {
 		)))
 
 	b1 := widget.NewButton(
-		widget.ButtonOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+		widget.ButtonOpts.WithWidgetOpts(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 			Stretch: true,
 		})),
 		widget.ButtonOpts.WithImage(images.button),
@@ -412,7 +413,7 @@ func buttonPage(images *images, fontFace font.Face) *page {
 	c.AddChild(b1)
 
 	b2 := widget.NewButton(
-		widget.ButtonOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+		widget.ButtonOpts.WithWidgetOpts(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 			Stretch: true,
 		})),
 		widget.ButtonOpts.WithImage(images.button),
@@ -427,15 +428,15 @@ func buttonPage(images *images, fontFace font.Face) *page {
 	})))
 
 	c.AddChild(widget.NewLabeledCheckbox(
-		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithButtonOpt(widget.ButtonOpts.WithImage(images.button))),
-		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithImage(images.checkbox)),
-		widget.LabeledCheckboxOpts.WithTextOpt(widget.TextOpts.WithText("Disabled", fontFace, color.Black)),
+		widget.LabeledCheckboxOpts.WithCheckboxOpts(
+			widget.CheckboxOpts.WithButtonOpts(widget.ButtonOpts.WithImage(images.button)),
+			widget.CheckboxOpts.WithImage(images.checkbox),
 
-		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
-			b1.GetWidget().Disabled = args.State == widget.CheckboxChecked
-			b2.GetWidget().Disabled = args.State == widget.CheckboxChecked
-		})),
-	))
+			widget.CheckboxOpts.WithChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
+				b1.GetWidget().Disabled = args.State == widget.CheckboxChecked
+				b2.GetWidget().Disabled = args.State == widget.CheckboxChecked
+			})),
+		widget.LabeledCheckboxOpts.WithTextOpts(widget.TextOpts.WithText("Disabled", fontFace, color.Black))))
 
 	return &page{
 		title:   "Button",
@@ -451,16 +452,18 @@ func checkboxPage(images *images, fontFace font.Face) *page {
 		)))
 
 	cb1 := widget.NewLabeledCheckbox(
-		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithButtonOpt(widget.ButtonOpts.WithImage(images.button))),
-		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithImage(images.checkbox)),
-		widget.LabeledCheckboxOpts.WithTextOpt(widget.TextOpts.WithText("Two-State Checkbox", fontFace, color.Black)))
+		widget.LabeledCheckboxOpts.WithCheckboxOpts(
+			widget.CheckboxOpts.WithButtonOpts(widget.ButtonOpts.WithImage(images.button)),
+			widget.CheckboxOpts.WithImage(images.checkbox)),
+		widget.LabeledCheckboxOpts.WithTextOpts(widget.TextOpts.WithText("Two-State Checkbox", fontFace, color.Black)))
 	c.AddChild(cb1)
 
 	cb2 := widget.NewLabeledCheckbox(
-		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithButtonOpt(widget.ButtonOpts.WithImage(images.button))),
-		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithImage(images.checkbox)),
-		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithTriState()),
-		widget.LabeledCheckboxOpts.WithTextOpt(widget.TextOpts.WithText("Tri-State Checkbox", fontFace, color.Black)))
+		widget.LabeledCheckboxOpts.WithCheckboxOpts(
+			widget.CheckboxOpts.WithButtonOpts(widget.ButtonOpts.WithImage(images.button)),
+			widget.CheckboxOpts.WithImage(images.checkbox),
+			widget.CheckboxOpts.WithTriState()),
+		widget.LabeledCheckboxOpts.WithTextOpts(widget.TextOpts.WithText("Tri-State Checkbox", fontFace, color.Black)))
 	c.AddChild(cb2)
 
 	c.AddChild(newSeparator(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
@@ -468,15 +471,15 @@ func checkboxPage(images *images, fontFace font.Face) *page {
 	})))
 
 	c.AddChild(widget.NewLabeledCheckbox(
-		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithButtonOpt(widget.ButtonOpts.WithImage(images.button))),
-		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithImage(images.checkbox)),
-		widget.LabeledCheckboxOpts.WithTextOpt(widget.TextOpts.WithText("Disabled", fontFace, color.Black)),
+		widget.LabeledCheckboxOpts.WithCheckboxOpts(
+			widget.CheckboxOpts.WithButtonOpts(widget.ButtonOpts.WithImage(images.button)),
+			widget.CheckboxOpts.WithImage(images.checkbox),
 
-		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
-			cb1.GetWidget().Disabled = args.State == widget.CheckboxChecked
-			cb2.GetWidget().Disabled = args.State == widget.CheckboxChecked
-		})),
-	))
+			widget.CheckboxOpts.WithChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
+				cb1.GetWidget().Disabled = args.State == widget.CheckboxChecked
+				cb2.GetWidget().Disabled = args.State == widget.CheckboxChecked
+			})),
+		widget.LabeledCheckboxOpts.WithTextOpts(widget.TextOpts.WithText("Disabled", fontFace, color.Black))))
 
 	return &page{
 		title:   "Checkbox",
@@ -492,7 +495,7 @@ func listPage(images *images, fontFace font.Face) *page {
 		)))
 
 	listsContainer := widget.NewContainer(
-		widget.ContainerOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+		widget.ContainerOpts.WithWidgetOpts(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 			Stretch: true,
 		})),
 		widget.ContainerOpts.WithLayout(widget.NewGridLayout(
@@ -515,7 +518,7 @@ func listPage(images *images, fontFace font.Face) *page {
 	listsContainer.AddChild(buttonsContainer)
 
 	buttonsContainer.AddChild(widget.NewButton(
-		widget.ButtonOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+		widget.ButtonOpts.WithWidgetOpts(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 			Stretch: true,
 		})),
 		widget.ButtonOpts.WithImage(images.button),
@@ -525,7 +528,7 @@ func listPage(images *images, fontFace font.Face) *page {
 		})))
 
 	buttonsContainer.AddChild(widget.NewButton(
-		widget.ButtonOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+		widget.ButtonOpts.WithWidgetOpts(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 			Stretch: true,
 		})),
 		widget.ButtonOpts.WithImage(images.button),
@@ -545,15 +548,15 @@ func listPage(images *images, fontFace font.Face) *page {
 	})))
 
 	c.AddChild(widget.NewLabeledCheckbox(
-		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithButtonOpt(widget.ButtonOpts.WithImage(images.button))),
-		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithImage(images.checkbox)),
-		widget.LabeledCheckboxOpts.WithTextOpt(widget.TextOpts.WithText("Disabled", fontFace, color.Black)),
+		widget.LabeledCheckboxOpts.WithCheckboxOpts(
+			widget.CheckboxOpts.WithButtonOpts(widget.ButtonOpts.WithImage(images.button)),
+			widget.CheckboxOpts.WithImage(images.checkbox),
 
-		widget.LabeledCheckboxOpts.WithCheckboxOpt(widget.CheckboxOpts.WithChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
-			list1.GetWidget().Disabled = args.State == widget.CheckboxChecked
-			list2.GetWidget().Disabled = args.State == widget.CheckboxChecked
-		})),
-	))
+			widget.CheckboxOpts.WithChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
+				list1.GetWidget().Disabled = args.State == widget.CheckboxChecked
+				list2.GetWidget().Disabled = args.State == widget.CheckboxChecked
+			})),
+		widget.LabeledCheckboxOpts.WithTextOpts(widget.TextOpts.WithText("Disabled", fontFace, color.Black))))
 
 	return &page{
 		title:   "List",
@@ -563,10 +566,11 @@ func listPage(images *images, fontFace font.Face) *page {
 
 func newList(entries []interface{}, images *images, fontFace font.Face, widgetOpts ...widget.WidgetOpt) *widget.List {
 	return widget.NewList(
-		widget.ListOpts.WithContainerOpt(widget.ContainerOpts.WithWidgetOpts(widgetOpts...)),
-		widget.ListOpts.WithScrollContainerOpt(widget.ScrollContainerOpts.WithImage(images.scrollContainer)),
-		widget.ListOpts.WithScrollContainerOpt(widget.ScrollContainerOpts.WithPadding(widget.NewInsetsSimple(2))),
-		widget.ListOpts.WithSliderOpt(widget.SliderOpts.WithImages(images.sliderTrack, images.button)),
+		widget.ListOpts.WithContainerOpts(widget.ContainerOpts.WithWidgetOpts(widgetOpts...)),
+		widget.ListOpts.WithScrollContainerOpts(
+			widget.ScrollContainerOpts.WithImage(images.scrollContainer),
+			widget.ScrollContainerOpts.WithPadding(widget.NewInsetsSimple(2))),
+		widget.ListOpts.WithSliderOpts(widget.SliderOpts.WithImages(images.sliderTrack, images.button)),
 		widget.ListOpts.WithHideHorizontalSlider(),
 		widget.ListOpts.WithControlWidgetSpacing(2),
 		widget.ListOpts.WithEntries(entries),
@@ -598,7 +602,7 @@ func newSeparator(widgetOpts ...widget.WidgetOpt) widget.HasWidget {
 		widget.ContainerOpts.WithWidgetOpts(widgetOpts...))
 
 	c.AddChild(widget.NewGraphic(
-		widget.GraphicOpts.WithWidgetOpt(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+		widget.GraphicOpts.WithWidgetOpts(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 			Stretch:   true,
 			MaxHeight: 2,
 		})),

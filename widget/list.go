@@ -80,21 +80,21 @@ func NewList(opts ...ListOpt) *List {
 	return l
 }
 
-func (o listOpts) WithContainerOpt(opt ContainerOpt) ListOpt {
+func (o listOpts) WithContainerOpts(opts ...ContainerOpt) ListOpt {
 	return func(l *List) {
-		l.containerOpts = append(l.containerOpts, opt)
+		l.containerOpts = append(l.containerOpts, opts...)
 	}
 }
 
-func (o listOpts) WithScrollContainerOpt(opt ScrollContainerOpt) ListOpt {
+func (o listOpts) WithScrollContainerOpts(opts ...ScrollContainerOpt) ListOpt {
 	return func(l *List) {
-		l.scrollContainerOpts = append(l.scrollContainerOpts, opt)
+		l.scrollContainerOpts = append(l.scrollContainerOpts, opts...)
 	}
 }
 
-func (o listOpts) WithSliderOpt(opt SliderOpt) ListOpt {
+func (o listOpts) WithSliderOpts(opts ...SliderOpt) ListOpt {
 	return func(l *List) {
-		l.sliderOpts = append(l.sliderOpts, opt)
+		l.sliderOpts = append(l.sliderOpts, opts...)
 	}
 }
 
@@ -225,7 +225,7 @@ func (l *List) createWidget() {
 	for _, e := range l.entries {
 		e := e
 		but := NewButton(
-			ButtonOpts.WithWidgetOpt(WidgetOpts.WithLayoutData(&RowLayoutData{
+			ButtonOpts.WithWidgetOpts(WidgetOpts.WithLayoutData(&RowLayoutData{
 				Stretch: true,
 			})),
 			ButtonOpts.WithImage(l.entryUnselectedColor),

@@ -55,9 +55,9 @@ func NewScrollContainer(opts ...ScrollContainerOpt) *ScrollContainer {
 	return s
 }
 
-func (o scrollContainerOpts) WithWidgetOpt(opt WidgetOpt) ScrollContainerOpt {
+func (o scrollContainerOpts) WithWidgetOpts(opts ...WidgetOpt) ScrollContainerOpt {
 	return func(s *ScrollContainer) {
-		s.widgetOpts = append(s.widgetOpts, opt)
+		s.widgetOpts = append(s.widgetOpts, opts...)
 	}
 }
 

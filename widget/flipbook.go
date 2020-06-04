@@ -41,10 +41,10 @@ func NewFlipBook(opts ...FlipBookOpt) *FlipBook {
 	return f
 }
 
-// WithContainerOpt configures a FlipBook with opt.
-func (o flipBookOpts) WithContainerOpt(opt ContainerOpt) FlipBookOpt {
+// WithContainerOpts configures a FlipBook with opts.
+func (o flipBookOpts) WithContainerOpts(opts ...ContainerOpt) FlipBookOpt {
 	return func(f *FlipBook) {
-		f.containerOpts = append(f.containerOpts, opt)
+		f.containerOpts = append(f.containerOpts, opts...)
 	}
 }
 

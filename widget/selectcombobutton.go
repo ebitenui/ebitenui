@@ -54,9 +54,9 @@ func NewSelectComboButton(opts ...SelectComboButtonOpt) *SelectComboButton {
 	return s
 }
 
-func (o selectComboButtonOpts) WithComboButtonOpt(opt ComboButtonOpt) SelectComboButtonOpt {
+func (o selectComboButtonOpts) WithComboButtonOpts(opts ...ComboButtonOpt) SelectComboButtonOpt {
 	return func(s *SelectComboButton) {
-		s.buttonOpts = append(s.buttonOpts, opt)
+		s.buttonOpts = append(s.buttonOpts, opts...)
 	}
 }
 
