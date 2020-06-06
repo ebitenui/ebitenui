@@ -123,7 +123,7 @@ func (c *Checkbox) createWidget() {
 			ButtonOpts.WithGraphic(c.image.Unchecked.Idle),
 
 			ButtonOpts.WithClickedHandler(func(args *ButtonClickedEventArgs) {
-				c.SetState(c.state.advance(c.triState))
+				c.SetState(c.state.Advance(c.triState))
 			}),
 		}...)...)
 	c.buttonOpts = nil
@@ -148,7 +148,7 @@ func (c *Checkbox) SetState(s CheckboxState) {
 	}
 }
 
-func (s CheckboxState) advance(triState bool) CheckboxState {
+func (s CheckboxState) Advance(triState bool) CheckboxState {
 	if s == CheckboxUnchecked {
 		return CheckboxChecked
 	}

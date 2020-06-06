@@ -442,7 +442,7 @@ func buttonPage(res *resources) *page {
 				b1.GetWidget().Disabled = args.State == widget.CheckboxChecked
 				b2.GetWidget().Disabled = args.State == widget.CheckboxChecked
 			})),
-		widget.LabeledCheckboxOpts.WithTextOpts(widget.TextOpts.WithText("Disabled", res.fonts.face, res.colors.textIdle))))
+		widget.LabeledCheckboxOpts.WithLabelOpts(widget.LabelOpts.WithText("Disabled", res.fonts.face, res.colors.label))))
 
 	return &page{
 		title:   "Button",
@@ -461,7 +461,7 @@ func checkboxPage(res *resources) *page {
 		widget.LabeledCheckboxOpts.WithCheckboxOpts(
 			widget.CheckboxOpts.WithButtonOpts(widget.ButtonOpts.WithImage(res.images.button)),
 			widget.CheckboxOpts.WithImage(res.images.checkbox)),
-		widget.LabeledCheckboxOpts.WithTextOpts(widget.TextOpts.WithText("Two-State Checkbox", res.fonts.face, res.colors.textIdle)))
+		widget.LabeledCheckboxOpts.WithLabelOpts(widget.LabelOpts.WithText("Two-State Checkbox", res.fonts.face, res.colors.label)))
 	c.AddChild(cb1)
 
 	cb2 := widget.NewLabeledCheckbox(
@@ -469,7 +469,7 @@ func checkboxPage(res *resources) *page {
 			widget.CheckboxOpts.WithButtonOpts(widget.ButtonOpts.WithImage(res.images.button)),
 			widget.CheckboxOpts.WithImage(res.images.checkbox),
 			widget.CheckboxOpts.WithTriState()),
-		widget.LabeledCheckboxOpts.WithTextOpts(widget.TextOpts.WithText("Tri-State Checkbox", res.fonts.face, res.colors.textIdle)))
+		widget.LabeledCheckboxOpts.WithLabelOpts(widget.LabelOpts.WithText("Tri-State Checkbox", res.fonts.face, res.colors.label)))
 	c.AddChild(cb2)
 
 	c.AddChild(newSeparator(res, widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
@@ -485,7 +485,7 @@ func checkboxPage(res *resources) *page {
 				cb1.GetWidget().Disabled = args.State == widget.CheckboxChecked
 				cb2.GetWidget().Disabled = args.State == widget.CheckboxChecked
 			})),
-		widget.LabeledCheckboxOpts.WithTextOpts(widget.TextOpts.WithText("Disabled", res.fonts.face, res.colors.textIdle))))
+		widget.LabeledCheckboxOpts.WithLabelOpts(widget.LabelOpts.WithText("Disabled", res.fonts.face, res.colors.label))))
 
 	return &page{
 		title:   "Checkbox",
@@ -556,7 +556,7 @@ func listPage(res *resources) *page {
 				list1.GetWidget().Disabled = args.State == widget.CheckboxChecked
 				list2.GetWidget().Disabled = args.State == widget.CheckboxChecked
 			})),
-		widget.LabeledCheckboxOpts.WithTextOpts(widget.TextOpts.WithText("Disabled", res.fonts.face, res.colors.textIdle))))
+		widget.LabeledCheckboxOpts.WithLabelOpts(widget.LabelOpts.WithText("Disabled", res.fonts.face, res.colors.label))))
 
 	return &page{
 		title:   "List",
@@ -584,13 +584,12 @@ func newList(entries []interface{}, res *resources, widgetOpts ...widget.WidgetO
 
 func newSeparator(res *resources, widgetOpts ...widget.WidgetOpt) widget.HasWidget {
 	c := widget.NewContainer(
-		widget.ContainerOpts.WithLayout(
-			widget.NewRowLayout(
-				widget.RowLayoutOpts.WithDirection(widget.DirectionVertical),
-				widget.RowLayoutOpts.WithPadding(widget.Insets{
-					Top:    15,
-					Bottom: 15,
-				}))),
+		widget.ContainerOpts.WithLayout(widget.NewRowLayout(
+			widget.RowLayoutOpts.WithDirection(widget.DirectionVertical),
+			widget.RowLayoutOpts.WithPadding(widget.Insets{
+				Top:    15,
+				Bottom: 15,
+			}))),
 		widget.ContainerOpts.WithWidgetOpts(widgetOpts...))
 
 	c.AddChild(widget.NewGraphic(

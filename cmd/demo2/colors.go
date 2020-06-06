@@ -16,6 +16,7 @@ type colors struct {
 
 	list       *widget.ListEntryColor
 	buttonText *widget.ButtonTextColor
+	label      *widget.LabelColor
 }
 
 func newColors() *colors {
@@ -38,6 +39,11 @@ func newColors() *colors {
 	}
 
 	c.buttonText = &widget.ButtonTextColor{
+		Idle:     c.textIdle,
+		Disabled: c.textDisabled,
+	}
+
+	c.label = &widget.LabelColor{
 		Idle:     c.textIdle,
 		Disabled: c.textDisabled,
 	}

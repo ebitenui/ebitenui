@@ -130,7 +130,6 @@ func (l *ListComboButton) createWidget() {
 	)...)
 	l.buttonOpts = nil
 
-	// FIXME: shouldn't access list.entries directly
 	if len(l.list.entries) > 0 {
 		firstEntry := l.list.entries[0]
 		l.button.SetSelectedEntry(firstEntry)

@@ -8,14 +8,13 @@ import (
 )
 
 type LabeledCheckbox struct {
-	widgetOpts   []WidgetOpt
 	checkboxOpts []CheckboxOpt
-	textOpts     []TextOpt
+	labelOpts    []LabelOpt
 
 	init      *MultiOnce
 	container *Container
 	checkbox  *Checkbox
-	text      *Text
+	label     *Label
 }
 
 type LabeledCheckboxOpt func(l *LabeledCheckbox)
@@ -44,9 +43,9 @@ func (o labeledCheckboxOpts) WithCheckboxOpts(opts ...CheckboxOpt) LabeledCheckb
 	}
 }
 
-func (o labeledCheckboxOpts) WithTextOpts(opts ...TextOpt) LabeledCheckboxOpt {
+func (o labeledCheckboxOpts) WithLabelOpts(opts ...LabelOpt) LabeledCheckboxOpt {
 	return func(l *LabeledCheckbox) {
-		l.textOpts = append(l.textOpts, opts...)
+		l.labelOpts = append(l.labelOpts, opts...)
 	}
 }
 
@@ -89,12 +88,21 @@ func (l *LabeledCheckbox) createWidget() {
 	l.container.AddChild(l.checkbox)
 	l.checkboxOpts = nil
 
-	// TODO: this should really be a Label instead of a Text so that it can be clicked and disabled
-	l.text = NewText(append(l.textOpts, []TextOpt{
-		TextOpts.WithWidgetOpts(WidgetOpts.WithLayoutData(&RowLayoutData{
-			Position: RowLayoutPositionCenter,
-		})),
+	l.label = NewLabel(append(l.labelOpts, []LabelOpt{
+		LabelOpts.WithTextOpts(
+			TextOpts.WithWidgetOpts(
+				WidgetOpts.WithLayoutData(&RowLayoutData{
+					Position: RowLayoutPositionCenter,
+				}),
+
+				WidgetOpts.WithMouseButtonReleasedHandler(func(args *WidgetMouseButtonReleasedEventArgs) {
+					if !args.Widget.Disabled && args.Button == ebiten.MouseButtonLeft && args.Inside {
+						l.checkbox.SetState(l.checkbox.state.Advance(l.checkbox.triState))
+					}
+				}),
+			),
+		),
 	}...)...)
-	l.container.AddChild(l.text)
-	l.textOpts = nil
+	l.container.AddChild(l.label)
+	l.labelOpts = nil
 }
