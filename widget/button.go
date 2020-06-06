@@ -24,6 +24,7 @@ type Button struct {
 	widgetOpts               []WidgetOpt
 	autoUpdateTextAndGraphic bool
 	textColor                *ButtonTextColor
+	textPadding              Insets
 
 	init      *MultiOnce
 	widget    *Widget
@@ -89,6 +90,12 @@ func NewButton(opts ...ButtonOpt) *Button {
 		Image:        &ButtonImage{},
 		GraphicImage: &ButtonImageImage{},
 		textColor:    &ButtonTextColor{},
+		textPadding: Insets{
+			Left:   10,
+			Right:  10,
+			Top:    6,
+			Bottom: 6,
+		},
 
 		init: &MultiOnce{},
 	}
@@ -136,12 +143,7 @@ func (o buttonOpts) WithText(label string, face font.Face, color *ButtonTextColo
 		b.init.Append(func() {
 			b.container = NewContainer(
 				ContainerOpts.WithLayout(NewFillLayout(
-					FillLayoutOpts.WithPadding(Insets{
-						Left:   10,
-						Right:  10,
-						Top:    6,
-						Bottom: 6,
-					}))),
+					FillLayoutOpts.WithPadding(b.textPadding))),
 				ContainerOpts.WithAutoDisableChildren())
 
 			b.text = NewText(
@@ -162,12 +164,7 @@ func (o buttonOpts) WithTextAndImage(label string, face font.Face, image *Button
 			b.container = NewContainer(
 				ContainerOpts.WithLayout(NewRowLayout(
 					RowLayoutOpts.WithDirection(DirectionVertical),
-					RowLayoutOpts.WithPadding(Insets{
-						Left:   10,
-						Right:  10,
-						Top:    6,
-						Bottom: 6,
-					}))),
+					RowLayoutOpts.WithPadding(b.textPadding))),
 				ContainerOpts.WithAutoDisableChildren())
 
 			c := NewContainer(
@@ -197,6 +194,12 @@ func (o buttonOpts) WithTextAndImage(label string, face font.Face, image *Button
 			b.GraphicImage = image
 			b.textColor = color
 		})
+	}
+}
+
+func (o buttonOpts) WithTextPadding(p Insets) ButtonOpt {
+	return func(b *Button) {
+		b.textPadding = p
 	}
 }
 

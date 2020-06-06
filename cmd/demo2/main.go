@@ -195,6 +195,19 @@ func buttonPage(res *resources) *page {
 		widget.ButtonOpts.WithTextAndImage("Button with Graphic", res.fonts.face, res.images.heart, res.colors.buttonText))
 	c.AddChild(b2)
 
+	c.AddChild(widget.NewButton(
+		widget.ButtonOpts.WithWidgetOpts(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+			Stretch: true,
+		})),
+		widget.ButtonOpts.WithImage(res.images.buttonKenney),
+		widget.ButtonOpts.WithText("Button", res.fonts.face, res.colors.buttonText),
+		widget.ButtonOpts.WithTextPadding(widget.Insets{
+			Left:   10,
+			Right:  10,
+			Top:    6,
+			Bottom: 10,
+		})))
+
 	c.AddChild(newSeparator(res, &widget.RowLayoutData{
 		Stretch: true,
 	}))

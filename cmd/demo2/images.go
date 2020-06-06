@@ -10,6 +10,7 @@ import (
 
 type images struct {
 	button          *widget.ButtonImage
+	buttonKenney    *widget.ButtonImage
 	buttonFlatLeft  *widget.ButtonImage
 	buttonNoLeft    *widget.ButtonImage
 	sliderTrack     *widget.SliderTrackImage
@@ -46,6 +47,16 @@ func loadImages() (*images, error) {
 		"graphics/button-2px-no-left-pressed.png",
 		"graphics/button-2px-no-left-disabled.png",
 		5, 6)
+	if err != nil {
+		return nil, err
+	}
+
+	buttonKenney, err := loadButtonImages(
+		"graphics/button-kenney-idle.png",
+		"graphics/button-kenney-idle.png",
+		"graphics/button-kenney-pressed.png",
+		"graphics/button-kenney-idle.png",
+		9, 2)
 	if err != nil {
 		return nil, err
 	}
@@ -104,6 +115,7 @@ func loadImages() (*images, error) {
 		button:         button,
 		buttonFlatLeft: buttonFlatLeft,
 		buttonNoLeft:   buttonNoLeft,
+		buttonKenney:   buttonKenney,
 		sliderTrack: &widget.SliderTrackImage{
 			Idle:     button.Idle,
 			Hover:    button.Hover,
