@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	img "image"
 	"log"
 
@@ -91,6 +92,7 @@ func createUI() (*ebitenui.UI, *fonts) {
 		buttonPage(res),
 		checkboxPage(res),
 		listPage(res),
+		comboButtonPage(res),
 	}
 
 	var pageContainer *widget.Container
@@ -560,6 +562,66 @@ func listPage(res *resources) *page {
 
 	return &page{
 		title:   "List",
+		content: c,
+	}
+}
+
+func comboButtonPage(res *resources) *page {
+	c := widget.NewContainer(
+		widget.ContainerOpts.WithLayout(widget.NewRowLayout(
+			widget.RowLayoutOpts.WithDirection(widget.DirectionVertical),
+			widget.RowLayoutOpts.WithSpacing(10),
+		)))
+
+	entries := []interface{}{}
+	for i := 1; i <= 20; i++ {
+		entries = append(entries, i)
+	}
+
+	cb := widget.NewListComboButton(
+		widget.ListComboButtonOpts.WithSelectComboButtonOpts(widget.SelectComboButtonOpts.WithComboButtonOpts(widget.ComboButtonOpts.WithButtonOpts(widget.ButtonOpts.WithImage(res.images.button)))),
+		widget.ListComboButtonOpts.WithText(res.fonts.face, res.images.arrowDown, &widget.ButtonTextColor{
+			Idle:     color.Black,
+			Disabled: color.RGBA{128, 128, 128, 255},
+		}),
+		widget.ListComboButtonOpts.WithListOpts(
+			widget.ListOpts.WithEntries(entries),
+			widget.ListOpts.WithScrollContainerOpts(
+				widget.ScrollContainerOpts.WithImage(res.images.scrollContainer),
+				widget.ScrollContainerOpts.WithPadding(widget.NewInsetsSimple(2))),
+			widget.ListOpts.WithSliderOpts(widget.SliderOpts.WithImages(res.images.sliderTrack, res.images.button)),
+			widget.ListOpts.WithEntryFontFace(res.fonts.face),
+			widget.ListOpts.WithEntryColor(res.colors.list)),
+
+		widget.ListComboButtonOpts.WithEntryLabelFunc(
+			func(e interface{}) string {
+				return fmt.Sprintf("Entry %d", e.(int))
+			},
+			func(e interface{}) string {
+				return fmt.Sprintf("Entry %d", e.(int))
+			}),
+
+		widget.ListComboButtonOpts.WithEntrySelectedHandler(func(args *widget.ListComboButtonEntrySelectedEventArgs) {
+			c.RequestRelayout()
+		}))
+	c.AddChild(cb)
+
+	c.AddChild(newSeparator(res, widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+		Stretch: true,
+	})))
+
+	c.AddChild(widget.NewLabeledCheckbox(
+		widget.LabeledCheckboxOpts.WithCheckboxOpts(
+			widget.CheckboxOpts.WithButtonOpts(widget.ButtonOpts.WithImage(res.images.button)),
+			widget.CheckboxOpts.WithImage(res.images.checkbox),
+
+			widget.CheckboxOpts.WithChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
+				cb.GetWidget().Disabled = args.State == widget.CheckboxChecked
+			})),
+		widget.LabeledCheckboxOpts.WithLabelOpts(widget.LabelOpts.WithText("Disabled", res.fonts.face, res.colors.label))))
+
+	return &page{
+		title:   "Combo Button",
 		content: c,
 	}
 }
