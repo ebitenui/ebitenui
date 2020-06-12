@@ -103,6 +103,7 @@ func createUI() (*ebitenui.UI, *fonts) {
 		checkboxPage(res),
 		listPage(res),
 		comboButtonPage(res),
+		tabBookPage(res),
 	}
 
 	collator := collate.New(language.English)
@@ -349,6 +350,56 @@ func comboButtonPage(res *resources) *page {
 
 	return &page{
 		title:   "Combo Button",
+		content: c,
+	}
+}
+
+func tabBookPage(res *resources) *page {
+	c := newPageContentContainer()
+
+	tabs := []*widget.TabBookTab{}
+
+	for i := 0; i < 5; i++ {
+		tc := widget.NewContainer(
+			widget.ContainerOpts.WithLayout(widget.NewRowLayout(
+				widget.RowLayoutOpts.WithDirection(widget.DirectionVertical),
+				widget.RowLayoutOpts.WithSpacing(10))),
+			widget.ContainerOpts.WithAutoDisableChildren())
+
+		for j := 0; j < 3; j++ {
+			b := widget.NewButton(
+				widget.ButtonOpts.WithImage(res.images.button),
+				widget.ButtonOpts.WithText(fmt.Sprintf("Button %d on Tab %d", j+1, i+1), res.fonts.face, res.colors.buttonText))
+			tc.AddChild(b)
+		}
+
+		tab := widget.NewTabBookTab(fmt.Sprintf("Tab %d", i+1), tc)
+		if i == 2 {
+			tab.Disabled = true
+		}
+
+		tabs = append(tabs, tab)
+	}
+
+	t := widget.NewTabBook(
+		widget.TabBookOpts.WithTabs(tabs...),
+		widget.TabBookOpts.WithTabButtonOpts(
+			widget.ButtonOpts.WithImage(res.images.button)),
+		widget.TabBookOpts.WithTabButtonText(res.fonts.face, res.colors.buttonText),
+		widget.TabBookOpts.WithTabButtonSpacing(4),
+		widget.TabBookOpts.WithSpacing(10))
+	c.AddChild(t)
+
+	c.AddChild(newSeparator(res, &widget.RowLayoutData{
+		Stretch: true,
+	}))
+
+	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
+		t.GetWidget().Disabled = args.State == widget.CheckboxChecked
+	}, res))
+
+	return &page{
+		title:   "TabBook",
 		content: c,
 	}
 }
