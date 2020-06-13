@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"image"
 	"image/color"
+	"math"
 	"strings"
 
 	"github.com/hajimehoshi/ebiten"
@@ -20,12 +21,9 @@ type Text struct {
 	widgetOpts []WidgetOpt
 	position   TextPosition
 
-	init                      *MultiOnce
-	widget                    *Widget
-	lastLabelForPreferredSize string
-	lastFaceForPreferredSize  font.Face
-	preferredWidth            int
-	preferredHeight           int
+	init         *MultiOnce
+	widget       *Widget
+	measurements textMeasurements
 }
 
 type TextOpt func(t *Text)
@@ -41,6 +39,18 @@ const (
 const TextOpts = textOpts(true)
 
 type textOpts bool
+
+type textMeasurements struct {
+	label string
+	face  font.Face
+
+	lines             []string
+	lineWidths        []float64
+	lineHeight        float64
+	ascent            float64
+	boundingBoxWidth  float64
+	boundingBoxHeight float64
+}
 
 func NewText(opts ...TextOpt) *Text {
 	t := &Text{
@@ -88,34 +98,8 @@ func (t *Text) SetLocation(rect image.Rectangle) {
 
 func (t *Text) PreferredSize() (int, int) {
 	t.init.Do()
-
-	if t.Label == t.lastLabelForPreferredSize && t.Face == t.lastFaceForPreferredSize {
-		return t.preferredWidth, t.preferredHeight
-	}
-
-	m := t.Face.Metrics()
-	fh := m.Ascent + m.Descent
-	lh := m.Height
-	ld := lh - fh
-
-	lines := 0
-	w := 0
-	s := bufio.NewScanner(strings.NewReader(t.Label))
-	for s.Scan() {
-		lines++
-
-		lw := font.MeasureString(t.Face, s.Text()).Ceil()
-		if lw > w {
-			w = lw
-		}
-	}
-
-	t.preferredWidth, t.preferredHeight = w, (fixed.I(lines).Mul(lh) - ld).Ceil()
-
-	t.lastLabelForPreferredSize = t.Label
-	t.lastFaceForPreferredSize = t.Face
-
-	return t.preferredWidth, t.preferredHeight
+	t.measure()
+	return int(math.Ceil(t.measurements.boundingBoxWidth)), int(math.Ceil(t.measurements.boundingBoxHeight))
 }
 
 func (t *Text) Render(screen *ebiten.Image, def DeferredRenderFunc) {
@@ -125,24 +109,65 @@ func (t *Text) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 }
 
 func (t *Text) draw(screen *ebiten.Image) {
-	w, h := t.PreferredSize()
+	t.measure()
 
 	r := t.widget.Rect
+	w := r.Dx()
 	p := r.Min
 
-	x := p.X
-	switch t.position {
-	case TextPositionCenter:
-		x += (r.Dx() - w) / 2
-	case TextPositionEnd:
-		x += r.Dx() - w
-	}
-	y := p.Y + (r.Dy()-h)/2 + t.Face.Metrics().Ascent.Round()
+	for i, line := range t.measurements.lines {
+		lx := p.X
+		switch t.position {
+		case TextPositionCenter:
+			lx += int(math.Round((float64(w) - t.measurements.lineWidths[i]) / 2))
+		case TextPositionEnd:
+			lx += int(math.Ceil(float64(w) - t.measurements.lineWidths[i]))
+		}
 
-	text.Draw(screen, t.Label, t.Face, x, y, t.Color)
+		ly := int(math.Round(float64(p.Y) + t.measurements.lineHeight*float64(i) + t.measurements.ascent))
+
+		text.Draw(screen, line, t.Face, lx, ly, t.Color)
+	}
+}
+
+func (t *Text) measure() {
+	if t.Label == t.measurements.label && t.Face == t.measurements.face {
+		return
+	}
+
+	m := t.Face.Metrics()
+
+	t.measurements = textMeasurements{
+		label:  t.Label,
+		face:   t.Face,
+		ascent: fixedInt26_6ToFloat64(m.Ascent),
+	}
+
+	fh := fixedInt26_6ToFloat64(m.Ascent + m.Descent)
+	t.measurements.lineHeight = fixedInt26_6ToFloat64(m.Height)
+	ld := t.measurements.lineHeight - fh
+
+	s := bufio.NewScanner(strings.NewReader(t.Label))
+	for s.Scan() {
+		line := s.Text()
+		t.measurements.lines = append(t.measurements.lines, line)
+
+		lw := fixedInt26_6ToFloat64(font.MeasureString(t.Face, line))
+		t.measurements.lineWidths = append(t.measurements.lineWidths, lw)
+
+		if lw > t.measurements.boundingBoxWidth {
+			t.measurements.boundingBoxWidth = lw
+		}
+	}
+
+	t.measurements.boundingBoxHeight = float64(len(t.measurements.lines))*t.measurements.lineHeight - ld
 }
 
 func (t *Text) createWidget() {
 	t.widget = NewWidget(t.widgetOpts...)
 	t.widgetOpts = nil
+}
+
+func fixedInt26_6ToFloat64(i fixed.Int26_6) float64 {
+	return float64(i) / (1 << 6)
 }
