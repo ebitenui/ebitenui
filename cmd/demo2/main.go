@@ -196,6 +196,14 @@ func buttonPage(res *resources) *page {
 		widget.ButtonOpts.WithTextAndImage("Button with Graphic", res.fonts.face, res.images.heart, res.colors.buttonText))
 	c.AddChild(b2)
 
+	b3 := widget.NewButton(
+		widget.ButtonOpts.WithWidgetOpts(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+			Stretch: true,
+		})),
+		widget.ButtonOpts.WithImage(res.images.button),
+		widget.ButtonOpts.WithText("Multi\nLine\nButton", res.fonts.face, res.colors.buttonText))
+	c.AddChild(b3)
+
 	c.AddChild(widget.NewButton(
 		widget.ButtonOpts.WithWidgetOpts(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
 			Stretch: true,
@@ -216,6 +224,7 @@ func buttonPage(res *resources) *page {
 	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
 		b1.GetWidget().Disabled = args.State == widget.CheckboxChecked
 		b2.GetWidget().Disabled = args.State == widget.CheckboxChecked
+		b3.GetWidget().Disabled = args.State == widget.CheckboxChecked
 	}, res))
 
 	return &page{
