@@ -383,8 +383,7 @@ func tabBookPage(res *resources) *page {
 
 	t := widget.NewTabBook(
 		widget.TabBookOpts.WithTabs(tabs...),
-		widget.TabBookOpts.WithTabButtonOpts(
-			widget.ButtonOpts.WithImage(res.images.button)),
+		widget.TabBookOpts.WithTabButtonImage(res.images.button, res.images.stateButtonSelected),
 		widget.TabBookOpts.WithTabButtonText(res.fonts.face, res.colors.buttonText),
 		widget.TabBookOpts.WithTabButtonSpacing(4),
 		widget.TabBookOpts.WithSpacing(10))
@@ -399,7 +398,7 @@ func tabBookPage(res *resources) *page {
 	}, res))
 
 	return &page{
-		title:   "TabBook",
+		title:   "Tab Book",
 		content: c,
 	}
 }

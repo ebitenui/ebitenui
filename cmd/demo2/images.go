@@ -9,15 +9,16 @@ import (
 )
 
 type images struct {
-	button          *widget.ButtonImage
-	buttonKenney    *widget.ButtonImage
-	buttonFlatLeft  *widget.ButtonImage
-	buttonNoLeft    *widget.ButtonImage
-	sliderTrack     *widget.SliderTrackImage
-	arrowDown       *widget.ButtonImageImage
-	scrollContainer *widget.ScrollContainerImage
-	checkbox        *widget.CheckboxGraphicImage
-	heart           *widget.ButtonImageImage
+	button              *widget.ButtonImage
+	buttonKenney        *widget.ButtonImage
+	buttonFlatLeft      *widget.ButtonImage
+	buttonNoLeft        *widget.ButtonImage
+	stateButtonSelected *widget.ButtonImage
+	sliderTrack         *widget.SliderTrackImage
+	arrowDown           *widget.ButtonImageImage
+	scrollContainer     *widget.ScrollContainerImage
+	checkbox            *widget.CheckboxGraphicImage
+	heart               *widget.ButtonImageImage
 }
 
 func loadImages() (*images, error) {
@@ -57,6 +58,16 @@ func loadImages() (*images, error) {
 		"graphics/button-kenney-pressed.png",
 		"graphics/button-kenney-idle.png",
 		9, 2)
+	if err != nil {
+		return nil, err
+	}
+
+	stateButtonSelected, err := loadButtonImages(
+		"graphics/button-2px-pressed.png",
+		"graphics/button-2px-pressed.png",
+		"graphics/button-2px-pressed.png",
+		"graphics/button-2px-disabled.png",
+		5, 6)
 	if err != nil {
 		return nil, err
 	}
@@ -112,10 +123,11 @@ func loadImages() (*images, error) {
 	}
 
 	return &images{
-		button:         button,
-		buttonFlatLeft: buttonFlatLeft,
-		buttonNoLeft:   buttonNoLeft,
-		buttonKenney:   buttonKenney,
+		button:              button,
+		buttonFlatLeft:      buttonFlatLeft,
+		buttonNoLeft:        buttonNoLeft,
+		buttonKenney:        buttonKenney,
+		stateButtonSelected: stateButtonSelected,
 		sliderTrack: &widget.SliderTrackImage{
 			Idle:     button.Idle,
 			Hover:    button.Hover,

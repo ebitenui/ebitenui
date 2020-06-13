@@ -3,24 +3,30 @@ package widget
 import (
 	"image"
 
+	"github.com/blizzy78/ebitenui/event"
 	"github.com/blizzy78/ebitenui/input"
 	"github.com/hajimehoshi/ebiten"
 	"golang.org/x/image/font"
 )
 
 type TabBook struct {
+	TabSelectedEvent *event.Event
+
 	tabs          []*TabBookTab
 	containerOpts []ContainerOpt
-	buttonOpts    []ButtonOpt
+	buttonOpts    []StateButtonOpt
+	buttonImages  map[interface{}]*ButtonImage
 	buttonFace    font.Face
 	buttonColor   *ButtonTextColor
 	flipBookOpts  []FlipBookOpt
 	buttonSpacing int
 	spacing       int
 
-	init          *MultiOnce
-	container     *Container
-	buttonsToTabs map[*Button]*TabBookTab
+	init        *MultiOnce
+	container   *Container
+	tabToButton map[*TabBookTab]*StateButton
+	flipBook    *FlipBook
+	tab         *TabBookTab
 }
 
 type TabBookTab struct {
@@ -32,14 +38,24 @@ type TabBookTab struct {
 
 type TabBookOpt func(t *TabBook)
 
+type TabBookTabSelectedEventArgs struct {
+	TabBook     *TabBook
+	Tab         *TabBookTab
+	PreviousTab *TabBookTab
+}
+
+type TabBookTabSelectedHandlerFunc func(args *TabBookTabSelectedEventArgs)
+
 const TabBookOpts = tabBookOpts(true)
 
 type tabBookOpts bool
 
 func NewTabBook(opts ...TabBookOpt) *TabBook {
 	t := &TabBook{
-		init:          &MultiOnce{},
-		buttonsToTabs: map[*Button]*TabBookTab{},
+		TabSelectedEvent: &event.Event{},
+
+		init:        &MultiOnce{},
+		tabToButton: map[*TabBookTab]*StateButton{},
 	}
 
 	t.init.Append(t.createWidget)
@@ -64,7 +80,7 @@ func (o tabBookOpts) WithContainerOpts(opts ...ContainerOpt) TabBookOpt {
 	}
 }
 
-func (o tabBookOpts) WithTabButtonOpts(opts ...ButtonOpt) TabBookOpt {
+func (o tabBookOpts) WithTabButtonOpts(opts ...StateButtonOpt) TabBookOpt {
 	return func(t *TabBook) {
 		t.buttonOpts = append(t.buttonOpts, opts...)
 	}
@@ -73,6 +89,15 @@ func (o tabBookOpts) WithTabButtonOpts(opts ...ButtonOpt) TabBookOpt {
 func (o tabBookOpts) WithFlipBookOpts(opts ...FlipBookOpt) TabBookOpt {
 	return func(t *TabBook) {
 		t.flipBookOpts = append(t.flipBookOpts, opts...)
+	}
+}
+
+func (o tabBookOpts) WithTabButtonImage(idle *ButtonImage, selected *ButtonImage) TabBookOpt {
+	return func(t *TabBook) {
+		t.buttonImages = map[interface{}]*ButtonImage{
+			false: idle,
+			true:  selected,
+		}
 	}
 }
 
@@ -98,6 +123,14 @@ func (o tabBookOpts) WithSpacing(s int) TabBookOpt {
 func (o tabBookOpts) WithTabs(tabs ...*TabBookTab) TabBookOpt {
 	return func(t *TabBook) {
 		t.tabs = append(t.tabs, tabs...)
+	}
+}
+
+func (o tabBookOpts) WithTabSelectedHandler(f TabBookTabSelectedHandlerFunc) TabBookOpt {
+	return func(t *TabBook) {
+		t.TabSelectedEvent.AddHandler(func(args interface{}) {
+			f(args.(*TabBookTabSelectedEventArgs))
+		})
 	}
 }
 
@@ -130,7 +163,7 @@ func (t *TabBook) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	t.init.Do()
 
 	d := t.container.GetWidget().Disabled
-	for b, tab := range t.buttonsToTabs {
+	for tab, b := range t.tabToButton {
 		b.GetWidget().Disabled = d || tab.Disabled
 	}
 
@@ -152,26 +185,57 @@ func (t *TabBook) createWidget() {
 			RowLayoutOpts.WithSpacing(t.buttonSpacing))))
 	t.container.AddChild(buttonsContainer)
 
-	var f *FlipBook
-
 	for _, tab := range t.tabs {
-		b := NewButton(append(t.buttonOpts, []ButtonOpt{
-			ButtonOpts.WithText(tab.label, t.buttonFace, t.buttonColor),
-			ButtonOpts.WithClickedHandler(func(args *ButtonClickedEventArgs) {
-				tab := t.buttonsToTabs[args.Button]
-				f.SetPage(tab.widget)
-			}),
+		tab := tab
+		b := NewStateButton(append(t.buttonOpts, []StateButtonOpt{
+			StateButtonOpts.WithStateImages(t.buttonImages),
+			StateButtonOpts.WithButtonOpts(
+				ButtonOpts.WithText(tab.label, t.buttonFace, t.buttonColor),
+				ButtonOpts.WithClickedHandler(func(args *ButtonClickedEventArgs) {
+					t.SetTab(tab)
+				})),
 		}...)...)
 		buttonsContainer.AddChild(b)
 
-		t.buttonsToTabs[b] = tab
+		t.tabToButton[tab] = b
 	}
 	t.buttonOpts = nil
+	t.buttonImages = nil
 
-	f = NewFlipBook(append(t.flipBookOpts,
+	t.flipBook = NewFlipBook(append(t.flipBookOpts,
 		FlipBookOpts.WithContainerOpts(ContainerOpts.WithAutoDisableChildren()))...)
-	t.container.AddChild(f)
+	t.container.AddChild(t.flipBook)
 	t.flipBookOpts = nil
 
-	f.SetPage(t.tabs[0].widget)
+	t.setTab(t.tabs[0], false)
+}
+
+func (t *TabBook) SetTab(tab *TabBookTab) {
+	t.setTab(tab, true)
+}
+
+func (t *TabBook) setTab(tab *TabBookTab, fireEvent bool) {
+	if tab != t.tab {
+		previousTab := t.tab
+
+		t.tab = tab
+
+		t.flipBook.SetPage(tab.widget)
+
+		for bt, b := range t.tabToButton {
+			b.State = bt == tab
+		}
+
+		if fireEvent {
+			t.TabSelectedEvent.Fire(&TabBookTabSelectedEventArgs{
+				TabBook:     t,
+				Tab:         tab,
+				PreviousTab: previousTab,
+			})
+		}
+	}
+}
+
+func (t *TabBook) Tab() *TabBookTab {
+	return t.tab
 }
