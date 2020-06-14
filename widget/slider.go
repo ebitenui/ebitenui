@@ -69,9 +69,8 @@ func NewSlider(opts ...SliderOpt) *Slider {
 
 		ChangedEvent: &event.Event{},
 
-		trackImage:   &SliderTrackImage{},
-		trackPadding: 3,
-		handleSize:   16,
+		trackImage: &SliderTrackImage{},
+		handleSize: 16,
 		pageSizeFunc: func() int {
 			return 10
 		},

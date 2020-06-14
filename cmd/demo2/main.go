@@ -41,7 +41,7 @@ type pageContainer struct {
 }
 
 func main() {
-	ebiten.SetWindowSize(800, 500)
+	ebiten.SetWindowSize(800, 600)
 	ebiten.SetWindowTitle("Ebiten UI Demo")
 	ebiten.SetWindowResizable(true)
 
@@ -87,8 +87,17 @@ func createUI() (*ebitenui.UI, *fonts) {
 			widget.GridLayoutOpts.WithSpacing(0, 20))),
 		widget.ContainerOpts.WithBackgroundImage(image.NewNineSliceColor(color.White)))
 
-	rootContainer.AddChild(widget.NewText(
+	infoContainer := widget.NewContainer(
+		widget.ContainerOpts.WithLayout(widget.NewRowLayout(
+			widget.RowLayoutOpts.WithDirection(widget.DirectionVertical),
+			widget.RowLayoutOpts.WithSpacing(0))))
+	rootContainer.AddChild(infoContainer)
+
+	infoContainer.AddChild(widget.NewText(
 		widget.TextOpts.WithText("Ebiten UI Demo", fonts.bigTitleFace, res.colors.textIdle)))
+
+	infoContainer.AddChild(widget.NewText(
+		widget.TextOpts.WithText("This program is a showcase of Ebiten UI widgets and layouts.", fonts.face, res.colors.textIdle)))
 
 	demoContainer := widget.NewContainer(
 		widget.ContainerOpts.WithLayout(widget.NewGridLayout(
@@ -104,6 +113,9 @@ func createUI() (*ebitenui.UI, *fonts) {
 		listPage(res),
 		comboButtonPage(res),
 		tabBookPage(res),
+		gridLayoutPage(res),
+		rowLayoutPage(res),
+		sliderPage(res),
 	}
 
 	collator := collate.New(language.English)
@@ -292,19 +304,14 @@ func listPage(res *resources) *page {
 		)))
 	listsContainer.AddChild(buttonsContainer)
 
-	buttonsContainer.AddChild(widget.NewButton(
-		widget.ButtonOpts.WithWidgetOpts(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
-			Stretch: true,
-		})),
-		widget.ButtonOpts.WithImage(res.images.button),
-		widget.ButtonOpts.WithText("Add", res.fonts.face, res.colors.buttonText)))
-
-	buttonsContainer.AddChild(widget.NewButton(
-		widget.ButtonOpts.WithWidgetOpts(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
-			Stretch: true,
-		})),
-		widget.ButtonOpts.WithImage(res.images.button),
-		widget.ButtonOpts.WithText("Remove", res.fonts.face, res.colors.buttonText)))
+	for i := 0; i < 3; i++ {
+		buttonsContainer.AddChild(widget.NewButton(
+			widget.ButtonOpts.WithWidgetOpts(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+				Stretch: true,
+			})),
+			widget.ButtonOpts.WithImage(res.images.button),
+			widget.ButtonOpts.WithText(fmt.Sprintf("Action %d", i+1), res.fonts.face, res.colors.buttonText)))
+	}
 
 	entries2 := []interface{}{"Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen", "Twenty"}
 	list2 := newList(entries2, res, widget.WidgetOpts.WithLayoutData(&widget.GridLayoutData{
@@ -412,6 +419,130 @@ func tabBookPage(res *resources) *page {
 	}
 }
 
+func gridLayoutPage(res *resources) *page {
+	c := widget.NewContainer(
+		widget.ContainerOpts.WithLayout(widget.NewGridLayout(
+			widget.GridLayoutOpts.WithColumns(5),
+			widget.GridLayoutOpts.WithStretch([]bool{true, true, true, true, true}, nil),
+			widget.GridLayoutOpts.WithSpacing(5, 5))))
+
+	for row := 0; row < 3; row++ {
+		for col := 0; col < 5; col++ {
+			i := row*5 + col
+			b := widget.NewButton(
+				widget.ButtonOpts.WithImage(res.images.button),
+				widget.ButtonOpts.WithText(fmt.Sprintf("Button %d", i+1), res.fonts.face, res.colors.buttonText))
+			c.AddChild(b)
+		}
+	}
+
+	return &page{
+		title:   "Grid Layout",
+		content: c,
+	}
+}
+
+func rowLayoutPage(res *resources) *page {
+	c := newPageContentContainer()
+
+	c.AddChild(widget.NewText(
+		widget.TextOpts.WithText("Horizontal", res.fonts.face, res.colors.textIdle)))
+
+	bc := widget.NewContainer(
+		widget.ContainerOpts.WithLayout(widget.NewRowLayout(
+			widget.RowLayoutOpts.WithSpacing(5))))
+	c.AddChild(bc)
+
+	for col := 0; col < 5; col++ {
+		b := widget.NewButton(
+			widget.ButtonOpts.WithImage(res.images.button),
+			widget.ButtonOpts.WithText(fmt.Sprintf("Button %d", col+1), res.fonts.face, res.colors.buttonText))
+		bc.AddChild(b)
+	}
+
+	c.AddChild(widget.NewText(
+		widget.TextOpts.WithText("Vertical", res.fonts.face, res.colors.textIdle)))
+
+	bc = widget.NewContainer(
+		widget.ContainerOpts.WithLayout(widget.NewRowLayout(
+			widget.RowLayoutOpts.WithDirection(widget.DirectionVertical),
+			widget.RowLayoutOpts.WithSpacing(5))))
+	c.AddChild(bc)
+
+	labels := []string{"Tiny", "Medium", "Very Large"}
+	for _, l := range labels {
+		b := widget.NewButton(
+			widget.ButtonOpts.WithWidgetOpts(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+				Stretch: true,
+			})),
+			widget.ButtonOpts.WithImage(res.images.button),
+			widget.ButtonOpts.WithText(l, res.fonts.face, res.colors.buttonText))
+		bc.AddChild(b)
+	}
+
+	return &page{
+		title:   "Row Layout",
+		content: c,
+	}
+}
+
+func sliderPage(res *resources) *page {
+	c := newPageContentContainer()
+
+	pageSizes := []int{3, 10}
+	sliders := []*widget.Slider{}
+
+	for _, ps := range pageSizes {
+		ps := ps
+
+		sc := widget.NewContainer(
+			widget.ContainerOpts.WithLayout(widget.NewRowLayout(
+				widget.RowLayoutOpts.WithSpacing(10))))
+		c.AddChild(sc)
+
+		var text *widget.Text
+
+		s := widget.NewSlider(
+			widget.SliderOpts.WithWidgetOpts(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+				Position: widget.RowLayoutPositionCenter,
+			})),
+			widget.SliderOpts.WithMinMax(1, 20),
+			widget.SliderOpts.WithImages(res.images.sliderTrack, res.images.button),
+			widget.SliderOpts.WithTrackPadding(3),
+			widget.SliderOpts.WithPageSizeFunc(func() int {
+				return ps
+			}),
+			widget.SliderOpts.WithChangedHandler(func(args *widget.SliderChangedEventArgs) {
+				text.Label = fmt.Sprintf("%d", args.Current)
+			}),
+		)
+		sc.AddChild(s)
+		sliders = append(sliders, s)
+
+		text = widget.NewText(
+			widget.TextOpts.WithWidgetOpts(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+				Position: widget.RowLayoutPositionCenter,
+			})),
+			widget.TextOpts.WithText(fmt.Sprintf("%d", s.Current), res.fonts.face, res.colors.textIdle))
+		sc.AddChild(text)
+	}
+
+	c.AddChild(newSeparator(res, &widget.RowLayoutData{
+		Stretch: true,
+	}))
+
+	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
+		for _, s := range sliders {
+			s.GetWidget().Disabled = args.State == widget.CheckboxChecked
+		}
+	}, res))
+
+	return &page{
+		title:   "Slider",
+		content: c,
+	}
+}
+
 func newCheckbox(label string, changedHandler widget.CheckboxChangedHandlerFunc, res *resources) *widget.LabeledCheckbox {
 	return widget.NewLabeledCheckbox(
 		widget.LabeledCheckboxOpts.WithCheckboxOpts(
@@ -454,7 +585,9 @@ func newList(entries []interface{}, res *resources, widgetOpts ...widget.WidgetO
 		widget.ListOpts.WithScrollContainerOpts(
 			widget.ScrollContainerOpts.WithImage(res.images.scrollContainer),
 			widget.ScrollContainerOpts.WithPadding(widget.NewInsetsSimple(2))),
-		widget.ListOpts.WithSliderOpts(widget.SliderOpts.WithImages(res.images.sliderTrack, res.images.button)),
+		widget.ListOpts.WithSliderOpts(
+			widget.SliderOpts.WithImages(res.images.sliderTrack, res.images.button),
+			widget.SliderOpts.WithTrackPadding(3)),
 		widget.ListOpts.WithHideHorizontalSlider(),
 		widget.ListOpts.WithControlWidgetSpacing(2),
 		widget.ListOpts.WithEntries(entries),
