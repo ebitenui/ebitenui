@@ -7,7 +7,28 @@ import (
 	"github.com/matryer/is"
 )
 
-func TestFillLayout_Layout_Padding(t *testing.T) {
+func TestFillLayout_PreferredSize(t *testing.T) {
+	is := is.New(t)
+
+	padding := Insets{
+		Top:    10,
+		Left:   20,
+		Right:  30,
+		Bottom: 40,
+	}
+
+	l := newFillLayout(t,
+		FillLayoutOpts.WithPadding(padding))
+
+	wi := newSimpleWidget(35, 45, nil)
+
+	w, h := l.PreferredSize([]HasWidget{wi})
+
+	is.Equal(w, wi.preferredWidth+padding.Dx())
+	is.Equal(h, wi.preferredHeight+padding.Dy())
+}
+
+func TestFillLayout_Layout(t *testing.T) {
 	is := is.New(t)
 
 	l := newFillLayout(t,

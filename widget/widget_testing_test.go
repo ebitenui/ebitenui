@@ -23,7 +23,7 @@ type simpleWidget struct {
 var loadFontOnce sync.Once
 var fontFace2 font.Face
 
-func newSimpleWidget(preferredWidth int, preferredHeight int, ld interface{}) HasWidget {
+func newSimpleWidget(preferredWidth int, preferredHeight int, ld interface{}) *simpleWidget {
 	return &simpleWidget{
 		widget:          NewWidget(WidgetOpts.WithLayoutData(ld)),
 		preferredWidth:  preferredWidth,

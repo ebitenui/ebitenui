@@ -101,15 +101,23 @@ func (r *rowLayout) layout(widgets []HasWidget, rect image.Rectangle, usePositio
 
 		ld := widget.GetWidget().LayoutData
 		if rld, ok := ld.(*RowLayoutData); ok {
-			if usePosition {
-				if rld.Stretch {
-					if r.direction == DirectionHorizontal {
-						wh = rect.Dy()
-					} else {
-						ww = rect.Dx()
-					}
+			if usePosition && rld.Stretch {
+				if r.direction == DirectionHorizontal {
+					wh = rect.Dy()
+				} else {
+					ww = rect.Dx()
 				}
+			}
 
+			if rld.MaxWidth > 0 && ww > rld.MaxWidth {
+				ww = rld.MaxWidth
+			}
+
+			if rld.MaxHeight > 0 && wh > rld.MaxHeight {
+				wh = rld.MaxHeight
+			}
+
+			if usePosition {
 				switch rld.Position {
 				case RowLayoutPositionCenter:
 					if r.direction == DirectionHorizontal {
@@ -125,14 +133,6 @@ func (r *rowLayout) layout(widgets []HasWidget, rect image.Rectangle, usePositio
 						wx = x + rect.Dx() - ww
 					}
 				}
-			}
-
-			if rld.MaxWidth > 0 && ww > rld.MaxWidth {
-				ww = rld.MaxWidth
-			}
-
-			if rld.MaxHeight > 0 && wh > rld.MaxHeight {
-				wh = rld.MaxHeight
 			}
 		}
 
