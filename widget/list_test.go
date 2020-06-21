@@ -4,8 +4,7 @@ import (
 	"image/color"
 	"testing"
 
-	"github.com/blizzy78/ebitenui/event"
-
+	internalevent "github.com/blizzy78/ebitenui/internal/event"
 	"github.com/matryer/is"
 )
 
@@ -49,13 +48,13 @@ func TestList_SetSelectedEntry(t *testing.T) {
 		}))
 
 	list.SetSelectedEntry(entries[1])
-	event.FireDeferredEvents()
+	internalevent.ExecuteDeferredActions()
 
 	is.Equal(eventArgs.Entry, entries[1])
 	is.Equal(list.SelectedEntry(), entries[1])
 
 	list.SetSelectedEntry(entries[1])
-	event.FireDeferredEvents()
+	internalevent.ExecuteDeferredActions()
 
 	is.Equal(numEvents, 1)
 }
@@ -149,7 +148,7 @@ func newList(t *testing.T, opts ...ListOpt) *List {
 			}),
 		}...)...)
 
-	event.FireDeferredEvents()
+	internalevent.ExecuteDeferredActions()
 	render(l, t)
 	return l
 }

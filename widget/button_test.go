@@ -3,8 +3,7 @@ package widget
 import (
 	"testing"
 
-	"github.com/blizzy78/ebitenui/event"
-
+	internalevent "github.com/blizzy78/ebitenui/internal/event"
 	"github.com/matryer/is"
 )
 
@@ -57,7 +56,7 @@ func newButton(t *testing.T, opts ...ButtonOpt) *Button {
 	t.Helper()
 
 	b := NewButton(opts...)
-	event.FireDeferredEvents()
+	internalevent.ExecuteDeferredActions()
 	render(b, t)
 	return b
 }

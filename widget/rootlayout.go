@@ -4,6 +4,8 @@ import (
 	"image"
 )
 
+// TODO: RootLayout should probably reside in "internal" subpackage
+
 type RootLayout struct {
 	layout   Layouter
 	widgets  []HasWidget

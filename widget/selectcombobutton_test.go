@@ -4,8 +4,7 @@ import (
 	"image/color"
 	"testing"
 
-	"github.com/blizzy78/ebitenui/event"
-
+	internalevent "github.com/blizzy78/ebitenui/internal/event"
 	"github.com/matryer/is"
 )
 
@@ -27,20 +26,20 @@ func TestSelectComboButton_SetSelectedEntry(t *testing.T) {
 
 	entry := "foo"
 	b.SetSelectedEntry(entry)
-	event.FireDeferredEvents()
+	internalevent.ExecuteDeferredActions()
 
 	is.Equal(b.SelectedEntry(), entry)
 	is.Equal(eventArgs.Entry, entry)
 	is.Equal(b.Label(), "label foo")
 
 	b.SetSelectedEntry(entry)
-	event.FireDeferredEvents()
+	internalevent.ExecuteDeferredActions()
 
 	is.Equal(numEvents, 1)
 
 	entry2 := "bar"
 	b.SetSelectedEntry(entry2)
-	event.FireDeferredEvents()
+	internalevent.ExecuteDeferredActions()
 
 	is.Equal(eventArgs.PreviousEntry, entry)
 }
@@ -63,12 +62,12 @@ func TestSelectComboButton_ContentVisible_Programmatic(t *testing.T) {
 	b := newSelectComboButton(t)
 
 	b.SetContentVisible(true)
-	event.FireDeferredEvents()
+	internalevent.ExecuteDeferredActions()
 
 	is.True(b.ContentVisible())
 
 	b.SetContentVisible(false)
-	event.FireDeferredEvents()
+	internalevent.ExecuteDeferredActions()
 
 	is.True(!b.ContentVisible())
 }
@@ -88,7 +87,7 @@ func newSelectComboButton(t *testing.T, opts ...SelectComboButtonOpt) *SelectCom
 		SelectComboButtonOpts.WithComboButtonOpts(ComboButtonOpts.WithContent(newButton(t))),
 	}...)...)
 
-	event.FireDeferredEvents()
+	internalevent.ExecuteDeferredActions()
 	render(b, t)
 	return b
 }

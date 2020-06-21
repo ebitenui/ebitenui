@@ -6,8 +6,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/blizzy78/ebitenui/event"
 	"github.com/blizzy78/ebitenui/image"
+	internalevent "github.com/blizzy78/ebitenui/internal/event"
 
 	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten"
@@ -98,7 +98,7 @@ func leftMouseButtonPress(w HasWidget, t *testing.T) {
 		OffsetY: 0,
 	})
 
-	event.FireDeferredEvents()
+	internalevent.ExecuteDeferredActions()
 }
 
 func leftMouseButtonRelease(w HasWidget, t *testing.T) {
@@ -112,7 +112,7 @@ func leftMouseButtonRelease(w HasWidget, t *testing.T) {
 		Inside:  true,
 	})
 
-	event.FireDeferredEvents()
+	internalevent.ExecuteDeferredActions()
 }
 
 func render(r Renderer, t *testing.T) {
@@ -120,5 +120,5 @@ func render(r Renderer, t *testing.T) {
 
 	screen, _ := ebiten.NewImage(0, 0, ebiten.FilterDefault)
 	RenderWithDeferred(r, screen)
-	event.FireDeferredEvents()
+	internalevent.ExecuteDeferredActions()
 }

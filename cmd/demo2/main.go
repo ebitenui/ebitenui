@@ -572,7 +572,9 @@ func newListComboButton(entries []interface{}, buttonLabel widget.SelectComboBut
 			widget.ListOpts.WithScrollContainerOpts(
 				widget.ScrollContainerOpts.WithImage(res.images.scrollContainer),
 				widget.ScrollContainerOpts.WithPadding(widget.NewInsetsSimple(2))),
-			widget.ListOpts.WithSliderOpts(widget.SliderOpts.WithImages(res.images.sliderTrack, res.images.button)),
+			widget.ListOpts.WithSliderOpts(
+				widget.SliderOpts.WithImages(res.images.sliderTrack, res.images.button),
+				widget.SliderOpts.WithTrackPadding(3)),
 			widget.ListOpts.WithEntryFontFace(res.fonts.face),
 			widget.ListOpts.WithEntryColor(res.colors.list)),
 		widget.ListComboButtonOpts.WithEntryLabelFunc(buttonLabel, entryLabel),

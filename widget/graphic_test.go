@@ -3,8 +3,7 @@ package widget
 import (
 	"testing"
 
-	"github.com/blizzy78/ebitenui/event"
-
+	internalevent "github.com/blizzy78/ebitenui/internal/event"
 	"github.com/matryer/is"
 )
 
@@ -23,7 +22,7 @@ func newGraphic(t *testing.T, opts ...GraphicOpt) *Graphic {
 	t.Helper()
 
 	g := NewGraphic(opts...)
-	event.FireDeferredEvents()
+	internalevent.ExecuteDeferredActions()
 	render(g, t)
 	return g
 }

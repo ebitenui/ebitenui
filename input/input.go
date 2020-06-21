@@ -1,54 +1,19 @@
 package input
 
-import "github.com/hajimehoshi/ebiten"
-
-var (
-	leftMouseButtonPressed   bool
-	middleMouseButtonPressed bool
-	rightMouseButtonPressed  bool
-	cursorX                  int
-	cursorY                  int
-	wheelX                   float64
-	wheelY                   float64
-
-	leftMouseButtonJustPressed   bool
-	middleMouseButtonJustPressed bool
-	rightMouseButtonJustPressed  bool
-
-	lastLeftMouseButtonPressed   bool
-	lastMiddleMouseButtonPressed bool
-	lastRightMouseButtonPressed  bool
+import (
+	internalinput "github.com/blizzy78/ebitenui/internal/input"
+	"github.com/hajimehoshi/ebiten"
 )
-
-// Update updates the input system. This function should not be called directly.
-func Update() {
-	leftMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft)
-	middleMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle)
-	rightMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight)
-	cursorX, cursorY = ebiten.CursorPosition()
-	wheelX, wheelY = ebiten.Wheel()
-}
-
-// Draw updates the input system. This function should not be called directly.
-func Draw() {
-	leftMouseButtonJustPressed = leftMouseButtonPressed && leftMouseButtonPressed != lastLeftMouseButtonPressed
-	middleMouseButtonJustPressed = middleMouseButtonPressed && middleMouseButtonPressed != lastMiddleMouseButtonPressed
-	rightMouseButtonJustPressed = rightMouseButtonPressed && rightMouseButtonPressed != lastRightMouseButtonPressed
-
-	lastLeftMouseButtonPressed = leftMouseButtonPressed
-	lastMiddleMouseButtonPressed = middleMouseButtonPressed
-	lastRightMouseButtonPressed = rightMouseButtonPressed
-}
 
 // MouseButtonPressed returns whether mouse button b is currently pressed.
 func MouseButtonPressed(b ebiten.MouseButton) bool {
 	switch b {
 	case ebiten.MouseButtonLeft:
-		return leftMouseButtonPressed
+		return internalinput.LeftMouseButtonPressed
 	case ebiten.MouseButtonMiddle:
-		return middleMouseButtonPressed
+		return internalinput.MiddleMouseButtonPressed
 	case ebiten.MouseButtonRight:
-		return rightMouseButtonPressed
+		return internalinput.RightMouseButtonPressed
 	default:
 		return false
 	}
@@ -59,11 +24,11 @@ func MouseButtonPressed(b ebiten.MouseButton) bool {
 func MouseButtonJustPressed(b ebiten.MouseButton) bool {
 	switch b {
 	case ebiten.MouseButtonLeft:
-		return leftMouseButtonJustPressed
+		return internalinput.LeftMouseButtonJustPressed
 	case ebiten.MouseButtonMiddle:
-		return middleMouseButtonJustPressed
+		return internalinput.MiddleMouseButtonJustPressed
 	case ebiten.MouseButtonRight:
-		return rightMouseButtonJustPressed
+		return internalinput.RightMouseButtonJustPressed
 	default:
 		return false
 	}
@@ -93,12 +58,12 @@ func MouseButtonJustPressedLayer(b ebiten.MouseButton, l *Layer) bool {
 
 // CursorPosition returns the current cursor position.
 func CursorPosition() (int, int) {
-	return cursorX, cursorY
+	return internalinput.CursorX, internalinput.CursorY
 }
 
 // Wheel returns current mouse wheel movement.
 func Wheel() (float64, float64) {
-	return wheelX, wheelY
+	return internalinput.WheelX, internalinput.WheelY
 }
 
 // WheelLayer returns current mouse wheel movement if input layer l is eligible to handle it.

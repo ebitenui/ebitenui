@@ -4,8 +4,9 @@ import (
 	"image"
 	"sync"
 
-	"github.com/blizzy78/ebitenui/event"
 	"github.com/blizzy78/ebitenui/input"
+	internalevent "github.com/blizzy78/ebitenui/internal/event"
+	internalinput "github.com/blizzy78/ebitenui/internal/input"
 	"github.com/blizzy78/ebitenui/widget"
 
 	"github.com/hajimehoshi/ebiten"
@@ -25,8 +26,8 @@ type UI struct {
 func (u *UI) Update() {
 	u.init.Do(u.initUI)
 
-	event.FireDeferredEvents()
-	input.Update()
+	internalevent.ExecuteDeferredActions()
+	internalinput.Update()
 }
 
 // Draw renders u onto screen, with rect as the area reserved for rendering.
@@ -36,7 +37,7 @@ func (u *UI) Update() {
 func (u *UI) Draw(screen *ebiten.Image, rect image.Rectangle) {
 	u.init.Do(u.initUI)
 
-	input.Draw()
+	internalinput.Draw()
 
 	defer func() {
 		u.lastRect = rect
@@ -46,8 +47,12 @@ func (u *UI) Draw(screen *ebiten.Image, rect image.Rectangle) {
 		u.Container.RequestRelayout()
 	}
 
+	// TODO: SetupInputLayersWithDeferred should reside in "internal" subpackage
 	input.SetupInputLayersWithDeferred(u.Container)
+
 	u.layout.LayoutRoot(rect)
+
+	// TODO: RenderWithDeferred should reside in "internal" subpackage
 	widget.RenderWithDeferred(u.Container, screen)
 }
 

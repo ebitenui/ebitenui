@@ -1,5 +1,7 @@
 package event
 
+import internalevent "github.com/blizzy78/ebitenui/internal/event"
+
 // Event encapsulates an arbitrary event that event handlers may be interested in.
 type Event struct {
 	idCounter uint32
@@ -17,7 +19,7 @@ type handler struct {
 	h  HandlerFunc
 }
 
-type firedEvent struct {
+type deferredEvent struct {
 	event *Event
 	args  interface{}
 }
@@ -27,21 +29,18 @@ type deferredAddHandler struct {
 	handler handler
 }
 
-var deferredEvents []interface{}
-
 // AddHandler registers handler h with e. It returns a function to remove h from e if desired.
 func (e *Event) AddHandler(h HandlerFunc) RemoveHandlerFunc {
 	e.idCounter++
 
 	id := e.idCounter
-	handler := handler{
-		id: id,
-		h:  h,
-	}
 
-	deferredEvents = append(deferredEvents, &deferredAddHandler{
-		event:   e,
-		handler: handler,
+	internalevent.AddDeferred(&deferredAddHandler{
+		event: e,
+		handler: handler{
+			id: id,
+			h:  h,
+		},
 	})
 
 	return func() {
@@ -70,7 +69,7 @@ func (e *Event) removeHandler(id uint32) {
 // Events are not fired directly, but are put into a deferred queue. This queue is then
 // processed by the UI system.
 func (e *Event) Fire(args interface{}) {
-	deferredEvents = append(deferredEvents, &firedEvent{
+	internalevent.AddDeferred(&deferredEvent{
 		event: e,
 		args:  args,
 	})
@@ -82,19 +81,12 @@ func (e *Event) handle(args interface{}) {
 	}
 }
 
-// FireDeferredEvents processes the deferred queue of events and fires those events.
-// This function should not be called directly.
-func FireDeferredEvents() {
-	for len(deferredEvents) > 0 {
-		d := deferredEvents[0]
-		deferredEvents = deferredEvents[1:]
+// Do implements DeferredAction.
+func (e *deferredEvent) Do() {
+	e.event.handle(e.args)
+}
 
-		if e, ok := d.(*firedEvent); ok {
-			e.event.handle(e.args)
-		}
-
-		if a, ok := d.(*deferredAddHandler); ok {
-			a.event.handlers = append(a.event.handlers, a.handler)
-		}
-	}
+// Do implements DeferredAction.
+func (a *deferredAddHandler) Do() {
+	a.event.handlers = append(a.event.handlers, a.handler)
 }

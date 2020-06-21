@@ -3,7 +3,7 @@ package widget
 import (
 	"testing"
 
-	"github.com/blizzy78/ebitenui/event"
+	internalevent "github.com/blizzy78/ebitenui/internal/event"
 	"github.com/matryer/is"
 	"github.com/stretchr/testify/mock"
 )
@@ -45,7 +45,7 @@ func newFlipBook(t *testing.T, opts ...FlipBookOpt) *FlipBook {
 	t.Helper()
 
 	f := NewFlipBook(opts...)
-	event.FireDeferredEvents()
+	internalevent.ExecuteDeferredActions()
 	render(f, t)
 	return f
 }
