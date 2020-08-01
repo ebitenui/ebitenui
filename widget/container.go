@@ -189,3 +189,30 @@ func (c *Container) createWidget() {
 	c.widget = NewWidget(c.widgetOpts...)
 	c.widgetOpts = nil
 }
+
+// WidgetAt implements WidgetLocator.
+func (c *Container) WidgetAt(x int, y int) HasWidget {
+	c.init.Do()
+
+	p := img.Point{x, y}
+
+	if !p.In(c.GetWidget().Rect) {
+		return nil
+	}
+
+	for _, ch := range c.children {
+		if wl, ok := ch.(WidgetLocator); ok {
+			if w := wl.WidgetAt(x, y); w != nil {
+				return w
+			}
+
+			continue
+		}
+
+		if p.In(ch.GetWidget().Rect) {
+			return ch
+		}
+	}
+
+	return c
+}

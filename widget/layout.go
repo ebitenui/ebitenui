@@ -21,6 +21,10 @@ type Dirtyable interface {
 	MarkDirty()
 }
 
+type WidgetLocator interface {
+	WidgetAt(x int, y int) HasWidget
+}
+
 type Insets struct {
 	Top    int
 	Left   int

@@ -16,6 +16,7 @@ import (
 // There should only be exactly one UI per application.
 type UI struct {
 	Container *widget.Container
+	ToolTip   *widget.ToolTip
 
 	init     sync.Once
 	layout   *widget.RootLayout
@@ -54,6 +55,10 @@ func (u *UI) Draw(screen *ebiten.Image, rect image.Rectangle) {
 
 	// TODO: RenderWithDeferred should reside in "internal" subpackage
 	widget.RenderWithDeferred(u.Container, screen)
+
+	if u.ToolTip != nil {
+		widget.RenderWithDeferred(u.ToolTip, screen)
+	}
 }
 
 func (u *UI) initUI() {

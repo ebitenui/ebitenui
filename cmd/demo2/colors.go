@@ -10,6 +10,7 @@ import (
 type colors struct {
 	textIdle     color.Color
 	textDisabled color.Color
+	textToolTip  color.Color
 
 	selectedBackground         color.Color
 	selectedDisabledBackground color.Color
@@ -23,6 +24,7 @@ func newColors() *colors {
 	c := colors{
 		textIdle:     hexToColor("282828"),
 		textDisabled: hexToColor("808080"),
+		textToolTip:  hexToColor("282828"),
 
 		selectedBackground:         hexToColor("a0a0a0"),
 		selectedDisabledBackground: hexToColor("c0c0c0"),

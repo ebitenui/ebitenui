@@ -116,6 +116,7 @@ func createUI() (*ebitenui.UI, *fonts) {
 		gridLayoutPage(res),
 		rowLayoutPage(res),
 		sliderPage(res),
+		toolTipPage(res),
 	}
 
 	collator := collate.New(language.English)
@@ -153,6 +154,17 @@ func createUI() (*ebitenui.UI, *fonts) {
 
 	return &ebitenui.UI{
 		Container: rootContainer,
+		ToolTip: widget.NewToolTip(
+			widget.ToolTipOpts.WithContainer(rootContainer),
+			widget.ToolTipOpts.WithImage(res.images.button.Disabled),
+			widget.ToolTipOpts.WithPadding(widget.Insets{
+				Left:   8,
+				Right:  8,
+				Top:    4,
+				Bottom: 4,
+			}),
+			widget.ToolTipOpts.WithTextOpts(widget.TextOpts.WithText("", res.fonts.toolTipFace, res.colors.textToolTip)),
+		),
 	}, fonts
 }
 
@@ -539,6 +551,34 @@ func sliderPage(res *resources) *page {
 
 	return &page{
 		title:   "Slider",
+		content: c,
+	}
+}
+
+func toolTipPage(res *resources) *page {
+	c := newPageContentContainer()
+
+	c.AddChild(widget.NewText(
+		widget.TextOpts.WithText("Hover over these buttons to see their tool tips.", res.fonts.face, res.colors.textIdle)))
+
+	bc := widget.NewContainer(
+		widget.ContainerOpts.WithLayout(widget.NewRowLayout(
+			widget.RowLayoutOpts.WithSpacing(5))))
+	c.AddChild(bc)
+
+	for col := 0; col < 5; col++ {
+		b := widget.NewButton(
+			widget.ButtonOpts.WithWidgetOpts(widget.WidgetOpts.WithToolTip(fmt.Sprintf("Tool tip for button %d", col+1))),
+			widget.ButtonOpts.WithImage(res.images.button),
+			widget.ButtonOpts.WithText(fmt.Sprintf("Button %d", col+1), res.fonts.face, res.colors.buttonText))
+		if col == 2 {
+			b.GetWidget().Disabled = true
+		}
+		bc.AddChild(b)
+	}
+
+	return &page{
+		title:   "Tool Tip",
 		content: c,
 	}
 }

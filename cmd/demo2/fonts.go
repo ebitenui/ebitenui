@@ -11,6 +11,7 @@ type fonts struct {
 	face         font.Face
 	titleFace    font.Face
 	bigTitleFace font.Face
+	toolTipFace  font.Face
 }
 
 func loadFonts() (*fonts, error) {
@@ -29,10 +30,16 @@ func loadFonts() (*fonts, error) {
 		return nil, err
 	}
 
+	toolTipFace, err := loadFont("fonts/IBMPlexSans-Regular.ttf", 15)
+	if err != nil {
+		return nil, err
+	}
+
 	return &fonts{
 		face:         fontFace,
 		titleFace:    titleFontFace,
 		bigTitleFace: bigTitleFontFace,
+		toolTipFace:  toolTipFace,
 	}, nil
 }
 

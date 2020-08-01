@@ -91,6 +91,23 @@ func (f *FlipBook) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	f.container.Render(screen, def)
 }
 
+// WidgetAt implements WidgetLocator.
+func (f *FlipBook) WidgetAt(x int, y int) HasWidget {
+	f.init.Do()
+
+	p := img.Point{x, y}
+
+	if !p.In(f.GetWidget().Rect) {
+		return nil
+	}
+
+	if w := f.container.WidgetAt(x, y); w != nil {
+		return w
+	}
+
+	return f
+}
+
 func (f *FlipBook) createWidget() {
 	f.container = NewContainer(append(f.containerOpts, []ContainerOpt{
 		ContainerOpts.WithLayout(NewFillLayout(f.fillLayoutOpts...)),
