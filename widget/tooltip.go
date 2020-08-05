@@ -108,7 +108,11 @@ func (t *ToolTip) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 		t.lastTipWidget = w
 	}()
 
-	if w != t.lastTipWidget {
+	if w != t.lastTipWidget ||
+		input.MouseButtonPressed(ebiten.MouseButtonLeft) ||
+		input.MouseButtonPressed(ebiten.MouseButtonMiddle) ||
+		input.MouseButtonPressed(ebiten.MouseButtonRight) {
+
 		t.doRender = false
 
 		if t.timer != nil {
