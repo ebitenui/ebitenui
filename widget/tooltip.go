@@ -24,7 +24,7 @@ type ToolTip struct {
 	lastTipWidget HasWidget
 	timer         *time.Timer
 	doRender      bool
-	doRenderReset bool
+	doRelayout    bool
 }
 
 type ToolTipOpt func(t *ToolTip)
@@ -133,12 +133,13 @@ func (t *ToolTip) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 			return
 		}
 
-		if !t.sticky || t.doRenderReset || w != t.lastTipWidget || text != t.tipText.Label {
+		if !t.sticky || t.doRelayout || w != t.lastTipWidget || text != t.tipText.Label {
 			defer func() {
-				t.doRenderReset = false
+				t.doRelayout = false
 			}()
 
 			t.tipText.Label = text
+
 			sx, sy := t.tipContainer.PreferredSize()
 			r := img.Rect(x, y, x+sx, y+sy)
 			r = r.Add(t.offset)
@@ -152,13 +153,11 @@ func (t *ToolTip) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	}
 
 	if t.timer == nil {
-		t.timer = time.NewTimer(t.delay)
-		go func() {
-			<-t.timer.C
-			t.doRenderReset = true
+		t.timer = time.AfterFunc(t.delay, func() {
+			t.doRelayout = true
 			t.doRender = true
 			t.timer = nil
-		}()
+		})
 	}
 }
 
