@@ -45,11 +45,12 @@ func main() {
 	ebiten.SetWindowTitle("Ebiten UI Demo")
 	ebiten.SetWindowResizable(true)
 
-	ui, fonts := createUI()
+	ui, closeUI, err := createUI()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	defer func() {
-		fonts.close()
-	}()
+	defer closeUI()
 
 	game := game{
 		ui: ui,
@@ -60,23 +61,10 @@ func main() {
 	}
 }
 
-func createUI() (*ebitenui.UI, *fonts) {
-	images, err := loadImages()
+func createUI() (*ebitenui.UI, func(), error) {
+	res, err := newResources()
 	if err != nil {
-		panic(err)
-	}
-
-	fonts, err := loadFonts()
-	if err != nil {
-		panic(err)
-	}
-
-	colors := newColors()
-
-	res := &resources{
-		images: images,
-		fonts:  fonts,
-		colors: colors,
+		return nil, nil, err
 	}
 
 	rootContainer := widget.NewContainer(
@@ -87,25 +75,72 @@ func createUI() (*ebitenui.UI, *fonts) {
 			widget.GridLayoutOpts.WithSpacing(0, 20))),
 		widget.ContainerOpts.WithBackgroundImage(image.NewNineSliceColor(color.White)))
 
+	rootContainer.AddChild(newInfoContainer(res))
+	rootContainer.AddChild(newDemoContainer(res))
+
+	return &ebitenui.UI{
+			Container: rootContainer,
+
+			ToolTip: widget.NewToolTip(
+				widget.ToolTipOpts.WithContainer(rootContainer),
+				widget.ToolTipOpts.WithImage(res.images.button.Disabled),
+				widget.ToolTipOpts.WithPadding(widget.Insets{
+					Left:   8,
+					Right:  8,
+					Top:    4,
+					Bottom: 4,
+				}),
+				widget.ToolTipOpts.WithTextOpts(widget.TextOpts.WithText("", res.fonts.toolTipFace, res.colors.textToolTip)),
+			),
+		},
+		func() {
+			res.close()
+		},
+		nil
+}
+
+func newResources() (*resources, error) {
+	images, err := loadImages()
+	if err != nil {
+		return nil, err
+	}
+
+	fonts, err := loadFonts()
+	if err != nil {
+		return nil, err
+	}
+
+	colors := newColors()
+
+	return &resources{
+		images: images,
+		fonts:  fonts,
+		colors: colors,
+	}, nil
+}
+
+func newInfoContainer(res *resources) widget.HasWidget {
 	infoContainer := widget.NewContainer(
 		widget.ContainerOpts.WithLayout(widget.NewRowLayout(
 			widget.RowLayoutOpts.WithDirection(widget.DirectionVertical),
 			widget.RowLayoutOpts.WithSpacing(0))))
-	rootContainer.AddChild(infoContainer)
 
 	infoContainer.AddChild(widget.NewText(
-		widget.TextOpts.WithText("Ebiten UI Demo", fonts.bigTitleFace, res.colors.textIdle)))
+		widget.TextOpts.WithText("Ebiten UI Demo", res.fonts.bigTitleFace, res.colors.textIdle)))
 
 	infoContainer.AddChild(widget.NewText(
-		widget.TextOpts.WithText("This program is a showcase of Ebiten UI widgets and layouts.", fonts.face, res.colors.textIdle)))
+		widget.TextOpts.WithText("This program is a showcase of Ebiten UI widgets and layouts.", res.fonts.face, res.colors.textIdle)))
 
+	return infoContainer
+}
+
+func newDemoContainer(res *resources) widget.HasWidget {
 	demoContainer := widget.NewContainer(
 		widget.ContainerOpts.WithLayout(widget.NewGridLayout(
 			widget.GridLayoutOpts.WithColumns(2),
 			widget.GridLayoutOpts.WithStretch([]bool{false, true}, []bool{true}),
 			widget.GridLayoutOpts.WithSpacing(20, 0),
 		)))
-	rootContainer.AddChild(demoContainer)
 
 	pages := []interface{}{
 		buttonPage(res),
@@ -134,11 +169,11 @@ func createUI() (*ebitenui.UI, *fonts) {
 			return e.(*page).title
 		}),
 		widget.ListOpts.WithScrollContainerOpts(
-			widget.ScrollContainerOpts.WithImage(images.scrollContainer),
+			widget.ScrollContainerOpts.WithImage(res.images.scrollContainer),
 			widget.ScrollContainerOpts.WithPadding(widget.NewInsetsSimple(2))),
 		widget.ListOpts.WithEntryColor(res.colors.list),
-		widget.ListOpts.WithEntryFontFace(fonts.face),
-		widget.ListOpts.WithSliderOpts(widget.SliderOpts.WithImages(images.sliderTrack, images.button)),
+		widget.ListOpts.WithEntryFontFace(res.fonts.face),
+		widget.ListOpts.WithSliderOpts(widget.SliderOpts.WithImages(res.images.sliderTrack, res.images.button)),
 		widget.ListOpts.WithHideHorizontalSlider(),
 		widget.ListOpts.WithHideVerticalSlider(),
 		widget.ListOpts.WithControlWidgetSpacing(2),
@@ -152,20 +187,7 @@ func createUI() (*ebitenui.UI, *fonts) {
 
 	pageList.SetSelectedEntry(pages[0])
 
-	return &ebitenui.UI{
-		Container: rootContainer,
-		ToolTip: widget.NewToolTip(
-			widget.ToolTipOpts.WithContainer(rootContainer),
-			widget.ToolTipOpts.WithImage(res.images.button.Disabled),
-			widget.ToolTipOpts.WithPadding(widget.Insets{
-				Left:   8,
-				Right:  8,
-				Top:    4,
-				Bottom: 4,
-			}),
-			widget.ToolTipOpts.WithTextOpts(widget.TextOpts.WithText("", res.fonts.toolTipFace, res.colors.textToolTip)),
-		),
-	}, fonts
+	return demoContainer
 }
 
 func newPageContainer(res *resources) *pageContainer {
@@ -674,4 +696,8 @@ func (g *game) Update(screen *ebiten.Image) error {
 func (g *game) Draw(screen *ebiten.Image) {
 	w, h := screen.Size()
 	g.ui.Draw(screen, img.Rect(0, 0, w, h))
+}
+
+func (r *resources) close() {
+	r.fonts.close()
 }
