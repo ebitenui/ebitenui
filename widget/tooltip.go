@@ -9,6 +9,8 @@ import (
 	"github.com/hajimehoshi/ebiten"
 )
 
+// TODO: separate pop-up logic from actual widget contents so that other tooltip renderings can be implemented
+
 type ToolTip struct {
 	textOpts  []TextOpt
 	container WidgetLocator
@@ -153,11 +155,16 @@ func (t *ToolTip) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	}
 
 	if t.timer == nil {
-		t.timer = time.AfterFunc(t.delay, func() {
+		if t.delay > 0 {
+			t.timer = time.AfterFunc(t.delay, func() {
+				t.doRelayout = true
+				t.doRender = true
+				t.timer = nil
+			})
+		} else {
 			t.doRelayout = true
 			t.doRender = true
-			t.timer = nil
-		})
+		}
 	}
 }
 
