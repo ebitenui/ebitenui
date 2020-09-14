@@ -4,29 +4,24 @@ import (
 	img "image"
 	"time"
 
-	"github.com/blizzy78/ebitenui/image"
 	"github.com/blizzy78/ebitenui/input"
 	"github.com/hajimehoshi/ebiten"
 )
 
-// TODO: separate pop-up logic from actual widget contents so that other tooltip renderings can be implemented
-
 type ToolTip struct {
-	textOpts  []TextOpt
-	container WidgetLocator
-	image     *image.NineSlice
-	padding   Insets
-	offset    img.Point
-	sticky    bool
-	delay     time.Duration
+	container        WidgetLocator
+	contentsCreater  ToolTipContentsCreater
+	offset           img.Point
+	sticky           bool
+	delay            time.Duration
+	updateEveryFrame bool
 
-	init          *MultiOnce
-	tipContainer  *Container
-	tipText       *Text
-	lastTipWidget HasWidget
-	timer         *time.Timer
-	doRender      bool
-	doRelayout    bool
+	init             *MultiOnce
+	tipWidget        HasWidget
+	lastTippedWidget HasWidget
+	timer            *time.Timer
+	doRender         bool
+	doRelayout       bool
 }
 
 type ToolTipOpt func(t *ToolTip)
@@ -34,6 +29,14 @@ type ToolTipOpt func(t *ToolTip)
 const ToolTipOpts = toolTipOpts(true)
 
 type toolTipOpts bool
+
+type ToolTipContentsCreater interface {
+	Create(HasWidget) HasWidget
+}
+
+type ToolTipContentsUpdater interface {
+	Update(HasWidget)
+}
 
 func NewToolTip(opts ...ToolTipOpt) *ToolTip {
 	t := &ToolTip{
@@ -44,19 +47,11 @@ func NewToolTip(opts ...ToolTipOpt) *ToolTip {
 		init: &MultiOnce{},
 	}
 
-	t.init.Append(t.createWidget)
-
 	for _, o := range opts {
 		o(t)
 	}
 
 	return t
-}
-
-func (o toolTipOpts) WithTextOpts(opts ...TextOpt) ToolTipOpt {
-	return func(t *ToolTip) {
-		t.textOpts = append(t.textOpts, opts...)
-	}
 }
 
 func (o toolTipOpts) WithContainer(c *Container) ToolTipOpt {
@@ -65,15 +60,9 @@ func (o toolTipOpts) WithContainer(c *Container) ToolTipOpt {
 	}
 }
 
-func (o toolTipOpts) WithPadding(i Insets) ToolTipOpt {
+func (o toolTipOpts) WithContentsCreater(c ToolTipContentsCreater) ToolTipOpt {
 	return func(t *ToolTip) {
-		t.padding = i
-	}
-}
-
-func (o toolTipOpts) WithImage(i *image.NineSlice) ToolTipOpt {
-	return func(t *ToolTip) {
-		t.image = i
+		t.contentsCreater = c
 	}
 }
 
@@ -95,9 +84,10 @@ func (o toolTipOpts) WithDelay(d time.Duration) ToolTipOpt {
 	}
 }
 
-func (t *ToolTip) GetWidget() *Widget {
-	t.init.Do()
-	return t.tipContainer.GetWidget()
+func (o toolTipOpts) WithUpdateEveryFrame() ToolTipOpt {
+	return func(t *ToolTip) {
+		t.updateEveryFrame = true
+	}
 }
 
 func (t *ToolTip) Render(screen *ebiten.Image, def DeferredRenderFunc) {
@@ -107,10 +97,10 @@ func (t *ToolTip) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	w := t.container.WidgetAt(x, y)
 
 	defer func() {
-		t.lastTipWidget = w
+		t.lastTippedWidget = w
 	}()
 
-	if w != t.lastTipWidget ||
+	if w != t.lastTippedWidget ||
 		input.MouseButtonPressed(ebiten.MouseButtonLeft) ||
 		input.MouseButtonPressed(ebiten.MouseButtonMiddle) ||
 		input.MouseButtonPressed(ebiten.MouseButtonRight) {
@@ -123,6 +113,8 @@ func (t *ToolTip) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 			}
 			t.timer = nil
 		}
+
+		t.tipWidget = nil
 	}
 
 	if w == nil {
@@ -130,26 +122,37 @@ func (t *ToolTip) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	}
 
 	if t.doRender {
-		text := w.GetWidget().ToolTip
-		if text == "" {
-			return
+		justCreated := false
+
+		if t.tipWidget == nil {
+			t.tipWidget = t.contentsCreater.Create(w)
+
+			if t.tipWidget == nil {
+				return
+			}
+
+			justCreated = true
 		}
 
-		if !t.sticky || t.doRelayout || w != t.lastTipWidget || text != t.tipText.Label {
+		if justCreated || t.updateEveryFrame || w != t.lastTippedWidget {
+			if u, ok := t.contentsCreater.(ToolTipContentsUpdater); ok {
+				u.Update(w)
+			}
+		}
+
+		if !t.sticky || t.doRelayout || w != t.lastTippedWidget {
 			defer func() {
 				t.doRelayout = false
 			}()
 
-			t.tipText.Label = text
-
-			sx, sy := t.tipContainer.PreferredSize()
+			sx, sy := t.tipWidget.(PreferredSizer).PreferredSize()
 			r := img.Rect(x, y, x+sx, y+sy)
 			r = r.Add(t.offset)
-			t.tipContainer.SetLocation(r)
-			t.tipContainer.RequestRelayout()
+			t.tipWidget.(Locateable).SetLocation(r)
+			t.tipWidget.(Relayoutable).RequestRelayout()
 		}
 
-		t.tipContainer.Render(screen, def)
+		t.tipWidget.(Renderer).Render(screen, def)
 
 		return
 	}
@@ -166,17 +169,4 @@ func (t *ToolTip) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 			t.doRender = true
 		}
 	}
-}
-
-func (t *ToolTip) createWidget() {
-	t.tipContainer = NewContainer(
-		ContainerOpts.WithLayout(NewFillLayout(
-			FillLayoutOpts.WithPadding(t.padding),
-		)),
-		ContainerOpts.WithBackgroundImage(t.image))
-
-	t.tipText = NewText(t.textOpts...)
-	t.tipText.Label = ""
-	t.tipContainer.AddChild(t.tipText)
-	t.textOpts = nil
 }

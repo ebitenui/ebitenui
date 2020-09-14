@@ -24,9 +24,6 @@ type Widget struct {
 	// in a "greyed-out" visual state.
 	Disabled bool
 
-	// ToolTip is text that can be displayed as a tool tip when hovering over the widget.
-	ToolTip string
-
 	// CursorEnterEvent fires an event with *WidgetCursorEnterEventArgs when the cursor enters the widget's Rect.
 	CursorEnterEvent *event.Event
 
@@ -210,13 +207,6 @@ func (o widgetOpts) WithScrolledHandler(f WidgetScrolledHandlerFunc) WidgetOpt {
 		w.ScrolledEvent.AddHandler(func(args interface{}) {
 			f(args.(*WidgetScrolledEventArgs))
 		})
-	}
-}
-
-// WithToolTip configures a Widget to display t as a tool tip when hovering over it.
-func (o widgetOpts) WithToolTip(t string) WidgetOpt {
-	return func(w *Widget) {
-		w.ToolTip = t
 	}
 }
 

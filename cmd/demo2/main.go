@@ -5,6 +5,7 @@ import (
 	img "image"
 	"log"
 	"sort"
+	"time"
 
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
@@ -40,6 +41,16 @@ type pageContainer struct {
 	flipBook  *widget.FlipBook
 }
 
+type toolTipContents struct {
+	res             *resources
+	tips            map[widget.HasWidget]string
+	widgetsWithTime []widget.HasWidget
+	showTime        bool
+
+	text     *widget.TextToolTip
+	timeText *widget.TextToolTip
+}
+
 func main() {
 	ebiten.SetWindowSize(800, 600)
 	ebiten.SetWindowTitle("Ebiten UI Demo")
@@ -67,6 +78,11 @@ func createUI() (*ebitenui.UI, func(), error) {
 		return nil, nil, err
 	}
 
+	toolTips := toolTipContents{
+		res:  res,
+		tips: map[widget.HasWidget]string{},
+	}
+
 	rootContainer := widget.NewContainer(
 		widget.ContainerOpts.WithLayout(widget.NewGridLayout(
 			widget.GridLayoutOpts.WithColumns(1),
@@ -76,21 +92,17 @@ func createUI() (*ebitenui.UI, func(), error) {
 		widget.ContainerOpts.WithBackgroundImage(image.NewNineSliceColor(color.White)))
 
 	rootContainer.AddChild(newInfoContainer(res))
-	rootContainer.AddChild(newDemoContainer(res))
+	rootContainer.AddChild(newDemoContainer(res, &toolTips))
 
 	return &ebitenui.UI{
 			Container: rootContainer,
 
 			ToolTip: widget.NewToolTip(
 				widget.ToolTipOpts.WithContainer(rootContainer),
-				widget.ToolTipOpts.WithImage(res.images.button.Disabled),
-				widget.ToolTipOpts.WithPadding(widget.Insets{
-					Left:   8,
-					Right:  8,
-					Top:    4,
-					Bottom: 4,
-				}),
-				widget.ToolTipOpts.WithTextOpts(widget.TextOpts.WithText("", res.fonts.toolTipFace, res.colors.textToolTip)),
+				widget.ToolTipOpts.WithContentsCreater(&toolTips),
+				widget.ToolTipOpts.WithUpdateEveryFrame(),
+				widget.ToolTipOpts.WithNoSticky(),
+				widget.ToolTipOpts.WithDelay(0),
 			),
 		},
 		func() {
@@ -134,7 +146,7 @@ func newInfoContainer(res *resources) widget.HasWidget {
 	return infoContainer
 }
 
-func newDemoContainer(res *resources) widget.HasWidget {
+func newDemoContainer(res *resources, toolTips *toolTipContents) widget.HasWidget {
 	demoContainer := widget.NewContainer(
 		widget.ContainerOpts.WithLayout(widget.NewGridLayout(
 			widget.GridLayoutOpts.WithColumns(2),
@@ -151,7 +163,7 @@ func newDemoContainer(res *resources) widget.HasWidget {
 		gridLayoutPage(res),
 		rowLayoutPage(res),
 		sliderPage(res),
-		toolTipPage(res),
+		toolTipPage(res, toolTips),
 	}
 
 	collator := collate.New(language.English)
@@ -577,7 +589,7 @@ func sliderPage(res *resources) *page {
 	}
 }
 
-func toolTipPage(res *resources) *page {
+func toolTipPage(res *resources, toolTips *toolTipContents) *page {
 	c := newPageContentContainer()
 
 	c.AddChild(widget.NewText(
@@ -590,14 +602,28 @@ func toolTipPage(res *resources) *page {
 
 	for col := 0; col < 5; col++ {
 		b := widget.NewButton(
-			widget.ButtonOpts.WithWidgetOpts(widget.WidgetOpts.WithToolTip(fmt.Sprintf("Tool tip for button %d", col+1))),
 			widget.ButtonOpts.WithImage(res.images.button),
 			widget.ButtonOpts.WithText(fmt.Sprintf("Button %d", col+1), res.fonts.face, res.colors.buttonText))
+
 		if col == 2 {
 			b.GetWidget().Disabled = true
 		}
+
+		toolTips.Set(b, fmt.Sprintf("Tool tip for button %d", col+1))
+		toolTips.widgetsWithTime = append(toolTips.widgetsWithTime, b)
+
 		bc.AddChild(b)
 	}
+
+	c.AddChild(newSeparator(res, &widget.RowLayoutData{
+		Stretch: true,
+	}))
+
+	showTimeCheckbox := newCheckbox("Show additional infos in tool tips", func(args *widget.CheckboxChangedEventArgs) {
+		toolTips.showTime = args.State == widget.CheckboxChecked
+	}, res)
+	toolTips.Set(showTimeCheckbox, "If enabled, tool tips will show system time for demonstration.")
+	c.AddChild(showTimeCheckbox)
 
 	return &page{
 		title:   "Tool Tip",
@@ -700,4 +726,87 @@ func (g *game) Draw(screen *ebiten.Image) {
 
 func (r *resources) close() {
 	r.fonts.close()
+}
+
+func (t *toolTipContents) Create(w widget.HasWidget) widget.HasWidget {
+	if _, ok := t.tips[w]; !ok {
+		return nil
+	}
+
+	c := widget.NewContainer(
+		widget.ContainerOpts.WithLayout(widget.NewRowLayout(
+			widget.RowLayoutOpts.WithDirection(widget.DirectionVertical),
+			widget.RowLayoutOpts.WithSpacing(2),
+		)))
+
+	t.text = widget.NewTextToolTip(
+		widget.TextToolTipOpts.WithUpdater(t),
+		widget.TextToolTipOpts.WithContainerOpts(
+			widget.ContainerOpts.WithBackgroundImage(t.res.images.button.Disabled),
+			widget.ContainerOpts.WithWidgetOpts(
+				widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+					Stretch: true,
+				}),
+			),
+		),
+		widget.TextToolTipOpts.WithPadding(widget.Insets{
+			Left:   8,
+			Right:  8,
+			Top:    4,
+			Bottom: 4,
+		}),
+		widget.TextToolTipOpts.WithTextOpts(
+			widget.TextOpts.WithText("", t.res.fonts.toolTipFace, t.res.colors.textToolTip)))
+	c.AddChild(t.text)
+
+	canShowTime := false
+	for _, tw := range t.widgetsWithTime {
+		if tw == w {
+			canShowTime = true
+			break
+		}
+	}
+
+	if t.showTime && canShowTime {
+		t.timeText = widget.NewTextToolTip(
+			widget.TextToolTipOpts.WithContainerOpts(
+				widget.ContainerOpts.WithBackgroundImage(t.res.images.button.Disabled),
+				widget.ContainerOpts.WithWidgetOpts(
+					widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+						Stretch: true,
+					}),
+				),
+			),
+			widget.TextToolTipOpts.WithPadding(widget.Insets{
+				Left:   8,
+				Right:  8,
+				Top:    4,
+				Bottom: 4,
+			}),
+			widget.TextToolTipOpts.WithTextOpts(
+				widget.TextOpts.WithText("", t.res.fonts.toolTipFace, t.res.colors.textToolTip)))
+		c.AddChild(t.timeText)
+	}
+
+	return c
+}
+
+func (t *toolTipContents) Set(w widget.HasWidget, s string) {
+	t.tips[w] = s
+}
+
+func (t *toolTipContents) Update(w widget.HasWidget) {
+	t.text.Label = t.tips[w]
+
+	canShowTime := false
+	for _, tw := range t.widgetsWithTime {
+		if tw == w {
+			canShowTime = true
+			break
+		}
+	}
+
+	if t.showTime && canShowTime {
+		t.timeText.Label = time.Now().Local().Format("2006-01-02 15:04:05")
+	}
 }
