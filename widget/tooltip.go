@@ -9,12 +9,13 @@ import (
 )
 
 type ToolTip struct {
-	container        WidgetLocator
-	contentsCreater  ToolTipContentsCreater
-	offset           img.Point
-	sticky           bool
-	delay            time.Duration
-	updateEveryFrame bool
+	Sticky           bool
+	Delay            time.Duration
+	UpdateEveryFrame bool
+
+	container       WidgetLocator
+	contentsCreater ToolTipContentsCreater
+	offset          img.Point
 
 	init             *MultiOnce
 	tipWidget        HasWidget
@@ -41,8 +42,8 @@ type ToolTipContentsUpdater interface {
 func NewToolTip(opts ...ToolTipOpt) *ToolTip {
 	t := &ToolTip{
 		offset: img.Point{0, 20},
-		sticky: true,
-		delay:  800 * time.Millisecond,
+		Sticky: true,
+		Delay:  800 * time.Millisecond,
 
 		init: &MultiOnce{},
 	}
@@ -74,19 +75,19 @@ func (o toolTipOpts) WithOffset(off img.Point) ToolTipOpt {
 
 func (o toolTipOpts) WithNoSticky() ToolTipOpt {
 	return func(t *ToolTip) {
-		t.sticky = false
+		t.Sticky = false
 	}
 }
 
 func (o toolTipOpts) WithDelay(d time.Duration) ToolTipOpt {
 	return func(t *ToolTip) {
-		t.delay = d
+		t.Delay = d
 	}
 }
 
 func (o toolTipOpts) WithUpdateEveryFrame() ToolTipOpt {
 	return func(t *ToolTip) {
-		t.updateEveryFrame = true
+		t.UpdateEveryFrame = true
 	}
 }
 
@@ -134,13 +135,13 @@ func (t *ToolTip) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 			justCreated = true
 		}
 
-		if justCreated || t.updateEveryFrame || w != t.lastTippedWidget {
+		if justCreated || t.UpdateEveryFrame || w != t.lastTippedWidget {
 			if u, ok := t.contentsCreater.(ToolTipContentsUpdater); ok {
 				u.Update(w)
 			}
 		}
 
-		if !t.sticky || t.doRelayout || w != t.lastTippedWidget {
+		if !t.Sticky || t.doRelayout || w != t.lastTippedWidget {
 			defer func() {
 				t.doRelayout = false
 			}()
@@ -158,8 +159,8 @@ func (t *ToolTip) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	}
 
 	if t.timer == nil {
-		if t.delay > 0 {
-			t.timer = time.AfterFunc(t.delay, func() {
+		if t.Delay > 0 {
+			t.timer = time.AfterFunc(t.Delay, func() {
 				t.doRelayout = true
 				t.doRender = true
 				t.timer = nil
