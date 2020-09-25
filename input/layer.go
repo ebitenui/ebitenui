@@ -4,8 +4,8 @@ import (
 	"image"
 )
 
-// InputLayerer may be implemented by widgets that need to set up input layers by calling AddLayer.
-type InputLayerer interface {
+// Layerer may be implemented by widgets that need to set up input layers by calling AddLayer.
+type Layerer interface {
 	// SetupInputLayer sets up input layers. def may be called to defer additional input layer setup.
 	SetupInputLayer(def DeferredSetupInputLayerFunc)
 }
@@ -139,7 +139,7 @@ func (l *Layer) contains(x int, y int) bool {
 }
 
 // SetupInputLayersWithDeferred calls i to set up input layers. This function should not be called directly.
-func SetupInputLayersWithDeferred(i InputLayerer) {
+func SetupInputLayersWithDeferred(i Layerer) {
 	for _, l := range layers {
 		l.invalid = true
 	}

@@ -341,15 +341,16 @@ func (b *Button) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 func (b *Button) draw(screen *ebiten.Image) {
 	i := b.Image.Idle
-	if b.widget.Disabled {
+	switch {
+	case b.widget.Disabled:
 		if b.Image.Disabled != nil {
 			i = b.Image.Disabled
 		}
-	} else if b.pressing && (b.hovering || b.KeepPressedOnExit) {
+	case b.pressing && (b.hovering || b.KeepPressedOnExit):
 		if b.Image.Pressed != nil {
 			i = b.Image.Pressed
 		}
-	} else if b.hovering {
+	case b.hovering:
 		if b.Image.Hover != nil {
 			i = b.Image.Hover
 		}

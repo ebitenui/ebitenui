@@ -21,7 +21,7 @@ type Dirtyable interface {
 	MarkDirty()
 }
 
-type WidgetLocator interface {
+type Locater interface {
 	WidgetAt(x int, y int) HasWidget
 }
 

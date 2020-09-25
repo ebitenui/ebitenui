@@ -13,7 +13,7 @@ type ToolTip struct {
 	Delay            time.Duration
 	UpdateEveryFrame bool
 
-	container       WidgetLocator
+	container       Locater
 	contentsCreater ToolTipContentsCreater
 	offset          img.Point
 
@@ -52,7 +52,7 @@ func NewToolTip(opts ...ToolTipOpt) *ToolTip {
 	return t
 }
 
-func (o toolTipOpts) Container(c WidgetLocator) ToolTipOpt {
+func (o toolTipOpts) Container(c Locater) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.container = c
 	}

@@ -173,7 +173,7 @@ func (c *Container) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 	c.init.Do()
 
 	for _, ch := range c.children {
-		if il, ok := ch.(input.InputLayerer); ok {
+		if il, ok := ch.(input.Layerer); ok {
 			il.SetupInputLayer(def)
 		}
 	}
@@ -201,7 +201,7 @@ func (c *Container) WidgetAt(x int, y int) HasWidget {
 	}
 
 	for _, ch := range c.children {
-		if wl, ok := ch.(WidgetLocator); ok {
+		if wl, ok := ch.(Locater); ok {
 			if w := wl.WidgetAt(x, y); w != nil {
 				return w
 			}

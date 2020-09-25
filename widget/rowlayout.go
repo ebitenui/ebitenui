@@ -58,12 +58,12 @@ func (o rowLayoutOpts) Spacing(s int) RowLayoutOpt {
 	}
 }
 
-func (f *rowLayout) PreferredSize(widgets []HasWidget) (int, int) {
-	r := image.Rectangle{}
-	f.layout(widgets, image.Rectangle{}, false, func(w HasWidget, wr image.Rectangle) {
-		r = r.Union(wr)
+func (r *rowLayout) PreferredSize(widgets []HasWidget) (int, int) {
+	rect := image.Rectangle{}
+	r.layout(widgets, image.Rectangle{}, false, func(w HasWidget, wr image.Rectangle) {
+		rect = rect.Union(wr)
 	})
-	return r.Dx() + f.padding.Dx(), r.Dy() + f.padding.Dy()
+	return rect.Dx() + r.padding.Dx(), rect.Dy() + r.padding.Dy()
 }
 
 func (r *rowLayout) Layout(widgets []HasWidget, rect image.Rectangle) {

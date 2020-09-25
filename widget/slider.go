@@ -300,7 +300,7 @@ func (s *Slider) handleLengthAndTrackLength() (float64, float64) {
 	} else {
 		trackLength = float64(s.widget.Rect.Dy())
 	}
-	trackLength = trackLength - float64(s.trackPadding*2)
+	trackLength -= float64(s.trackPadding * 2)
 
 	length := float64(s.Max - s.Min + 1)
 

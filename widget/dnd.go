@@ -12,7 +12,7 @@ import (
 type DragAndDrop struct {
 	DroppedEvent *event.Event
 
-	container            WidgetLocator
+	container            Locater
 	contentsCreater      DragContentsCreater
 	minDragStartDistance int
 
@@ -63,7 +63,7 @@ func NewDragAndDrop(opts ...DragAndDropOpt) *DragAndDrop {
 	return d
 }
 
-func (o dragAndDropOpts) Container(c WidgetLocator) DragAndDropOpt {
+func (o dragAndDropOpts) Container(c Locater) DragAndDropOpt {
 	return func(d *DragAndDrop) {
 		d.container = c
 	}
@@ -128,20 +128,20 @@ func (d *DragAndDrop) idleState() dragAndDropState {
 	}
 }
 
-func (dnd *DragAndDrop) dragArmedState(srcWidget HasWidget, srcX int, srcY int) dragAndDropState {
+func (d *DragAndDrop) dragArmedState(srcWidget HasWidget, srcX int, srcY int) dragAndDropState {
 	return func(screen *ebiten.Image, def DeferredRenderFunc) (dragAndDropState, bool) {
 		if !input.MouseButtonPressed(ebiten.MouseButtonLeft) {
-			return dnd.idleState(), false
+			return d.idleState(), false
 		}
 
 		x, y := input.CursorPosition()
 		dx, dy := math.Abs(float64(x-srcX)), math.Abs(float64(y-srcY))
-		d := math.Sqrt(dx*dx + dy*dy)
-		if d < float64(dnd.minDragStartDistance) {
-			return dnd.dragArmedState(srcWidget, srcX, srcY), false
+		dist := math.Sqrt(dx*dx + dy*dy)
+		if dist < float64(d.minDragStartDistance) {
+			return d.dragArmedState(srcWidget, srcX, srcY), false
 		}
 
-		return dnd.draggingState(srcWidget, srcX, srcY, nil, nil), true
+		return d.draggingState(srcWidget, srcX, srcY, nil, nil), true
 	}
 }
 

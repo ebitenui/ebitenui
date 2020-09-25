@@ -45,7 +45,7 @@ func (d *dragContents) Create(srcWidget widget.HasWidget, srcX int, srcY int) (w
 	return c, nil
 }
 
-func (d *dragContents) Update(target widget.HasWidget, x int, y int, dragData interface{}) {
+func (d *dragContents) Update(target widget.HasWidget, _ int, _ int, _ interface{}) {
 	if d.isTarget(target.GetWidget()) {
 		d.text.Label = "* DROP ME! *"
 	} else {

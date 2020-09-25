@@ -100,7 +100,7 @@ func (c *ComboButton) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 				},
 			})
 
-			if il, ok := c.content.(input.InputLayerer); ok {
+			if il, ok := c.content.(input.Layerer); ok {
 				il.SetupInputLayer(def)
 			}
 		})

@@ -50,7 +50,7 @@ type Widget struct {
 }
 
 // WidgetOpt is a function that configures w.
-type WidgetOpt func(w *Widget)
+type WidgetOpt func(w *Widget) //nolint:golint
 
 // HasWidget must be implemented by concrete widget types to get their Widget.
 type HasWidget interface {
@@ -76,17 +76,17 @@ type PreferredSizer interface {
 }
 
 // WidgetCursorEnterEventArgs are the arguments for cursor enter events.
-type WidgetCursorEnterEventArgs struct {
+type WidgetCursorEnterEventArgs struct { //nolint:golint
 	Widget *Widget
 }
 
 // WidgetCursorExitEventArgs are the arguments for cursor exit events.
-type WidgetCursorExitEventArgs struct {
+type WidgetCursorExitEventArgs struct { //nolint:golint
 	Widget *Widget
 }
 
 // WidgetMouseButtonPressedEventArgs are the arguments for mouse button press events.
-type WidgetMouseButtonPressedEventArgs struct {
+type WidgetMouseButtonPressedEventArgs struct { //nolint:golint
 	Widget *Widget
 	Button ebiten.MouseButton
 
@@ -98,7 +98,7 @@ type WidgetMouseButtonPressedEventArgs struct {
 }
 
 // WidgetMouseButtonReleasedEventArgs are the arguments for mouse button release events.
-type WidgetMouseButtonReleasedEventArgs struct {
+type WidgetMouseButtonReleasedEventArgs struct { //nolint:golint
 	Widget *Widget
 	Button ebiten.MouseButton
 
@@ -113,26 +113,26 @@ type WidgetMouseButtonReleasedEventArgs struct {
 }
 
 // WidgetScrolledEventArgs are the arguments for mouse wheel scroll events.
-type WidgetScrolledEventArgs struct {
+type WidgetScrolledEventArgs struct { //nolint:golint
 	Widget *Widget
 	X      float64
 	Y      float64
 }
 
 // WidgetCursorEnterHandlerFunc is a function that handles cursor enter events.
-type WidgetCursorEnterHandlerFunc func(args *WidgetCursorEnterEventArgs)
+type WidgetCursorEnterHandlerFunc func(args *WidgetCursorEnterEventArgs) //nolint:golint
 
 // WidgetCursorExitHandlerFunc is a function that handles cursor exit events.
-type WidgetCursorExitHandlerFunc func(args *WidgetCursorExitEventArgs)
+type WidgetCursorExitHandlerFunc func(args *WidgetCursorExitEventArgs) //nolint:golint
 
 // WidgetMouseButtonPressedHandlerFunc is a function that handles mouse button press events.
-type WidgetMouseButtonPressedHandlerFunc func(args *WidgetMouseButtonPressedEventArgs)
+type WidgetMouseButtonPressedHandlerFunc func(args *WidgetMouseButtonPressedEventArgs) //nolint:golint
 
 // WidgetMouseButtonReleasedHandlerFunc is a function that handles mouse button release events.
-type WidgetMouseButtonReleasedHandlerFunc func(args *WidgetMouseButtonReleasedEventArgs)
+type WidgetMouseButtonReleasedHandlerFunc func(args *WidgetMouseButtonReleasedEventArgs) //nolint:golint
 
 // WidgetScrolledHandlerFunc is a function that handles mouse wheel scroll events.
-type WidgetScrolledHandlerFunc func(args *WidgetScrolledEventArgs)
+type WidgetScrolledHandlerFunc func(args *WidgetScrolledEventArgs) //nolint:golint
 
 // WidgetOpts contains functions that configure a Widget.
 const WidgetOpts = widgetOpts(true)

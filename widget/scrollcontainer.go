@@ -122,7 +122,7 @@ func (s *ScrollContainer) SetupInputLayer(def input.DeferredSetupInputLayerFunc)
 		RectFunc:   s.ContentRect,
 	})
 
-	if il, ok := s.content.(input.InputLayerer); ok {
+	if il, ok := s.content.(input.Layerer); ok {
 		il.SetupInputLayer(def)
 	}
 }

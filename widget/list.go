@@ -337,10 +337,10 @@ func (l *List) SetScrollTop(t float64) {
 	l.scrollContainer.ScrollTop = t
 }
 
-func (li *List) SetScrollLeft(l float64) {
-	li.init.Do()
-	if li.hSlider != nil {
-		li.hSlider.Current = int(math.Round(l * 1000))
+func (l *List) SetScrollLeft(left float64) {
+	l.init.Do()
+	if l.hSlider != nil {
+		l.hSlider.Current = int(math.Round(left * 1000))
 	}
-	li.scrollContainer.ScrollLeft = l
+	l.scrollContainer.ScrollLeft = left
 }
