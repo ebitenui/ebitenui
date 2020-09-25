@@ -9,7 +9,7 @@ import (
 )
 
 // A NineSlice is an image that can be drawn with any width and height. It is basically a 3x3 grid of image tiles:
-// The corner tiles be drawn as-is, while the center columns and rows of tiles will be stretched to fit the desired
+// The corner tiles are drawn as-is, while the center columns and rows of tiles will be stretched to fit the desired
 // width and height.
 type NineSlice struct {
 	image       *ebiten.Image
@@ -86,10 +86,6 @@ func (n *NineSlice) Draw(screen *ebiten.Image, width int, height int, optsFunc D
 	sy := 0
 	ty := 0
 	for r, sh := range n.heights {
-		if sh <= 0 {
-			continue
-		}
-
 		sx := 0
 		tx := 0
 
@@ -101,10 +97,6 @@ func (n *NineSlice) Draw(screen *ebiten.Image, width int, height int, optsFunc D
 		}
 
 		for c, sw := range n.widths {
-			if sw <= 0 {
-				continue
-			}
-
 			var tw int
 			if c == 1 {
 				tw = width - n.widths[0] - n.widths[2]
@@ -112,21 +104,7 @@ func (n *NineSlice) Draw(screen *ebiten.Image, width int, height int, optsFunc D
 				tw = sw
 			}
 
-			opts := ebiten.DrawImageOptions{
-				Filter: ebiten.FilterNearest,
-			}
-
-			if tw != sw || th != sh {
-				opts.GeoM.Scale(float64(tw)/float64(sw), float64(th)/float64(sh))
-			}
-
-			opts.GeoM.Translate(float64(tx), float64(ty))
-
-			if optsFunc != nil {
-				optsFunc(&opts)
-			}
-
-			_ = screen.DrawImage(n.subImages[r*3+c], &opts)
+			n.drawTile(screen, n.subImages[r*3+c], tx, ty, sw, sh, tw, th, optsFunc)
 
 			sx += sw
 			tx += tw
@@ -137,6 +115,28 @@ func (n *NineSlice) Draw(screen *ebiten.Image, width int, height int, optsFunc D
 	}
 }
 
+func (n *NineSlice) drawTile(screen *ebiten.Image, tile *ebiten.Image, tx int, ty int, sw int, sh int, tw int, th int, optsFunc DrawImageOptionsFunc) {
+	if sw <= 0 || sh <= 0 || tw <= 0 || th <= 0 {
+		return
+	}
+
+	opts := ebiten.DrawImageOptions{
+		Filter: ebiten.FilterNearest,
+	}
+
+	if tw != sw || th != sh {
+		opts.GeoM.Scale(float64(tw)/float64(sw), float64(th)/float64(sh))
+	}
+
+	opts.GeoM.Translate(float64(tx), float64(ty))
+
+	if optsFunc != nil {
+		optsFunc(&opts)
+	}
+
+	_ = screen.DrawImage(tile, &opts)
+}
+
 func (n *NineSlice) createSubImages() {
 	defer func() {
 		n.image = nil
@@ -145,7 +145,7 @@ func (n *NineSlice) createSubImages() {
 	n.subImages = make([]*ebiten.Image, 9)
 
 	// short-circuit if only the center tile is used
-	if n.widths[0] <= 0 && n.widths[2] <= 0 && n.heights[0] <= 0 && n.heights[2] <= 0 {
+	if n.centerOnly() {
 		w, h := n.image.Size()
 		if n.widths[1] == w && n.heights[1] == h {
 			n.subImages[1*3+1] = n.image
@@ -164,4 +164,8 @@ func (n *NineSlice) createSubImages() {
 		}
 		sy += sh
 	}
+}
+
+func (n *NineSlice) centerOnly() bool {
+	return n.widths[0] <= 0 && n.widths[2] <= 0 && n.heights[0] <= 0 && n.heights[2] <= 0
 }
