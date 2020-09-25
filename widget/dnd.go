@@ -171,7 +171,8 @@ func (d *DragAndDrop) draggingState(srcWidget HasWidget, srcX int, srcY int, dra
 		}
 
 		sx, sy := dragWidget.(PreferredSizer).PreferredSize()
-		r := image.Rect(x, y, x+sx, y+sy)
+		r := image.Rect(0, 0, sx, sy)
+		r = r.Add(image.Point{x, y})
 		r = r.Sub(image.Point{sx / 2, sy / 2})
 		dragWidget.(Locateable).SetLocation(r)
 		if rl, ok := dragWidget.(Relayoutable); ok {

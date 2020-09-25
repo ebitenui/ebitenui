@@ -90,9 +90,7 @@ func createUI() (*ebitenui.UI, func(), error) {
 			ToolTip: widget.NewToolTip(
 				widget.ToolTipOpts.Container(rootContainer),
 				widget.ToolTipOpts.ContentsCreater(&toolTips),
-				widget.ToolTipOpts.UpdateEveryFrame(),
-				widget.ToolTipOpts.NoSticky(),
-				widget.ToolTipOpts.Delay(0)),
+			),
 
 			DragAndDrop: dnd,
 		},

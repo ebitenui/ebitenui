@@ -29,7 +29,6 @@ func (t *toolTipContents) Create(w widget.HasWidget) widget.HasWidget {
 		)))
 
 	t.text = widget.NewTextToolTip(
-		widget.TextToolTipOpts.Updater(t),
 		widget.TextToolTipOpts.ContainerOpts(
 			widget.ContainerOpts.BackgroundImage(t.res.images.button.Disabled),
 			widget.ContainerOpts.WidgetOpts(
@@ -48,15 +47,7 @@ func (t *toolTipContents) Create(w widget.HasWidget) widget.HasWidget {
 			widget.TextOpts.Text("", t.res.fonts.toolTipFace, t.res.colors.textToolTip)))
 	c.AddChild(t.text)
 
-	canShowTime := false
-	for _, tw := range t.widgetsWithTime {
-		if tw == w {
-			canShowTime = true
-			break
-		}
-	}
-
-	if t.showTime && canShowTime {
+	if t.showTime && t.canShowTime(w) {
 		t.timeText = widget.NewTextToolTip(
 			widget.TextToolTipOpts.ContainerOpts(
 				widget.ContainerOpts.BackgroundImage(t.res.images.button.Disabled),
@@ -87,15 +78,18 @@ func (t *toolTipContents) Set(w widget.HasWidget, s string) {
 func (t *toolTipContents) Update(w widget.HasWidget) {
 	t.text.Label = t.tips[w]
 
-	canShowTime := false
-	for _, tw := range t.widgetsWithTime {
-		if tw == w {
-			canShowTime = true
-			break
-		}
+	if !t.showTime || !t.canShowTime(w) {
+		return
 	}
 
-	if t.showTime && canShowTime {
-		t.timeText.Label = time.Now().Local().Format("2006-01-02 15:04:05")
+	t.timeText.Label = time.Now().Local().Format("2006-01-02 15:04:05")
+}
+
+func (t *toolTipContents) canShowTime(w widget.HasWidget) bool {
+	for _, tw := range t.widgetsWithTime {
+		if tw == w {
+			return true
+		}
 	}
+	return false
 }

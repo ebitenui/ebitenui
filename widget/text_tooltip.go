@@ -12,7 +12,6 @@ type TextToolTip struct {
 	containerOpts []ContainerOpt
 	textOpts      []TextOpt
 	padding       Insets
-	updater       ToolTipContentsUpdater
 
 	init      *MultiOnce
 	container *Container
@@ -57,12 +56,6 @@ func (o textToolTipOpts) Padding(i Insets) TextToolTipOpt {
 	}
 }
 
-func (o textToolTipOpts) Updater(u ToolTipContentsUpdater) TextToolTipOpt {
-	return func(t *TextToolTip) {
-		t.updater = u
-	}
-}
-
 func (t *TextToolTip) GetWidget() *Widget {
 	t.init.Do()
 	return t.container.GetWidget()
@@ -84,13 +77,6 @@ func (t *TextToolTip) PreferredSize() (int, int) {
 func (t *TextToolTip) RequestRelayout() {
 	t.init.Do()
 	t.container.RequestRelayout()
-}
-
-func (t *TextToolTip) Update(w HasWidget) {
-	t.init.Do()
-	if t.updater != nil {
-		t.updater.Update(w)
-	}
 }
 
 func (t *TextToolTip) Render(screen *ebiten.Image, def DeferredRenderFunc) {
