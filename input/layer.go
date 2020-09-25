@@ -138,14 +138,14 @@ func (l *Layer) contains(x int, y int) bool {
 	return image.Point{x, y}.In(l.RectFunc())
 }
 
-// SetupInputLayersWithDeferred calls i to set up input layers. This function should not be called directly.
-func SetupInputLayersWithDeferred(i Layerer) {
-	for _, l := range layers {
-		l.invalid = true
+// SetupInputLayersWithDeferred calls l to set up input layers. This function should not be called directly.
+func SetupInputLayersWithDeferred(l Layerer) {
+	for _, layer := range layers {
+		layer.invalid = true
 	}
 	layers = layers[:0]
 
-	appendToDeferredSetupInputLayerQueue(i.SetupInputLayer)
+	appendToDeferredSetupInputLayerQueue(l.SetupInputLayer)
 	setupDeferredInputLayers()
 }
 
