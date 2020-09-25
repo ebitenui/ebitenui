@@ -17,7 +17,6 @@ type ToolTip struct {
 	contentsCreater ToolTipContentsCreater
 	offset          img.Point
 
-	init             *MultiOnce
 	tipWidget        HasWidget
 	lastTippedWidget HasWidget
 	timer            *time.Timer
@@ -44,8 +43,6 @@ func NewToolTip(opts ...ToolTipOpt) *ToolTip {
 		offset: img.Point{0, 20},
 		Sticky: true,
 		Delay:  800 * time.Millisecond,
-
-		init: &MultiOnce{},
 	}
 
 	for _, o := range opts {
@@ -55,7 +52,7 @@ func NewToolTip(opts ...ToolTipOpt) *ToolTip {
 	return t
 }
 
-func (o toolTipOpts) WithContainer(c *Container) ToolTipOpt {
+func (o toolTipOpts) WithContainer(c WidgetLocator) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.container = c
 	}
@@ -92,8 +89,6 @@ func (o toolTipOpts) WithUpdateEveryFrame() ToolTipOpt {
 }
 
 func (t *ToolTip) Render(screen *ebiten.Image, def DeferredRenderFunc) {
-	t.init.Do()
-
 	x, y := input.CursorPosition()
 	w := t.container.WidgetAt(x, y)
 
