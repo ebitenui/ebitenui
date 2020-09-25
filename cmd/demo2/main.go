@@ -66,6 +66,8 @@ func createUI() (*ebitenui.UI, func(), error) {
 		res:  res,
 	}
 
+	drag := newTextDragContents(res)
+
 	rootContainer := widget.NewContainer(
 		widget.ContainerOpts.WithLayout(widget.NewGridLayout(
 			widget.GridLayoutOpts.WithColumns(1),
@@ -74,8 +76,13 @@ func createUI() (*ebitenui.UI, func(), error) {
 			widget.GridLayoutOpts.WithSpacing(0, 20))),
 		widget.ContainerOpts.WithBackgroundImage(image.NewNineSliceColor(color.White)))
 
+	dnd := widget.NewDragAndDrop(
+		widget.DragAndDropOpts.WithContainer(rootContainer),
+		widget.DragAndDropOpts.WithContentsCreater(drag),
+	)
+
 	rootContainer.AddChild(newInfoContainer(res))
-	rootContainer.AddChild(newDemoContainer(res, &toolTips))
+	rootContainer.AddChild(newDemoContainer(res, &toolTips, dnd, drag))
 
 	return &ebitenui.UI{
 			Container: rootContainer,
@@ -86,6 +93,8 @@ func createUI() (*ebitenui.UI, func(), error) {
 				widget.ToolTipOpts.WithUpdateEveryFrame(),
 				widget.ToolTipOpts.WithNoSticky(),
 				widget.ToolTipOpts.WithDelay(0)),
+
+			DragAndDrop: dnd,
 		},
 		func() {
 			res.close()
@@ -128,7 +137,7 @@ func newInfoContainer(res *resources) widget.HasWidget {
 	return infoContainer
 }
 
-func newDemoContainer(res *resources, toolTips *toolTipContents) widget.HasWidget {
+func newDemoContainer(res *resources, toolTips *toolTipContents, dnd *widget.DragAndDrop, drag *dragContents) widget.HasWidget {
 	demoContainer := widget.NewContainer(
 		widget.ContainerOpts.WithLayout(widget.NewGridLayout(
 			widget.GridLayoutOpts.WithColumns(2),
@@ -146,6 +155,7 @@ func newDemoContainer(res *resources, toolTips *toolTipContents) widget.HasWidge
 		rowLayoutPage(res),
 		sliderPage(res),
 		toolTipPage(res, toolTips),
+		dragAndDropPage(res, dnd, drag),
 	}
 
 	collator := collate.New(language.English)

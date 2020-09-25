@@ -311,6 +311,10 @@ func (w *Widget) ElevateToNewInputLayer(l *input.Layer) {
 	w.inputLayer = l
 }
 
+func (w *Widget) Parent() *Widget {
+	return w.parent
+}
+
 // RenderWithDeferred renders r to screen. This function should not be called directly.
 func RenderWithDeferred(r Renderer, screen *ebiten.Image) {
 	appendToDeferredRenderQueue(r.Render)

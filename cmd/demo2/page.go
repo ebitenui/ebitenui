@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/blizzy78/ebitenui/widget"
 )
@@ -403,6 +404,69 @@ func toolTipPage(res *resources, toolTips *toolTipContents) *page {
 
 	return &page{
 		title:   "Tool Tip",
+		content: c,
+	}
+}
+
+func dragAndDropPage(res *resources, dnd *widget.DragAndDrop, drag *dragContents) *page {
+	c := newPageContentContainer()
+
+	dndContainer := widget.NewContainer(
+		widget.ContainerOpts.WithLayout(widget.NewRowLayout(
+			widget.RowLayoutOpts.WithSpacing(20),
+		)),
+	)
+	c.AddChild(dndContainer)
+
+	sourceContainer := widget.NewContainer(
+		widget.ContainerOpts.WithWidgetOpts(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+			Stretch: true,
+		})),
+		widget.ContainerOpts.WithBackgroundImage(res.images.button.Idle),
+		widget.ContainerOpts.WithLayout(widget.NewFillLayout(
+			widget.FillLayoutOpts.WithPadding(widget.NewInsetsSimple(20)),
+		)),
+	)
+	drag.addSource(sourceContainer)
+	dndContainer.AddChild(sourceContainer)
+
+	sourceContainer.AddChild(widget.NewText(
+		widget.TextOpts.WithText("Drag\nFrom\nHere", res.fonts.face, res.colors.textIdle),
+		widget.TextOpts.WithPosition(widget.TextPositionCenter),
+	))
+
+	targetContainer := widget.NewContainer(
+		widget.ContainerOpts.WithWidgetOpts(widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+			Stretch: true,
+		})),
+		widget.ContainerOpts.WithBackgroundImage(res.images.button.Idle),
+		widget.ContainerOpts.WithLayout(widget.NewFillLayout(
+			widget.FillLayoutOpts.WithPadding(widget.NewInsetsSimple(20)),
+		)),
+	)
+	drag.addTarget(targetContainer)
+	dndContainer.AddChild(targetContainer)
+
+	targetContainer.AddChild(widget.NewText(
+		widget.TextOpts.WithText("Drop\nHere", res.fonts.face, res.colors.textIdle),
+		widget.TextOpts.WithPosition(widget.TextPositionCenter),
+	))
+
+	dnd.DroppedEvent.AddHandler(func(args interface{}) {
+		a := args.(*widget.DragAndDropDroppedEventArgs)
+		if !drag.isTarget(a.Target.GetWidget()) {
+			return
+		}
+
+		targetContainer.BackgroundImage = res.images.button.Pressed
+
+		time.AfterFunc(2*time.Second, func() {
+			targetContainer.BackgroundImage = res.images.button.Idle
+		})
+	})
+
+	return &page{
+		title:   "Drag & Drop",
 		content: c,
 	}
 }
