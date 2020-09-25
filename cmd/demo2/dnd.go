@@ -25,12 +25,12 @@ func (d *dragContents) Create(srcWidget widget.HasWidget, srcX int, srcY int) (w
 	}
 
 	c := widget.NewContainer(
-		widget.ContainerOpts.WithBackgroundImage(d.res.images.button.Disabled),
-		widget.ContainerOpts.WithWidgetOpts(widget.WidgetOpts.WithLayoutData(widget.RowLayoutData{
+		widget.ContainerOpts.BackgroundImage(d.res.images.button.Disabled),
+		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: true,
 		})),
-		widget.ContainerOpts.WithLayout(widget.NewFillLayout(
-			widget.FillLayoutOpts.WithPadding(widget.Insets{
+		widget.ContainerOpts.Layout(widget.NewFillLayout(
+			widget.FillLayoutOpts.Padding(widget.Insets{
 				Left:   8,
 				Right:  8,
 				Top:    4,
@@ -39,7 +39,7 @@ func (d *dragContents) Create(srcWidget widget.HasWidget, srcX int, srcY int) (w
 		)),
 	)
 
-	d.text = widget.NewText(widget.TextOpts.WithText("Drag Me!", d.res.fonts.face, d.res.colors.textIdle))
+	d.text = widget.NewText(widget.TextOpts.Text("Drag Me!", d.res.fonts.face, d.res.colors.textIdle))
 	c.AddChild(d.text)
 
 	return c, nil

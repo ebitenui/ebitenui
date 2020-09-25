@@ -18,7 +18,7 @@ func TestFillLayout_PreferredSize(t *testing.T) {
 	}
 
 	l := newFillLayout(t,
-		FillLayoutOpts.WithPadding(padding))
+		FillLayoutOpts.Padding(padding))
 
 	wi := newSimpleWidget(35, 45, nil)
 
@@ -32,7 +32,7 @@ func TestFillLayout_Layout(t *testing.T) {
 	is := is.New(t)
 
 	l := newFillLayout(t,
-		FillLayoutOpts.WithPadding(Insets{
+		FillLayoutOpts.Padding(Insets{
 			Top:    10,
 			Left:   20,
 			Right:  30,

@@ -52,30 +52,30 @@ func NewListComboButton(opts ...ListComboButtonOpt) *ListComboButton {
 	return l
 }
 
-func (o listComboButtonOpts) WithSelectComboButtonOpts(opts ...SelectComboButtonOpt) ListComboButtonOpt {
+func (o listComboButtonOpts) SelectComboButtonOpts(opts ...SelectComboButtonOpt) ListComboButtonOpt {
 	return func(l *ListComboButton) {
 		l.buttonOpts = append(l.buttonOpts, opts...)
 	}
 }
 
-func (o listComboButtonOpts) WithListOpts(opts ...ListOpt) ListComboButtonOpt {
+func (o listComboButtonOpts) ListOpts(opts ...ListOpt) ListComboButtonOpt {
 	return func(l *ListComboButton) {
 		l.listOpts = append(l.listOpts, opts...)
 	}
 }
 
-func (o listComboButtonOpts) WithText(face font.Face, image *ButtonImageImage, color *ButtonTextColor) ListComboButtonOpt {
-	return o.WithSelectComboButtonOpts(SelectComboButtonOpts.WithComboButtonOpts(ComboButtonOpts.WithButtonOpts(ButtonOpts.WithTextAndImage("", face, image, color))))
+func (o listComboButtonOpts) Text(face font.Face, image *ButtonImageImage, color *ButtonTextColor) ListComboButtonOpt {
+	return o.SelectComboButtonOpts(SelectComboButtonOpts.ComboButtonOpts(ComboButtonOpts.ButtonOpts(ButtonOpts.TextAndImage("", face, image, color))))
 }
 
-func (o listComboButtonOpts) WithEntryLabelFunc(button SelectComboButtonEntryLabelFunc, list ListEntryLabelFunc) ListComboButtonOpt {
+func (o listComboButtonOpts) EntryLabelFunc(button SelectComboButtonEntryLabelFunc, list ListEntryLabelFunc) ListComboButtonOpt {
 	return func(l *ListComboButton) {
-		l.buttonOpts = append(l.buttonOpts, SelectComboButtonOpts.WithEntryLabelFunc(button))
-		l.listOpts = append(l.listOpts, ListOpts.WithEntryLabelFunc(list))
+		l.buttonOpts = append(l.buttonOpts, SelectComboButtonOpts.EntryLabelFunc(button))
+		l.listOpts = append(l.listOpts, ListOpts.EntryLabelFunc(list))
 	}
 }
 
-func (o listComboButtonOpts) WithEntrySelectedHandler(f ListComboButtonEntrySelectedHandlerFunc) ListComboButtonOpt {
+func (o listComboButtonOpts) EntrySelectedHandler(f ListComboButtonEntrySelectedHandlerFunc) ListComboButtonOpt {
 	return func(l *ListComboButton) {
 		l.EntrySelectedEvent.AddHandler(func(args interface{}) {
 			f(args.(*ListComboButtonEntrySelectedEventArgs))
@@ -119,14 +119,14 @@ func (l *ListComboButton) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 func (l *ListComboButton) createWidget() {
 	l.list = NewList(append(l.listOpts, []ListOpt{
-		ListOpts.WithControlWidgetSpacing(2),
-		ListOpts.WithHideHorizontalSlider(),
-		ListOpts.WithAllowReselect(),
+		ListOpts.ControlWidgetSpacing(2),
+		ListOpts.HideHorizontalSlider(),
+		ListOpts.AllowReselect(),
 	}...)...)
 	l.listOpts = nil
 
 	l.button = NewSelectComboButton(append(l.buttonOpts,
-		SelectComboButtonOpts.WithComboButtonOpts(ComboButtonOpts.WithContent(l.list)),
+		SelectComboButtonOpts.ComboButtonOpts(ComboButtonOpts.Content(l.list)),
 	)...)
 	l.buttonOpts = nil
 

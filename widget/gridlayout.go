@@ -46,26 +46,26 @@ func NewGridLayout(opts ...GridLayoutOpt) Layouter {
 	return g
 }
 
-func (o gridLayoutOpts) WithColumns(c int) GridLayoutOpt {
+func (o gridLayoutOpts) Columns(c int) GridLayoutOpt {
 	return func(g *gridLayout) {
 		g.columns = c
 	}
 }
 
-func (o gridLayoutOpts) WithPadding(p Insets) GridLayoutOpt {
+func (o gridLayoutOpts) Padding(p Insets) GridLayoutOpt {
 	return func(g *gridLayout) {
 		g.padding = p
 	}
 }
 
-func (o gridLayoutOpts) WithSpacing(columnSpacing int, rowSpacing int) GridLayoutOpt {
+func (o gridLayoutOpts) Spacing(columnSpacing int, rowSpacing int) GridLayoutOpt {
 	return func(g *gridLayout) {
 		g.columnSpacing = columnSpacing
 		g.rowSpacing = rowSpacing
 	}
 }
 
-func (o gridLayoutOpts) WithStretch(columns []bool, rows []bool) GridLayoutOpt {
+func (o gridLayoutOpts) Stretch(columns []bool, rows []bool) GridLayoutOpt {
 	return func(g *gridLayout) {
 		g.columnStretch = columns
 		g.rowStretch = rows

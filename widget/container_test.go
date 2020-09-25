@@ -23,7 +23,7 @@ func TestContainer_Render(t *testing.T) {
 	m.On("Render", mock.Anything, mock.Anything)
 
 	c := newContainer(t,
-		ContainerOpts.WithLayout(newRowLayout(t)))
+		ContainerOpts.Layout(newRowLayout(t)))
 	c.AddChild(&m)
 
 	render(c, t)
@@ -41,8 +41,8 @@ func TestContainer_Render_AutoDisableChildren(t *testing.T) {
 	m.On("Render", mock.Anything, mock.Anything).Maybe()
 
 	c := newContainer(t,
-		ContainerOpts.WithAutoDisableChildren(),
-		ContainerOpts.WithLayout(newRowLayout(t)))
+		ContainerOpts.AutoDisableChildren(),
+		ContainerOpts.Layout(newRowLayout(t)))
 	c.AddChild(&m)
 
 	c.widget.Disabled = true
@@ -61,7 +61,7 @@ func TestContainer_SetupInputLayer(t *testing.T) {
 	m.On("SetupInputLayer", mock.AnythingOfType("input.DeferredSetupInputLayerFunc"))
 
 	c := newContainer(t,
-		ContainerOpts.WithLayout(newRowLayout(t)))
+		ContainerOpts.Layout(newRowLayout(t)))
 	c.AddChild(&m)
 
 	c.SetupInputLayer(def)

@@ -159,14 +159,14 @@ func NewWidget(opts ...WidgetOpt) *Widget {
 }
 
 // WithLayoutData configures a Widget with layout data ld.
-func (o widgetOpts) WithLayoutData(ld interface{}) WidgetOpt {
+func (o widgetOpts) LayoutData(ld interface{}) WidgetOpt {
 	return func(w *Widget) {
 		w.LayoutData = ld
 	}
 }
 
 // WithCursorEnterHandler configures a Widget with cursor enter event handler f.
-func (o widgetOpts) WithCursorEnterHandler(f WidgetCursorEnterHandlerFunc) WidgetOpt {
+func (o widgetOpts) CursorEnterHandler(f WidgetCursorEnterHandlerFunc) WidgetOpt {
 	return func(w *Widget) {
 		w.CursorEnterEvent.AddHandler(func(args interface{}) {
 			f(args.(*WidgetCursorEnterEventArgs))
@@ -175,7 +175,7 @@ func (o widgetOpts) WithCursorEnterHandler(f WidgetCursorEnterHandlerFunc) Widge
 }
 
 // WithCursorExitHandler configures a Widget with cursor exit event handler f.
-func (o widgetOpts) WithCursorExitHandler(f WidgetCursorExitHandlerFunc) WidgetOpt {
+func (o widgetOpts) CursorExitHandler(f WidgetCursorExitHandlerFunc) WidgetOpt {
 	return func(w *Widget) {
 		w.CursorExitEvent.AddHandler(func(args interface{}) {
 			f(args.(*WidgetCursorExitEventArgs))
@@ -184,7 +184,7 @@ func (o widgetOpts) WithCursorExitHandler(f WidgetCursorExitHandlerFunc) WidgetO
 }
 
 // WithMouseButtonPressedHandler configures a Widget with mouse button press event handler f.
-func (o widgetOpts) WithMouseButtonPressedHandler(f WidgetMouseButtonPressedHandlerFunc) WidgetOpt {
+func (o widgetOpts) MouseButtonPressedHandler(f WidgetMouseButtonPressedHandlerFunc) WidgetOpt {
 	return func(w *Widget) {
 		w.MouseButtonPressedEvent.AddHandler(func(args interface{}) {
 			f(args.(*WidgetMouseButtonPressedEventArgs))
@@ -193,7 +193,7 @@ func (o widgetOpts) WithMouseButtonPressedHandler(f WidgetMouseButtonPressedHand
 }
 
 // WithMouseButtonReleasedHandler configures a Widget with mouse button release event handler f.
-func (o widgetOpts) WithMouseButtonReleasedHandler(f WidgetMouseButtonReleasedHandlerFunc) WidgetOpt {
+func (o widgetOpts) MouseButtonReleasedHandler(f WidgetMouseButtonReleasedHandlerFunc) WidgetOpt {
 	return func(w *Widget) {
 		w.MouseButtonReleasedEvent.AddHandler(func(args interface{}) {
 			f(args.(*WidgetMouseButtonReleasedEventArgs))
@@ -202,7 +202,7 @@ func (o widgetOpts) WithMouseButtonReleasedHandler(f WidgetMouseButtonReleasedHa
 }
 
 // WithScrolledHandler configures a Widget with mouse wheel scroll event handler f.
-func (o widgetOpts) WithScrolledHandler(f WidgetScrolledHandlerFunc) WidgetOpt {
+func (o widgetOpts) ScrolledHandler(f WidgetScrolledHandlerFunc) WidgetOpt {
 	return func(w *Widget) {
 		w.ScrolledEvent.AddHandler(func(args interface{}) {
 			f(args.(*WidgetScrolledEventArgs))

@@ -37,13 +37,13 @@ func NewLabeledCheckbox(opts ...LabeledCheckboxOpt) *LabeledCheckbox {
 	return l
 }
 
-func (o labeledCheckboxOpts) WithCheckboxOpts(opts ...CheckboxOpt) LabeledCheckboxOpt {
+func (o labeledCheckboxOpts) CheckboxOpts(opts ...CheckboxOpt) LabeledCheckboxOpt {
 	return func(l *LabeledCheckbox) {
 		l.checkboxOpts = append(l.checkboxOpts, opts...)
 	}
 }
 
-func (o labeledCheckboxOpts) WithLabelOpts(opts ...LabelOpt) LabeledCheckboxOpt {
+func (o labeledCheckboxOpts) LabelOpts(opts ...LabelOpt) LabeledCheckboxOpt {
 	return func(l *LabeledCheckbox) {
 		l.labelOpts = append(l.labelOpts, opts...)
 	}
@@ -76,12 +76,12 @@ func (l *LabeledCheckbox) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 func (l *LabeledCheckbox) createWidget() {
 	l.container = NewContainer(
-		ContainerOpts.WithLayout(NewRowLayout(
-			RowLayoutOpts.WithSpacing(10))),
-		ContainerOpts.WithAutoDisableChildren())
+		ContainerOpts.Layout(NewRowLayout(
+			RowLayoutOpts.Spacing(10))),
+		ContainerOpts.AutoDisableChildren())
 
 	l.checkbox = NewCheckbox(append(l.checkboxOpts, []CheckboxOpt{
-		CheckboxOpts.WithButtonOpts(ButtonOpts.WithWidgetOpts(WidgetOpts.WithLayoutData(&RowLayoutData{
+		CheckboxOpts.ButtonOpts(ButtonOpts.WidgetOpts(WidgetOpts.LayoutData(&RowLayoutData{
 			Position: RowLayoutPositionCenter,
 		}))),
 	}...)...)
@@ -89,13 +89,13 @@ func (l *LabeledCheckbox) createWidget() {
 	l.checkboxOpts = nil
 
 	l.label = NewLabel(append(l.labelOpts, []LabelOpt{
-		LabelOpts.WithTextOpts(
-			TextOpts.WithWidgetOpts(
-				WidgetOpts.WithLayoutData(&RowLayoutData{
+		LabelOpts.TextOpts(
+			TextOpts.WidgetOpts(
+				WidgetOpts.LayoutData(&RowLayoutData{
 					Position: RowLayoutPositionCenter,
 				}),
 
-				WidgetOpts.WithMouseButtonReleasedHandler(func(args *WidgetMouseButtonReleasedEventArgs) {
+				WidgetOpts.MouseButtonReleasedHandler(func(args *WidgetMouseButtonReleasedEventArgs) {
 					if !args.Widget.Disabled && args.Button == ebiten.MouseButtonLeft && args.Inside {
 						l.checkbox.SetState(l.checkbox.state.Advance(l.checkbox.triState))
 					}

@@ -25,7 +25,7 @@ var fontFace2 font.Face
 
 func newSimpleWidget(preferredWidth int, preferredHeight int, ld interface{}) *simpleWidget {
 	return &simpleWidget{
-		widget:          NewWidget(WidgetOpts.WithLayoutData(ld)),
+		widget:          NewWidget(WidgetOpts.LayoutData(ld)),
 		preferredWidth:  preferredWidth,
 		preferredHeight: preferredHeight,
 	}

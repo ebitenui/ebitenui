@@ -44,13 +44,13 @@ func NewLabel(opts ...LabelOpt) *Label {
 	return l
 }
 
-func (o labelOpts) WithTextOpts(opts ...TextOpt) LabelOpt {
+func (o labelOpts) TextOpts(opts ...TextOpt) LabelOpt {
 	return func(l *Label) {
 		l.textOpts = append(l.textOpts, opts...)
 	}
 }
 
-func (o labelOpts) WithText(label string, face font.Face, color *LabelColor) LabelOpt {
+func (o labelOpts) Text(label string, face font.Face, color *LabelColor) LabelOpt {
 	return func(l *Label) {
 		l.Label = label
 		l.Face = face
@@ -87,7 +87,7 @@ func (l *Label) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 func (l *Label) createWidget() {
 	l.text = NewText(append(l.textOpts, []TextOpt{
-		TextOpts.WithText(l.Label, l.Face, l.color.Idle),
+		TextOpts.Text(l.Label, l.Face, l.color.Idle),
 	}...)...)
 	l.textOpts = nil
 }

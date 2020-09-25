@@ -22,7 +22,7 @@ func TestComboButton_ContentVisible_Click(t *testing.T) {
 func newComboButton(t *testing.T, opts ...ComboButtonOpt) *ComboButton {
 	t.Helper()
 
-	b := NewComboButton(append(opts, ComboButtonOpts.WithContent(newButton(t)))...)
+	b := NewComboButton(append(opts, ComboButtonOpts.Content(newButton(t)))...)
 	internalevent.ExecuteDeferredActions()
 	render(b, t)
 	return b

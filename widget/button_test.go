@@ -13,7 +13,7 @@ func TestButton_PressedEvent_User(t *testing.T) {
 	var eventArgs *ButtonPressedEventArgs
 
 	b := newButton(t,
-		ButtonOpts.WithPressedHandler(func(args *ButtonPressedEventArgs) {
+		ButtonOpts.PressedHandler(func(args *ButtonPressedEventArgs) {
 			eventArgs = args
 		}))
 
@@ -28,7 +28,7 @@ func TestButton_ReleasedEvent_User(t *testing.T) {
 	var eventArgs *ButtonReleasedEventArgs
 
 	b := newButton(t,
-		ButtonOpts.WithReleasedHandler(func(args *ButtonReleasedEventArgs) {
+		ButtonOpts.ReleasedHandler(func(args *ButtonReleasedEventArgs) {
 			eventArgs = args
 		}))
 
@@ -43,7 +43,7 @@ func TestButton_ClickedEvent_User(t *testing.T) {
 	var eventArgs *ButtonClickedEventArgs
 
 	b := newButton(t,
-		ButtonOpts.WithClickedHandler(func(args *ButtonClickedEventArgs) {
+		ButtonOpts.ClickedHandler(func(args *ButtonClickedEventArgs) {
 			eventArgs = args
 		}))
 

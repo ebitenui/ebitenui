@@ -63,25 +63,25 @@ func NewDragAndDrop(opts ...DragAndDropOpt) *DragAndDrop {
 	return d
 }
 
-func (o dragAndDropOpts) WithContainer(c WidgetLocator) DragAndDropOpt {
+func (o dragAndDropOpts) Container(c WidgetLocator) DragAndDropOpt {
 	return func(d *DragAndDrop) {
 		d.container = c
 	}
 }
 
-func (o dragAndDropOpts) WithContentsCreater(c DragContentsCreater) DragAndDropOpt {
+func (o dragAndDropOpts) ContentsCreater(c DragContentsCreater) DragAndDropOpt {
 	return func(d *DragAndDrop) {
 		d.contentsCreater = c
 	}
 }
 
-func (o dragAndDropOpts) WithMinDragStartDistance(d int) DragAndDropOpt {
+func (o dragAndDropOpts) MinDragStartDistance(d int) DragAndDropOpt {
 	return func(dnd *DragAndDrop) {
 		dnd.minDragStartDistance = d
 	}
 }
 
-func (o dragAndDropOpts) WithDroppedHandler(f DragAndDropDroppedHandlerFunc) DragAndDropOpt {
+func (o dragAndDropOpts) DroppedHandler(f DragAndDropDroppedHandlerFunc) DragAndDropOpt {
 	return func(d *DragAndDrop) {
 		d.DroppedEvent.AddHandler(func(args interface{}) {
 			f(args.(*DragAndDropDroppedEventArgs))

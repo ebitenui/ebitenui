@@ -38,19 +38,19 @@ func NewGraphic(opts ...GraphicOpt) *Graphic {
 	return g
 }
 
-func (o graphicOpts) WithWidgetOpts(opts ...WidgetOpt) GraphicOpt {
+func (o graphicOpts) WidgetOpts(opts ...WidgetOpt) GraphicOpt {
 	return func(g *Graphic) {
 		g.widgetOpts = append(g.widgetOpts, opts...)
 	}
 }
 
-func (o graphicOpts) WithImage(i *ebiten.Image) GraphicOpt {
+func (o graphicOpts) Image(i *ebiten.Image) GraphicOpt {
 	return func(g *Graphic) {
 		g.Image = i
 	}
 }
 
-func (o graphicOpts) WithImageNineSlice(i *image.NineSlice) GraphicOpt {
+func (o graphicOpts) ImageNineSlice(i *image.NineSlice) GraphicOpt {
 	return func(g *Graphic) {
 		g.ImageNineSlice = i
 	}

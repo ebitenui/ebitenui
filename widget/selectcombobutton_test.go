@@ -15,11 +15,11 @@ func TestSelectComboButton_SetSelectedEntry(t *testing.T) {
 	numEvents := 0
 
 	b := newSelectComboButton(t,
-		SelectComboButtonOpts.WithEntryLabelFunc(func(e interface{}) string {
+		SelectComboButtonOpts.EntryLabelFunc(func(e interface{}) string {
 			return "label " + e.(string)
 		}),
 
-		SelectComboButtonOpts.WithEntrySelectedHandler(func(args *SelectComboButtonEntrySelectedEventArgs) {
+		SelectComboButtonOpts.EntrySelectedHandler(func(args *SelectComboButtonEntrySelectedEventArgs) {
 			eventArgs = args
 			numEvents++
 		}))
@@ -76,7 +76,7 @@ func newSelectComboButton(t *testing.T, opts ...SelectComboButtonOpt) *SelectCom
 	t.Helper()
 
 	b := NewSelectComboButton(append(opts, []SelectComboButtonOpt{
-		SelectComboButtonOpts.WithComboButtonOpts(ComboButtonOpts.WithButtonOpts(ButtonOpts.WithTextAndImage("", loadFont(t), &ButtonImageImage{
+		SelectComboButtonOpts.ComboButtonOpts(ComboButtonOpts.ButtonOpts(ButtonOpts.TextAndImage("", loadFont(t), &ButtonImageImage{
 			Idle:     newImageEmpty(t),
 			Disabled: newImageEmpty(t),
 		}, &ButtonTextColor{
@@ -84,7 +84,7 @@ func newSelectComboButton(t *testing.T, opts ...SelectComboButtonOpt) *SelectCom
 			Disabled: color.Transparent,
 		}))),
 
-		SelectComboButtonOpts.WithComboButtonOpts(ComboButtonOpts.WithContent(newButton(t))),
+		SelectComboButtonOpts.ComboButtonOpts(ComboButtonOpts.Content(newButton(t))),
 	}...)...)
 
 	internalevent.ExecuteDeferredActions()

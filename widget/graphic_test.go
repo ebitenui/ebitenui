@@ -12,7 +12,7 @@ func TestGraphic_PreferredSize(t *testing.T) {
 
 	i := newImageEmptyWithSize(47, 11, t)
 	g := newGraphic(t,
-		GraphicOpts.WithImage(i))
+		GraphicOpts.Image(i))
 	w, h := g.PreferredSize()
 	is.Equal(w, i.Bounds().Dx())
 	is.Equal(h, i.Bounds().Dy())

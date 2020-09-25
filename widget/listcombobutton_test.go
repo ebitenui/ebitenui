@@ -14,13 +14,13 @@ func TestListComboButton_SelectedEntry_Initial(t *testing.T) {
 	entries := []interface{}{"first", "second", "third"}
 
 	l := newListComboButton(t,
-		ListComboButtonOpts.WithListOpts(ListOpts.WithEntries(entries)),
+		ListComboButtonOpts.ListOpts(ListOpts.Entries(entries)),
 
-		ListComboButtonOpts.WithEntrySelectedHandler(func(args *ListComboButtonEntrySelectedEventArgs) {
+		ListComboButtonOpts.EntrySelectedHandler(func(args *ListComboButtonEntrySelectedEventArgs) {
 			is.Fail() // event fired without previous action
 		}),
 
-		ListComboButtonOpts.WithEntryLabelFunc(
+		ListComboButtonOpts.EntryLabelFunc(
 			func(e interface{}) string {
 				return "label " + e.(string)
 			}, func(e interface{}) string {
@@ -40,14 +40,14 @@ func TestListComboButton_SetSelectedEntry(t *testing.T) {
 	numEvents := 0
 
 	l := newListComboButton(t,
-		ListComboButtonOpts.WithListOpts(ListOpts.WithEntries(entries)),
+		ListComboButtonOpts.ListOpts(ListOpts.Entries(entries)),
 
-		ListComboButtonOpts.WithEntrySelectedHandler(func(args *ListComboButtonEntrySelectedEventArgs) {
+		ListComboButtonOpts.EntrySelectedHandler(func(args *ListComboButtonEntrySelectedEventArgs) {
 			eventArgs = args
 			numEvents++
 		}),
 
-		ListComboButtonOpts.WithEntryLabelFunc(
+		ListComboButtonOpts.EntryLabelFunc(
 			func(e interface{}) string {
 				return "label " + e.(string)
 			}, func(e interface{}) string {
@@ -76,14 +76,14 @@ func TestListComboButton_EntrySelectedEvent_User(t *testing.T) {
 	numEvents := 0
 
 	l := newListComboButton(t,
-		ListComboButtonOpts.WithListOpts(ListOpts.WithEntries(entries)),
+		ListComboButtonOpts.ListOpts(ListOpts.Entries(entries)),
 
-		ListComboButtonOpts.WithEntrySelectedHandler(func(args *ListComboButtonEntrySelectedEventArgs) {
+		ListComboButtonOpts.EntrySelectedHandler(func(args *ListComboButtonEntrySelectedEventArgs) {
 			eventArgs = args
 			numEvents++
 		}),
 
-		ListComboButtonOpts.WithEntryLabelFunc(
+		ListComboButtonOpts.EntryLabelFunc(
 			func(e interface{}) string {
 				return "label " + e.(string)
 			}, func(e interface{}) string {
@@ -114,9 +114,9 @@ func TestListComboButton_ContentVisible_Click(t *testing.T) {
 	entries := []interface{}{"first", "second", "third"}
 
 	l := newListComboButton(t,
-		ListComboButtonOpts.WithListOpts(ListOpts.WithEntries(entries)),
+		ListComboButtonOpts.ListOpts(ListOpts.Entries(entries)),
 
-		ListComboButtonOpts.WithEntryLabelFunc(
+		ListComboButtonOpts.EntryLabelFunc(
 			func(e interface{}) string {
 				return e.(string)
 			}, func(e interface{}) string {
@@ -136,9 +136,9 @@ func TestListComboButton_ContentVisible_Programmatic(t *testing.T) {
 	entries := []interface{}{"first", "second", "third"}
 
 	l := newListComboButton(t,
-		ListComboButtonOpts.WithListOpts(ListOpts.WithEntries(entries)),
+		ListComboButtonOpts.ListOpts(ListOpts.Entries(entries)),
 
-		ListComboButtonOpts.WithEntryLabelFunc(
+		ListComboButtonOpts.EntryLabelFunc(
 			func(e interface{}) string {
 				return e.(string)
 			}, func(e interface{}) string {
@@ -156,12 +156,12 @@ func newListComboButton(t *testing.T, opts ...ListComboButtonOpt) *ListComboButt
 	t.Helper()
 
 	l := NewListComboButton(append(opts, []ListComboButtonOpt{
-		ListComboButtonOpts.WithListOpts(ListOpts.WithScrollContainerOpts(ScrollContainerOpts.WithImage(&ScrollContainerImage{
+		ListComboButtonOpts.ListOpts(ListOpts.ScrollContainerOpts(ScrollContainerOpts.Image(&ScrollContainerImage{
 			Idle:     newNineSliceEmpty(t),
 			Disabled: newNineSliceEmpty(t),
 			Mask:     newNineSliceEmpty(t),
 		}))),
-		ListComboButtonOpts.WithListOpts(ListOpts.WithEntryColor(&ListEntryColor{
+		ListComboButtonOpts.ListOpts(ListOpts.EntryColor(&ListEntryColor{
 			Unselected:                 color.Transparent,
 			Selected:                   color.Transparent,
 			DisabledUnselected:         color.Transparent,
@@ -169,8 +169,8 @@ func newListComboButton(t *testing.T, opts ...ListComboButtonOpt) *ListComboButt
 			SelectedBackground:         color.Transparent,
 			DisabledSelectedBackground: color.Transparent,
 		})),
-		ListComboButtonOpts.WithListOpts(ListOpts.WithEntryFontFace(loadFont(t))),
-		ListComboButtonOpts.WithText(loadFont(t), &ButtonImageImage{
+		ListComboButtonOpts.ListOpts(ListOpts.EntryFontFace(loadFont(t))),
+		ListComboButtonOpts.Text(loadFont(t), &ButtonImageImage{
 			Idle:     newImageEmpty(t),
 			Disabled: newImageEmpty(t),
 		}, &ButtonTextColor{

@@ -109,27 +109,27 @@ func NewButton(opts ...ButtonOpt) *Button {
 	return b
 }
 
-func (o buttonOpts) WithWidgetOpts(opts ...WidgetOpt) ButtonOpt {
+func (o buttonOpts) WidgetOpts(opts ...WidgetOpt) ButtonOpt {
 	return func(b *Button) {
 		b.widgetOpts = append(b.widgetOpts, opts...)
 	}
 }
 
-func (o buttonOpts) WithImage(i *ButtonImage) ButtonOpt {
+func (o buttonOpts) Image(i *ButtonImage) ButtonOpt {
 	return func(b *Button) {
 		b.Image = i
 	}
 }
 
-func (o buttonOpts) WithTextSimpleLeft(label string, face font.Face, color *ButtonTextColor, padding Insets) ButtonOpt {
+func (o buttonOpts) TextSimpleLeft(label string, face font.Face, color *ButtonTextColor, padding Insets) ButtonOpt {
 	return func(b *Button) {
 		b.init.Append(func() {
 			b.container = NewContainer(
-				ContainerOpts.WithLayout(NewRowLayout(
-					RowLayoutOpts.WithPadding(padding))),
-				ContainerOpts.WithAutoDisableChildren())
+				ContainerOpts.Layout(NewRowLayout(
+					RowLayoutOpts.Padding(padding))),
+				ContainerOpts.AutoDisableChildren())
 
-			b.text = NewText(TextOpts.WithText(label, face, color.Idle))
+			b.text = NewText(TextOpts.Text(label, face, color.Idle))
 			b.container.AddChild(b.text)
 
 			b.autoUpdateTextAndGraphic = true
@@ -138,17 +138,17 @@ func (o buttonOpts) WithTextSimpleLeft(label string, face font.Face, color *Butt
 	}
 }
 
-func (o buttonOpts) WithText(label string, face font.Face, color *ButtonTextColor) ButtonOpt {
+func (o buttonOpts) Text(label string, face font.Face, color *ButtonTextColor) ButtonOpt {
 	return func(b *Button) {
 		b.init.Append(func() {
 			b.container = NewContainer(
-				ContainerOpts.WithLayout(NewFillLayout(
-					FillLayoutOpts.WithPadding(b.textPadding))),
-				ContainerOpts.WithAutoDisableChildren())
+				ContainerOpts.Layout(NewFillLayout(
+					FillLayoutOpts.Padding(b.textPadding))),
+				ContainerOpts.AutoDisableChildren())
 
 			b.text = NewText(
-				TextOpts.WithText(label, face, color.Idle),
-				TextOpts.WithPosition(TextPositionCenter))
+				TextOpts.Text(label, face, color.Idle),
+				TextOpts.Position(TextPositionCenter))
 			b.container.AddChild(b.text)
 
 			b.autoUpdateTextAndGraphic = true
@@ -158,36 +158,36 @@ func (o buttonOpts) WithText(label string, face font.Face, color *ButtonTextColo
 }
 
 // TODO: add parameter for image position (start/end)
-func (o buttonOpts) WithTextAndImage(label string, face font.Face, image *ButtonImageImage, color *ButtonTextColor) ButtonOpt {
+func (o buttonOpts) TextAndImage(label string, face font.Face, image *ButtonImageImage, color *ButtonTextColor) ButtonOpt {
 	return func(b *Button) {
 		b.init.Append(func() {
 			b.container = NewContainer(
-				ContainerOpts.WithLayout(NewRowLayout(
-					RowLayoutOpts.WithDirection(DirectionVertical),
-					RowLayoutOpts.WithPadding(b.textPadding))),
-				ContainerOpts.WithAutoDisableChildren())
+				ContainerOpts.Layout(NewRowLayout(
+					RowLayoutOpts.Direction(DirectionVertical),
+					RowLayoutOpts.Padding(b.textPadding))),
+				ContainerOpts.AutoDisableChildren())
 
 			c := NewContainer(
-				ContainerOpts.WithWidgetOpts(WidgetOpts.WithLayoutData(&RowLayoutData{
+				ContainerOpts.WidgetOpts(WidgetOpts.LayoutData(&RowLayoutData{
 					Position: RowLayoutPositionCenter,
 				})),
-				ContainerOpts.WithLayout(NewRowLayout(
-					RowLayoutOpts.WithSpacing(10))),
-				ContainerOpts.WithAutoDisableChildren())
+				ContainerOpts.Layout(NewRowLayout(
+					RowLayoutOpts.Spacing(10))),
+				ContainerOpts.AutoDisableChildren())
 			b.container.AddChild(c)
 
 			b.text = NewText(
-				TextOpts.WithWidgetOpts(WidgetOpts.WithLayoutData(&RowLayoutData{
+				TextOpts.WidgetOpts(WidgetOpts.LayoutData(&RowLayoutData{
 					Stretch: true,
 				})),
-				TextOpts.WithText(label, face, color.Idle))
+				TextOpts.Text(label, face, color.Idle))
 			c.AddChild(b.text)
 
 			b.graphic = NewGraphic(
-				GraphicOpts.WithWidgetOpts(WidgetOpts.WithLayoutData(&RowLayoutData{
+				GraphicOpts.WidgetOpts(WidgetOpts.LayoutData(&RowLayoutData{
 					Stretch: true,
 				})),
-				GraphicOpts.WithImage(image.Idle))
+				GraphicOpts.Image(image.Idle))
 			c.AddChild(b.graphic)
 
 			b.autoUpdateTextAndGraphic = true
@@ -197,26 +197,26 @@ func (o buttonOpts) WithTextAndImage(label string, face font.Face, image *Button
 	}
 }
 
-func (o buttonOpts) WithTextPadding(p Insets) ButtonOpt {
+func (o buttonOpts) TextPadding(p Insets) ButtonOpt {
 	return func(b *Button) {
 		b.textPadding = p
 	}
 }
 
-func (o buttonOpts) WithGraphic(i *ebiten.Image) ButtonOpt {
-	return o.withGraphic(GraphicOpts.WithImage(i))
+func (o buttonOpts) Graphic(i *ebiten.Image) ButtonOpt {
+	return o.withGraphic(GraphicOpts.Image(i))
 }
 
-func (o buttonOpts) WithGraphicNineSlice(i *image.NineSlice) ButtonOpt {
-	return o.withGraphic(GraphicOpts.WithImageNineSlice(i))
+func (o buttonOpts) GraphicNineSlice(i *image.NineSlice) ButtonOpt {
+	return o.withGraphic(GraphicOpts.ImageNineSlice(i))
 }
 
 func (o buttonOpts) withGraphic(opt GraphicOpt) ButtonOpt {
 	return func(b *Button) {
 		b.init.Append(func() {
 			b.container = NewContainer(
-				ContainerOpts.WithLayout(NewFillLayout(FillLayoutOpts.WithPadding(NewInsetsSimple(4)))),
-				ContainerOpts.WithAutoDisableChildren())
+				ContainerOpts.Layout(NewFillLayout(FillLayoutOpts.Padding(NewInsetsSimple(4)))),
+				ContainerOpts.AutoDisableChildren())
 
 			b.graphic = NewGraphic(opt)
 			b.container.AddChild(b.graphic)
@@ -226,13 +226,13 @@ func (o buttonOpts) withGraphic(opt GraphicOpt) ButtonOpt {
 	}
 }
 
-func (o buttonOpts) WithKeepPressedOnExit() ButtonOpt {
+func (o buttonOpts) KeepPressedOnExit() ButtonOpt {
 	return func(b *Button) {
 		b.KeepPressedOnExit = true
 	}
 }
 
-func (o buttonOpts) WithPressedHandler(f ButtonPressedHandlerFunc) ButtonOpt {
+func (o buttonOpts) PressedHandler(f ButtonPressedHandlerFunc) ButtonOpt {
 	return func(b *Button) {
 		b.PressedEvent.AddHandler(func(args interface{}) {
 			f(args.(*ButtonPressedEventArgs))
@@ -240,7 +240,7 @@ func (o buttonOpts) WithPressedHandler(f ButtonPressedHandlerFunc) ButtonOpt {
 	}
 }
 
-func (o buttonOpts) WithReleasedHandler(f ButtonReleasedHandlerFunc) ButtonOpt {
+func (o buttonOpts) ReleasedHandler(f ButtonReleasedHandlerFunc) ButtonOpt {
 	return func(b *Button) {
 		b.ReleasedEvent.AddHandler(func(args interface{}) {
 			f(args.(*ButtonReleasedEventArgs))
@@ -248,7 +248,7 @@ func (o buttonOpts) WithReleasedHandler(f ButtonReleasedHandlerFunc) ButtonOpt {
 	}
 }
 
-func (o buttonOpts) WithClickedHandler(f ButtonClickedHandlerFunc) ButtonOpt {
+func (o buttonOpts) ClickedHandler(f ButtonClickedHandlerFunc) ButtonOpt {
 	return func(b *Button) {
 		b.ClickedEvent.AddHandler(func(args interface{}) {
 			f(args.(*ButtonClickedEventArgs))
@@ -377,17 +377,17 @@ func (b *Button) Text() *Text {
 func (b *Button) createWidget() {
 	b.widget = NewWidget(
 		append(b.widgetOpts, []WidgetOpt{
-			WidgetOpts.WithCursorEnterHandler(func(args *WidgetCursorEnterEventArgs) {
+			WidgetOpts.CursorEnterHandler(func(args *WidgetCursorEnterEventArgs) {
 				if !b.widget.Disabled {
 					b.hovering = true
 				}
 			}),
 
-			WidgetOpts.WithCursorExitHandler(func(args *WidgetCursorExitEventArgs) {
+			WidgetOpts.CursorExitHandler(func(args *WidgetCursorExitEventArgs) {
 				b.hovering = false
 			}),
 
-			WidgetOpts.WithMouseButtonPressedHandler(func(args *WidgetMouseButtonPressedEventArgs) {
+			WidgetOpts.MouseButtonPressedHandler(func(args *WidgetMouseButtonPressedEventArgs) {
 				if !b.widget.Disabled {
 					b.pressing = true
 
@@ -399,7 +399,7 @@ func (b *Button) createWidget() {
 				}
 			}),
 
-			WidgetOpts.WithMouseButtonReleasedHandler(func(args *WidgetMouseButtonReleasedEventArgs) {
+			WidgetOpts.MouseButtonReleasedHandler(func(args *WidgetMouseButtonReleasedEventArgs) {
 				b.pressing = false
 
 				if !b.widget.Disabled {

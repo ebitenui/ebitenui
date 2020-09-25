@@ -20,8 +20,8 @@ func TestRowLayout_PreferredSize(t *testing.T) {
 	}
 
 	l := newRowLayout(t,
-		RowLayoutOpts.WithPadding(padding),
-		RowLayoutOpts.WithSpacing(spacing))
+		RowLayoutOpts.Padding(padding),
+		RowLayoutOpts.Spacing(spacing))
 
 	widgets := []HasWidget{
 		newSimpleWidget(10, 10, nil),
@@ -81,13 +81,13 @@ func TestRowLayout_Layout(t *testing.T) {
 	is := is.New(t)
 
 	l := newRowLayout(t,
-		RowLayoutOpts.WithPadding(Insets{
+		RowLayoutOpts.Padding(Insets{
 			Top:    10,
 			Left:   20,
 			Right:  30,
 			Bottom: 40,
 		}),
-		RowLayoutOpts.WithSpacing(7))
+		RowLayoutOpts.Spacing(7))
 
 	widgets := []HasWidget{
 		newSimpleWidget(10, 10, nil),

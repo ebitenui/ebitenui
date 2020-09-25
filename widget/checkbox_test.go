@@ -11,7 +11,7 @@ func TestCheckbox_State_Initial(t *testing.T) {
 	is := is.New(t)
 
 	c := newCheckbox(t,
-		CheckboxOpts.WithChangedHandler(func(args *CheckboxChangedEventArgs) {
+		CheckboxOpts.ChangedHandler(func(args *CheckboxChangedEventArgs) {
 			is.Fail() // event fired without previous action
 		}))
 
@@ -24,7 +24,7 @@ func TestCheckbox_ChangedEvent_User(t *testing.T) {
 	var eventArgs *CheckboxChangedEventArgs
 
 	c := newCheckbox(t,
-		CheckboxOpts.WithChangedHandler(func(args *CheckboxChangedEventArgs) {
+		CheckboxOpts.ChangedHandler(func(args *CheckboxChangedEventArgs) {
 			eventArgs = args
 		}))
 
@@ -41,7 +41,7 @@ func TestCheckbox_SetState(t *testing.T) {
 	numEvents := 0
 
 	c := newCheckbox(t,
-		CheckboxOpts.WithChangedHandler(func(args *CheckboxChangedEventArgs) {
+		CheckboxOpts.ChangedHandler(func(args *CheckboxChangedEventArgs) {
 			eventArgs = args
 			numEvents++
 		}))
@@ -71,7 +71,7 @@ func TestCheckbox_State_Cycle(t *testing.T) {
 func TestCheckbox_State_Cycle_TriState(t *testing.T) {
 	is := is.New(t)
 
-	c := newCheckbox(t, CheckboxOpts.WithTriState())
+	c := newCheckbox(t, CheckboxOpts.TriState())
 	leftMouseButtonClick(c, t)
 	is.Equal(c.State(), CheckboxChecked)
 	leftMouseButtonClick(c, t)
@@ -84,11 +84,11 @@ func newCheckbox(t *testing.T, opts ...CheckboxOpt) *Checkbox {
 	t.Helper()
 
 	c := NewCheckbox(append(opts, []CheckboxOpt{
-		CheckboxOpts.WithButtonOpts(ButtonOpts.WithImage(&ButtonImage{
+		CheckboxOpts.ButtonOpts(ButtonOpts.Image(&ButtonImage{
 			Idle: newNineSliceEmpty(t),
 		})),
 
-		CheckboxOpts.WithImage(&CheckboxGraphicImage{
+		CheckboxOpts.Image(&CheckboxGraphicImage{
 			Unchecked: &ButtonImageImage{
 				Idle: newImageEmpty(t),
 			},

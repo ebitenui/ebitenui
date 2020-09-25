@@ -39,25 +39,25 @@ func NewTextToolTip(opts ...TextToolTipOpt) *TextToolTip {
 	return t
 }
 
-func (o textToolTipOpts) WithContainerOpts(opts ...ContainerOpt) TextToolTipOpt {
+func (o textToolTipOpts) ContainerOpts(opts ...ContainerOpt) TextToolTipOpt {
 	return func(t *TextToolTip) {
 		t.containerOpts = append(t.containerOpts, opts...)
 	}
 }
 
-func (o textToolTipOpts) WithTextOpts(opts ...TextOpt) TextToolTipOpt {
+func (o textToolTipOpts) TextOpts(opts ...TextOpt) TextToolTipOpt {
 	return func(t *TextToolTip) {
 		t.textOpts = append(t.textOpts, opts...)
 	}
 }
 
-func (o textToolTipOpts) WithPadding(i Insets) TextToolTipOpt {
+func (o textToolTipOpts) Padding(i Insets) TextToolTipOpt {
 	return func(t *TextToolTip) {
 		t.padding = i
 	}
 }
 
-func (o textToolTipOpts) WithUpdater(u ToolTipContentsUpdater) TextToolTipOpt {
+func (o textToolTipOpts) Updater(u ToolTipContentsUpdater) TextToolTipOpt {
 	return func(t *TextToolTip) {
 		t.updater = u
 	}
@@ -103,8 +103,8 @@ func (t *TextToolTip) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 func (t *TextToolTip) createWidget() {
 	t.container = NewContainer(append(t.containerOpts, []ContainerOpt{
-		ContainerOpts.WithLayout(NewFillLayout(
-			FillLayoutOpts.WithPadding(t.padding),
+		ContainerOpts.Layout(NewFillLayout(
+			FillLayoutOpts.Padding(t.padding),
 		)),
 	}...)...)
 

@@ -15,8 +15,8 @@ func TestTabBook_Tab_Initial(t *testing.T) {
 	tab2 := NewTabBookTab("Tab 2", newSimpleWidget(50, 50, nil))
 
 	tb := newTabBook(t,
-		TabBookOpts.WithTabs(tab1, tab2),
-		TabBookOpts.WithTabSelectedHandler(func(args *TabBookTabSelectedEventArgs) {
+		TabBookOpts.Tabs(tab1, tab2),
+		TabBookOpts.TabSelectedHandler(func(args *TabBookTabSelectedEventArgs) {
 			is.Fail() // event fired without previous action
 		}))
 
@@ -33,8 +33,8 @@ func TestTabBook_SetTab(t *testing.T) {
 	tab2 := NewTabBookTab("Tab 2", newSimpleWidget(50, 50, nil))
 
 	tb := newTabBook(t,
-		TabBookOpts.WithTabs(tab1, tab2),
-		TabBookOpts.WithTabSelectedHandler(func(args *TabBookTabSelectedEventArgs) {
+		TabBookOpts.Tabs(tab1, tab2),
+		TabBookOpts.TabSelectedHandler(func(args *TabBookTabSelectedEventArgs) {
 			eventArgs = args
 			numEvents++
 		}))
@@ -61,8 +61,8 @@ func TestTabBook_TabSelectedEvent_User(t *testing.T) {
 	tab2 := NewTabBookTab("Tab 2", newSimpleWidget(50, 50, nil))
 
 	tb := newTabBook(t,
-		TabBookOpts.WithTabs(tab1, tab2),
-		TabBookOpts.WithTabSelectedHandler(func(args *TabBookTabSelectedEventArgs) {
+		TabBookOpts.Tabs(tab1, tab2),
+		TabBookOpts.TabSelectedHandler(func(args *TabBookTabSelectedEventArgs) {
 			eventArgs = args
 			numEvents++
 		}))
@@ -81,12 +81,12 @@ func newTabBook(t *testing.T, opts ...TabBookOpt) *TabBook {
 	t.Helper()
 
 	tb := NewTabBook(append(opts, []TabBookOpt{
-		TabBookOpts.WithTabButtonImage(&ButtonImage{
+		TabBookOpts.TabButtonImage(&ButtonImage{
 			Idle: newNineSliceEmpty(t),
 		}, &ButtonImage{
 			Idle: newNineSliceEmpty(t),
 		}),
-		TabBookOpts.WithTabButtonText(loadFont(t), &ButtonTextColor{
+		TabBookOpts.TabButtonText(loadFont(t), &ButtonTextColor{
 			Idle:     color.Transparent,
 			Disabled: color.Transparent,
 		}),

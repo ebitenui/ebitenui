@@ -80,61 +80,61 @@ func NewList(opts ...ListOpt) *List {
 	return l
 }
 
-func (o listOpts) WithContainerOpts(opts ...ContainerOpt) ListOpt {
+func (o listOpts) ContainerOpts(opts ...ContainerOpt) ListOpt {
 	return func(l *List) {
 		l.containerOpts = append(l.containerOpts, opts...)
 	}
 }
 
-func (o listOpts) WithScrollContainerOpts(opts ...ScrollContainerOpt) ListOpt {
+func (o listOpts) ScrollContainerOpts(opts ...ScrollContainerOpt) ListOpt {
 	return func(l *List) {
 		l.scrollContainerOpts = append(l.scrollContainerOpts, opts...)
 	}
 }
 
-func (o listOpts) WithSliderOpts(opts ...SliderOpt) ListOpt {
+func (o listOpts) SliderOpts(opts ...SliderOpt) ListOpt {
 	return func(l *List) {
 		l.sliderOpts = append(l.sliderOpts, opts...)
 	}
 }
 
-func (o listOpts) WithControlWidgetSpacing(s int) ListOpt {
+func (o listOpts) ControlWidgetSpacing(s int) ListOpt {
 	return func(l *List) {
 		l.controlWidgetSpacing = s
 	}
 }
 
-func (o listOpts) WithHideHorizontalSlider() ListOpt {
+func (o listOpts) HideHorizontalSlider() ListOpt {
 	return func(l *List) {
 		l.hideHorizontalSlider = true
 	}
 }
 
-func (o listOpts) WithHideVerticalSlider() ListOpt {
+func (o listOpts) HideVerticalSlider() ListOpt {
 	return func(l *List) {
 		l.hideVerticalSlider = true
 	}
 }
 
-func (o listOpts) WithEntries(e []interface{}) ListOpt {
+func (o listOpts) Entries(e []interface{}) ListOpt {
 	return func(l *List) {
 		l.entries = e
 	}
 }
 
-func (o listOpts) WithEntryLabelFunc(f ListEntryLabelFunc) ListOpt {
+func (o listOpts) EntryLabelFunc(f ListEntryLabelFunc) ListOpt {
 	return func(l *List) {
 		l.entryLabelFunc = f
 	}
 }
 
-func (o listOpts) WithEntryFontFace(f font.Face) ListOpt {
+func (o listOpts) EntryFontFace(f font.Face) ListOpt {
 	return func(l *List) {
 		l.entryFace = f
 	}
 }
 
-func (o listOpts) WithEntryColor(c *ListEntryColor) ListOpt {
+func (o listOpts) EntryColor(c *ListEntryColor) ListOpt {
 	return func(l *List) {
 		l.entryUnselectedColor = &ButtonImage{
 			Idle:     image.NewNineSliceColor(color.Transparent),
@@ -153,7 +153,7 @@ func (o listOpts) WithEntryColor(c *ListEntryColor) ListOpt {
 	}
 }
 
-func (o listOpts) WithEntrySelectedHandler(f ListEntrySelectedHandlerFunc) ListOpt {
+func (o listOpts) EntrySelectedHandler(f ListEntrySelectedHandlerFunc) ListOpt {
 	return func(l *List) {
 		l.EntrySelectedEvent.AddHandler(func(args interface{}) {
 			f(args.(*ListEntrySelectedEventArgs))
@@ -161,7 +161,7 @@ func (o listOpts) WithEntrySelectedHandler(f ListEntrySelectedHandlerFunc) ListO
 	}
 }
 
-func (o listOpts) WithAllowReselect() ListOpt {
+func (o listOpts) AllowReselect() ListOpt {
 	return func(l *List) {
 		l.allowReselect = true
 	}
@@ -210,33 +210,33 @@ func (l *List) createWidget() {
 
 	l.container = NewContainer(
 		append(l.containerOpts,
-			ContainerOpts.WithLayout(NewGridLayout(
-				GridLayoutOpts.WithColumns(cols),
-				GridLayoutOpts.WithStretch([]bool{true, false}, []bool{true, false}),
-				GridLayoutOpts.WithSpacing(l.controlWidgetSpacing, l.controlWidgetSpacing))))...)
+			ContainerOpts.Layout(NewGridLayout(
+				GridLayoutOpts.Columns(cols),
+				GridLayoutOpts.Stretch([]bool{true, false}, []bool{true, false}),
+				GridLayoutOpts.Spacing(l.controlWidgetSpacing, l.controlWidgetSpacing))))...)
 	l.containerOpts = nil
 
 	content := NewContainer(
-		ContainerOpts.WithLayout(NewRowLayout(
-			RowLayoutOpts.WithDirection(DirectionVertical))),
-		ContainerOpts.WithAutoDisableChildren())
+		ContainerOpts.Layout(NewRowLayout(
+			RowLayoutOpts.Direction(DirectionVertical))),
+		ContainerOpts.AutoDisableChildren())
 
 	l.buttons = make([]*Button, 0, len(l.entries))
 	for _, e := range l.entries {
 		e := e
 		but := NewButton(
-			ButtonOpts.WithWidgetOpts(WidgetOpts.WithLayoutData(&RowLayoutData{
+			ButtonOpts.WidgetOpts(WidgetOpts.LayoutData(&RowLayoutData{
 				Stretch: true,
 			})),
-			ButtonOpts.WithImage(l.entryUnselectedColor),
-			ButtonOpts.WithTextSimpleLeft(l.entryLabelFunc(e), l.entryFace, l.entryTextColor, Insets{
+			ButtonOpts.Image(l.entryUnselectedColor),
+			ButtonOpts.TextSimpleLeft(l.entryLabelFunc(e), l.entryFace, l.entryTextColor, Insets{
 				Left:   6,
 				Right:  6,
 				Top:    2,
 				Bottom: 2,
 			}),
 
-			ButtonOpts.WithClickedHandler(func(args *ButtonClickedEventArgs) {
+			ButtonOpts.ClickedHandler(func(args *ButtonClickedEventArgs) {
 				l.setSelectedEntry(e, true)
 			}))
 
@@ -247,8 +247,8 @@ func (l *List) createWidget() {
 
 	l.scrollContainer = NewScrollContainer(
 		append(l.scrollContainerOpts, []ScrollContainerOpt{
-			ScrollContainerOpts.WithContent(content),
-			ScrollContainerOpts.WithStretchContentWidth(),
+			ScrollContainerOpts.Content(content),
+			ScrollContainerOpts.StretchContentWidth(),
 		}...)...)
 	l.scrollContainerOpts = nil
 	l.container.AddChild(l.scrollContainer)
@@ -260,10 +260,10 @@ func (l *List) createWidget() {
 
 		l.vSlider = NewSlider(
 			append(l.sliderOpts, []SliderOpt{
-				SliderOpts.WithDirection(DirectionVertical),
-				SliderOpts.WithMinMax(0, 1000),
-				SliderOpts.WithPageSizeFunc(pageSizeFunc),
-				SliderOpts.WithChangedHandler(func(args *SliderChangedEventArgs) {
+				SliderOpts.Direction(DirectionVertical),
+				SliderOpts.MinMax(0, 1000),
+				SliderOpts.PageSizeFunc(pageSizeFunc),
+				SliderOpts.ChangedHandler(func(args *SliderChangedEventArgs) {
 					l.scrollContainer.ScrollTop = float64(args.Slider.Current) / 1000
 				}),
 			}...)...)
@@ -282,12 +282,12 @@ func (l *List) createWidget() {
 	if !l.hideHorizontalSlider {
 		l.hSlider = NewSlider(
 			append(l.sliderOpts, []SliderOpt{
-				SliderOpts.WithDirection(DirectionHorizontal),
-				SliderOpts.WithMinMax(0, 1000),
-				SliderOpts.WithPageSizeFunc(func() int {
+				SliderOpts.Direction(DirectionHorizontal),
+				SliderOpts.MinMax(0, 1000),
+				SliderOpts.PageSizeFunc(func() int {
 					return int(math.Round(float64(l.scrollContainer.ContentRect().Dx()) / float64(content.GetWidget().Rect.Dx()) * 1000))
 				}),
-				SliderOpts.WithChangedHandler(func(args *SliderChangedEventArgs) {
+				SliderOpts.ChangedHandler(func(args *SliderChangedEventArgs) {
 					l.scrollContainer.ScrollLeft = float64(args.Slider.Current) / 1000
 				}),
 			}...)...,

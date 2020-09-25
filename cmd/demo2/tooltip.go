@@ -23,29 +23,29 @@ func (t *toolTipContents) Create(w widget.HasWidget) widget.HasWidget {
 	}
 
 	c := widget.NewContainer(
-		widget.ContainerOpts.WithLayout(widget.NewRowLayout(
-			widget.RowLayoutOpts.WithDirection(widget.DirectionVertical),
-			widget.RowLayoutOpts.WithSpacing(2),
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+			widget.RowLayoutOpts.Spacing(2),
 		)))
 
 	t.text = widget.NewTextToolTip(
-		widget.TextToolTipOpts.WithUpdater(t),
-		widget.TextToolTipOpts.WithContainerOpts(
-			widget.ContainerOpts.WithBackgroundImage(t.res.images.button.Disabled),
-			widget.ContainerOpts.WithWidgetOpts(
-				widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+		widget.TextToolTipOpts.Updater(t),
+		widget.TextToolTipOpts.ContainerOpts(
+			widget.ContainerOpts.BackgroundImage(t.res.images.button.Disabled),
+			widget.ContainerOpts.WidgetOpts(
+				widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
 					Stretch: true,
 				}),
 			),
 		),
-		widget.TextToolTipOpts.WithPadding(widget.Insets{
+		widget.TextToolTipOpts.Padding(widget.Insets{
 			Left:   8,
 			Right:  8,
 			Top:    4,
 			Bottom: 4,
 		}),
-		widget.TextToolTipOpts.WithTextOpts(
-			widget.TextOpts.WithText("", t.res.fonts.toolTipFace, t.res.colors.textToolTip)))
+		widget.TextToolTipOpts.TextOpts(
+			widget.TextOpts.Text("", t.res.fonts.toolTipFace, t.res.colors.textToolTip)))
 	c.AddChild(t.text)
 
 	canShowTime := false
@@ -58,22 +58,22 @@ func (t *toolTipContents) Create(w widget.HasWidget) widget.HasWidget {
 
 	if t.showTime && canShowTime {
 		t.timeText = widget.NewTextToolTip(
-			widget.TextToolTipOpts.WithContainerOpts(
-				widget.ContainerOpts.WithBackgroundImage(t.res.images.button.Disabled),
-				widget.ContainerOpts.WithWidgetOpts(
-					widget.WidgetOpts.WithLayoutData(&widget.RowLayoutData{
+			widget.TextToolTipOpts.ContainerOpts(
+				widget.ContainerOpts.BackgroundImage(t.res.images.button.Disabled),
+				widget.ContainerOpts.WidgetOpts(
+					widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
 						Stretch: true,
 					}),
 				),
 			),
-			widget.TextToolTipOpts.WithPadding(widget.Insets{
+			widget.TextToolTipOpts.Padding(widget.Insets{
 				Left:   8,
 				Right:  8,
 				Top:    4,
 				Bottom: 4,
 			}),
-			widget.TextToolTipOpts.WithTextOpts(
-				widget.TextOpts.WithText("", t.res.fonts.toolTipFace, t.res.colors.textToolTip)))
+			widget.TextToolTipOpts.TextOpts(
+				widget.TextOpts.Text("", t.res.fonts.toolTipFace, t.res.colors.textToolTip)))
 		c.AddChild(t.timeText)
 	}
 

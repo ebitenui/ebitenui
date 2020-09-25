@@ -63,25 +63,25 @@ func NewCheckbox(opts ...CheckboxOpt) *Checkbox {
 	return c
 }
 
-func (o checkboxOpts) WithButtonOpts(opts ...ButtonOpt) CheckboxOpt {
+func (o checkboxOpts) ButtonOpts(opts ...ButtonOpt) CheckboxOpt {
 	return func(c *Checkbox) {
 		c.buttonOpts = append(c.buttonOpts, opts...)
 	}
 }
 
-func (o checkboxOpts) WithImage(i *CheckboxGraphicImage) CheckboxOpt {
+func (o checkboxOpts) Image(i *CheckboxGraphicImage) CheckboxOpt {
 	return func(c *Checkbox) {
 		c.image = i
 	}
 }
 
-func (o checkboxOpts) WithTriState() CheckboxOpt {
+func (o checkboxOpts) TriState() CheckboxOpt {
 	return func(c *Checkbox) {
 		c.triState = true
 	}
 }
 
-func (o checkboxOpts) WithChangedHandler(f CheckboxChangedHandlerFunc) CheckboxOpt {
+func (o checkboxOpts) ChangedHandler(f CheckboxChangedHandlerFunc) CheckboxOpt {
 	return func(c *Checkbox) {
 		c.ChangedEvent.AddHandler(func(args interface{}) {
 			f(args.(*CheckboxChangedEventArgs))
@@ -120,9 +120,9 @@ func (c *Checkbox) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 func (c *Checkbox) createWidget() {
 	c.button = NewButton(
 		append(c.buttonOpts, []ButtonOpt{
-			ButtonOpts.WithGraphic(c.image.Unchecked.Idle),
+			ButtonOpts.Graphic(c.image.Unchecked.Idle),
 
-			ButtonOpts.WithClickedHandler(func(args *ButtonClickedEventArgs) {
+			ButtonOpts.ClickedHandler(func(args *ButtonClickedEventArgs) {
 				c.SetState(c.state.Advance(c.triState))
 			}),
 		}...)...)

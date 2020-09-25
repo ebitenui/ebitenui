@@ -40,19 +40,19 @@ func NewRowLayout(opts ...RowLayoutOpt) Layouter {
 	return r
 }
 
-func (o rowLayoutOpts) WithDirection(d Direction) RowLayoutOpt {
+func (o rowLayoutOpts) Direction(d Direction) RowLayoutOpt {
 	return func(r *rowLayout) {
 		r.direction = d
 	}
 }
 
-func (o rowLayoutOpts) WithPadding(i Insets) RowLayoutOpt {
+func (o rowLayoutOpts) Padding(i Insets) RowLayoutOpt {
 	return func(r *rowLayout) {
 		r.padding = i
 	}
 }
 
-func (o rowLayoutOpts) WithSpacing(s int) RowLayoutOpt {
+func (o rowLayoutOpts) Spacing(s int) RowLayoutOpt {
 	return func(f *rowLayout) {
 		f.spacing = s
 	}

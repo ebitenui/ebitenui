@@ -74,25 +74,25 @@ func NewTabBookTab(label string, widget HasWidget) *TabBookTab {
 	}
 }
 
-func (o tabBookOpts) WithContainerOpts(opts ...ContainerOpt) TabBookOpt {
+func (o tabBookOpts) ContainerOpts(opts ...ContainerOpt) TabBookOpt {
 	return func(t *TabBook) {
 		t.containerOpts = append(t.containerOpts, opts...)
 	}
 }
 
-func (o tabBookOpts) WithTabButtonOpts(opts ...StateButtonOpt) TabBookOpt {
+func (o tabBookOpts) TabButtonOpts(opts ...StateButtonOpt) TabBookOpt {
 	return func(t *TabBook) {
 		t.buttonOpts = append(t.buttonOpts, opts...)
 	}
 }
 
-func (o tabBookOpts) WithFlipBookOpts(opts ...FlipBookOpt) TabBookOpt {
+func (o tabBookOpts) FlipBookOpts(opts ...FlipBookOpt) TabBookOpt {
 	return func(t *TabBook) {
 		t.flipBookOpts = append(t.flipBookOpts, opts...)
 	}
 }
 
-func (o tabBookOpts) WithTabButtonImage(idle *ButtonImage, selected *ButtonImage) TabBookOpt {
+func (o tabBookOpts) TabButtonImage(idle *ButtonImage, selected *ButtonImage) TabBookOpt {
 	return func(t *TabBook) {
 		t.buttonImages = map[interface{}]*ButtonImage{
 			false: idle,
@@ -101,32 +101,32 @@ func (o tabBookOpts) WithTabButtonImage(idle *ButtonImage, selected *ButtonImage
 	}
 }
 
-func (o tabBookOpts) WithTabButtonSpacing(s int) TabBookOpt {
+func (o tabBookOpts) TabButtonSpacing(s int) TabBookOpt {
 	return func(t *TabBook) {
 		t.buttonSpacing = s
 	}
 }
 
-func (o tabBookOpts) WithTabButtonText(face font.Face, color *ButtonTextColor) TabBookOpt {
+func (o tabBookOpts) TabButtonText(face font.Face, color *ButtonTextColor) TabBookOpt {
 	return func(t *TabBook) {
 		t.buttonFace = face
 		t.buttonColor = color
 	}
 }
 
-func (o tabBookOpts) WithSpacing(s int) TabBookOpt {
+func (o tabBookOpts) Spacing(s int) TabBookOpt {
 	return func(t *TabBook) {
 		t.spacing = s
 	}
 }
 
-func (o tabBookOpts) WithTabs(tabs ...*TabBookTab) TabBookOpt {
+func (o tabBookOpts) Tabs(tabs ...*TabBookTab) TabBookOpt {
 	return func(t *TabBook) {
 		t.tabs = append(t.tabs, tabs...)
 	}
 }
 
-func (o tabBookOpts) WithTabSelectedHandler(f TabBookTabSelectedHandlerFunc) TabBookOpt {
+func (o tabBookOpts) TabSelectedHandler(f TabBookTabSelectedHandlerFunc) TabBookOpt {
 	return func(t *TabBook) {
 		t.TabSelectedEvent.AddHandler(func(args interface{}) {
 			f(args.(*TabBookTabSelectedEventArgs))
@@ -172,26 +172,26 @@ func (t *TabBook) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 func (t *TabBook) createWidget() {
 	t.container = NewContainer(append(t.containerOpts, []ContainerOpt{
-		ContainerOpts.WithLayout(NewGridLayout(
-			GridLayoutOpts.WithColumns(1),
-			GridLayoutOpts.WithStretch([]bool{true}, []bool{false, true}),
-			GridLayoutOpts.WithSpacing(0, t.spacing))),
-		ContainerOpts.WithAutoDisableChildren(),
+		ContainerOpts.Layout(NewGridLayout(
+			GridLayoutOpts.Columns(1),
+			GridLayoutOpts.Stretch([]bool{true}, []bool{false, true}),
+			GridLayoutOpts.Spacing(0, t.spacing))),
+		ContainerOpts.AutoDisableChildren(),
 	}...)...)
 	t.containerOpts = nil
 
 	buttonsContainer := NewContainer(
-		ContainerOpts.WithLayout(NewRowLayout(
-			RowLayoutOpts.WithSpacing(t.buttonSpacing))))
+		ContainerOpts.Layout(NewRowLayout(
+			RowLayoutOpts.Spacing(t.buttonSpacing))))
 	t.container.AddChild(buttonsContainer)
 
 	for _, tab := range t.tabs {
 		tab := tab
 		b := NewStateButton(append(t.buttonOpts, []StateButtonOpt{
-			StateButtonOpts.WithStateImages(t.buttonImages),
-			StateButtonOpts.WithButtonOpts(
-				ButtonOpts.WithText(tab.label, t.buttonFace, t.buttonColor),
-				ButtonOpts.WithClickedHandler(func(args *ButtonClickedEventArgs) {
+			StateButtonOpts.StateImages(t.buttonImages),
+			StateButtonOpts.ButtonOpts(
+				ButtonOpts.Text(tab.label, t.buttonFace, t.buttonColor),
+				ButtonOpts.ClickedHandler(func(args *ButtonClickedEventArgs) {
 					t.SetTab(tab)
 				})),
 		}...)...)
@@ -203,7 +203,7 @@ func (t *TabBook) createWidget() {
 	t.buttonImages = nil
 
 	t.flipBook = NewFlipBook(append(t.flipBookOpts,
-		FlipBookOpts.WithContainerOpts(ContainerOpts.WithAutoDisableChildren()))...)
+		FlipBookOpts.ContainerOpts(ContainerOpts.AutoDisableChildren()))...)
 	t.container.AddChild(t.flipBook)
 	t.flipBookOpts = nil
 

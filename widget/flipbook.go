@@ -42,16 +42,16 @@ func NewFlipBook(opts ...FlipBookOpt) *FlipBook {
 }
 
 // WithContainerOpts configures a FlipBook with opts.
-func (o flipBookOpts) WithContainerOpts(opts ...ContainerOpt) FlipBookOpt {
+func (o flipBookOpts) ContainerOpts(opts ...ContainerOpt) FlipBookOpt {
 	return func(f *FlipBook) {
 		f.containerOpts = append(f.containerOpts, opts...)
 	}
 }
 
 // WithPadding configures a FlipBook with padding i.
-func (o flipBookOpts) WithPadding(i Insets) FlipBookOpt {
+func (o flipBookOpts) Padding(i Insets) FlipBookOpt {
 	return func(f *FlipBook) {
-		f.fillLayoutOpts = append(f.fillLayoutOpts, FillLayoutOpts.WithPadding(i))
+		f.fillLayoutOpts = append(f.fillLayoutOpts, FillLayoutOpts.Padding(i))
 	}
 }
 
@@ -110,7 +110,7 @@ func (f *FlipBook) WidgetAt(x int, y int) HasWidget {
 
 func (f *FlipBook) createWidget() {
 	f.container = NewContainer(append(f.containerOpts, []ContainerOpt{
-		ContainerOpts.WithLayout(NewFillLayout(f.fillLayoutOpts...)),
+		ContainerOpts.Layout(NewFillLayout(f.fillLayoutOpts...)),
 	}...)...)
 	f.containerOpts = nil
 	f.fillLayoutOpts = nil

@@ -14,13 +14,13 @@ func TestList_SelectedEntry_Initial(t *testing.T) {
 	entries := []interface{}{"first", "second", "third"}
 
 	list := newList(t,
-		ListOpts.WithEntries(entries),
+		ListOpts.Entries(entries),
 
-		ListOpts.WithEntryLabelFunc(func(e interface{}) string {
+		ListOpts.EntryLabelFunc(func(e interface{}) string {
 			return e.(string)
 		}),
 
-		ListOpts.WithEntrySelectedHandler(func(args *ListEntrySelectedEventArgs) {
+		ListOpts.EntrySelectedHandler(func(args *ListEntrySelectedEventArgs) {
 			is.Fail() // event fired without previous action
 		}))
 
@@ -36,13 +36,13 @@ func TestList_SetSelectedEntry(t *testing.T) {
 	numEvents := 0
 
 	list := newList(t,
-		ListOpts.WithEntries(entries),
+		ListOpts.Entries(entries),
 
-		ListOpts.WithEntryLabelFunc(func(e interface{}) string {
+		ListOpts.EntryLabelFunc(func(e interface{}) string {
 			return e.(string)
 		}),
 
-		ListOpts.WithEntrySelectedHandler(func(args *ListEntrySelectedEventArgs) {
+		ListOpts.EntrySelectedHandler(func(args *ListEntrySelectedEventArgs) {
 			eventArgs = args
 			numEvents++
 		}))
@@ -68,13 +68,13 @@ func TestList_EntrySelectedEvent_User(t *testing.T) {
 	numEvents := 0
 
 	list := newList(t,
-		ListOpts.WithEntries(entries),
+		ListOpts.Entries(entries),
 
-		ListOpts.WithEntryLabelFunc(func(e interface{}) string {
+		ListOpts.EntryLabelFunc(func(e interface{}) string {
 			return e.(string)
 		}),
 
-		ListOpts.WithEntrySelectedHandler(func(args *ListEntrySelectedEventArgs) {
+		ListOpts.EntrySelectedHandler(func(args *ListEntrySelectedEventArgs) {
 			eventArgs = args
 			numEvents++
 		}))
@@ -98,15 +98,15 @@ func TestList_EntrySelectedEvent_User_AllowReselect(t *testing.T) {
 	numEvents := 0
 
 	list := newList(t,
-		ListOpts.WithEntries(entries),
+		ListOpts.Entries(entries),
 
-		ListOpts.WithEntryLabelFunc(func(e interface{}) string {
+		ListOpts.EntryLabelFunc(func(e interface{}) string {
 			return e.(string)
 		}),
 
-		ListOpts.WithAllowReselect(),
+		ListOpts.AllowReselect(),
 
-		ListOpts.WithEntrySelectedHandler(func(args *ListEntrySelectedEventArgs) {
+		ListOpts.EntrySelectedHandler(func(args *ListEntrySelectedEventArgs) {
 			eventArgs = args
 			numEvents++
 		}))
@@ -130,15 +130,15 @@ func newList(t *testing.T, opts ...ListOpt) *List {
 
 	l := NewList(
 		append(opts, []ListOpt{
-			ListOpts.WithScrollContainerOpts(ScrollContainerOpts.WithImage(&ScrollContainerImage{
+			ListOpts.ScrollContainerOpts(ScrollContainerOpts.Image(&ScrollContainerImage{
 				Idle:     newNineSliceEmpty(t),
 				Disabled: newNineSliceEmpty(t),
 				Mask:     newNineSliceEmpty(t),
 			})),
 
-			ListOpts.WithEntryFontFace(loadFont(t)),
+			ListOpts.EntryFontFace(loadFont(t)),
 
-			ListOpts.WithEntryColor(&ListEntryColor{
+			ListOpts.EntryColor(&ListEntryColor{
 				Unselected:                 color.Transparent,
 				Selected:                   color.Transparent,
 				DisabledUnselected:         color.Transparent,

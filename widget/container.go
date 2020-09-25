@@ -43,25 +43,25 @@ func NewContainer(opts ...ContainerOpt) *Container {
 	return c
 }
 
-func (o containerOpts) WithWidgetOpts(opts ...WidgetOpt) ContainerOpt {
+func (o containerOpts) WidgetOpts(opts ...WidgetOpt) ContainerOpt {
 	return func(c *Container) {
 		c.widgetOpts = append(c.widgetOpts, opts...)
 	}
 }
 
-func (o containerOpts) WithBackgroundImage(i *image.NineSlice) ContainerOpt {
+func (o containerOpts) BackgroundImage(i *image.NineSlice) ContainerOpt {
 	return func(c *Container) {
 		c.BackgroundImage = i
 	}
 }
 
-func (o containerOpts) WithAutoDisableChildren() ContainerOpt {
+func (o containerOpts) AutoDisableChildren() ContainerOpt {
 	return func(c *Container) {
 		c.AutoDisableChildren = true
 	}
 }
 
-func (o containerOpts) WithLayout(layout Layouter) ContainerOpt {
+func (o containerOpts) Layout(layout Layouter) ContainerOpt {
 	return func(c *Container) {
 		c.layout = layout
 	}

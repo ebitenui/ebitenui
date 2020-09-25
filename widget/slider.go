@@ -89,51 +89,51 @@ func NewSlider(opts ...SliderOpt) *Slider {
 	return s
 }
 
-func (o sliderOpts) WithWidgetOpts(opts ...WidgetOpt) SliderOpt {
+func (o sliderOpts) WidgetOpts(opts ...WidgetOpt) SliderOpt {
 	return func(s *Slider) {
 		s.widgetOpts = append(s.widgetOpts, opts...)
 	}
 }
 
-func (o sliderOpts) WithDirection(d Direction) SliderOpt {
+func (o sliderOpts) Direction(d Direction) SliderOpt {
 	return func(s *Slider) {
 		s.direction = d
 	}
 }
 
-func (o sliderOpts) WithImages(track *SliderTrackImage, handle *ButtonImage) SliderOpt {
+func (o sliderOpts) Images(track *SliderTrackImage, handle *ButtonImage) SliderOpt {
 	return func(s *Slider) {
 		s.trackImage = track
-		s.handleOpts = append(s.handleOpts, ButtonOpts.WithImage(handle))
+		s.handleOpts = append(s.handleOpts, ButtonOpts.Image(handle))
 	}
 }
 
-func (o sliderOpts) WithTrackPadding(p int) SliderOpt {
+func (o sliderOpts) TrackPadding(p int) SliderOpt {
 	return func(s *Slider) {
 		s.trackPadding = p
 	}
 }
 
-func (o sliderOpts) WithHandleSize(s int) SliderOpt {
+func (o sliderOpts) HandleSize(s int) SliderOpt {
 	return func(sl *Slider) {
 		sl.handleSize = s
 	}
 }
 
-func (o sliderOpts) WithMinMax(min int, max int) SliderOpt {
+func (o sliderOpts) MinMax(min int, max int) SliderOpt {
 	return func(s *Slider) {
 		s.Min = min
 		s.Max = max
 	}
 }
 
-func (o sliderOpts) WithPageSizeFunc(f SliderPageSizeFunc) SliderOpt {
+func (o sliderOpts) PageSizeFunc(f SliderPageSizeFunc) SliderOpt {
 	return func(s *Slider) {
 		s.pageSizeFunc = f
 	}
 }
 
-func (o sliderOpts) WithChangedHandler(f SliderChangedHandlerFunc) SliderOpt {
+func (o sliderOpts) ChangedHandler(f SliderChangedHandlerFunc) SliderOpt {
 	return func(s *Slider) {
 		s.ChangedEvent.AddHandler(func(args interface{}) {
 			f(args.(*SliderChangedEventArgs))
@@ -339,18 +339,18 @@ func (s *Slider) clampCurrentMinMax() {
 func (s *Slider) createWidget() {
 	s.widget = NewWidget(
 		append(s.widgetOpts, []WidgetOpt{
-			WidgetOpts.WithCursorEnterHandler(func(args *WidgetCursorEnterEventArgs) {
+			WidgetOpts.CursorEnterHandler(func(args *WidgetCursorEnterEventArgs) {
 				if !s.widget.Disabled {
 					s.hovering = true
 				}
 			}),
 
-			WidgetOpts.WithCursorExitHandler(func(args *WidgetCursorExitEventArgs) {
+			WidgetOpts.CursorExitHandler(func(args *WidgetCursorExitEventArgs) {
 				s.hovering = false
 			}),
 
 			// TODO: keeping the mouse button pressed should move the handle repeatedly (in PageSize steps) until it stops under the cursor
-			WidgetOpts.WithMouseButtonPressedHandler(func(args *WidgetMouseButtonPressedEventArgs) {
+			WidgetOpts.MouseButtonPressedHandler(func(args *WidgetMouseButtonPressedEventArgs) {
 				if !s.widget.Disabled {
 					x, y := input.CursorPosition()
 					ps := s.pageSizeFunc()
@@ -377,9 +377,9 @@ func (s *Slider) createWidget() {
 
 	s.handle = NewButton(
 		append(s.handleOpts, []ButtonOpt{
-			ButtonOpts.WithKeepPressedOnExit(),
+			ButtonOpts.KeepPressedOnExit(),
 
-			ButtonOpts.WithPressedHandler(func(args *ButtonPressedEventArgs) {
+			ButtonOpts.PressedHandler(func(args *ButtonPressedEventArgs) {
 				s.dragging = true
 				s.handlePressedCursorX, s.handlePressedCursorY = input.CursorPosition()
 				s.handlePressedOffsetX = args.OffsetX
@@ -387,7 +387,7 @@ func (s *Slider) createWidget() {
 				s.handlePressedInternalCurrent = s.currentToInternal(s.Current)
 			}),
 
-			ButtonOpts.WithReleasedHandler(func(args *ButtonReleasedEventArgs) {
+			ButtonOpts.ReleasedHandler(func(args *ButtonReleasedEventArgs) {
 				s.dragging = false
 			}),
 		}...)...)

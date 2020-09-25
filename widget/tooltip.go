@@ -52,37 +52,37 @@ func NewToolTip(opts ...ToolTipOpt) *ToolTip {
 	return t
 }
 
-func (o toolTipOpts) WithContainer(c WidgetLocator) ToolTipOpt {
+func (o toolTipOpts) Container(c WidgetLocator) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.container = c
 	}
 }
 
-func (o toolTipOpts) WithContentsCreater(c ToolTipContentsCreater) ToolTipOpt {
+func (o toolTipOpts) ContentsCreater(c ToolTipContentsCreater) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.contentsCreater = c
 	}
 }
 
-func (o toolTipOpts) WithOffset(off img.Point) ToolTipOpt {
+func (o toolTipOpts) Offset(off img.Point) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.offset = off
 	}
 }
 
-func (o toolTipOpts) WithNoSticky() ToolTipOpt {
+func (o toolTipOpts) NoSticky() ToolTipOpt {
 	return func(t *ToolTip) {
 		t.Sticky = false
 	}
 }
 
-func (o toolTipOpts) WithDelay(d time.Duration) ToolTipOpt {
+func (o toolTipOpts) Delay(d time.Duration) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.Delay = d
 	}
 }
 
-func (o toolTipOpts) WithUpdateEveryFrame() ToolTipOpt {
+func (o toolTipOpts) UpdateEveryFrame() ToolTipOpt {
 	return func(t *ToolTip) {
 		t.UpdateEveryFrame = true
 	}

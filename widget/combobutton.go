@@ -39,19 +39,19 @@ func NewComboButton(opts ...ComboButtonOpt) *ComboButton {
 	return c
 }
 
-func (o comboButtonOpts) WithButtonOpts(opts ...ButtonOpt) ComboButtonOpt {
+func (o comboButtonOpts) ButtonOpts(opts ...ButtonOpt) ComboButtonOpt {
 	return func(c *ComboButton) {
 		c.buttonOpts = append(c.buttonOpts, opts...)
 	}
 }
 
-func (o comboButtonOpts) WithContent(c HasWidget) ComboButtonOpt {
+func (o comboButtonOpts) Content(c HasWidget) ComboButtonOpt {
 	return func(cb *ComboButton) {
 		cb.content = c
 	}
 }
 
-func (o comboButtonOpts) WithMaxContentHeight(h int) ComboButtonOpt {
+func (o comboButtonOpts) MaxContentHeight(h int) ComboButtonOpt {
 	return func(c *ComboButton) {
 		c.maxContentHeight = h
 	}
@@ -159,7 +159,7 @@ func (c *ComboButton) renderContent(screen *ebiten.Image, def DeferredRenderFunc
 
 func (c *ComboButton) createWidget() {
 	c.button = NewButton(append(c.buttonOpts, []ButtonOpt{
-		ButtonOpts.WithClickedHandler(func(args *ButtonClickedEventArgs) {
+		ButtonOpts.ClickedHandler(func(args *ButtonClickedEventArgs) {
 			c.ContentVisible = !c.ContentVisible
 		}),
 	}...)...)

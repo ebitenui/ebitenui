@@ -43,7 +43,7 @@ func NewSelectComboButton(opts ...SelectComboButtonOpt) *SelectComboButton {
 		init: &MultiOnce{},
 	}
 
-	s.buttonOpts = append(s.buttonOpts, ComboButtonOpts.WithMaxContentHeight(200))
+	s.buttonOpts = append(s.buttonOpts, ComboButtonOpts.MaxContentHeight(200))
 
 	s.init.Append(s.createWidget)
 
@@ -54,13 +54,13 @@ func NewSelectComboButton(opts ...SelectComboButtonOpt) *SelectComboButton {
 	return s
 }
 
-func (o selectComboButtonOpts) WithComboButtonOpts(opts ...ComboButtonOpt) SelectComboButtonOpt {
+func (o selectComboButtonOpts) ComboButtonOpts(opts ...ComboButtonOpt) SelectComboButtonOpt {
 	return func(s *SelectComboButton) {
 		s.buttonOpts = append(s.buttonOpts, opts...)
 	}
 }
 
-func (o selectComboButtonOpts) WithEntrySelectedHandler(f SelectComboButtonEntrySelectedHandlerFunc) SelectComboButtonOpt {
+func (o selectComboButtonOpts) EntrySelectedHandler(f SelectComboButtonEntrySelectedHandlerFunc) SelectComboButtonOpt {
 	return func(s *SelectComboButton) {
 		s.EntrySelectedEvent.AddHandler(func(args interface{}) {
 			f(args.(*SelectComboButtonEntrySelectedEventArgs))
@@ -68,7 +68,7 @@ func (o selectComboButtonOpts) WithEntrySelectedHandler(f SelectComboButtonEntry
 	}
 }
 
-func (o selectComboButtonOpts) WithEntryLabelFunc(f SelectComboButtonEntryLabelFunc) SelectComboButtonOpt {
+func (o selectComboButtonOpts) EntryLabelFunc(f SelectComboButtonEntryLabelFunc) SelectComboButtonOpt {
 	return func(s *SelectComboButton) {
 		s.entryLabelFunc = f
 	}

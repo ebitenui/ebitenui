@@ -66,13 +66,13 @@ func NewText(opts ...TextOpt) *Text {
 	return t
 }
 
-func (o textOpts) WithWidgetOpts(opts ...WidgetOpt) TextOpt {
+func (o textOpts) WidgetOpts(opts ...WidgetOpt) TextOpt {
 	return func(t *Text) {
 		t.widgetOpts = append(t.widgetOpts, opts...)
 	}
 }
 
-func (o textOpts) WithText(label string, face font.Face, color color.Color) TextOpt {
+func (o textOpts) Text(label string, face font.Face, color color.Color) TextOpt {
 	return func(t *Text) {
 		t.Label = label
 		t.Face = face
@@ -80,7 +80,7 @@ func (o textOpts) WithText(label string, face font.Face, color color.Color) Text
 	}
 }
 
-func (o textOpts) WithPosition(p TextPosition) TextOpt {
+func (o textOpts) Position(p TextPosition) TextOpt {
 	return func(t *Text) {
 		t.position = p
 	}

@@ -23,7 +23,7 @@ func NewFillLayout(opts ...FillLayoutOpt) Layouter {
 	return f
 }
 
-func (o fillLayoutOpts) WithPadding(i Insets) FillLayoutOpt {
+func (o fillLayoutOpts) Padding(i Insets) FillLayoutOpt {
 	return func(f *fillLayout) {
 		f.padding = i
 	}

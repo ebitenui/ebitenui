@@ -39,13 +39,13 @@ func NewStateButton(opts ...StateButtonOpt) *StateButton {
 	return s
 }
 
-func (o stateButtonOpts) WithButtonOpts(opts ...ButtonOpt) StateButtonOpt {
+func (o stateButtonOpts) ButtonOpts(opts ...ButtonOpt) StateButtonOpt {
 	return func(s *StateButton) {
 		s.buttonOpts = append(s.buttonOpts, opts...)
 	}
 }
 
-func (o stateButtonOpts) WithStateImages(states map[interface{}]*ButtonImage) StateButtonOpt {
+func (o stateButtonOpts) StateImages(states map[interface{}]*ButtonImage) StateButtonOpt {
 	return func(s *StateButton) {
 		initial := true
 		for st, i := range states {
