@@ -289,14 +289,12 @@ func (w *Widget) fireEvents() {
 	}
 
 	scrollX, scrollY := input.WheelLayer(layer)
-	if scrollX != 0 || scrollY != 0 {
-		if inside {
-			w.ScrolledEvent.Fire(&WidgetScrolledEventArgs{
-				Widget: w,
-				X:      scrollX,
-				Y:      scrollY,
-			})
-		}
+	if inside && (scrollX != 0 || scrollY != 0) {
+		w.ScrolledEvent.Fire(&WidgetScrolledEventArgs{
+			Widget: w,
+			X:      scrollX,
+			Y:      scrollY,
+		})
 	}
 }
 

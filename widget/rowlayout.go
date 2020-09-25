@@ -90,54 +90,18 @@ func (r *rowLayout) layout(widgets []HasWidget, rect image.Rectangle, usePositio
 
 	for _, widget := range widgets {
 		wx, wy := x, y
-
-		var ww int
-		var wh int
-		if p, ok := widget.(PreferredSizer); ok {
-			ww, wh = p.PreferredSize()
-		} else {
-			ww, wh = 50, 50
-		}
+		ww, wh := r.preferredSizeWidget(widget)
 
 		ld := widget.GetWidget().LayoutData
 		if rld, ok := ld.(*RowLayoutData); ok {
-			if usePosition && rld.Stretch {
-				if r.direction == DirectionHorizontal {
-					wh = rect.Dy()
-				} else {
-					ww = rect.Dx()
-				}
-			}
-
-			if rld.MaxWidth > 0 && ww > rld.MaxWidth {
-				ww = rld.MaxWidth
-			}
-
-			if rld.MaxHeight > 0 && wh > rld.MaxHeight {
-				wh = rld.MaxHeight
-			}
-
-			if usePosition {
-				switch rld.Position {
-				case RowLayoutPositionCenter:
-					if r.direction == DirectionHorizontal {
-						wy = y + (rect.Dy()-wh)/2
-					} else {
-						wx = x + (rect.Dx()-ww)/2
-					}
-
-				case RowLayoutPositionEnd:
-					if r.direction == DirectionHorizontal {
-						wy = y + rect.Dy() - wh
-					} else {
-						wx = x + rect.Dx() - ww
-					}
-				}
-			}
+			wx, wy, ww, wh = r.applyLayoutData(rld, wx, wy, ww, wh, usePosition, rect, x, y)
 		}
 
 		if _, ok := widget.(Locateable); ok {
-			locationFunc(widget, image.Rect(rect.Min.X+wx, rect.Min.Y+wy, rect.Min.X+wx+ww, rect.Min.Y+wy+wh))
+			wr := image.Rect(0, 0, ww, wh)
+			wr = wr.Add(rect.Min)
+			wr = wr.Add(image.Point{wx, wy})
+			locationFunc(widget, wr)
 		}
 
 		if r.direction == DirectionHorizontal {
@@ -146,6 +110,77 @@ func (r *rowLayout) layout(widgets []HasWidget, rect image.Rectangle, usePositio
 			y += wh + r.spacing
 		}
 	}
+}
+
+func (r *rowLayout) preferredSizeWidget(w HasWidget) (int, int) {
+	var ww int
+	var wh int
+	if p, ok := w.(PreferredSizer); ok {
+		ww, wh = p.PreferredSize()
+	} else {
+		ww, wh = 50, 50
+	}
+	return ww, wh
+}
+
+func (r *rowLayout) applyLayoutData(ld *RowLayoutData, wx int, wy int, ww int, wh int, usePosition bool, rect image.Rectangle, x int, y int) (int, int, int, int) {
+	if usePosition {
+		ww, wh = r.applyStretch(ld, ww, wh, rect)
+	}
+
+	ww, wh = r.applyMaxSize(ld, ww, wh)
+
+	if usePosition {
+		wx, wy = r.applyPosition(ld, wx, wy, ww, wh, rect, x, y)
+	}
+
+	return wx, wy, ww, wh
+}
+
+func (r *rowLayout) applyStretch(ld *RowLayoutData, ww int, wh int, rect image.Rectangle) (int, int) {
+	if !ld.Stretch {
+		return ww, wh
+	}
+
+	if r.direction == DirectionHorizontal {
+		wh = rect.Dy()
+	} else {
+		ww = rect.Dx()
+	}
+
+	return ww, wh
+}
+
+func (r *rowLayout) applyMaxSize(ld *RowLayoutData, ww int, wh int) (int, int) {
+	if ld.MaxWidth > 0 && ww > ld.MaxWidth {
+		ww = ld.MaxWidth
+	}
+
+	if ld.MaxHeight > 0 && wh > ld.MaxHeight {
+		wh = ld.MaxHeight
+	}
+
+	return ww, wh
+}
+
+func (r *rowLayout) applyPosition(ld *RowLayoutData, wx int, wy int, ww int, wh int, rect image.Rectangle, x int, y int) (int, int) {
+	switch ld.Position {
+	case RowLayoutPositionCenter:
+		if r.direction == DirectionHorizontal {
+			wy = y + (rect.Dy()-wh)/2
+		} else {
+			wx = x + (rect.Dx()-ww)/2
+		}
+
+	case RowLayoutPositionEnd:
+		if r.direction == DirectionHorizontal {
+			wy = y + rect.Dy() - wh
+		} else {
+			wx = x + rect.Dx() - ww
+		}
+	}
+
+	return wx, wy
 }
 
 func (r *rowLayout) MarkDirty() {

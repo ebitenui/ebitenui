@@ -90,43 +90,8 @@ func (g *gridLayout) Layout(widgets []HasWidget, rect image.Rectangle) {
 	rect = g.padding.Apply(rect)
 
 	colWidths, rowHeights := g.preferredColumnWidthsAndRowHeights(widgets)
-	remainingWidth := rect.Dx() - g.columnSpacing*(len(colWidths)-1)
-	remainingHeight := rect.Dy() - g.rowSpacing*(len(rowHeights)-1)
 
-	// part 1: calculate stretched column widths/row heights
-
-	stretchedCols, stretchedRows := 0, 0
-
-	if g.columnStretch != nil {
-		for c, cw := range colWidths {
-			if g.columnStretch[c] {
-				stretchedCols++
-			} else {
-				remainingWidth -= cw
-			}
-		}
-	}
-
-	if g.rowStretch != nil {
-		for r, rh := range rowHeights {
-			if g.rowStretch[r] {
-				stretchedRows++
-			} else {
-				remainingHeight -= rh
-			}
-		}
-	}
-
-	stretchedColWidth, stretchedRowHeight := 0, 0
-	if stretchedCols > 0 {
-		stretchedColWidth = int(math.Floor(float64(remainingWidth) / float64(stretchedCols)))
-	}
-	if stretchedRows > 0 {
-		stretchedRowHeight = int(math.Floor(float64(remainingHeight) / float64(stretchedRows)))
-	}
-
-	firstStretchedColWidth := stretchedColWidth + (remainingWidth - stretchedColWidth*stretchedCols)
-	firstStretchedRowHeight := stretchedRowHeight + (remainingHeight - stretchedRowHeight*stretchedRows)
+	stretchedColWidth, stretchedRowHeight, firstStretchedColWidth, firstStretchedRowHeight := g.stretchedCellSizes(colWidths, rowHeights, rect)
 
 	// part 2: layout
 
@@ -137,7 +102,7 @@ func (g *gridLayout) Layout(widgets []HasWidget, rect image.Rectangle) {
 		var cw int
 		var ch int
 
-		if g.columnStretch != nil && g.columnStretch[c] {
+		if g.columnStretched(c) {
 			if firstStretchedCol {
 				cw = firstStretchedColWidth
 				firstStretchedCol = false
@@ -148,7 +113,7 @@ func (g *gridLayout) Layout(widgets []HasWidget, rect image.Rectangle) {
 			cw = colWidths[c]
 		}
 
-		if g.rowStretch != nil && g.rowStretch[r] {
+		if g.rowStretched(r) {
 			if firstStretchedRow {
 				ch = firstStretchedRowHeight
 				firstStretchedRow = false
@@ -164,27 +129,7 @@ func (g *gridLayout) Layout(widgets []HasWidget, rect image.Rectangle) {
 
 		ld := w.GetWidget().LayoutData
 		if gld, ok := ld.(*GridLayoutData); ok {
-			if gld.MaxWidth > 0 && ww > gld.MaxWidth {
-				ww = gld.MaxWidth
-			}
-
-			if gld.MaxHeight > 0 && wh > gld.MaxHeight {
-				wh = gld.MaxHeight
-			}
-
-			switch gld.HorizontalPosition {
-			case GridLayoutPositionCenter:
-				wx = x + (cw-ww)/2
-			case GridLayoutPositionEnd:
-				wx = x + cw - ww
-			}
-
-			switch gld.VerticalPosition {
-			case GridLayoutPositionCenter:
-				wy = x + (ch-wh)/2
-			case GridLayoutPositionEnd:
-				wy = y + ch - wh
-			}
+			wx, wy, ww, wh = g.applyLayoutData(gld, wx, wy, ww, wh, x, y, cw, ch)
 		}
 
 		if l, ok := w.(Locateable); ok {
@@ -201,6 +146,50 @@ func (g *gridLayout) Layout(widgets []HasWidget, rect image.Rectangle) {
 			y += ch + g.rowSpacing
 		}
 	}
+}
+
+func (g *gridLayout) stretchedCellSizes(colWidths []int, rowHeights []int, rect image.Rectangle) (int, int, int, int) {
+	stretchedColWidth, stretchedRowHeight := 0, 0
+
+	remainingWidth := rect.Dx() - g.columnSpacing*(len(colWidths)-1)
+	remainingHeight := rect.Dy() - g.rowSpacing*(len(rowHeights)-1)
+	stretchedCols, stretchedRows := 0, 0
+
+	for c, cw := range colWidths {
+		if g.columnStretched(c) {
+			stretchedCols++
+		} else {
+			remainingWidth -= cw
+		}
+	}
+
+	for r, rh := range rowHeights {
+		if g.rowStretched(r) {
+			stretchedRows++
+		} else {
+			remainingHeight -= rh
+		}
+	}
+
+	if stretchedCols > 0 {
+		stretchedColWidth = int(math.Floor(float64(remainingWidth) / float64(stretchedCols)))
+	}
+	if stretchedRows > 0 {
+		stretchedRowHeight = int(math.Floor(float64(remainingHeight) / float64(stretchedRows)))
+	}
+
+	firstStretchedColWidth := stretchedColWidth + (remainingWidth - stretchedColWidth*stretchedCols)
+	firstStretchedRowHeight := stretchedRowHeight + (remainingHeight - stretchedRowHeight*stretchedRows)
+
+	return stretchedColWidth, stretchedRowHeight, firstStretchedColWidth, firstStretchedRowHeight
+}
+
+func (g *gridLayout) columnStretched(c int) bool {
+	return g.columnStretch != nil && g.columnStretch[c]
+}
+
+func (g *gridLayout) rowStretched(r int) bool {
+	return g.rowStretch != nil && g.rowStretch[r]
 }
 
 func (g *gridLayout) preferredColumnWidthsAndRowHeights(widgets []HasWidget) ([]int, []int) {
@@ -220,13 +209,7 @@ func (g *gridLayout) preferredColumnWidthsAndRowHeights(widgets []HasWidget) ([]
 
 		ld := w.GetWidget().LayoutData
 		if gld, ok := ld.(*GridLayoutData); ok {
-			if gld.MaxWidth > 0 && ww > gld.MaxWidth {
-				ww = gld.MaxWidth
-			}
-
-			if gld.MaxHeight > 0 && wh > gld.MaxHeight {
-				wh = gld.MaxHeight
-			}
+			ww, wh = g.applyMaxSize(gld, ww, wh)
 		}
 
 		if ww > colWidths[c] {
@@ -245,6 +228,44 @@ func (g *gridLayout) preferredColumnWidthsAndRowHeights(widgets []HasWidget) ([]
 	}
 
 	return colWidths, rowHeights
+}
+
+func (g *gridLayout) applyLayoutData(ld *GridLayoutData, wx int, wy int, ww int, wh int, x int, y int, cw int, ch int) (int, int, int, int) {
+	if ld.MaxWidth > 0 && ww > ld.MaxWidth {
+		ww = ld.MaxWidth
+	}
+
+	if ld.MaxHeight > 0 && wh > ld.MaxHeight {
+		wh = ld.MaxHeight
+	}
+
+	switch ld.HorizontalPosition {
+	case GridLayoutPositionCenter:
+		wx = x + (cw-ww)/2
+	case GridLayoutPositionEnd:
+		wx = x + cw - ww
+	}
+
+	switch ld.VerticalPosition {
+	case GridLayoutPositionCenter:
+		wy = x + (ch-wh)/2
+	case GridLayoutPositionEnd:
+		wy = y + ch - wh
+	}
+
+	return wx, wy, ww, wh
+}
+
+func (g *gridLayout) applyMaxSize(ld *GridLayoutData, ww int, wh int) (int, int) {
+	if ld.MaxWidth > 0 && ww > ld.MaxWidth {
+		ww = ld.MaxWidth
+	}
+
+	if ld.MaxHeight > 0 && wh > ld.MaxHeight {
+		wh = ld.MaxHeight
+	}
+
+	return ww, wh
 }
 
 func sumInts(ints []int) int {
