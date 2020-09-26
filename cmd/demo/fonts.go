@@ -7,6 +7,11 @@ import (
 	"golang.org/x/image/font"
 )
 
+const (
+	fontFaceRegular = "fonts/NotoSans-Regular.ttf"
+	fontFaceBold    = "fonts/NotoSans-Bold.ttf"
+)
+
 type fonts struct {
 	face         font.Face
 	titleFace    font.Face
@@ -15,22 +20,22 @@ type fonts struct {
 }
 
 func loadFonts() (*fonts, error) {
-	fontFace, err := loadFont("fonts/IBMPlexSans-Regular.ttf", 20)
+	fontFace, err := loadFont(fontFaceRegular, 20)
 	if err != nil {
 		return nil, err
 	}
 
-	titleFontFace, err := loadFont("fonts/IBMPlexSans-SemiBold.ttf", 24)
+	titleFontFace, err := loadFont(fontFaceBold, 24)
 	if err != nil {
 		return nil, err
 	}
 
-	bigTitleFontFace, err := loadFont("fonts/IBMPlexSans-SemiBold.ttf", 28)
+	bigTitleFontFace, err := loadFont(fontFaceBold, 28)
 	if err != nil {
 		return nil, err
 	}
 
-	toolTipFace, err := loadFont("fonts/IBMPlexSans-Regular.ttf", 15)
+	toolTipFace, err := loadFont(fontFaceRegular, 15)
 	if err != nil {
 		return nil, err
 	}
