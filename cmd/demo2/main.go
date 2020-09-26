@@ -71,7 +71,7 @@ func createUI() (*ebitenui.UI, func(), error) {
 	rootContainer := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
 			widget.GridLayoutOpts.Columns(1),
-			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false, true}),
+			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false, true, false}),
 			widget.GridLayoutOpts.Padding(widget.NewInsetsSimple(20)),
 			widget.GridLayoutOpts.Spacing(0, 20))),
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.White)))
@@ -83,6 +83,9 @@ func createUI() (*ebitenui.UI, func(), error) {
 
 	rootContainer.AddChild(newInfoContainer(res))
 	rootContainer.AddChild(newDemoContainer(res, &toolTips, dnd, drag))
+
+	rootContainer.AddChild(widget.NewText(
+		widget.TextOpts.Text("github.com/blizzy78/ebitenui", res.fonts.toolTipFace, res.colors.textIdle)))
 
 	return &ebitenui.UI{
 			Container: rootContainer,
