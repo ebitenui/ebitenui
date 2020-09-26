@@ -39,19 +39,6 @@ func buttonPage(res *resources) *page {
 		widget.ButtonOpts.Text("Multi\nLine\nButton", res.fonts.face, res.colors.buttonText))
 	c.AddChild(b3)
 
-	c.AddChild(widget.NewButton(
-		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
-			Stretch: true,
-		})),
-		widget.ButtonOpts.Image(res.images.buttonKenney),
-		widget.ButtonOpts.Text("Button", res.fonts.face, res.colors.buttonText),
-		widget.ButtonOpts.TextPadding(widget.Insets{
-			Left:   10,
-			Right:  10,
-			Top:    6,
-			Bottom: 10,
-		})))
-
 	c.AddChild(newSeparator(res, &widget.RowLayoutData{
 		Stretch: true,
 	}))
@@ -72,15 +59,23 @@ func checkboxPage(res *resources) *page {
 	c := newPageContentContainer()
 
 	cb1 := widget.NewLabeledCheckbox(
+		widget.LabeledCheckboxOpts.Spacing(6),
 		widget.LabeledCheckboxOpts.CheckboxOpts(
-			widget.CheckboxOpts.ButtonOpts(widget.ButtonOpts.Image(res.images.button)),
+			widget.CheckboxOpts.ButtonOpts(
+				widget.ButtonOpts.Image(res.images.button),
+				widget.ButtonOpts.GraphicPadding(widget.NewInsetsSimple(7)),
+			),
 			widget.CheckboxOpts.Image(res.images.checkbox)),
 		widget.LabeledCheckboxOpts.LabelOpts(widget.LabelOpts.Text("Two-State Checkbox", res.fonts.face, res.colors.label)))
 	c.AddChild(cb1)
 
 	cb2 := widget.NewLabeledCheckbox(
+		widget.LabeledCheckboxOpts.Spacing(6),
 		widget.LabeledCheckboxOpts.CheckboxOpts(
-			widget.CheckboxOpts.ButtonOpts(widget.ButtonOpts.Image(res.images.button)),
+			widget.CheckboxOpts.ButtonOpts(
+				widget.ButtonOpts.Image(res.images.button),
+				widget.ButtonOpts.GraphicPadding(widget.NewInsetsSimple(7)),
+			),
 			widget.CheckboxOpts.Image(res.images.checkbox),
 			widget.CheckboxOpts.TriState()),
 		widget.LabeledCheckboxOpts.LabelOpts(widget.LabelOpts.Text("Tri-State Checkbox", res.fonts.face, res.colors.label)))
@@ -331,7 +326,8 @@ func sliderPage(res *resources) *page {
 			})),
 			widget.SliderOpts.MinMax(1, 20),
 			widget.SliderOpts.Images(res.images.sliderTrack, res.images.button),
-			widget.SliderOpts.TrackPadding(3),
+			widget.SliderOpts.TrackPadding(2),
+			widget.SliderOpts.HandleSize(20),
 			widget.SliderOpts.PageSizeFunc(func() int {
 				return ps
 			}),
@@ -422,7 +418,7 @@ func dragAndDropPage(res *resources, dnd *widget.DragAndDrop, drag *dragContents
 		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
 			Stretch: true,
 		})),
-		widget.ContainerOpts.BackgroundImage(res.images.button.Idle),
+		widget.ContainerOpts.BackgroundImage(res.images.scrollContainer.Idle),
 		widget.ContainerOpts.Layout(widget.NewFillLayout(
 			widget.FillLayoutOpts.Padding(widget.NewInsetsSimple(20)),
 		)),
@@ -439,7 +435,7 @@ func dragAndDropPage(res *resources, dnd *widget.DragAndDrop, drag *dragContents
 		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
 			Stretch: true,
 		})),
-		widget.ContainerOpts.BackgroundImage(res.images.button.Idle),
+		widget.ContainerOpts.BackgroundImage(res.images.scrollContainer.Idle),
 		widget.ContainerOpts.Layout(widget.NewFillLayout(
 			widget.FillLayoutOpts.Padding(widget.NewInsetsSimple(20)),
 		)),
@@ -461,7 +457,7 @@ func dragAndDropPage(res *resources, dnd *widget.DragAndDrop, drag *dragContents
 		targetContainer.BackgroundImage = res.images.button.Pressed
 
 		time.AfterFunc(2*time.Second, func() {
-			targetContainer.BackgroundImage = res.images.button.Idle
+			targetContainer.BackgroundImage = res.images.scrollContainer.Idle
 		})
 	})
 

@@ -119,7 +119,6 @@ func (l *ListComboButton) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 func (l *ListComboButton) createWidget() {
 	l.list = NewList(append(l.listOpts, []ListOpt{
-		ListOpts.ControlWidgetSpacing(2),
 		ListOpts.HideHorizontalSlider(),
 		ListOpts.AllowReselect(),
 	}...)...)

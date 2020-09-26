@@ -8,6 +8,8 @@ import (
 )
 
 type colors struct {
+	background color.Color
+
 	textIdle     color.Color
 	textDisabled color.Color
 	textToolTip  color.Color
@@ -22,12 +24,14 @@ type colors struct {
 
 func newColors() *colors {
 	c := colors{
-		textIdle:     hexToColor("282828"),
+		background: hexToColor("666666"),
+
+		textIdle:     color.White,
 		textDisabled: hexToColor("808080"),
-		textToolTip:  hexToColor("282828"),
+		textToolTip:  color.Black,
 
 		selectedBackground:         hexToColor("a0a0a0"),
-		selectedDisabledBackground: hexToColor("c0c0c0"),
+		selectedDisabledBackground: hexToColor("707070"),
 	}
 
 	c.list = &widget.ListEntryColor{
@@ -36,18 +40,18 @@ func newColors() *colors {
 		SelectedBackground: c.selectedBackground,
 
 		DisabledUnselected:         c.textDisabled,
-		DisabledSelected:           c.textDisabled,
+		DisabledSelected:           hexToColor("d0d0d0"),
 		DisabledSelectedBackground: c.selectedDisabledBackground,
 	}
 
 	c.buttonText = &widget.ButtonTextColor{
-		Idle:     c.textIdle,
-		Disabled: c.textDisabled,
+		Idle:     color.Black,
+		Disabled: hexToColor("555555"),
 	}
 
 	c.label = &widget.LabelColor{
 		Idle:     c.textIdle,
-		Disabled: c.textDisabled,
+		Disabled: hexToColor("a0a0a0"),
 	}
 
 	return &c

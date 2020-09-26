@@ -10,6 +10,7 @@ import (
 type LabeledCheckbox struct {
 	checkboxOpts []CheckboxOpt
 	labelOpts    []LabelOpt
+	spacing      int
 
 	init      *MultiOnce
 	container *Container
@@ -25,6 +26,8 @@ type labeledCheckboxOpts bool
 
 func NewLabeledCheckbox(opts ...LabeledCheckboxOpt) *LabeledCheckbox {
 	l := &LabeledCheckbox{
+		spacing: 8,
+
 		init: &MultiOnce{},
 	}
 
@@ -46,6 +49,12 @@ func (o labeledCheckboxOpts) CheckboxOpts(opts ...CheckboxOpt) LabeledCheckboxOp
 func (o labeledCheckboxOpts) LabelOpts(opts ...LabelOpt) LabeledCheckboxOpt {
 	return func(l *LabeledCheckbox) {
 		l.labelOpts = append(l.labelOpts, opts...)
+	}
+}
+
+func (o labeledCheckboxOpts) Spacing(s int) LabeledCheckboxOpt {
+	return func(l *LabeledCheckbox) {
+		l.spacing = s
 	}
 }
 
@@ -77,7 +86,7 @@ func (l *LabeledCheckbox) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 func (l *LabeledCheckbox) createWidget() {
 	l.container = NewContainer(
 		ContainerOpts.Layout(NewRowLayout(
-			RowLayoutOpts.Spacing(10))),
+			RowLayoutOpts.Spacing(l.spacing))),
 		ContainerOpts.AutoDisableChildren())
 
 	l.checkbox = NewCheckbox(append(l.checkboxOpts, []CheckboxOpt{

@@ -16,19 +16,20 @@ import (
 type List struct {
 	EntrySelectedEvent *event.Event
 
-	containerOpts        []ContainerOpt
-	scrollContainerOpts  []ScrollContainerOpt
-	sliderOpts           []SliderOpt
-	entries              []interface{}
-	entryLabelFunc       ListEntryLabelFunc
-	entryFace            font.Face
-	entryUnselectedColor *ButtonImage
-	entrySelectedColor   *ButtonImage
-	entryTextColor       *ButtonTextColor
-	controlWidgetSpacing int
-	hideHorizontalSlider bool
-	hideVerticalSlider   bool
-	allowReselect        bool
+	containerOpts            []ContainerOpt
+	scrollContainerOpts      []ScrollContainerOpt
+	sliderOpts               []SliderOpt
+	entries                  []interface{}
+	entryLabelFunc           ListEntryLabelFunc
+	entryFace                font.Face
+	entryUnselectedColor     *ButtonImage
+	entrySelectedColor       *ButtonImage
+	entryUnselectedTextColor *ButtonTextColor
+	entryTextColor           *ButtonTextColor
+	controlWidgetSpacing     int
+	hideHorizontalSlider     bool
+	hideVerticalSlider       bool
+	allowReselect            bool
 
 	init            *MultiOnce
 	container       *Container
@@ -146,9 +147,14 @@ func (o listOpts) EntryColor(c *ListEntryColor) ListOpt {
 			Disabled: image.NewNineSliceColor(c.DisabledSelectedBackground),
 		}
 
-		l.entryTextColor = &ButtonTextColor{
+		l.entryUnselectedTextColor = &ButtonTextColor{
 			Idle:     c.Unselected,
 			Disabled: c.DisabledUnselected,
+		}
+
+		l.entryTextColor = &ButtonTextColor{
+			Idle:     c.Selected,
+			Disabled: c.DisabledSelected,
 		}
 	}
 }
@@ -312,8 +318,10 @@ func (l *List) setSelectedEntry(e interface{}, user bool) {
 		for i, b := range l.buttons {
 			if l.entries[i] == e {
 				b.Image = l.entrySelectedColor
+				b.TextColor = l.entryTextColor
 			} else {
 				b.Image = l.entryUnselectedColor
+				b.TextColor = l.entryUnselectedTextColor
 			}
 		}
 

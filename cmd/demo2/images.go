@@ -10,64 +10,32 @@ import (
 
 type images struct {
 	button              *widget.ButtonImage
-	buttonKenney        *widget.ButtonImage
-	buttonFlatLeft      *widget.ButtonImage
-	buttonNoLeft        *widget.ButtonImage
 	stateButtonSelected *widget.ButtonImage
 	sliderTrack         *widget.SliderTrackImage
 	arrowDown           *widget.ButtonImageImage
 	scrollContainer     *widget.ScrollContainerImage
 	checkbox            *widget.CheckboxGraphicImage
 	heart               *widget.ButtonImageImage
+	toolTip             *image.NineSlice
 }
 
 func loadImages() (*images, error) {
 	button, err := loadButtonImages(
-		"graphics/button-2px-idle.png",
-		"graphics/button-2px-hover.png",
-		"graphics/button-2px-pressed.png",
-		"graphics/button-2px-disabled.png",
-		5, 6)
-	if err != nil {
-		return nil, err
-	}
-
-	buttonFlatLeft, err := loadButtonImages(
-		"graphics/button-2px-flat-left-idle.png",
-		"graphics/button-2px-flat-left-hover.png",
-		"graphics/button-2px-flat-left-pressed.png",
-		"graphics/button-2px-flat-left-disabled.png",
-		5, 6)
-	if err != nil {
-		return nil, err
-	}
-
-	buttonNoLeft, err := loadButtonImages(
-		"graphics/button-2px-no-left-idle.png",
-		"graphics/button-2px-no-left-hover.png",
-		"graphics/button-2px-no-left-pressed.png",
-		"graphics/button-2px-no-left-disabled.png",
-		5, 6)
-	if err != nil {
-		return nil, err
-	}
-
-	buttonKenney, err := loadButtonImages(
-		"graphics/button-kenney-idle.png",
-		"graphics/button-kenney-idle.png",
-		"graphics/button-kenney-pressed.png",
-		"graphics/button-kenney-idle.png",
-		9, 2)
+		"graphics/button-idle.png",
+		"graphics/button-hover.png",
+		"graphics/button-pressed.png",
+		"graphics/button-disabled.png",
+		6, 12)
 	if err != nil {
 		return nil, err
 	}
 
 	stateButtonSelected, err := loadButtonImages(
-		"graphics/button-2px-pressed.png",
-		"graphics/button-2px-pressed.png",
-		"graphics/button-2px-pressed.png",
-		"graphics/button-2px-disabled.png",
-		5, 6)
+		"graphics/button-pressed.png",
+		"graphics/button-pressed.png",
+		"graphics/button-pressed.png",
+		"graphics/button-pressed-disabled.png",
+		6, 12)
 	if err != nil {
 		return nil, err
 	}
@@ -75,11 +43,6 @@ func loadImages() (*images, error) {
 	arrowDown, err := loadGraphicImages(
 		"graphics/arrow-down-idle.png",
 		"graphics/arrow-down-disabled.png")
-	if err != nil {
-		return nil, err
-	}
-
-	mask, err := loadImageNineSlice("graphics/mask.png", 5, 6)
 	if err != nil {
 		return nil, err
 	}
@@ -112,39 +75,42 @@ func loadImages() (*images, error) {
 		return nil, err
 	}
 
-	containerIdle, err := loadImageNineSlice("graphics/container-2px-idle.png", 5, 6)
+	list, err := loadImageNineSlice("graphics/list.png", 6, 12)
 	if err != nil {
 		return nil, err
 	}
 
-	containerDisabled, err := loadImageNineSlice("graphics/container-2px-disabled.png", 5, 6)
+	listMask, err := loadImageNineSlice("graphics/list-mask.png", 6, 12)
+	if err != nil {
+		return nil, err
+	}
+
+	toolTip, err := loadImageNineSlice("graphics/tooltip.png", 6, 12)
 	if err != nil {
 		return nil, err
 	}
 
 	return &images{
 		button:              button,
-		buttonFlatLeft:      buttonFlatLeft,
-		buttonNoLeft:        buttonNoLeft,
-		buttonKenney:        buttonKenney,
 		stateButtonSelected: stateButtonSelected,
 		sliderTrack: &widget.SliderTrackImage{
-			Idle:     button.Idle,
-			Hover:    button.Hover,
-			Disabled: button.Disabled,
+			Idle:     list,
+			Hover:    list,
+			Disabled: list,
 		},
 		arrowDown: arrowDown,
 		scrollContainer: &widget.ScrollContainerImage{
-			Idle:     containerIdle,
-			Disabled: containerDisabled,
-			Mask:     mask,
+			Idle:     list,
+			Disabled: list,
+			Mask:     listMask,
 		},
 		checkbox: &widget.CheckboxGraphicImage{
 			Unchecked: checkboxUnchecked,
 			Checked:   checkboxChecked,
 			Greyed:    checkboxGreyed,
 		},
-		heart: heart,
+		heart:   heart,
+		toolTip: toolTip,
 	}, nil
 }
 

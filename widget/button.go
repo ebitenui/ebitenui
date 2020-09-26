@@ -16,6 +16,7 @@ type Button struct {
 	Image             *ButtonImage
 	KeepPressedOnExit bool
 	GraphicImage      *ButtonImageImage
+	TextColor         *ButtonTextColor
 
 	PressedEvent  *event.Event
 	ReleasedEvent *event.Event
@@ -23,8 +24,8 @@ type Button struct {
 
 	widgetOpts               []WidgetOpt
 	autoUpdateTextAndGraphic bool
-	textColor                *ButtonTextColor
 	textPadding              Insets
+	graphicPadding           Insets
 
 	init      *MultiOnce
 	widget    *Widget
@@ -89,7 +90,7 @@ func NewButton(opts ...ButtonOpt) *Button {
 
 		Image:        &ButtonImage{},
 		GraphicImage: &ButtonImageImage{},
-		textColor:    &ButtonTextColor{},
+		TextColor:    &ButtonTextColor{},
 		textPadding: Insets{
 			Left:   10,
 			Right:  10,
@@ -133,7 +134,7 @@ func (o buttonOpts) TextSimpleLeft(label string, face font.Face, color *ButtonTe
 			b.container.AddChild(b.text)
 
 			b.autoUpdateTextAndGraphic = true
-			b.textColor = color
+			b.TextColor = color
 		})
 	}
 }
@@ -152,7 +153,7 @@ func (o buttonOpts) Text(label string, face font.Face, color *ButtonTextColor) B
 			b.container.AddChild(b.text)
 
 			b.autoUpdateTextAndGraphic = true
-			b.textColor = color
+			b.TextColor = color
 		})
 	}
 }
@@ -192,7 +193,7 @@ func (o buttonOpts) TextAndImage(label string, face font.Face, image *ButtonImag
 
 			b.autoUpdateTextAndGraphic = true
 			b.GraphicImage = image
-			b.textColor = color
+			b.TextColor = color
 		})
 	}
 }
@@ -215,7 +216,7 @@ func (o buttonOpts) withGraphic(opt GraphicOpt) ButtonOpt {
 	return func(b *Button) {
 		b.init.Append(func() {
 			b.container = NewContainer(
-				ContainerOpts.Layout(NewFillLayout(FillLayoutOpts.Padding(NewInsetsSimple(4)))),
+				ContainerOpts.Layout(NewFillLayout(FillLayoutOpts.Padding(b.graphicPadding))),
 				ContainerOpts.AutoDisableChildren())
 
 			b.graphic = NewGraphic(opt)
@@ -223,6 +224,12 @@ func (o buttonOpts) withGraphic(opt GraphicOpt) ButtonOpt {
 
 			b.autoUpdateTextAndGraphic = true
 		})
+	}
+}
+
+func (o buttonOpts) GraphicPadding(i Insets) ButtonOpt {
+	return func(b *Button) {
+		b.graphicPadding = i
 	}
 }
 
@@ -327,9 +334,9 @@ func (b *Button) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 		if b.text != nil {
 			if b.widget.Disabled {
-				b.text.Color = b.textColor.Disabled
+				b.text.Color = b.TextColor.Disabled
 			} else {
-				b.text.Color = b.textColor.Idle
+				b.text.Color = b.TextColor.Idle
 			}
 		}
 	}

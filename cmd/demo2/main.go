@@ -10,7 +10,6 @@ import (
 
 	"github.com/hajimehoshi/ebiten"
 
-	"image/color"
 	_ "image/png"
 
 	"github.com/blizzy78/ebitenui"
@@ -74,7 +73,7 @@ func createUI() (*ebitenui.UI, func(), error) {
 			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false, true, false}),
 			widget.GridLayoutOpts.Padding(widget.NewInsetsSimple(20)),
 			widget.GridLayoutOpts.Spacing(0, 20))),
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.White)))
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(res.colors.background)))
 
 	dnd := widget.NewDragAndDrop(
 		widget.DragAndDropOpts.Container(rootContainer),
@@ -230,8 +229,12 @@ func (p *pageContainer) setPage(page *page) {
 
 func newCheckbox(label string, changedHandler widget.CheckboxChangedHandlerFunc, res *resources) *widget.LabeledCheckbox {
 	return widget.NewLabeledCheckbox(
+		widget.LabeledCheckboxOpts.Spacing(6),
 		widget.LabeledCheckboxOpts.CheckboxOpts(
-			widget.CheckboxOpts.ButtonOpts(widget.ButtonOpts.Image(res.images.button)),
+			widget.CheckboxOpts.ButtonOpts(
+				widget.ButtonOpts.Image(res.images.button),
+				widget.ButtonOpts.GraphicPadding(widget.NewInsetsSimple(7)),
+			),
 			widget.CheckboxOpts.Image(res.images.checkbox),
 
 			widget.CheckboxOpts.ChangedHandler(changedHandler)),
@@ -259,7 +262,9 @@ func newListComboButton(entries []interface{}, buttonLabel widget.SelectComboBut
 				widget.ScrollContainerOpts.Padding(widget.NewInsetsSimple(2))),
 			widget.ListOpts.SliderOpts(
 				widget.SliderOpts.Images(res.images.sliderTrack, res.images.button),
-				widget.SliderOpts.TrackPadding(3)),
+				widget.SliderOpts.HandleSize(20),
+				widget.SliderOpts.TrackPadding(2)),
+			widget.ListOpts.ControlWidgetSpacing(0),
 			widget.ListOpts.EntryFontFace(res.fonts.face),
 			widget.ListOpts.EntryColor(res.colors.list)),
 		widget.ListComboButtonOpts.EntryLabelFunc(buttonLabel, entryLabel),
@@ -274,9 +279,9 @@ func newList(entries []interface{}, res *resources, widgetOpts ...widget.WidgetO
 			widget.ScrollContainerOpts.Padding(widget.NewInsetsSimple(2))),
 		widget.ListOpts.SliderOpts(
 			widget.SliderOpts.Images(res.images.sliderTrack, res.images.button),
-			widget.SliderOpts.TrackPadding(3)),
+			widget.SliderOpts.HandleSize(20),
+			widget.SliderOpts.TrackPadding(2)),
 		widget.ListOpts.HideHorizontalSlider(),
-		widget.ListOpts.ControlWidgetSpacing(2),
 		widget.ListOpts.Entries(entries),
 		widget.ListOpts.EntryLabelFunc(func(e interface{}) string {
 			return e.(string)
