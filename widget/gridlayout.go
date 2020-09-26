@@ -144,6 +144,7 @@ func (g *gridLayout) Layout(widgets []HasWidget, rect image.Rectangle) {
 			r++
 			x = 0
 			y += ch + g.rowSpacing
+			firstStretchedCol = true
 		}
 	}
 }
