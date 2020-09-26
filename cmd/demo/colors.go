@@ -17,6 +17,8 @@ type colors struct {
 	selectedBackground         color.Color
 	selectedDisabledBackground color.Color
 
+	separator color.Color
+
 	list       *widget.ListEntryColor
 	buttonText *widget.ButtonTextColor
 	label      *widget.LabelColor
@@ -32,6 +34,8 @@ func newColors() *colors {
 
 		selectedBackground:         hexToColor("a0a0a0"),
 		selectedDisabledBackground: hexToColor("707070"),
+
+		separator: hexToColor("888888"),
 	}
 
 	c.list = &widget.ListEntryColor{

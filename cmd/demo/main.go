@@ -306,7 +306,7 @@ func newSeparator(res *resources, ld interface{}) widget.HasWidget {
 			Stretch:   true,
 			MaxHeight: 2,
 		})),
-		widget.GraphicOpts.ImageNineSlice(image.NewNineSliceColor(res.colors.selectedDisabledBackground)),
+		widget.GraphicOpts.ImageNineSlice(image.NewNineSliceColor(res.colors.separator)),
 	))
 
 	return c
