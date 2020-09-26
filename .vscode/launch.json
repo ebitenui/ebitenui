@@ -14,15 +14,5 @@
 			"env": {},
 			"args": []
 		},
-		{
-			"name": "Launch Demo 2",
-			"type": "go",
-			"request": "launch",
-			"mode": "debug",
-			"program": "${workspaceFolder}/cmd/demo2",
-			"cwd": "${workspaceFolder}/cmd/demo2",
-			"env": {},
-			"args": []
-		}
 	]
 }
