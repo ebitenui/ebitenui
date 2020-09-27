@@ -235,7 +235,7 @@ func (l *List) createWidget() {
 				Stretch: true,
 			})),
 			ButtonOpts.Image(l.entryUnselectedColor),
-			ButtonOpts.TextSimpleLeft(l.entryLabelFunc(e), l.entryFace, l.entryTextColor, Insets{
+			ButtonOpts.TextSimpleLeft(l.entryLabelFunc(e), l.entryFace, l.entryUnselectedTextColor, Insets{
 				Left:   6,
 				Right:  6,
 				Top:    2,
