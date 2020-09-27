@@ -139,13 +139,20 @@ func (l *Layer) contains(x int, y int) bool {
 }
 
 // SetupInputLayersWithDeferred calls l to set up input layers. This function should not be called directly.
-func SetupInputLayersWithDeferred(l Layerer) {
+func SetupInputLayersWithDeferred(ls ...Layerer) {
 	for _, layer := range layers {
 		layer.invalid = true
 	}
 	layers = layers[:0]
 
-	appendToDeferredSetupInputLayerQueue(l.SetupInputLayer)
+	for _, l := range ls {
+		if l == nil {
+			continue
+		}
+
+		appendToDeferredSetupInputLayerQueue(l.SetupInputLayer)
+	}
+
 	setupDeferredInputLayers()
 }
 

@@ -314,8 +314,15 @@ func (w *Widget) Parent() *Widget {
 }
 
 // RenderWithDeferred renders r to screen. This function should not be called directly.
-func RenderWithDeferred(r Renderer, screen *ebiten.Image) {
-	appendToDeferredRenderQueue(r.Render)
+func RenderWithDeferred(screen *ebiten.Image, rs ...Renderer) {
+	for _, r := range rs {
+		if r == nil {
+			continue
+		}
+
+		appendToDeferredRenderQueue(r.Render)
+	}
+
 	renderDeferredRenderQueue(screen)
 }
 

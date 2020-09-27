@@ -50,21 +50,12 @@ func (u *UI) Draw(screen *ebiten.Image, rect image.Rectangle) {
 	}
 
 	// TODO: SetupInputLayersWithDeferred should reside in "internal" subpackage
-	input.SetupInputLayersWithDeferred(u.Container)
-	if u.DragAndDrop != nil {
-		input.SetupInputLayersWithDeferred(u.DragAndDrop)
-	}
+	input.SetupInputLayersWithDeferred(u.Container, u.DragAndDrop)
 
 	u.layout.LayoutRoot(rect)
 
 	// TODO: RenderWithDeferred should reside in "internal" subpackage
-	widget.RenderWithDeferred(u.Container, screen)
-	if u.ToolTip != nil {
-		widget.RenderWithDeferred(u.ToolTip, screen)
-	}
-	if u.DragAndDrop != nil {
-		widget.RenderWithDeferred(u.DragAndDrop, screen)
-	}
+	widget.RenderWithDeferred(screen, u.Container, u.ToolTip, u.DragAndDrop)
 }
 
 func (u *UI) initUI() {
