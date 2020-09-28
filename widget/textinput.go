@@ -14,6 +14,8 @@ import (
 )
 
 type TextInput struct {
+	InputText string
+
 	widgetOpts     []WidgetOpt
 	caretOpts      []CaretOpt
 	image          *TextInputImage
@@ -31,7 +33,6 @@ type TextInput struct {
 	renderBuf      *image.BufferedImage
 	maskedBuf      *image.BufferedImage
 	mask           *image.NineSlice
-	inputText      string
 	cursorPosition int
 	state          textInputState
 	scrollOffset   int
@@ -169,8 +170,11 @@ func (t *TextInput) PreferredSize() (int, int) {
 func (t *TextInput) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	t.init.Do()
 
-	t.caret.GetWidget().Disabled = t.widget.Disabled
 	t.text.GetWidget().Disabled = t.widget.Disabled
+
+	if t.cursorPosition > len(t.InputText) {
+		t.cursorPosition = len(t.InputText)
+	}
 
 	for {
 		var rerun bool
@@ -213,7 +217,7 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 func (t *TextInput) charInputState(c rune) textInputState {
 	return func() (textInputState, bool) {
 		if !t.widget.Disabled {
-			t.inputText = insertChar(t.inputText, c, t.cursorPosition)
+			t.InputText = insertChar(t.InputText, c, t.cursorPosition)
 			t.cursorPosition++
 		}
 
@@ -256,7 +260,7 @@ func (t *TextInput) doGoLeft() {
 }
 
 func (t *TextInput) doGoRight() {
-	if t.cursorPosition < len(t.inputText) {
+	if t.cursorPosition < len(t.InputText) {
 		t.cursorPosition++
 	}
 	t.caret.ResetBlinking()
@@ -268,21 +272,21 @@ func (t *TextInput) doGoStart() {
 }
 
 func (t *TextInput) doGoEnd() {
-	t.cursorPosition = len(t.inputText)
+	t.cursorPosition = len(t.InputText)
 	t.caret.ResetBlinking()
 }
 
 func (t *TextInput) doBackspace() {
 	if t.cursorPosition > 0 {
-		t.inputText = removeChar(t.inputText, t.cursorPosition-1)
+		t.InputText = removeChar(t.InputText, t.cursorPosition-1)
 		t.cursorPosition--
 	}
 	t.caret.ResetBlinking()
 }
 
 func (t *TextInput) doDelete() {
-	if t.cursorPosition < len(t.inputText) {
-		t.inputText = removeChar(t.inputText, t.cursorPosition)
+	if t.cursorPosition < len(t.InputText) {
+		t.InputText = removeChar(t.InputText, t.cursorPosition)
 	}
 	t.caret.ResetBlinking()
 }
@@ -322,7 +326,7 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFun
 	maskedBuf := t.maskedBuf.Image()
 	_ = maskedBuf.Clear()
 
-	_, a := font.BoundString(t.face, t.inputText[:t.cursorPosition])
+	_, a := font.BoundString(t.face, t.InputText[:t.cursorPosition])
 	cx := int(math.Round(fixedInt26_6ToFloat64(a)))
 
 	tr := rect
@@ -341,7 +345,7 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFun
 	tr = tr.Add(img.Point{t.scrollOffset, 0})
 
 	t.text.SetLocation(tr)
-	t.text.Label = t.inputText
+	t.text.Label = t.InputText
 	if t.widget.Disabled {
 		t.text.Color = t.color.Disabled
 	} else {
