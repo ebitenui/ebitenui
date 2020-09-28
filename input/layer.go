@@ -2,6 +2,7 @@ package input
 
 import (
 	"image"
+	"reflect"
 )
 
 // Layerer may be implemented by widgets that need to set up input layers by calling AddLayer.
@@ -146,7 +147,7 @@ func SetupInputLayersWithDeferred(ls ...Layerer) {
 	layers = layers[:0]
 
 	for _, l := range ls {
-		if l == nil {
+		if reflect.ValueOf(l).IsNil() {
 			continue
 		}
 

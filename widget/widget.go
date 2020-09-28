@@ -2,6 +2,7 @@ package widget
 
 import (
 	"image"
+	"reflect"
 
 	"github.com/blizzy78/ebitenui/event"
 	"github.com/blizzy78/ebitenui/input"
@@ -316,7 +317,7 @@ func (w *Widget) Parent() *Widget {
 // RenderWithDeferred renders r to screen. This function should not be called directly.
 func RenderWithDeferred(screen *ebiten.Image, rs ...Renderer) {
 	for _, r := range rs {
-		if r == nil {
+		if reflect.ValueOf(r).IsNil() {
 			continue
 		}
 
