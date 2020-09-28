@@ -24,6 +24,7 @@ type TextInput struct {
 	face           font.Face
 	repeatDelay    time.Duration
 	repeatInterval time.Duration
+	validationFunc TextInputValidationFunc
 
 	init           *MultiOnce
 	commandToFunc  map[textInputControlCommand]textInputCommandFunc
@@ -54,6 +55,8 @@ type TextInputColor struct {
 	Disabled color.Color
 	Caret    color.Color
 }
+
+type TextInputValidationFunc func(newInputText string) bool
 
 type textInputState func() (textInputState, bool)
 
@@ -151,6 +154,12 @@ func (o textInputOpts) RepeatInterval(i time.Duration) TextInputOpt {
 	}
 }
 
+func (o textInputOpts) Validation(f TextInputValidationFunc) TextInputOpt {
+	return func(t *TextInput) {
+		t.validationFunc = f
+	}
+}
+
 func (t *TextInput) GetWidget() *Widget {
 	t.init.Do()
 	return t.widget
@@ -217,8 +226,7 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 func (t *TextInput) charInputState(c rune) textInputState {
 	return func() (textInputState, bool) {
 		if !t.widget.Disabled {
-			t.InputText = insertChar(t.InputText, c, t.cursorPosition)
-			t.cursorPosition++
+			t.doInsert(c)
 		}
 
 		t.caret.ResetBlinking()
@@ -250,6 +258,17 @@ func (t *TextInput) commandState(cmd textInputControlCommand, key ebiten.Key, de
 
 		return t.commandState(cmd, key, delay, timer, expired), false
 	}
+}
+
+func (t *TextInput) doInsert(c rune) {
+	s := insertChar(t.InputText, c, t.cursorPosition)
+
+	if t.validationFunc != nil && !t.validationFunc(s) {
+		return
+	}
+
+	t.InputText = s
+	t.cursorPosition++
 }
 
 func (t *TextInput) doGoLeft() {
