@@ -60,11 +60,6 @@ func createUI() (*ebitenui.UI, func(), error) {
 		return nil, nil, err
 	}
 
-	toolTips := toolTipContents{
-		tips: map[widget.HasWidget]string{},
-		res:  res,
-	}
-
 	drag := newTextDragContents(res)
 
 	rootContainer := widget.NewContainer(
@@ -75,13 +70,23 @@ func createUI() (*ebitenui.UI, func(), error) {
 			widget.GridLayoutOpts.Spacing(0, 20))),
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(res.colors.background)))
 
+	toolTips := toolTipContents{
+		tips: map[widget.HasWidget]string{},
+		res:  res,
+	}
+
+	toolTip := widget.NewToolTip(
+		widget.ToolTipOpts.Container(rootContainer),
+		widget.ToolTipOpts.ContentsCreater(&toolTips),
+	)
+
 	dnd := widget.NewDragAndDrop(
 		widget.DragAndDropOpts.Container(rootContainer),
 		widget.DragAndDropOpts.ContentsCreater(drag),
 	)
 
 	rootContainer.AddChild(newInfoContainer(res))
-	rootContainer.AddChild(newDemoContainer(res, &toolTips, dnd, drag))
+	rootContainer.AddChild(newDemoContainer(res, &toolTips, toolTip, dnd, drag))
 
 	rootContainer.AddChild(widget.NewText(
 		widget.TextOpts.Text("github.com/blizzy78/ebitenui", res.fonts.toolTipFace, res.colors.textIdle)))
@@ -89,10 +94,7 @@ func createUI() (*ebitenui.UI, func(), error) {
 	return &ebitenui.UI{
 			Container: rootContainer,
 
-			ToolTip: widget.NewToolTip(
-				widget.ToolTipOpts.Container(rootContainer),
-				widget.ToolTipOpts.ContentsCreater(&toolTips),
-			),
+			ToolTip: toolTip,
 
 			DragAndDrop: dnd,
 		},
@@ -137,7 +139,7 @@ func newInfoContainer(res *resources) widget.HasWidget {
 	return infoContainer
 }
 
-func newDemoContainer(res *resources, toolTips *toolTipContents, dnd *widget.DragAndDrop, drag *dragContents) widget.HasWidget {
+func newDemoContainer(res *resources, toolTips *toolTipContents, toolTip *widget.ToolTip, dnd *widget.DragAndDrop, drag *dragContents) widget.HasWidget {
 	demoContainer := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
 			widget.GridLayoutOpts.Columns(2),
@@ -154,8 +156,9 @@ func newDemoContainer(res *resources, toolTips *toolTipContents, dnd *widget.Dra
 		gridLayoutPage(res),
 		rowLayoutPage(res),
 		sliderPage(res),
-		toolTipPage(res, toolTips),
+		toolTipPage(res, toolTips, toolTip),
 		dragAndDropPage(res, dnd, drag),
+		textInputPage(res),
 	}
 
 	collator := collate.New(language.English)

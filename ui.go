@@ -27,8 +27,6 @@ type UI struct {
 // Update updates u. This function should be called in the Ebiten Update function.
 func (u *UI) Update() {
 	u.init.Do(u.initUI)
-
-	internalevent.ExecuteDeferredActions()
 	internalinput.Update()
 }
 
@@ -39,7 +37,10 @@ func (u *UI) Update() {
 func (u *UI) Draw(screen *ebiten.Image, rect image.Rectangle) {
 	u.init.Do(u.initUI)
 
+	internalevent.ExecuteDeferredActions()
+
 	internalinput.Draw()
+	defer internalinput.AfterDraw()
 
 	defer func() {
 		u.lastRect = rect

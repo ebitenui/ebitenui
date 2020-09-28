@@ -362,7 +362,7 @@ func sliderPage(res *resources) *page {
 	}
 }
 
-func toolTipPage(res *resources, toolTips *toolTipContents) *page {
+func toolTipPage(res *resources, toolTips *toolTipContents, toolTip *widget.ToolTip) *page {
 	c := newPageContentContainer()
 
 	c.AddChild(widget.NewText(
@@ -397,6 +397,17 @@ func toolTipPage(res *resources, toolTips *toolTipContents) *page {
 	}, res)
 	toolTips.Set(showTimeCheckbox, "If enabled, tool tips will show system time for demonstration.")
 	c.AddChild(showTimeCheckbox)
+
+	stickyDelayedCheckbox := newCheckbox("Tool tips are sticky and delayed", func(args *widget.CheckboxChangedEventArgs) {
+		toolTip.Sticky = args.State == widget.CheckboxChecked
+		if args.State == widget.CheckboxChecked {
+			toolTip.Delay = 800 * time.Millisecond
+		} else {
+			toolTip.Delay = 0
+		}
+	}, res)
+	toolTips.Set(stickyDelayedCheckbox, "If enabled, tool tips do not show immediately and will not move with the cursor.")
+	c.AddChild(stickyDelayedCheckbox)
 
 	return &page{
 		title:   "Tool Tip",
@@ -463,6 +474,49 @@ func dragAndDropPage(res *resources, dnd *widget.DragAndDrop, drag *dragContents
 
 	return &page{
 		title:   "Drag & Drop",
+		content: c,
+	}
+}
+
+func textInputPage(res *resources) *page {
+	c := newPageContentContainer()
+
+	t := widget.NewTextInput(
+		widget.TextInputOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
+			Stretch: true,
+		})),
+		widget.TextInputOpts.Image(&widget.TextInputImage{
+			Idle:     res.images.scrollContainer.Idle,
+			Disabled: res.images.scrollContainer.Disabled,
+		}),
+		widget.TextInputOpts.Color(&widget.TextInputColor{
+			Idle:     res.colors.textIdle,
+			Disabled: res.colors.textDisabled,
+			Caret:    res.colors.textIdle,
+		}),
+		widget.TextInputOpts.Padding(widget.Insets{
+			Left:   13,
+			Right:  13,
+			Top:    7,
+			Bottom: 7,
+		}),
+		widget.TextInputOpts.Face(res.fonts.face),
+		widget.TextInputOpts.CaretOpts(
+			widget.CaretOpts.Size(res.fonts.face, 2),
+		),
+	)
+	c.AddChild(t)
+
+	c.AddChild(newSeparator(res, &widget.RowLayoutData{
+		Stretch: true,
+	}))
+
+	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
+		t.GetWidget().Disabled = args.State == widget.CheckboxChecked
+	}, res))
+
+	return &page{
+		title:   "Text Input",
 		content: c,
 	}
 }

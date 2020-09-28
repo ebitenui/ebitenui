@@ -81,3 +81,16 @@ func WheelLayer(l *Layer) (float64, float64) {
 
 	return x, y
 }
+
+func InputChars() []rune { //nolint:golint
+	return internalinput.InputChars
+}
+
+func KeyPressed(k ebiten.Key) bool {
+	p, ok := internalinput.KeyPressed[k]
+	return ok && p
+}
+
+func AnyKeyPressed() bool {
+	return internalinput.AnyKeyPressed
+}

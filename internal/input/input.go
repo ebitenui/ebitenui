@@ -1,6 +1,8 @@
 package input
 
-import "github.com/hajimehoshi/ebiten"
+import (
+	"github.com/hajimehoshi/ebiten"
+)
 
 var (
 	LeftMouseButtonPressed   bool
@@ -18,6 +20,10 @@ var (
 	LastLeftMouseButtonPressed   bool
 	LastMiddleMouseButtonPressed bool
 	LastRightMouseButtonPressed  bool
+
+	InputChars    []rune
+	KeyPressed    = map[ebiten.Key]bool{}
+	AnyKeyPressed bool
 )
 
 // Update updates the input system.
@@ -26,7 +32,22 @@ func Update() {
 	MiddleMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle)
 	RightMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight)
 	CursorX, CursorY = ebiten.CursorPosition()
-	WheelX, WheelY = ebiten.Wheel()
+
+	wx, wy := ebiten.Wheel()
+	WheelX += wx
+	WheelY += wy
+
+	InputChars = append(InputChars, ebiten.InputChars()...)
+
+	AnyKeyPressed = false
+	for k := ebiten.Key(0); k <= ebiten.KeyMax; k++ {
+		p := ebiten.IsKeyPressed(k)
+		KeyPressed[k] = p
+
+		if p {
+			AnyKeyPressed = true
+		}
+	}
 }
 
 // Draw updates the input system.
@@ -38,4 +59,9 @@ func Draw() {
 	LastLeftMouseButtonPressed = LeftMouseButtonPressed
 	LastMiddleMouseButtonPressed = MiddleMouseButtonPressed
 	LastRightMouseButtonPressed = RightMouseButtonPressed
+}
+
+func AfterDraw() {
+	InputChars = InputChars[:0]
+	WheelX, WheelY = 0, 0
 }

@@ -27,8 +27,8 @@ func (t *toolTipContents) Create(w widget.HasWidget) widget.HasWidget {
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 			widget.RowLayoutOpts.Padding(widget.Insets{
-				Left:   8,
-				Right:  8,
+				Left:   10,
+				Right:  10,
 				Top:    4,
 				Bottom: 4,
 			}),
