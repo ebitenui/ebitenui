@@ -424,8 +424,9 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFun
 }
 
 func (t *TextInput) Focus(focused bool) {
+	t.init.Do()
 	WidgetFireFocusEvent(t.widget, focused)
-
+	t.caret.resetBlinking()
 	t.focused = focused
 }
 
