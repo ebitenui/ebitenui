@@ -219,6 +219,10 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 			}
 		}
 
+		if input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, t.widget.EffectiveInputLayer()) {
+			t.doGoXY(input.CursorPosition())
+		}
+
 		return t.idleState(true), false
 	}
 }
@@ -295,6 +299,23 @@ func (t *TextInput) doGoEnd() {
 	t.caret.ResetBlinking()
 }
 
+func (t *TextInput) doGoXY(x int, y int) {
+	p := img.Point{x, y}
+	if p.In(t.widget.Rect) {
+		tr := t.padding.Apply(t.widget.Rect)
+		if x < tr.Min.X {
+			x = tr.Min.X
+		}
+		if x > tr.Max.X {
+			x = tr.Max.X
+		}
+
+		i := fontStringIndex(t.InputText, t.face, x-t.scrollOffset-tr.Min.X)
+		t.cursorPosition = i
+		t.caret.ResetBlinking()
+	}
+}
+
 func (t *TextInput) doBackspace() {
 	if t.cursorPosition > 0 {
 		t.InputText = removeChar(t.InputText, t.cursorPosition-1)
@@ -345,8 +366,7 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFun
 	maskedBuf := t.maskedBuf.Image()
 	_ = maskedBuf.Clear()
 
-	_, a := font.BoundString(t.face, t.InputText[:t.cursorPosition])
-	cx := int(math.Round(fixedInt26_6ToFloat64(a)))
+	cx := fontAdvance(t.InputText[:t.cursorPosition], t.face)
 
 	tr := rect
 	tr = tr.Add(img.Point{t.padding.Left, t.padding.Top})
@@ -403,4 +423,50 @@ func (t *TextInput) createWidget() {
 	)
 
 	t.mask = image.NewNineSliceColor(color.RGBA{255, 0, 255, 255})
+}
+
+func fontAdvance(s string, f font.Face) int {
+	_, a := font.BoundString(f, s)
+	return int(math.Round(fixedInt26_6ToFloat64(a)))
+}
+
+func fontStringIndex(s string, f font.Face, x int) int {
+	start := 0
+	end := len(s)
+	var p int
+	for {
+		p = start + (end-start)/2
+		sub := string([]rune(s)[:p])
+		a := fontAdvance(sub, f)
+
+		if x-a == 0 {
+			return p
+		}
+
+		if x-a > 0 {
+			if p == start {
+				break
+			}
+
+			start = p
+		} else {
+			if end == p {
+				break
+			}
+
+			end = p
+		}
+	}
+
+	if len(s) > 0 {
+		sub := string([]rune(s)[:p])
+		a1 := fontAdvance(sub, f)
+		sub = string([]rune(s)[:p+1])
+		a2 := fontAdvance(sub, f)
+		if math.Abs(float64(x-a2)) < math.Abs(float64(x-a1)) {
+			p++
+		}
+	}
+
+	return p
 }
