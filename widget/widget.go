@@ -43,6 +43,8 @@ type Widget struct {
 	// the mouse wheel is scrolled.
 	ScrolledEvent *event.Event
 
+	FocusEvent *event.Event
+
 	parent                     *Widget
 	lastUpdateCursorEntered    bool
 	lastUpdateMouseLeftPressed bool
@@ -62,6 +64,10 @@ type HasWidget interface {
 type Renderer interface {
 	// Render renders the widget onto screen. def may be called to defer additional rendering.
 	Render(screen *ebiten.Image, def DeferredRenderFunc)
+}
+
+type Focuser interface {
+	Focus(focused bool)
 }
 
 // RenderFunc is a function that renders a widget onto screen. def may be called to defer
@@ -120,6 +126,11 @@ type WidgetScrolledEventArgs struct { //nolint:golint
 	Y      float64
 }
 
+type WidgetFocusEventArgs struct { //nolint:golint
+	Widget  *Widget
+	Focused bool
+}
+
 // WidgetCursorEnterHandlerFunc is a function that handles cursor enter events.
 type WidgetCursorEnterHandlerFunc func(args *WidgetCursorEnterEventArgs) //nolint:golint
 
@@ -150,6 +161,7 @@ func NewWidget(opts ...WidgetOpt) *Widget {
 		MouseButtonPressedEvent:  &event.Event{},
 		MouseButtonReleasedEvent: &event.Event{},
 		ScrolledEvent:            &event.Event{},
+		FocusEvent:               &event.Event{},
 	}
 
 	for _, o := range opts {
@@ -235,9 +247,9 @@ func (w *Widget) EffectiveInputLayer() *input.Layer {
 	return l
 }
 
-// Render renders w onto screen. Since Widget is only an abstraction, it does not actually render
+// Render renders w onto screen. Since Widget is only an abstraction, it does not actually draw
 // anything, but it is still responsible for firing events. Concrete widget implementations should
-// always call this function first before rendering themselves.
+// always call this method first before rendering themselves.
 func (w *Widget) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	w.fireEvents()
 }
@@ -312,6 +324,13 @@ func (w *Widget) ElevateToNewInputLayer(l *input.Layer) {
 
 func (w *Widget) Parent() *Widget {
 	return w.parent
+}
+
+func WidgetFireFocusEvent(w *Widget, focused bool) {
+	w.FocusEvent.Fire(&WidgetFocusEventArgs{
+		Widget:  w,
+		Focused: focused,
+	})
 }
 
 // RenderWithDeferred renders r to screen. This function should not be called directly.

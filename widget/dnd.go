@@ -102,8 +102,10 @@ func (d *DragAndDrop) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 
 func (d *DragAndDrop) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	for {
-		var rerun bool
-		d.state, rerun = d.state(screen, def)
+		newState, rerun := d.state(screen, def)
+		if newState != nil {
+			d.state = newState
+		}
 		if !rerun {
 			break
 		}
@@ -115,13 +117,13 @@ func (d *DragAndDrop) idleState() dragAndDropState {
 		d.dragWidget = nil
 
 		if !input.MouseButtonJustPressed(ebiten.MouseButtonLeft) {
-			return d.idleState(), false
+			return nil, false
 		}
 
 		x, y := input.CursorPosition()
 		srcWidget := d.container.WidgetAt(x, y)
 		if srcWidget == nil {
-			return d.idleState(), false
+			return nil, false
 		}
 
 		return d.dragArmedState(srcWidget, x, y), true
@@ -138,7 +140,7 @@ func (d *DragAndDrop) dragArmedState(srcWidget HasWidget, srcX int, srcY int) dr
 		dx, dy := math.Abs(float64(x-srcX)), math.Abs(float64(y-srcY))
 		dist := math.Sqrt(dx*dx + dy*dy)
 		if dist < float64(d.minDragStartDistance) {
-			return d.dragArmedState(srcWidget, srcX, srcY), false
+			return nil, false
 		}
 
 		return d.draggingState(srcWidget, srcX, srcY, nil, nil), true

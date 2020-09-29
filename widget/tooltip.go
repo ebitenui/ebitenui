@@ -82,8 +82,10 @@ func (o toolTipOpts) Delay(d time.Duration) ToolTipOpt {
 
 func (t *ToolTip) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	for {
-		var rerun bool
-		t.state, rerun = t.state(screen, def)
+		newState, rerun := t.state(screen, def)
+		if newState != nil {
+			t.state = newState
+		}
 		if !rerun {
 			break
 		}
@@ -96,13 +98,13 @@ func (t *ToolTip) idleState() toolTipState {
 			input.MouseButtonPressed(ebiten.MouseButtonMiddle) ||
 			input.MouseButtonPressed(ebiten.MouseButtonRight) {
 
-			return t.idleState(), false
+			return nil, false
 		}
 
 		x, y := input.CursorPosition()
 		w := t.container.WidgetAt(x, y)
 		if w == nil {
-			return t.idleState(), false
+			return nil, false
 		}
 
 		if t.Delay <= 0 {
@@ -136,9 +138,11 @@ func (t *ToolTip) armedState(srcWidget HasWidget, srcX int, srcY int, timer *tim
 			timer = time.AfterFunc(t.Delay, func() {
 				expired.Store(true)
 			})
+
+			return t.armedState(srcWidget, srcX, srcY, timer, expired), false
 		}
 
-		return t.armedState(srcWidget, srcX, srcY, timer, expired), false
+		return nil, false
 	}
 }
 

@@ -19,9 +19,10 @@ type UI struct {
 	ToolTip     *widget.ToolTip
 	DragAndDrop *widget.DragAndDrop
 
-	init     sync.Once
-	layout   *widget.RootLayout
-	lastRect image.Rectangle
+	init          sync.Once
+	layout        *widget.RootLayout
+	lastRect      image.Rectangle
+	focusedWidget widget.HasWidget
 }
 
 // Update updates u. This function should be called in the Ebiten Update function.
@@ -45,6 +46,22 @@ func (u *UI) Draw(screen *ebiten.Image, rect image.Rectangle) {
 	defer func() {
 		u.lastRect = rect
 	}()
+
+	if input.MouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		if u.focusedWidget != nil {
+			u.focusedWidget.(widget.Focuser).Focus(false)
+			u.focusedWidget = nil
+		}
+
+		x, y := input.CursorPosition()
+		w := u.Container.WidgetAt(x, y)
+		if w != nil {
+			if f, ok := w.(widget.Focuser); ok {
+				f.Focus(true)
+				u.focusedWidget = w
+			}
+		}
+	}
 
 	if rect != u.lastRect {
 		u.Container.RequestRelayout()

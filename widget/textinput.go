@@ -37,6 +37,7 @@ type TextInput struct {
 	cursorPosition int
 	state          textInputState
 	scrollOffset   int
+	focused        bool
 }
 
 type TextInputOpt func(t *TextInput)
@@ -189,8 +190,10 @@ func (t *TextInput) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	}
 
 	for {
-		var rerun bool
-		t.state, rerun = t.state()
+		newState, rerun := t.state()
+		if newState != nil {
+			t.state = newState
+		}
 		if !rerun {
 			break
 		}
@@ -204,11 +207,8 @@ func (t *TextInput) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 	return func() (textInputState, bool) {
-		var delay time.Duration
-		if newKeyOrCommand {
-			delay = t.repeatDelay
-		} else {
-			delay = t.repeatInterval
+		if !t.focused {
+			return t.idleState(true), false
 		}
 
 		chars := input.InputChars()
@@ -218,6 +218,13 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 
 		for key, cmd := range textInputKeyToCommand {
 			if input.KeyPressed(key) {
+				var delay time.Duration
+				if newKeyOrCommand {
+					delay = t.repeatDelay
+				} else {
+					delay = t.repeatInterval
+				}
+
 				return t.commandState(cmd, key, delay, nil, nil), true
 			}
 		}
@@ -261,9 +268,11 @@ func (t *TextInput) commandState(cmd textInputControlCommand, key ebiten.Key, de
 			timer = time.AfterFunc(delay, func() {
 				expired.Store(true)
 			})
+
+			return t.commandState(cmd, key, delay, timer, expired), false
 		}
 
-		return t.commandState(cmd, key, delay, timer, expired), false
+		return nil, false
 	}
 }
 
@@ -373,20 +382,23 @@ func (t *TextInput) renderTextAndCaret(screen *ebiten.Image, def DeferredRenderF
 }
 
 func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFunc) {
-	cx := fontAdvance(t.InputText[:t.cursorPosition], t.face)
-
 	rect := t.widget.Rect
 	tr := rect
 	tr = tr.Add(img.Point{t.padding.Left, t.padding.Top})
 
-	dx := tr.Min.X + t.scrollOffset + cx + t.caret.Width + t.padding.Right - rect.Max.X
-	if dx > 0 {
-		t.scrollOffset -= dx
-	}
+	cx := 0
+	if t.focused {
+		cx = fontAdvance(t.InputText[:t.cursorPosition], t.face)
 
-	dx = tr.Min.X + t.scrollOffset + cx - t.padding.Left - rect.Min.X
-	if dx < 0 {
-		t.scrollOffset -= dx
+		dx := tr.Min.X + t.scrollOffset + cx + t.caret.Width + t.padding.Right - rect.Max.X
+		if dx > 0 {
+			t.scrollOffset -= dx
+		}
+
+		dx = tr.Min.X + t.scrollOffset + cx - t.padding.Left - rect.Min.X
+		if dx < 0 {
+			t.scrollOffset -= dx
+		}
 	}
 
 	tr = tr.Add(img.Point{t.scrollOffset, 0})
@@ -404,10 +416,17 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFun
 	}
 	t.text.Render(screen, def)
 
-	tr = tr.Add(img.Point{cx, 0})
+	if t.focused {
+		tr = tr.Add(img.Point{cx, 0})
+		t.caret.SetLocation(tr)
+		t.caret.Render(screen, def)
+	}
+}
 
-	t.caret.SetLocation(tr)
-	t.caret.Render(screen, def)
+func (t *TextInput) Focus(focused bool) {
+	WidgetFireFocusEvent(t.widget, focused)
+
+	t.focused = focused
 }
 
 func (t *TextInput) createWidget() {
