@@ -482,6 +482,7 @@ func textInputPage(res *resources) *page {
 	c := newPageContentContainer()
 
 	t := widget.NewTextInput(
+		widget.TextInputOpts.Placeholder("Enter text here"),
 		widget.TextInputOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
 			Stretch: true,
 		})),

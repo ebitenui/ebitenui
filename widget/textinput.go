@@ -16,15 +16,16 @@ import (
 type TextInput struct {
 	InputText string
 
-	widgetOpts     []WidgetOpt
-	caretOpts      []CaretOpt
-	image          *TextInputImage
-	color          *TextInputColor
-	padding        Insets
-	face           font.Face
-	repeatDelay    time.Duration
-	repeatInterval time.Duration
-	validationFunc TextInputValidationFunc
+	widgetOpts      []WidgetOpt
+	caretOpts       []CaretOpt
+	image           *TextInputImage
+	color           *TextInputColor
+	padding         Insets
+	face            font.Face
+	repeatDelay     time.Duration
+	repeatInterval  time.Duration
+	validationFunc  TextInputValidationFunc
+	placeholderText string
 
 	init           *MultiOnce
 	commandToFunc  map[textInputControlCommand]textInputCommandFunc
@@ -157,6 +158,12 @@ func (o textInputOpts) RepeatInterval(i time.Duration) TextInputOpt {
 func (o textInputOpts) Validation(f TextInputValidationFunc) TextInputOpt {
 	return func(t *TextInput) {
 		t.validationFunc = f
+	}
+}
+
+func (o textInputOpts) Placeholder(s string) TextInputOpt {
+	return func(t *TextInput) {
+		t.placeholderText = s
 	}
 }
 
@@ -384,8 +391,12 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFun
 	tr = tr.Add(img.Point{t.scrollOffset, 0})
 
 	t.text.SetLocation(tr)
-	t.text.Label = t.InputText
-	if t.widget.Disabled {
+	if len(t.InputText) > 0 {
+		t.text.Label = t.InputText
+	} else {
+		t.text.Label = t.placeholderText
+	}
+	if t.widget.Disabled || len(t.InputText) == 0 {
 		t.text.Color = t.color.Disabled
 	} else {
 		t.text.Color = t.color.Idle
