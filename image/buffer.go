@@ -11,6 +11,13 @@ type BufferedImage struct {
 	image *ebiten.Image
 }
 
+type MaskedRenderBuffer struct {
+	renderBuf *BufferedImage
+	maskedBuf *BufferedImage
+}
+
+type DrawFunc func(buf *ebiten.Image)
+
 // Image returns the internal Ebiten Image. If b.Width or b.Height have changed, a new Image
 // will be created and returned, otherwise the cached Image will be returned.
 func (b *BufferedImage) Image() *ebiten.Image {
@@ -24,4 +31,30 @@ func (b *BufferedImage) Image() *ebiten.Image {
 	}
 
 	return b.image
+}
+
+func NewMaskedRenderBuffer() *MaskedRenderBuffer {
+	return &MaskedRenderBuffer{
+		renderBuf: &BufferedImage{},
+		maskedBuf: &BufferedImage{},
+	}
+}
+
+func (m *MaskedRenderBuffer) Draw(screen *ebiten.Image, w int, h int, d DrawFunc, dm DrawFunc) {
+	m.renderBuf.Width, m.renderBuf.Height = w, h
+	renderBuf := m.renderBuf.Image()
+	_ = renderBuf.Clear()
+
+	m.maskedBuf.Width, m.maskedBuf.Height = w, h
+	maskedBuf := m.maskedBuf.Image()
+	_ = maskedBuf.Clear()
+
+	d(renderBuf)
+	dm(maskedBuf)
+
+	_ = maskedBuf.DrawImage(renderBuf, &ebiten.DrawImageOptions{
+		CompositeMode: ebiten.CompositeModeSourceIn,
+	})
+
+	_ = screen.DrawImage(maskedBuf, nil)
 }

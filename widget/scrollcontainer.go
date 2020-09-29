@@ -22,8 +22,7 @@ type ScrollContainer struct {
 
 	init      *MultiOnce
 	widget    *Widget
-	renderBuf *image.BufferedImage
-	maskedBuf *image.BufferedImage
+	renderBuf *image.MaskedRenderBuffer
 }
 
 type ScrollContainerOpt func(s *ScrollContainer)
@@ -42,8 +41,7 @@ func NewScrollContainer(opts ...ScrollContainerOpt) *ScrollContainer {
 	s := &ScrollContainer{
 		init: &MultiOnce{},
 
-		renderBuf: &image.BufferedImage{},
-		maskedBuf: &image.BufferedImage{},
+		renderBuf: image.NewMaskedRenderBuffer(),
 	}
 
 	s.init.Append(s.createWidget)
@@ -202,26 +200,16 @@ func (s *ScrollContainer) renderContent(screen *ebiten.Image, def DeferredRender
 
 	w, h := screen.Size()
 
-	s.renderBuf.Width, s.renderBuf.Height = w, h
-	renderBuf := s.renderBuf.Image()
-	_ = renderBuf.Clear()
-
-	s.maskedBuf.Width, s.maskedBuf.Height = w, h
-	maskedBuf := s.maskedBuf.Image()
-	_ = maskedBuf.Clear()
-
-	r.Render(renderBuf, def)
-
-	s.image.Mask.Draw(maskedBuf, s.widget.Rect.Dx()-s.padding.Dx(), s.widget.Rect.Dy()-s.padding.Dy(), func(opts *ebiten.DrawImageOptions) {
-		opts.GeoM.Translate(float64(s.widget.Rect.Min.X+s.padding.Left), float64(s.widget.Rect.Min.Y+s.padding.Top))
-		opts.CompositeMode = ebiten.CompositeModeCopy
-	})
-
-	_ = maskedBuf.DrawImage(renderBuf, &ebiten.DrawImageOptions{
-		CompositeMode: ebiten.CompositeModeSourceIn,
-	})
-
-	_ = screen.DrawImage(maskedBuf, nil)
+	s.renderBuf.Draw(screen, w, h,
+		func(buf *ebiten.Image) {
+			r.Render(buf, def)
+		},
+		func(buf *ebiten.Image) {
+			s.image.Mask.Draw(buf, s.widget.Rect.Dx()-s.padding.Dx(), s.widget.Rect.Dy()-s.padding.Dy(), func(opts *ebiten.DrawImageOptions) {
+				opts.GeoM.Translate(float64(s.widget.Rect.Min.X+s.padding.Left), float64(s.widget.Rect.Min.Y+s.padding.Top))
+				opts.CompositeMode = ebiten.CompositeModeCopy
+			})
+		})
 }
 
 func (s *ScrollContainer) ContentRect() img.Rectangle {

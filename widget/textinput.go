@@ -32,8 +32,7 @@ type TextInput struct {
 	widget         *Widget
 	caret          *Caret
 	text           *Text
-	renderBuf      *image.BufferedImage
-	maskedBuf      *image.BufferedImage
+	renderBuf      *image.MaskedRenderBuffer
 	mask           *image.NineSlice
 	cursorPosition int
 	state          textInputState
@@ -88,12 +87,9 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 		repeatDelay:    300 * time.Millisecond,
 		repeatInterval: 35 * time.Millisecond,
 
-		init: &MultiOnce{},
-
+		init:          &MultiOnce{},
 		commandToFunc: map[textInputControlCommand]textInputCommandFunc{},
-
-		renderBuf: &image.BufferedImage{},
-		maskedBuf: &image.BufferedImage{},
+		renderBuf:     image.NewMaskedRenderBuffer(),
 	}
 	t.state = t.idleState(true)
 
@@ -202,8 +198,8 @@ func (t *TextInput) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 	t.widget.Render(screen, def)
 
-	t.drawImage(screen)
-	t.drawTextAndCaret(screen, def)
+	t.renderImage(screen)
+	t.renderTextAndCaret(screen, def)
 }
 
 func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
@@ -346,7 +342,7 @@ func removeChar(s string, pos int) string {
 	return string([]rune(s)[:pos]) + string([]rune(s)[pos+1:])
 }
 
-func (t *TextInput) drawImage(screen *ebiten.Image) {
+func (t *TextInput) renderImage(screen *ebiten.Image) {
 	if t.image != nil {
 		i := t.image.Idle
 		if t.widget.Disabled && t.image.Disabled != nil {
@@ -360,21 +356,26 @@ func (t *TextInput) drawImage(screen *ebiten.Image) {
 	}
 }
 
-func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFunc) {
-	rect := t.widget.Rect
-
+func (t *TextInput) renderTextAndCaret(screen *ebiten.Image, def DeferredRenderFunc) {
 	w, h := screen.Size()
+	t.renderBuf.Draw(screen, w, h,
+		func(buf *ebiten.Image) {
+			t.drawTextAndCaret(buf, def)
+		},
+		func(buf *ebiten.Image) {
+			rect := t.widget.Rect
+			t.mask.Draw(buf, rect.Dx()-t.padding.Left-t.padding.Right, rect.Dy()-t.padding.Top-t.padding.Bottom,
+				func(opts *ebiten.DrawImageOptions) {
+					opts.GeoM.Translate(float64(rect.Min.X+t.padding.Left), float64(rect.Min.Y+t.padding.Top))
+					opts.CompositeMode = ebiten.CompositeModeCopy
+				})
+		})
+}
 
-	t.renderBuf.Width, t.renderBuf.Height = w, h
-	renderBuf := t.renderBuf.Image()
-	_ = renderBuf.Clear()
-
-	t.maskedBuf.Width, t.maskedBuf.Height = w, h
-	maskedBuf := t.maskedBuf.Image()
-	_ = maskedBuf.Clear()
-
+func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFunc) {
 	cx := fontAdvance(t.InputText[:t.cursorPosition], t.face)
 
+	rect := t.widget.Rect
 	tr := rect
 	tr = tr.Add(img.Point{t.padding.Left, t.padding.Top})
 
@@ -401,23 +402,12 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFun
 	} else {
 		t.text.Color = t.color.Idle
 	}
-	t.text.Render(renderBuf, def)
+	t.text.Render(screen, def)
 
 	tr = tr.Add(img.Point{cx, 0})
 
 	t.caret.SetLocation(tr)
-	t.caret.Render(renderBuf, def)
-
-	t.mask.Draw(maskedBuf, rect.Dx()-t.padding.Left-t.padding.Right, rect.Dy()-t.padding.Top-t.padding.Bottom, func(opts *ebiten.DrawImageOptions) {
-		opts.GeoM.Translate(float64(rect.Min.X+t.padding.Left), float64(rect.Min.Y+t.padding.Top))
-		opts.CompositeMode = ebiten.CompositeModeCopy
-	})
-
-	_ = maskedBuf.DrawImage(renderBuf, &ebiten.DrawImageOptions{
-		CompositeMode: ebiten.CompositeModeSourceIn,
-	})
-
-	_ = screen.DrawImage(maskedBuf, nil)
+	t.caret.Render(screen, def)
 }
 
 func (t *TextInput) createWidget() {
