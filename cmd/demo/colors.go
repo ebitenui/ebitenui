@@ -40,8 +40,8 @@ func newColors() *colors {
 
 	c.list = &widget.ListEntryColor{
 		Unselected:         c.textIdle,
-		Selected:           c.textIdle,
-		SelectedBackground: c.selectedBackground,
+		Selected:           color.Black,
+		SelectedBackground: hexToColor("cfad22"),
 
 		DisabledUnselected:         c.textDisabled,
 		DisabledSelected:           hexToColor("d0d0d0"),
