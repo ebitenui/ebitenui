@@ -185,8 +185,8 @@ func (t *TextInput) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 	t.text.GetWidget().Disabled = t.widget.Disabled
 
-	if t.cursorPosition > len(t.InputText) {
-		t.cursorPosition = len(t.InputText)
+	if t.cursorPosition > len([]rune(t.InputText)) {
+		t.cursorPosition = len([]rune(t.InputText))
 	}
 
 	for {
@@ -295,7 +295,7 @@ func (t *TextInput) doGoLeft() {
 }
 
 func (t *TextInput) doGoRight() {
-	if t.cursorPosition < len(t.InputText) {
+	if t.cursorPosition < len([]rune(t.InputText)) {
 		t.cursorPosition++
 	}
 	t.caret.ResetBlinking()
@@ -307,7 +307,7 @@ func (t *TextInput) doGoStart() {
 }
 
 func (t *TextInput) doGoEnd() {
-	t.cursorPosition = len(t.InputText)
+	t.cursorPosition = len([]rune(t.InputText))
 	t.caret.ResetBlinking()
 }
 
@@ -337,14 +337,16 @@ func (t *TextInput) doBackspace() {
 }
 
 func (t *TextInput) doDelete() {
-	if t.cursorPosition < len(t.InputText) {
+	if t.cursorPosition < len([]rune(t.InputText)) {
 		t.InputText = removeChar(t.InputText, t.cursorPosition)
 	}
 	t.caret.ResetBlinking()
 }
 
 func insertChar(s string, r rune, pos int) string {
-	return string([]rune(s)[:pos]) + string(r) + string([]rune(s[pos:]))
+	b := string([]rune(s)[:pos])
+	a := string([]rune(s)[pos:])
+	return b + string(r) + a
 }
 
 func removeChar(s string, pos int) string {
@@ -388,7 +390,8 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFun
 
 	cx := 0
 	if t.focused {
-		cx = fontAdvance(t.InputText[:t.cursorPosition], t.face)
+		sub := string([]rune(t.InputText)[:t.cursorPosition])
+		cx = fontAdvance(sub, t.face)
 
 		dx := tr.Min.X + t.scrollOffset + cx + t.caret.Width + t.padding.Right - rect.Max.X
 		if dx > 0 {
@@ -404,12 +407,12 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFun
 	tr = tr.Add(img.Point{t.scrollOffset, 0})
 
 	t.text.SetLocation(tr)
-	if len(t.InputText) > 0 {
+	if len([]rune(t.InputText)) > 0 {
 		t.text.Label = t.InputText
 	} else {
 		t.text.Label = t.placeholderText
 	}
-	if t.widget.Disabled || len(t.InputText) == 0 {
+	if t.widget.Disabled || len([]rune(t.InputText)) == 0 {
 		t.text.Color = t.color.Disabled
 	} else {
 		t.text.Color = t.color.Idle

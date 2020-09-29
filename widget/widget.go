@@ -326,7 +326,7 @@ func (w *Widget) Parent() *Widget {
 	return w.parent
 }
 
-func WidgetFireFocusEvent(w *Widget, focused bool) {
+func WidgetFireFocusEvent(w *Widget, focused bool) { //nolint:golint
 	w.FocusEvent.Fire(&WidgetFocusEventArgs{
 		Widget:  w,
 		Focused: focused,
