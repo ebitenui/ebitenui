@@ -33,7 +33,7 @@ type TabBookTab struct {
 	Disabled bool
 
 	label  string
-	widget HasWidget
+	widget PreferredSizeLocateableWidget
 }
 
 type TabBookOpt func(t *TabBook)
@@ -67,7 +67,7 @@ func NewTabBook(opts ...TabBookOpt) *TabBook {
 	return t
 }
 
-func NewTabBookTab(label string, widget HasWidget) *TabBookTab {
+func NewTabBookTab(label string, widget PreferredSizeLocateableWidget) *TabBookTab {
 	return &TabBookTab{
 		label:  label,
 		widget: widget,

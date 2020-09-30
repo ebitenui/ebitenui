@@ -28,7 +28,7 @@ type resources struct {
 }
 
 type pageContainer struct {
-	widget    widget.HasWidget
+	widget    widget.PreferredSizeLocateableWidget
 	titleText *widget.Text
 	flipBook  *widget.FlipBook
 }
@@ -124,7 +124,7 @@ func newResources() (*resources, error) {
 	}, nil
 }
 
-func newInfoContainer(res *resources) widget.HasWidget {
+func newInfoContainer(res *resources) widget.PreferredSizeLocateableWidget {
 	infoContainer := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
@@ -139,7 +139,7 @@ func newInfoContainer(res *resources) widget.HasWidget {
 	return infoContainer
 }
 
-func newDemoContainer(res *resources, toolTips *toolTipContents, toolTip *widget.ToolTip, dnd *widget.DragAndDrop, drag *dragContents) widget.HasWidget {
+func newDemoContainer(res *resources, toolTips *toolTipContents, toolTip *widget.ToolTip, dnd *widget.DragAndDrop, drag *dragContents) widget.PreferredSizeLocateableWidget {
 	demoContainer := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
 			widget.GridLayoutOpts.Columns(2),
@@ -294,7 +294,7 @@ func newList(entries []interface{}, res *resources, widgetOpts ...widget.WidgetO
 	)
 }
 
-func newSeparator(res *resources, ld interface{}) widget.HasWidget {
+func newSeparator(res *resources, ld interface{}) widget.PreferredSizeLocateableWidget {
 	c := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),

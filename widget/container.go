@@ -18,7 +18,7 @@ type Container struct {
 
 	init     *MultiOnce
 	widget   *Widget
-	children []HasWidget
+	children []PreferredSizeLocateableWidget
 }
 
 type ContainerOpt func(c *Container)
@@ -28,6 +28,12 @@ type RemoveChildFunc func()
 const ContainerOpts = containerOpts(true)
 
 type containerOpts bool
+
+type PreferredSizeLocateableWidget interface {
+	HasWidget
+	PreferredSizer
+	Locateable
+}
 
 func NewContainer(opts ...ContainerOpt) *Container {
 	c := &Container{
@@ -67,7 +73,7 @@ func (o containerOpts) Layout(layout Layouter) ContainerOpt {
 	}
 }
 
-func (c *Container) AddChild(child HasWidget) RemoveChildFunc {
+func (c *Container) AddChild(child PreferredSizeLocateableWidget) RemoveChildFunc {
 	c.init.Do()
 
 	if child == nil {
@@ -85,7 +91,7 @@ func (c *Container) AddChild(child HasWidget) RemoveChildFunc {
 	}
 }
 
-func (c *Container) removeChild(child HasWidget) {
+func (c *Container) removeChild(child PreferredSizeLocateableWidget) {
 	index := -1
 	for i, ch := range c.children {
 		if ch == child {

@@ -9,7 +9,7 @@ import (
 
 type page struct {
 	title   string
-	content widget.HasWidget
+	content widget.PreferredSizeLocateableWidget
 }
 
 func buttonPage(res *resources) *page {

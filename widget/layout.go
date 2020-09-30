@@ -5,8 +5,8 @@ import (
 )
 
 type Layouter interface {
-	PreferredSize(widgets []HasWidget) (int, int)
-	Layout(widgets []HasWidget, rect image.Rectangle)
+	PreferredSize(widgets []PreferredSizeLocateableWidget) (int, int)
+	Layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle)
 }
 
 type Relayoutable interface {

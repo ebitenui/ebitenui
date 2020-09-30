@@ -19,7 +19,7 @@ func newTextDragContents(res *resources) *dragContents {
 	}
 }
 
-func (d *dragContents) Create(srcWidget widget.HasWidget, srcX int, srcY int) (widget.HasWidget, interface{}) {
+func (d *dragContents) Create(srcWidget widget.HasWidget, srcX int, srcY int) (widget.DragWidget, interface{}) {
 	if !d.isSource(srcWidget.GetWidget()) {
 		return nil, nil
 	}

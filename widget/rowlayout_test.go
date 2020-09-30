@@ -23,7 +23,7 @@ func TestRowLayout_PreferredSize(t *testing.T) {
 		RowLayoutOpts.Padding(padding),
 		RowLayoutOpts.Spacing(spacing))
 
-	widgets := []HasWidget{
+	widgets := []PreferredSizeLocateableWidget{
 		newSimpleWidget(10, 10, nil),
 		newSimpleWidget(20, 20, &RowLayoutData{
 			Position: RowLayoutPositionCenter,
@@ -89,7 +89,7 @@ func TestRowLayout_Layout(t *testing.T) {
 		}),
 		RowLayoutOpts.Spacing(7))
 
-	widgets := []HasWidget{
+	widgets := []PreferredSizeLocateableWidget{
 		newSimpleWidget(10, 10, nil),
 		newSimpleWidget(20, 20, &RowLayoutData{
 			Position: RowLayoutPositionCenter,

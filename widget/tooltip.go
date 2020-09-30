@@ -30,7 +30,13 @@ type toolTipOpts bool
 type toolTipState func(*ebiten.Image, DeferredRenderFunc) (toolTipState, bool)
 
 type ToolTipContentsCreater interface {
-	Create(HasWidget) HasWidget
+	Create(HasWidget) ToolTipWidget
+}
+
+type ToolTipWidget interface {
+	PreferredSizer
+	Locateable
+	Renderer
 }
 
 type ToolTipContentsUpdater interface {
@@ -146,7 +152,7 @@ func (t *ToolTip) armedState(srcWidget HasWidget, srcX int, srcY int, timer *tim
 	}
 }
 
-func (t *ToolTip) showingState(srcWidget HasWidget, srcX int, srcY int, tipWidget HasWidget) toolTipState {
+func (t *ToolTip) showingState(srcWidget HasWidget, srcX int, srcY int, tipWidget ToolTipWidget) toolTipState {
 	return func(screen *ebiten.Image, def DeferredRenderFunc) (toolTipState, bool) {
 		x, y := input.CursorPosition()
 		w := t.container.WidgetAt(x, y)
@@ -174,15 +180,15 @@ func (t *ToolTip) showingState(srcWidget HasWidget, srcX int, srcY int, tipWidge
 			srcX, srcY = x, y
 		}
 
-		sx, sy := tipWidget.(PreferredSizer).PreferredSize()
+		sx, sy := tipWidget.PreferredSize()
 		r := image.Rect(0, 0, sx, sy)
 		r = r.Add(image.Point{srcX, srcY})
 		r = r.Add(t.offset)
-		tipWidget.(Locateable).SetLocation(r)
+		tipWidget.SetLocation(r)
 		if rl, ok := tipWidget.(Relayoutable); ok {
 			rl.RequestRelayout()
 		}
-		tipWidget.(Renderer).Render(screen, def)
+		tipWidget.Render(screen, def)
 
 		return t.showingState(srcWidget, srcX, srcY, tipWidget), false
 	}

@@ -120,7 +120,7 @@ func (f *FlipBook) createWidget() {
 //
 // Note that when switching to a new page, it may be necessary to re-layout parent containers if the pages
 // are of different sizes.
-func (f *FlipBook) SetPage(page HasWidget) {
+func (f *FlipBook) SetPage(page PreferredSizeLocateableWidget) {
 	f.init.Do()
 
 	if f.removeCurrent != nil {

@@ -8,14 +8,14 @@ import (
 
 type RootLayout struct {
 	layout   Layouter
-	widgets  []HasWidget
+	widgets  []PreferredSizeLocateableWidget
 	lastRect image.Rectangle
 }
 
-func NewRootLayout(w HasWidget) *RootLayout {
+func NewRootLayout(w PreferredSizeLocateableWidget) *RootLayout {
 	r := RootLayout{
 		layout:  NewFillLayout(),
-		widgets: []HasWidget{w},
+		widgets: []PreferredSizeLocateableWidget{w},
 	}
 	r.MarkDirty()
 	return &r
@@ -25,11 +25,11 @@ func (r *RootLayout) MarkDirty() {
 	r.layout.(Dirtyable).MarkDirty()
 }
 
-func (r *RootLayout) PreferredSize(widgets []HasWidget, rect image.Rectangle) (int, int) {
+func (r *RootLayout) PreferredSize(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) (int, int) {
 	return 0, 0
 }
 
-func (r *RootLayout) Layout(widgets []HasWidget, rect image.Rectangle) {
+func (r *RootLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) {
 	r.layout.Layout(r.widgets, rect)
 }
 

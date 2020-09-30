@@ -22,7 +22,7 @@ func TestFillLayout_PreferredSize(t *testing.T) {
 
 	wi := newSimpleWidget(35, 45, nil)
 
-	w, h := l.PreferredSize([]HasWidget{wi})
+	w, h := l.PreferredSize([]PreferredSizeLocateableWidget{wi})
 
 	is.Equal(w, wi.preferredWidth+padding.Dx())
 	is.Equal(h, wi.preferredHeight+padding.Dy())
@@ -40,7 +40,7 @@ func TestFillLayout_Layout(t *testing.T) {
 		}))
 
 	b := newButton(t)
-	l.Layout([]HasWidget{b}, image.Rect(25, 25, 100, 100))
+	l.Layout([]PreferredSizeLocateableWidget{b}, image.Rect(25, 25, 100, 100))
 
 	is.Equal(b.GetWidget().Rect, image.Rect(45, 35, 70, 60))
 }

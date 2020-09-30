@@ -17,7 +17,7 @@ type toolTipContents struct {
 	timeText *widget.TextToolTip
 }
 
-func (t *toolTipContents) Create(w widget.HasWidget) widget.HasWidget {
+func (t *toolTipContents) Create(w widget.HasWidget) widget.ToolTipWidget {
 	if _, ok := t.tips[w]; !ok {
 		return nil
 	}

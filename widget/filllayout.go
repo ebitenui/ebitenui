@@ -29,23 +29,18 @@ func (o fillLayoutOpts) Padding(i Insets) FillLayoutOpt {
 	}
 }
 
-func (f *fillLayout) PreferredSize(widgets []HasWidget) (int, int) {
+func (f *fillLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (int, int) {
 	px, py := f.padding.Dx(), f.padding.Dy()
 
 	if len(widgets) == 0 {
 		return px, py
 	}
 
-	first, ok := widgets[0].(PreferredSizer)
-	if !ok {
-		return px, py
-	}
-
-	w, h := first.PreferredSize()
+	w, h := widgets[0].PreferredSize()
 	return w + px, h + py
 }
 
-func (f *fillLayout) Layout(widgets []HasWidget, rect image.Rectangle) {
+func (f *fillLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) {
 	if !f.dirty {
 		return
 	}
@@ -58,8 +53,7 @@ func (f *fillLayout) Layout(widgets []HasWidget, rect image.Rectangle) {
 		return
 	}
 
-	first := widgets[0].(Locateable)
-	first.SetLocation(f.padding.Apply(rect))
+	widgets[0].SetLocation(f.padding.Apply(rect))
 }
 
 func (f *fillLayout) MarkDirty() {

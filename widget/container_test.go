@@ -19,7 +19,8 @@ func TestContainer_Render(t *testing.T) {
 	w := NewWidget()
 	m := controlMock{}
 	m.On("GetWidget").Maybe().Return(w)
-	m.On("SetLocation", mock.Anything)
+	m.On("PreferredSize").Maybe().Return(50, 50)
+	m.On("SetLocation", mock.Anything).Maybe()
 	m.On("Render", mock.Anything, mock.Anything)
 
 	c := newContainer(t,
@@ -37,6 +38,7 @@ func TestContainer_Render_AutoDisableChildren(t *testing.T) {
 	w := NewWidget()
 	m := controlMock{}
 	m.On("GetWidget").Maybe().Return(w)
+	m.On("PreferredSize").Maybe().Return(50, 50)
 	m.On("SetLocation", mock.Anything).Maybe()
 	m.On("Render", mock.Anything, mock.Anything).Maybe()
 
@@ -72,6 +74,11 @@ func TestContainer_SetupInputLayer(t *testing.T) {
 func (c *controlMock) GetWidget() *Widget {
 	args := c.Called()
 	return args.Get(0).(*Widget)
+}
+
+func (c *controlMock) PreferredSize() (int, int) {
+	c.Called()
+	return 50, 50
 }
 
 func (c *controlMock) SetLocation(rect image.Rectangle) {

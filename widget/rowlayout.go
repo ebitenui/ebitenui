@@ -58,15 +58,15 @@ func (o rowLayoutOpts) Spacing(s int) RowLayoutOpt {
 	}
 }
 
-func (r *rowLayout) PreferredSize(widgets []HasWidget) (int, int) {
+func (r *rowLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (int, int) {
 	rect := image.Rectangle{}
-	r.layout(widgets, image.Rectangle{}, false, func(w HasWidget, wr image.Rectangle) {
+	r.layout(widgets, image.Rectangle{}, false, func(w PreferredSizeLocateableWidget, wr image.Rectangle) {
 		rect = rect.Union(wr)
 	})
 	return rect.Dx() + r.padding.Dx(), rect.Dy() + r.padding.Dy()
 }
 
-func (r *rowLayout) Layout(widgets []HasWidget, rect image.Rectangle) {
+func (r *rowLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) {
 	if !r.dirty {
 		return
 	}
@@ -75,12 +75,12 @@ func (r *rowLayout) Layout(widgets []HasWidget, rect image.Rectangle) {
 		r.dirty = false
 	}()
 
-	r.layout(widgets, rect, true, func(w HasWidget, wr image.Rectangle) {
-		w.(Locateable).SetLocation(wr)
+	r.layout(widgets, rect, true, func(w PreferredSizeLocateableWidget, wr image.Rectangle) {
+		w.SetLocation(wr)
 	})
 }
 
-func (r *rowLayout) layout(widgets []HasWidget, rect image.Rectangle, usePosition bool, locationFunc func(w HasWidget, wr image.Rectangle)) {
+func (r *rowLayout) layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle, usePosition bool, locationFunc func(w PreferredSizeLocateableWidget, wr image.Rectangle)) {
 	if len(widgets) == 0 {
 		return
 	}
@@ -90,19 +90,17 @@ func (r *rowLayout) layout(widgets []HasWidget, rect image.Rectangle, usePositio
 
 	for _, widget := range widgets {
 		wx, wy := x, y
-		ww, wh := r.preferredSizeWidget(widget)
+		ww, wh := widget.PreferredSize()
 
 		ld := widget.GetWidget().LayoutData
 		if rld, ok := ld.(*RowLayoutData); ok {
 			wx, wy, ww, wh = r.applyLayoutData(rld, wx, wy, ww, wh, usePosition, rect, x, y)
 		}
 
-		if _, ok := widget.(Locateable); ok {
-			wr := image.Rect(0, 0, ww, wh)
-			wr = wr.Add(rect.Min)
-			wr = wr.Add(image.Point{wx, wy})
-			locationFunc(widget, wr)
-		}
+		wr := image.Rect(0, 0, ww, wh)
+		wr = wr.Add(rect.Min)
+		wr = wr.Add(image.Point{wx, wy})
+		locationFunc(widget, wr)
 
 		if r.direction == DirectionHorizontal {
 			x += ww + r.spacing
@@ -110,17 +108,6 @@ func (r *rowLayout) layout(widgets []HasWidget, rect image.Rectangle, usePositio
 			y += wh + r.spacing
 		}
 	}
-}
-
-func (r *rowLayout) preferredSizeWidget(w HasWidget) (int, int) {
-	var ww int
-	var wh int
-	if p, ok := w.(PreferredSizer); ok {
-		ww, wh = p.PreferredSize()
-	} else {
-		ww, wh = 50, 50
-	}
-	return ww, wh
 }
 
 func (r *rowLayout) applyLayoutData(ld *RowLayoutData, wx int, wy int, ww int, wh int, usePosition bool, rect image.Rectangle, x int, y int) (int, int, int, int) {

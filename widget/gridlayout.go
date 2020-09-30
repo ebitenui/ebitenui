@@ -72,13 +72,13 @@ func (o gridLayoutOpts) Stretch(columns []bool, rows []bool) GridLayoutOpt {
 	}
 }
 
-func (g *gridLayout) PreferredSize(widgets []HasWidget) (int, int) {
+func (g *gridLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (int, int) {
 	colWidths, rowHeights := g.preferredColumnWidthsAndRowHeights(widgets)
 	return g.padding.Dx() + g.columnSpacing*(len(colWidths)-1) + sumInts(colWidths),
 		g.padding.Dy() + g.rowSpacing*(len(rowHeights)-1) + sumInts(rowHeights)
 }
 
-func (g *gridLayout) Layout(widgets []HasWidget, rect image.Rectangle) {
+func (g *gridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) {
 	if !g.dirty {
 		return
 	}
@@ -132,9 +132,7 @@ func (g *gridLayout) Layout(widgets []HasWidget, rect image.Rectangle) {
 			wx, wy, ww, wh = g.applyLayoutData(gld, wx, wy, ww, wh, x, y, cw, ch)
 		}
 
-		if l, ok := w.(Locateable); ok {
-			l.SetLocation(image.Rect(rect.Min.X+wx, rect.Min.Y+wy, rect.Min.X+wx+ww, rect.Min.Y+wy+wh))
-		}
+		w.SetLocation(image.Rect(rect.Min.X+wx, rect.Min.Y+wy, rect.Min.X+wx+ww, rect.Min.Y+wy+wh))
 
 		c++
 		x += cw + g.columnSpacing
@@ -193,20 +191,14 @@ func (g *gridLayout) rowStretched(r int) bool {
 	return g.rowStretch != nil && g.rowStretch[r]
 }
 
-func (g *gridLayout) preferredColumnWidthsAndRowHeights(widgets []HasWidget) ([]int, []int) {
+func (g *gridLayout) preferredColumnWidthsAndRowHeights(widgets []PreferredSizeLocateableWidget) ([]int, []int) {
 	colWidths := make([]int, g.columns)
 	rowHeights := make([]int, int(math.Ceil(float64(len(widgets))/float64(g.columns))))
 
 	c := 0
 	r := 0
 	for _, w := range widgets {
-		var ww int
-		var wh int
-		if p, ok := w.(PreferredSizer); ok {
-			ww, wh = p.PreferredSize()
-		} else {
-			ww, wh = 50, 50
-		}
+		ww, wh := w.PreferredSize()
 
 		ld := w.GetWidget().LayoutData
 		if gld, ok := ld.(*GridLayoutData); ok {

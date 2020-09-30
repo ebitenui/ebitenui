@@ -17,7 +17,7 @@ type DragAndDrop struct {
 	minDragStartDistance int
 
 	state      dragAndDropState
-	dragWidget HasWidget
+	dragWidget DragWidget
 }
 
 type DragAndDropOpt func(d *DragAndDrop)
@@ -27,7 +27,14 @@ const DragAndDropOpts = dragAndDropOpts(true)
 type dragAndDropOpts bool
 
 type DragContentsCreater interface {
-	Create(HasWidget, int, int) (HasWidget, interface{})
+	Create(HasWidget, int, int) (DragWidget, interface{})
+}
+
+type DragWidget interface {
+	HasWidget
+	PreferredSizer
+	Locateable
+	Renderer
 }
 
 type DragContentsUpdater interface {
@@ -147,7 +154,7 @@ func (d *DragAndDrop) dragArmedState(srcWidget HasWidget, srcX int, srcY int) dr
 	}
 }
 
-func (d *DragAndDrop) draggingState(srcWidget HasWidget, srcX int, srcY int, dragWidget HasWidget, dragData interface{}) dragAndDropState {
+func (d *DragAndDrop) draggingState(srcWidget HasWidget, srcX int, srcY int, dragWidget DragWidget, dragData interface{}) dragAndDropState {
 	return func(screen *ebiten.Image, def DeferredRenderFunc) (dragAndDropState, bool) {
 		x, y := input.CursorPosition()
 		w := d.container.WidgetAt(x, y)
@@ -172,15 +179,15 @@ func (d *DragAndDrop) draggingState(srcWidget HasWidget, srcX int, srcY int, dra
 			u.Update(w, x, y, dragData)
 		}
 
-		sx, sy := dragWidget.(PreferredSizer).PreferredSize()
+		sx, sy := dragWidget.PreferredSize()
 		r := image.Rect(0, 0, sx, sy)
 		r = r.Add(image.Point{x, y})
 		r = r.Sub(image.Point{sx / 2, sy / 2})
-		dragWidget.(Locateable).SetLocation(r)
+		dragWidget.SetLocation(r)
 		if rl, ok := dragWidget.(Relayoutable); ok {
 			rl.RequestRelayout()
 		}
-		dragWidget.(Renderer).Render(screen, def)
+		dragWidget.Render(screen, def)
 
 		return d.draggingState(srcWidget, srcX, srcY, dragWidget, dragData), false
 	}
