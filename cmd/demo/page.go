@@ -521,3 +521,29 @@ func textInputPage(res *resources) *page {
 		content: c,
 	}
 }
+
+func radioGroupPage(res *resources) *page {
+	c := newPageContentContainer()
+
+	var cbs []*widget.Checkbox
+	for i := 0; i < 5; i++ {
+		cb := widget.NewLabeledCheckbox(
+			widget.LabeledCheckboxOpts.Spacing(6),
+			widget.LabeledCheckboxOpts.CheckboxOpts(
+				widget.CheckboxOpts.ButtonOpts(
+					widget.ButtonOpts.Image(res.images.button),
+					widget.ButtonOpts.GraphicPadding(widget.NewInsetsSimple(7)),
+				),
+				widget.CheckboxOpts.Image(res.images.checkbox)),
+			widget.LabeledCheckboxOpts.LabelOpts(widget.LabelOpts.Text(fmt.Sprintf("Checkbox %d", i+1), res.fonts.face, res.colors.label)))
+		c.AddChild(cb)
+		cbs = append(cbs, cb.Checkbox())
+	}
+
+	widget.NewRadioGroup(widget.RadioGroupOpts.Checkboxes(cbs...))
+
+	return &page{
+		title:   "Radio Group",
+		content: c,
+	}
+}

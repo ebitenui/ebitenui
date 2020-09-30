@@ -90,3 +90,13 @@ func (e *deferredEvent) Do() {
 func (a *deferredAddHandler) Do() {
 	a.event.handlers = append(a.event.handlers, a.handler)
 }
+
+// AddEventHandlerOneShot registers handler h with e. When e fires an event, h is removed from e automatically.
+func AddEventHandlerOneShot(e *Event, h HandlerFunc) {
+	var r RemoveHandlerFunc
+	rh := func(args interface{}) {
+		r()
+		h(args)
+	}
+	r = e.AddHandler(rh)
+}

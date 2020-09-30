@@ -83,6 +83,14 @@ func (l *LabeledCheckbox) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	l.container.Render(screen, def)
 }
 
+func (l *LabeledCheckbox) Checkbox() *Checkbox {
+	return l.checkbox
+}
+
+func (l *LabeledCheckbox) Label() *Label {
+	return l.label
+}
+
 func (l *LabeledCheckbox) createWidget() {
 	l.container = NewContainer(
 		ContainerOpts.Layout(NewRowLayout(

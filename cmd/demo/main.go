@@ -159,6 +159,7 @@ func newDemoContainer(res *resources, toolTips *toolTipContents, toolTip *widget
 		toolTipPage(res, toolTips, toolTip),
 		dragAndDropPage(res, dnd, drag),
 		textInputPage(res),
+		radioGroupPage(res),
 	}
 
 	collator := collate.New(language.English)
