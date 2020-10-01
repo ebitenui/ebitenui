@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"image"
 	"time"
 
+	"github.com/blizzy78/ebitenui"
 	"github.com/blizzy78/ebitenui/widget"
+	"github.com/hajimehoshi/ebiten"
 )
 
 type page struct {
@@ -544,6 +547,62 @@ func radioGroupPage(res *resources) *page {
 
 	return &page{
 		title:   "Radio Group",
+		content: c,
+	}
+}
+
+func windowPage(res *resources, ui func() *ebitenui.UI) *page {
+	c := newPageContentContainer()
+
+	b := widget.NewButton(
+		widget.ButtonOpts.Image(res.images.button),
+		widget.ButtonOpts.Text("Open Window", res.fonts.face, res.colors.buttonText),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			var rw ebitenui.RemoveWindowFunc
+
+			wc := widget.NewContainer(
+				widget.ContainerOpts.BackgroundImage(res.images.button.Disabled),
+				widget.ContainerOpts.Layout(widget.NewRowLayout(
+					widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+					widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(20)),
+					widget.RowLayoutOpts.Spacing(15),
+				)),
+			)
+
+			wc.AddChild(widget.NewText(
+				widget.TextOpts.Text("Modal Window", res.fonts.titleFace, res.colors.textIdle),
+			))
+
+			wc.AddChild(widget.NewText(
+				widget.TextOpts.Text("This window blocks all input to widgets below it.", res.fonts.face, res.colors.textIdle),
+			))
+
+			cb := widget.NewButton(
+				widget.ButtonOpts.Image(res.images.button),
+				widget.ButtonOpts.Text("Close", res.fonts.face, res.colors.buttonText),
+				widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+					rw()
+				}),
+			)
+			wc.AddChild(cb)
+
+			w := widget.NewWindow(
+				widget.WindowOpts.Modal(),
+				widget.WindowOpts.Contents(wc),
+			)
+
+			ww, wh := ebiten.WindowSize()
+			r := image.Rect(0, 0, ww*3/4, wh/3)
+			r = r.Add(image.Point{ww / 4 / 2, wh * 2 / 3 / 2})
+			w.SetLocation(r)
+
+			rw = ui().AddWindow(w)
+		}),
+	)
+	c.AddChild(b)
+
+	return &page{
+		title:   "Window",
 		content: c,
 	}
 }

@@ -119,6 +119,6 @@ func render(r Renderer, t *testing.T) {
 	t.Helper()
 
 	screen, _ := ebiten.NewImage(0, 0, ebiten.FilterDefault)
-	RenderWithDeferred(screen, r)
+	RenderWithDeferred(screen, []Renderer{r})
 	internalevent.ExecuteDeferredActions()
 }

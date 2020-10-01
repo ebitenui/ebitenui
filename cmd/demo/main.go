@@ -86,22 +86,26 @@ func createUI() (*ebitenui.UI, func(), error) {
 	)
 
 	rootContainer.AddChild(newInfoContainer(res))
-	rootContainer.AddChild(newDemoContainer(res, &toolTips, toolTip, dnd, drag))
+
+	var ui *ebitenui.UI
+	rootContainer.AddChild(newDemoContainer(res, &toolTips, toolTip, dnd, drag, func() *ebitenui.UI {
+		return ui
+	}))
 
 	rootContainer.AddChild(widget.NewText(
 		widget.TextOpts.Text("github.com/blizzy78/ebitenui", res.fonts.toolTipFace, res.colors.textIdle)))
 
-	return &ebitenui.UI{
-			Container: rootContainer,
+	ui = &ebitenui.UI{
+		Container: rootContainer,
 
-			ToolTip: toolTip,
+		ToolTip: toolTip,
 
-			DragAndDrop: dnd,
-		},
-		func() {
-			res.close()
-		},
-		nil
+		DragAndDrop: dnd,
+	}
+
+	return ui, func() {
+		res.close()
+	}, nil
 }
 
 func newResources() (*resources, error) {
@@ -139,7 +143,9 @@ func newInfoContainer(res *resources) widget.PreferredSizeLocateableWidget {
 	return infoContainer
 }
 
-func newDemoContainer(res *resources, toolTips *toolTipContents, toolTip *widget.ToolTip, dnd *widget.DragAndDrop, drag *dragContents) widget.PreferredSizeLocateableWidget {
+func newDemoContainer(res *resources, toolTips *toolTipContents, toolTip *widget.ToolTip, dnd *widget.DragAndDrop, drag *dragContents,
+	ui func() *ebitenui.UI) widget.PreferredSizeLocateableWidget {
+
 	demoContainer := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
 			widget.GridLayoutOpts.Columns(2),
@@ -160,6 +166,7 @@ func newDemoContainer(res *resources, toolTips *toolTipContents, toolTip *widget
 		dragAndDropPage(res, dnd, drag),
 		textInputPage(res),
 		radioGroupPage(res),
+		windowPage(res, ui),
 	}
 
 	collator := collate.New(language.English)

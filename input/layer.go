@@ -2,7 +2,6 @@ package input
 
 import (
 	"image"
-	"reflect"
 )
 
 // Layerer may be implemented by widgets that need to set up input layers by calling AddLayer.
@@ -140,17 +139,13 @@ func (l *Layer) contains(x int, y int) bool {
 }
 
 // SetupInputLayersWithDeferred calls l to set up input layers. This function should not be called directly.
-func SetupInputLayersWithDeferred(ls ...Layerer) {
+func SetupInputLayersWithDeferred(ls []Layerer) {
 	for _, layer := range layers {
 		layer.invalid = true
 	}
 	layers = layers[:0]
 
 	for _, l := range ls {
-		if reflect.ValueOf(l).IsNil() {
-			continue
-		}
-
 		appendToDeferredSetupInputLayerQueue(l.SetupInputLayer)
 	}
 
