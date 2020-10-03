@@ -31,6 +31,7 @@ func main() {
 	ebiten.SetWindowSize(900, 800)
 	ebiten.SetWindowTitle("Ebiten UI Demo")
 	ebiten.SetWindowResizable(true)
+	ebiten.SetScreenClearedEveryFrame(false)
 
 	ui, closeUI, err := createUI()
 	if err != nil {
