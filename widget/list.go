@@ -26,6 +26,7 @@ type List struct {
 	entrySelectedColor       *ButtonImage
 	entryUnselectedTextColor *ButtonTextColor
 	entryTextColor           *ButtonTextColor
+	entryTextPadding         Insets
 	controlWidgetSpacing     int
 	hideHorizontalSlider     bool
 	hideVerticalSlider       bool
@@ -159,6 +160,12 @@ func (o listOpts) EntryColor(c *ListEntryColor) ListOpt {
 	}
 }
 
+func (o listOpts) EntryTextPadding(i Insets) ListOpt {
+	return func(l *List) {
+		l.entryTextPadding = i
+	}
+}
+
 func (o listOpts) EntrySelectedHandler(f ListEntrySelectedHandlerFunc) ListOpt {
 	return func(l *List) {
 		l.EntrySelectedEvent.AddHandler(func(args interface{}) {
@@ -201,7 +208,16 @@ func (l *List) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 func (l *List) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	l.init.Do()
 
-	l.scrollContainer.GetWidget().Disabled = l.container.GetWidget().Disabled
+	d := l.container.GetWidget().Disabled
+
+	if l.vSlider != nil {
+		l.vSlider.DrawTrackDisabled = d
+	}
+	if l.hSlider != nil {
+		l.hSlider.DrawTrackDisabled = d
+	}
+
+	l.scrollContainer.GetWidget().Disabled = d
 
 	l.container.Render(screen, def)
 }
@@ -235,13 +251,7 @@ func (l *List) createWidget() {
 				Stretch: true,
 			})),
 			ButtonOpts.Image(l.entryUnselectedColor),
-			ButtonOpts.TextSimpleLeft(l.entryLabelFunc(e), l.entryFace, l.entryUnselectedTextColor, Insets{
-				Left:   6,
-				Right:  6,
-				Top:    2,
-				Bottom: 2,
-			}),
-
+			ButtonOpts.TextSimpleLeft(l.entryLabelFunc(e), l.entryFace, l.entryUnselectedTextColor, l.entryTextPadding),
 			ButtonOpts.ClickedHandler(func(args *ButtonClickedEventArgs) {
 				l.setSelectedEntry(e, true)
 			}))

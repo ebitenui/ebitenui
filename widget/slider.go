@@ -12,9 +12,10 @@ import (
 )
 
 type Slider struct {
-	Min     int
-	Max     int
-	Current int
+	Min               int
+	Max               int
+	Current           int
+	DrawTrackDisabled bool
 
 	ChangedEvent *event.Event
 
@@ -22,7 +23,7 @@ type Slider struct {
 	handleOpts   []ButtonOpt
 	direction    Direction
 	trackImage   *SliderTrackImage
-	trackPadding int
+	trackPadding Insets
 	handleSize   int
 	pageSizeFunc SliderPageSizeFunc
 
@@ -108,9 +109,9 @@ func (o sliderOpts) Images(track *SliderTrackImage, handle *ButtonImage) SliderO
 	}
 }
 
-func (o sliderOpts) TrackPadding(p int) SliderOpt {
+func (o sliderOpts) TrackPadding(i Insets) SliderOpt {
 	return func(s *Slider) {
-		s.trackPadding = p
+		s.trackPadding = i
 	}
 }
 
@@ -147,13 +148,11 @@ func (s *Slider) GetWidget() *Widget {
 }
 
 func (s *Slider) PreferredSize() (int, int) {
-	size := s.handleSize + s.trackPadding*2
-
 	if s.direction == DirectionHorizontal {
-		return 200, size
+		return 200, s.handleSize + s.trackPadding.Top + s.trackPadding.Bottom
 	}
 
-	return size, 200
+	return s.handleSize + s.trackPadding.Left + s.trackPadding.Right, 200
 }
 
 func (s *Slider) SetLocation(rect img.Rectangle) {
@@ -198,7 +197,7 @@ func (s *Slider) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 func (s *Slider) draw(screen *ebiten.Image) {
 	i := s.trackImage.Idle
-	if s.widget.Disabled {
+	if s.widget.Disabled || s.DrawTrackDisabled {
 		if s.trackImage.Disabled != nil {
 			i = s.trackImage.Disabled
 		}
@@ -241,9 +240,9 @@ func (s *Slider) updateHandleSize(handleLength float64) {
 
 	var p img.Point
 	if s.direction == DirectionHorizontal {
-		p = img.Point{l, rect.Dy() - s.trackPadding*2}
+		p = img.Point{l, rect.Dy() - s.trackPadding.Top - s.trackPadding.Bottom}
 	} else {
-		p = img.Point{rect.Dx() - s.trackPadding*2, l}
+		p = img.Point{rect.Dx() - s.trackPadding.Left - s.trackPadding.Right, l}
 	}
 
 	s.handle.GetWidget().Rect.Max = s.handle.GetWidget().Rect.Min.Add(p)
@@ -286,9 +285,9 @@ func (s *Slider) updateHandleLocation(handleLength float64, trackLength float64)
 
 	rect := s.widget.Rect
 	if s.direction == DirectionHorizontal {
-		rect.Min = rect.Min.Add(img.Point{off + s.trackPadding, s.trackPadding})
+		rect.Min = rect.Min.Add(img.Point{off + s.trackPadding.Left, s.trackPadding.Top})
 	} else {
-		rect.Min = rect.Min.Add(img.Point{s.trackPadding, off + s.trackPadding})
+		rect.Min = rect.Min.Add(img.Point{s.trackPadding.Left, off + s.trackPadding.Top})
 	}
 	s.handle.GetWidget().Rect = rect
 }
@@ -296,11 +295,10 @@ func (s *Slider) updateHandleLocation(handleLength float64, trackLength float64)
 func (s *Slider) handleLengthAndTrackLength() (float64, float64) {
 	var trackLength float64
 	if s.direction == DirectionHorizontal {
-		trackLength = float64(s.widget.Rect.Dx())
+		trackLength = float64(s.widget.Rect.Dx()) - float64(s.trackPadding.Left) - float64(s.trackPadding.Right)
 	} else {
-		trackLength = float64(s.widget.Rect.Dy())
+		trackLength = float64(s.widget.Rect.Dy()) - float64(s.trackPadding.Top) - float64(s.trackPadding.Bottom)
 	}
-	trackLength -= float64(s.trackPadding * 2)
 
 	length := float64(s.Max - s.Min + 1)
 

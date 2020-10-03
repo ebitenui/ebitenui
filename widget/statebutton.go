@@ -93,6 +93,6 @@ func (s *StateButton) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 }
 
 func (s *StateButton) createWidget() {
-	s.button = NewButton(s.buttonOpts...)
+	s.button = NewButton(append(s.buttonOpts, ButtonOpts.Image(s.images[s.State]))...)
 	s.buttonOpts = nil
 }

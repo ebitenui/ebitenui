@@ -55,7 +55,11 @@ func TestButton_ClickedEvent_User(t *testing.T) {
 func newButton(t *testing.T, opts ...ButtonOpt) *Button {
 	t.Helper()
 
-	b := NewButton(opts...)
+	b := NewButton(append(opts, []ButtonOpt{
+		ButtonOpts.Image(&ButtonImage{
+			Idle: newNineSliceEmpty(t),
+		}),
+	}...)...)
 	internalevent.ExecuteDeferredActions()
 	render(b, t)
 	return b

@@ -5,18 +5,12 @@ import (
 )
 
 type dragContents struct {
-	res *resources
+	res *uiResources
 
 	sources []*widget.Widget
 	targets []*widget.Widget
 
 	text *widget.Text
-}
-
-func newTextDragContents(res *resources) *dragContents {
-	return &dragContents{
-		res: res,
-	}
 }
 
 func (d *dragContents) Create(srcWidget widget.HasWidget, srcX int, srcY int) (widget.DragWidget, interface{}) {
@@ -25,21 +19,16 @@ func (d *dragContents) Create(srcWidget widget.HasWidget, srcX int, srcY int) (w
 	}
 
 	c := widget.NewContainer(
-		widget.ContainerOpts.BackgroundImage(d.res.images.toolTip),
+		widget.ContainerOpts.BackgroundImage(d.res.toolTip.background),
 		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: true,
 		})),
-		widget.ContainerOpts.Layout(widget.NewFillLayout(
-			widget.FillLayoutOpts.Padding(widget.Insets{
-				Left:   8,
-				Right:  8,
-				Top:    4,
-				Bottom: 4,
-			}),
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout(
+			widget.AnchorLayoutOpts.Padding(d.res.toolTip.padding),
 		)),
 	)
 
-	d.text = widget.NewText(widget.TextOpts.Text("Drag Me!", d.res.fonts.face, d.res.colors.textToolTip))
+	d.text = widget.NewText(widget.TextOpts.Text("Drag Me!", d.res.toolTip.face, d.res.toolTip.color))
 	c.AddChild(d.text)
 
 	return c, nil

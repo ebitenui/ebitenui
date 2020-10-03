@@ -15,41 +15,31 @@ type page struct {
 	content widget.PreferredSizeLocateableWidget
 }
 
-func buttonPage(res *resources) *page {
+func buttonPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
-	b1 := widget.NewButton(
-		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
-			Stretch: true,
-		})),
-		widget.ButtonOpts.Image(res.images.button),
-		widget.ButtonOpts.Text("Button", res.fonts.face, res.colors.buttonText))
-	c.AddChild(b1)
-
-	b2 := widget.NewButton(
-		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
-			Stretch: true,
-		})),
-		widget.ButtonOpts.Image(res.images.button),
-		widget.ButtonOpts.TextAndImage("Button with Graphic", res.fonts.face, res.images.heart, res.colors.buttonText))
-	c.AddChild(b2)
-
-	b3 := widget.NewButton(
-		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
-			Stretch: true,
-		})),
-		widget.ButtonOpts.Image(res.images.button),
-		widget.ButtonOpts.Text("Multi\nLine\nButton", res.fonts.face, res.colors.buttonText))
-	c.AddChild(b3)
+	bs := []*widget.Button{}
+	for i := 0; i < 3; i++ {
+		b := widget.NewButton(
+			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
+				Stretch: true,
+			})),
+			widget.ButtonOpts.Image(res.button.image),
+			widget.ButtonOpts.Text(fmt.Sprintf("Button %d", i+1), res.button.face, res.button.text),
+			widget.ButtonOpts.TextPadding(res.button.padding),
+		)
+		c.AddChild(b)
+		bs = append(bs, b)
+	}
 
 	c.AddChild(newSeparator(res, &widget.RowLayoutData{
 		Stretch: true,
 	}))
 
 	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
-		b1.GetWidget().Disabled = args.State == widget.CheckboxChecked
-		b2.GetWidget().Disabled = args.State == widget.CheckboxChecked
-		b3.GetWidget().Disabled = args.State == widget.CheckboxChecked
+		for _, b := range bs {
+			b.GetWidget().Disabled = args.State == widget.CheckboxChecked
+		}
 	}, res))
 
 	return &page{
@@ -58,30 +48,19 @@ func buttonPage(res *resources) *page {
 	}
 }
 
-func checkboxPage(res *resources) *page {
+func checkboxPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
-	cb1 := widget.NewLabeledCheckbox(
-		widget.LabeledCheckboxOpts.Spacing(6),
-		widget.LabeledCheckboxOpts.CheckboxOpts(
-			widget.CheckboxOpts.ButtonOpts(
-				widget.ButtonOpts.Image(res.images.button),
-				widget.ButtonOpts.GraphicPadding(widget.NewInsetsSimple(7)),
-			),
-			widget.CheckboxOpts.Image(res.images.checkbox)),
-		widget.LabeledCheckboxOpts.LabelOpts(widget.LabelOpts.Text("Two-State Checkbox", res.fonts.face, res.colors.label)))
+	cb1 := newCheckbox("Two-State Checkbox", nil, res)
 	c.AddChild(cb1)
 
 	cb2 := widget.NewLabeledCheckbox(
-		widget.LabeledCheckboxOpts.Spacing(6),
+		widget.LabeledCheckboxOpts.Spacing(res.checkbox.spacing),
 		widget.LabeledCheckboxOpts.CheckboxOpts(
-			widget.CheckboxOpts.ButtonOpts(
-				widget.ButtonOpts.Image(res.images.button),
-				widget.ButtonOpts.GraphicPadding(widget.NewInsetsSimple(7)),
-			),
-			widget.CheckboxOpts.Image(res.images.checkbox),
+			widget.CheckboxOpts.ButtonOpts(widget.ButtonOpts.Image(res.checkbox.image)),
+			widget.CheckboxOpts.Image(res.checkbox.graphic),
 			widget.CheckboxOpts.TriState()),
-		widget.LabeledCheckboxOpts.LabelOpts(widget.LabelOpts.Text("Tri-State Checkbox", res.fonts.face, res.colors.label)))
+		widget.LabeledCheckboxOpts.LabelOpts(widget.LabelOpts.Text("Tri-State Checkbox", res.label.face, res.label.text)))
 	c.AddChild(cb2)
 
 	c.AddChild(newSeparator(res, &widget.RowLayoutData{
@@ -99,7 +78,7 @@ func checkboxPage(res *resources) *page {
 	}
 }
 
-func listPage(res *resources) *page {
+func listPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
 	listsContainer := widget.NewContainer(
@@ -125,13 +104,17 @@ func listPage(res *resources) *page {
 		)))
 	listsContainer.AddChild(buttonsContainer)
 
+	bs := []*widget.Button{}
 	for i := 0; i < 3; i++ {
-		buttonsContainer.AddChild(widget.NewButton(
+		b := widget.NewButton(
 			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
 				Stretch: true,
 			})),
-			widget.ButtonOpts.Image(res.images.button),
-			widget.ButtonOpts.Text(fmt.Sprintf("Action %d", i+1), res.fonts.face, res.colors.buttonText)))
+			widget.ButtonOpts.Image(res.button.image),
+			widget.ButtonOpts.TextPadding(res.button.padding),
+			widget.ButtonOpts.Text(fmt.Sprintf("Action %d", i+1), res.button.face, res.button.text))
+		buttonsContainer.AddChild(b)
+		bs = append(bs, b)
 	}
 
 	entries2 := []interface{}{"Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen", "Twenty"}
@@ -147,6 +130,9 @@ func listPage(res *resources) *page {
 	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
 		list1.GetWidget().Disabled = args.State == widget.CheckboxChecked
 		list2.GetWidget().Disabled = args.State == widget.CheckboxChecked
+		for _, b := range bs {
+			b.GetWidget().Disabled = args.State == widget.CheckboxChecked
+		}
 	}, res))
 
 	return &page{
@@ -155,7 +141,7 @@ func listPage(res *resources) *page {
 	}
 }
 
-func comboButtonPage(res *resources) *page {
+func comboButtonPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
 	entries := []interface{}{}
@@ -191,12 +177,12 @@ func comboButtonPage(res *resources) *page {
 	}
 }
 
-func tabBookPage(res *resources) *page {
+func tabBookPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
 	tabs := []*widget.TabBookTab{}
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 4; i++ {
 		tc := widget.NewContainer(
 			widget.ContainerOpts.Layout(widget.NewRowLayout(
 				widget.RowLayoutOpts.Direction(widget.DirectionVertical),
@@ -205,8 +191,9 @@ func tabBookPage(res *resources) *page {
 
 		for j := 0; j < 3; j++ {
 			b := widget.NewButton(
-				widget.ButtonOpts.Image(res.images.button),
-				widget.ButtonOpts.Text(fmt.Sprintf("Button %d on Tab %d", j+1, i+1), res.fonts.face, res.colors.buttonText))
+				widget.ButtonOpts.Image(res.button.image),
+				widget.ButtonOpts.TextPadding(res.button.padding),
+				widget.ButtonOpts.Text(fmt.Sprintf("Button %d on Tab %d", j+1, i+1), res.button.face, res.button.text))
 			tc.AddChild(b)
 		}
 
@@ -220,10 +207,11 @@ func tabBookPage(res *resources) *page {
 
 	t := widget.NewTabBook(
 		widget.TabBookOpts.Tabs(tabs...),
-		widget.TabBookOpts.TabButtonImage(res.images.button, res.images.stateButtonSelected),
-		widget.TabBookOpts.TabButtonText(res.fonts.face, res.colors.buttonText),
-		widget.TabBookOpts.TabButtonSpacing(4),
-		widget.TabBookOpts.Spacing(10))
+		widget.TabBookOpts.TabButtonImage(res.tabBook.idleButton, res.tabBook.selectedButton),
+		widget.TabBookOpts.TabButtonText(res.tabBook.buttonFace, res.tabBook.buttonText),
+		widget.TabBookOpts.TabButtonOpts(widget.StateButtonOpts.ButtonOpts(widget.ButtonOpts.TextPadding(res.tabBook.buttonPadding))),
+		widget.TabBookOpts.TabButtonSpacing(10),
+		widget.TabBookOpts.Spacing(15))
 	c.AddChild(t)
 
 	c.AddChild(newSeparator(res, &widget.RowLayoutData{
@@ -240,20 +228,28 @@ func tabBookPage(res *resources) *page {
 	}
 }
 
-func gridLayoutPage(res *resources) *page {
-	c := widget.NewContainer(
-		widget.ContainerOpts.Layout(widget.NewGridLayout(
-			widget.GridLayoutOpts.Columns(5),
-			widget.GridLayoutOpts.Stretch([]bool{true, true, true, true, true}, nil),
-			widget.GridLayoutOpts.Spacing(5, 5))))
+func gridLayoutPage(res *uiResources) *page {
+	c := newPageContentContainer()
 
+	bc := widget.NewContainer(
+		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
+			Stretch: true,
+		})),
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			widget.GridLayoutOpts.Columns(4),
+			widget.GridLayoutOpts.Stretch([]bool{true, true, true, true}, nil),
+			widget.GridLayoutOpts.Spacing(10, 10))))
+	c.AddChild(bc)
+
+	i := 0
 	for row := 0; row < 3; row++ {
-		for col := 0; col < 5; col++ {
-			i := row*5 + col
+		for col := 0; col < 4; col++ {
 			b := widget.NewButton(
-				widget.ButtonOpts.Image(res.images.button),
-				widget.ButtonOpts.Text(fmt.Sprintf("Button %d", i+1), res.fonts.face, res.colors.buttonText))
-			c.AddChild(b)
+				widget.ButtonOpts.Image(res.button.image),
+				widget.ButtonOpts.Text(fmt.Sprintf("%s %d", string(rune('A'+i)), i+1), res.button.face, res.button.text))
+			bc.AddChild(b)
+
+			i++
 		}
 	}
 
@@ -263,11 +259,11 @@ func gridLayoutPage(res *resources) *page {
 	}
 }
 
-func rowLayoutPage(res *resources) *page {
+func rowLayoutPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
 	c.AddChild(widget.NewText(
-		widget.TextOpts.Text("Horizontal", res.fonts.face, res.colors.textIdle)))
+		widget.TextOpts.Text("Horizontal", res.text.face, res.text.idleColor)))
 
 	bc := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
@@ -276,13 +272,14 @@ func rowLayoutPage(res *resources) *page {
 
 	for col := 0; col < 5; col++ {
 		b := widget.NewButton(
-			widget.ButtonOpts.Image(res.images.button),
-			widget.ButtonOpts.Text(fmt.Sprintf("Button %d", col+1), res.fonts.face, res.colors.buttonText))
+			widget.ButtonOpts.Image(res.button.image),
+			widget.ButtonOpts.TextPadding(res.button.padding),
+			widget.ButtonOpts.Text(fmt.Sprintf("%s %d", string(rune('A'+col)), col+1), res.button.face, res.button.text))
 		bc.AddChild(b)
 	}
 
 	c.AddChild(widget.NewText(
-		widget.TextOpts.Text("Vertical", res.fonts.face, res.colors.textIdle)))
+		widget.TextOpts.Text("Vertical", res.text.face, res.text.idleColor)))
 
 	bc = widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
@@ -296,8 +293,9 @@ func rowLayoutPage(res *resources) *page {
 			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
 				Stretch: true,
 			})),
-			widget.ButtonOpts.Image(res.images.button),
-			widget.ButtonOpts.Text(l, res.fonts.face, res.colors.buttonText))
+			widget.ButtonOpts.Image(res.button.image),
+			widget.ButtonOpts.TextPadding(res.button.padding),
+			widget.ButtonOpts.Text(l, res.button.face, res.button.text))
 		bc.AddChild(b)
 	}
 
@@ -307,7 +305,7 @@ func rowLayoutPage(res *resources) *page {
 	}
 }
 
-func sliderPage(res *resources) *page {
+func sliderPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
 	pageSizes := []int{3, 10}
@@ -328,9 +326,8 @@ func sliderPage(res *resources) *page {
 				Position: widget.RowLayoutPositionCenter,
 			})),
 			widget.SliderOpts.MinMax(1, 20),
-			widget.SliderOpts.Images(res.images.sliderTrack, res.images.button),
-			widget.SliderOpts.TrackPadding(2),
-			widget.SliderOpts.HandleSize(20),
+			widget.SliderOpts.Images(res.slider.trackImage, res.slider.handle),
+			widget.SliderOpts.HandleSize(res.slider.handleSize),
 			widget.SliderOpts.PageSizeFunc(func() int {
 				return ps
 			}),
@@ -345,7 +342,7 @@ func sliderPage(res *resources) *page {
 			widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
 				Position: widget.RowLayoutPositionCenter,
 			})),
-			widget.TextOpts.Text(fmt.Sprintf("%d", s.Current), res.fonts.face, res.colors.textIdle))
+			widget.TextOpts.Text(fmt.Sprintf("%d", s.Current), res.text.face, res.text.idleColor))
 		sc.AddChild(text)
 	}
 
@@ -365,21 +362,22 @@ func sliderPage(res *resources) *page {
 	}
 }
 
-func toolTipPage(res *resources, toolTips *toolTipContents, toolTip *widget.ToolTip) *page {
+func toolTipPage(res *uiResources, toolTips *toolTipContents, toolTip *widget.ToolTip) *page {
 	c := newPageContentContainer()
 
 	c.AddChild(widget.NewText(
-		widget.TextOpts.Text("Hover over these buttons to see their tool tips.", res.fonts.face, res.colors.textIdle)))
+		widget.TextOpts.Text("Hover over these buttons to see their tool tips.", res.text.face, res.text.idleColor)))
 
 	bc := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Spacing(5))))
+			widget.RowLayoutOpts.Spacing(15))))
 	c.AddChild(bc)
 
-	for col := 0; col < 5; col++ {
+	for col := 0; col < 4; col++ {
 		b := widget.NewButton(
-			widget.ButtonOpts.Image(res.images.button),
-			widget.ButtonOpts.Text(fmt.Sprintf("Button %d", col+1), res.fonts.face, res.colors.buttonText))
+			widget.ButtonOpts.Image(res.button.image),
+			widget.ButtonOpts.TextPadding(res.button.padding),
+			widget.ButtonOpts.Text(fmt.Sprintf("%s %d", string(rune('A'+col)), col+1), res.button.face, res.button.text))
 
 		if col == 2 {
 			b.GetWidget().Disabled = true
@@ -418,49 +416,49 @@ func toolTipPage(res *resources, toolTips *toolTipContents, toolTip *widget.Tool
 	}
 }
 
-func dragAndDropPage(res *resources, dnd *widget.DragAndDrop, drag *dragContents) *page {
+func dragAndDropPage(res *uiResources, dnd *widget.DragAndDrop, drag *dragContents) *page {
 	c := newPageContentContainer()
 
 	dndContainer := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Spacing(20),
+			widget.RowLayoutOpts.Spacing(30),
 		)),
 	)
 	c.AddChild(dndContainer)
 
-	sourceContainer := widget.NewContainer(
-		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
-			Stretch: true,
-		})),
-		widget.ContainerOpts.BackgroundImage(res.images.scrollContainer.Idle),
-		widget.ContainerOpts.Layout(widget.NewFillLayout(
-			widget.FillLayoutOpts.Padding(widget.NewInsetsSimple(20)),
-		)),
+	sourcePanel := newSizedPanel(200, 200,
+		widget.ContainerOpts.BackgroundImage(res.panel.image),
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout(widget.AnchorLayoutOpts.Padding(res.panel.padding))),
 	)
-	drag.addSource(sourceContainer)
-	dndContainer.AddChild(sourceContainer)
+	drag.addSource(sourcePanel)
+	dndContainer.AddChild(sourcePanel)
 
-	sourceContainer.AddChild(widget.NewText(
-		widget.TextOpts.Text("Drag\nFrom\nHere", res.fonts.face, res.colors.textIdle),
-		widget.TextOpts.Position(widget.TextPositionCenter),
+	sourcePanel.Container().AddChild(widget.NewText(
+		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.AnchorLayoutData{
+			HorizontalPosition: widget.AnchorLayoutPositionCenter,
+			VerticalPosition:   widget.AnchorLayoutPositionCenter,
+		})),
+		widget.TextOpts.Text("Drag\nFrom\nHere", res.text.face, res.text.disabledColor),
+		widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter),
 	))
 
-	targetContainer := widget.NewContainer(
-		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
-			Stretch: true,
-		})),
-		widget.ContainerOpts.BackgroundImage(res.images.scrollContainer.Idle),
-		widget.ContainerOpts.Layout(widget.NewFillLayout(
-			widget.FillLayoutOpts.Padding(widget.NewInsetsSimple(20)),
-		)),
+	targetPanel := newSizedPanel(200, 200,
+		widget.ContainerOpts.BackgroundImage(res.panel.image),
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout(widget.AnchorLayoutOpts.Padding(res.panel.padding))),
 	)
-	drag.addTarget(targetContainer)
-	dndContainer.AddChild(targetContainer)
+	drag.addTarget(targetPanel)
+	dndContainer.AddChild(targetPanel)
 
-	targetContainer.AddChild(widget.NewText(
-		widget.TextOpts.Text("Drop\nHere", res.fonts.face, res.colors.textIdle),
-		widget.TextOpts.Position(widget.TextPositionCenter),
-	))
+	targetText := widget.NewText(
+		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.AnchorLayoutData{
+			HorizontalPosition: widget.AnchorLayoutPositionCenter,
+			VerticalPosition:   widget.AnchorLayoutPositionCenter,
+		})),
+		widget.TextOpts.Text("Drop\nHere", res.text.face, res.text.disabledColor),
+		widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter),
+	)
+
+	targetPanel.Container().AddChild(targetText)
 
 	dnd.DroppedEvent.AddHandler(func(args interface{}) {
 		a := args.(*widget.DragAndDropDroppedEventArgs)
@@ -468,10 +466,12 @@ func dragAndDropPage(res *resources, dnd *widget.DragAndDrop, drag *dragContents
 			return
 		}
 
-		targetContainer.BackgroundImage = res.images.button.Pressed
+		targetText.Label = "Thanks!"
+		targetText.Color = res.text.idleColor
 
-		time.AfterFunc(2*time.Second, func() {
-			targetContainer.BackgroundImage = res.images.scrollContainer.Idle
+		time.AfterFunc(2500*time.Millisecond, func() {
+			targetText.Label = "Drop\nHere"
+			targetText.Color = res.text.disabledColor
 		})
 	})
 
@@ -481,7 +481,7 @@ func dragAndDropPage(res *resources, dnd *widget.DragAndDrop, drag *dragContents
 	}
 }
 
-func textInputPage(res *resources) *page {
+func textInputPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
 	t := widget.NewTextInput(
@@ -489,24 +489,17 @@ func textInputPage(res *resources) *page {
 		widget.TextInputOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
 			Stretch: true,
 		})),
-		widget.TextInputOpts.Image(&widget.TextInputImage{
-			Idle:     res.images.scrollContainer.Idle,
-			Disabled: res.images.scrollContainer.Disabled,
-		}),
-		widget.TextInputOpts.Color(&widget.TextInputColor{
-			Idle:     res.colors.textIdle,
-			Disabled: res.colors.textDisabled,
-			Caret:    res.colors.textIdle,
-		}),
+		widget.TextInputOpts.Image(res.textInput.image),
+		widget.TextInputOpts.Color(res.textInput.color),
 		widget.TextInputOpts.Padding(widget.Insets{
 			Left:   13,
 			Right:  13,
 			Top:    7,
 			Bottom: 7,
 		}),
-		widget.TextInputOpts.Face(res.fonts.face),
+		widget.TextInputOpts.Face(res.textInput.face),
 		widget.TextInputOpts.CaretOpts(
-			widget.CaretOpts.Size(res.fonts.face, 2),
+			widget.CaretOpts.Size(res.textInput.face, 2),
 		),
 	)
 	c.AddChild(t)
@@ -525,20 +518,12 @@ func textInputPage(res *resources) *page {
 	}
 }
 
-func radioGroupPage(res *resources) *page {
+func radioGroupPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
 	var cbs []*widget.Checkbox
 	for i := 0; i < 5; i++ {
-		cb := widget.NewLabeledCheckbox(
-			widget.LabeledCheckboxOpts.Spacing(6),
-			widget.LabeledCheckboxOpts.CheckboxOpts(
-				widget.CheckboxOpts.ButtonOpts(
-					widget.ButtonOpts.Image(res.images.button),
-					widget.ButtonOpts.GraphicPadding(widget.NewInsetsSimple(7)),
-				),
-				widget.CheckboxOpts.Image(res.images.checkbox)),
-			widget.LabeledCheckboxOpts.LabelOpts(widget.LabelOpts.Text(fmt.Sprintf("Checkbox %d", i+1), res.fonts.face, res.colors.label)))
+		cb := newCheckbox(fmt.Sprintf("Checkbox %d", i+1), nil, res)
 		c.AddChild(cb)
 		cbs = append(cbs, cb.Checkbox())
 	}
@@ -551,12 +536,13 @@ func radioGroupPage(res *resources) *page {
 	}
 }
 
-func windowPage(res *resources, ui func() *ebitenui.UI) *page {
+func windowPage(res *uiResources, ui func() *ebitenui.UI) *page {
 	c := newPageContentContainer()
 
 	b := widget.NewButton(
-		widget.ButtonOpts.Image(res.images.button),
-		widget.ButtonOpts.Text("Open Window", res.fonts.face, res.colors.buttonText),
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.Text("Open Window", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			openWindow(res, ui)
 		}),
@@ -569,36 +555,37 @@ func windowPage(res *resources, ui func() *ebitenui.UI) *page {
 	}
 }
 
-func openWindow(res *resources, ui func() *ebitenui.UI) {
+func openWindow(res *uiResources, ui func() *ebitenui.UI) {
 	var rw ebitenui.RemoveWindowFunc
 
 	c := widget.NewContainer(
-		widget.ContainerOpts.BackgroundImage(res.images.button.Disabled),
+		widget.ContainerOpts.BackgroundImage(res.panel.image),
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-			widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(20)),
+			widget.RowLayoutOpts.Padding(res.panel.padding),
 			widget.RowLayoutOpts.Spacing(15),
 		)),
 	)
 
 	c.AddChild(widget.NewText(
-		widget.TextOpts.Text("Modal Window", res.fonts.titleFace, res.colors.textIdle),
+		widget.TextOpts.Text("Modal Window", res.text.bigTitleFace, res.text.idleColor),
 	))
 
 	c.AddChild(widget.NewText(
-		widget.TextOpts.Text("This window blocks all input to widgets below it.", res.fonts.face, res.colors.textIdle),
+		widget.TextOpts.Text("This window blocks all input to widgets below it.", res.text.face, res.text.idleColor),
 	))
 
 	bc := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Spacing(5),
+			widget.RowLayoutOpts.Spacing(15),
 		)),
 	)
 	c.AddChild(bc)
 
 	o2b := widget.NewButton(
-		widget.ButtonOpts.Image(res.images.button),
-		widget.ButtonOpts.Text("Open Another", res.fonts.face, res.colors.buttonText),
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.Text("Open Another", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			openWindow2(res, ui)
 		}),
@@ -606,8 +593,9 @@ func openWindow(res *resources, ui func() *ebitenui.UI) {
 	bc.AddChild(o2b)
 
 	cb := widget.NewButton(
-		widget.ButtonOpts.Image(res.images.button),
-		widget.ButtonOpts.Text("Close", res.fonts.face, res.colors.buttonText),
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.Text("Close", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			rw()
 		}),
@@ -627,25 +615,26 @@ func openWindow(res *resources, ui func() *ebitenui.UI) {
 	rw = ui().AddWindow(w)
 }
 
-func openWindow2(res *resources, ui func() *ebitenui.UI) {
+func openWindow2(res *uiResources, ui func() *ebitenui.UI) {
 	var rw ebitenui.RemoveWindowFunc
 
 	c := widget.NewContainer(
-		widget.ContainerOpts.BackgroundImage(res.images.button.Disabled),
+		widget.ContainerOpts.BackgroundImage(res.panel.image),
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-			widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(20)),
+			widget.RowLayoutOpts.Padding(res.panel.padding),
 			widget.RowLayoutOpts.Spacing(15),
 		)),
 	)
 
 	c.AddChild(widget.NewText(
-		widget.TextOpts.Text("Second Window", res.fonts.titleFace, res.colors.textIdle),
+		widget.TextOpts.Text("Second Window", res.text.bigTitleFace, res.text.idleColor),
 	))
 
 	cb := widget.NewButton(
-		widget.ButtonOpts.Image(res.images.button),
-		widget.ButtonOpts.Text("Close", res.fonts.face, res.colors.buttonText),
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.Text("Close", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			rw()
 		}),
@@ -663,4 +652,120 @@ func openWindow2(res *resources, ui func() *ebitenui.UI) {
 	w.SetLocation(r)
 
 	rw = ui().AddWindow(w)
+}
+
+func anchorLayoutPage(res *uiResources) *page {
+	c := newPageContentContainer()
+
+	p := newSizedPanel(300, 220,
+		widget.ContainerOpts.BackgroundImage(res.panel.image),
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout(
+			widget.AnchorLayoutOpts.Padding(res.panel.padding),
+		)),
+	)
+	c.AddChild(p)
+
+	b := widget.NewButton(
+		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.AnchorLayoutData{})),
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.Text("Hi!", res.button.face, res.button.text))
+	p.Container().AddChild(b)
+
+	c.AddChild(newSeparator(res, &widget.RowLayoutData{
+		Stretch: true,
+	}))
+
+	posC := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(50),
+		)),
+	)
+	c.AddChild(posC)
+
+	hPosC := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+			widget.RowLayoutOpts.Spacing(10),
+		)),
+		widget.ContainerOpts.AutoDisableChildren(),
+	)
+	posC.AddChild(hPosC)
+
+	hPosC.AddChild(widget.NewLabel(widget.LabelOpts.Text("Horizontal", res.label.face, res.label.text)))
+
+	labels := []string{"Start", "Center", "End"}
+	hCBs := []*widget.Checkbox{}
+	for _, l := range labels {
+		cb := newCheckbox(l, nil, res)
+		hPosC.AddChild(cb)
+		hCBs = append(hCBs, cb.Checkbox())
+	}
+
+	widget.NewRadioGroup(
+		widget.RadioGroupOpts.Checkboxes(hCBs...),
+		widget.RadioGroupOpts.ChangedHandler(func(args *widget.RadioGroupChangedEventArgs) {
+			ald := b.GetWidget().LayoutData.(*widget.AnchorLayoutData)
+			ald.HorizontalPosition = widget.AnchorLayoutPosition(indexCheckbox(hCBs, args.Active))
+			p.Container().RequestRelayout()
+		}),
+	)
+
+	vPosC := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+			widget.RowLayoutOpts.Spacing(10),
+		)),
+	)
+	posC.AddChild(vPosC)
+
+	vPosC.AddChild(widget.NewText(widget.TextOpts.Text("Vertical", res.text.face, res.text.idleColor)))
+
+	vCBs := []*widget.Checkbox{}
+	for _, l := range labels {
+		cb := newCheckbox(l, nil, res)
+		vPosC.AddChild(cb)
+		vCBs = append(vCBs, cb.Checkbox())
+	}
+
+	widget.NewRadioGroup(
+		widget.RadioGroupOpts.Checkboxes(vCBs...),
+		widget.RadioGroupOpts.ChangedHandler(func(args *widget.RadioGroupChangedEventArgs) {
+			ald := b.GetWidget().LayoutData.(*widget.AnchorLayoutData)
+			ald.VerticalPosition = widget.AnchorLayoutPosition(indexCheckbox(vCBs, args.Active))
+			p.Container().RequestRelayout()
+		}),
+	)
+
+	stretchC := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+			widget.RowLayoutOpts.Spacing(10),
+		)),
+	)
+	posC.AddChild(stretchC)
+
+	stretchC.AddChild(widget.NewText(widget.TextOpts.Text("Stretch", res.text.face, res.text.idleColor)))
+
+	stretchC.AddChild(newCheckbox("Horizontal", func(args *widget.CheckboxChangedEventArgs) {
+		ald := b.GetWidget().LayoutData.(*widget.AnchorLayoutData)
+		ald.StretchHorizontal = args.State == widget.CheckboxChecked
+		p.Container().RequestRelayout()
+
+		hPosC.GetWidget().Disabled = args.State == widget.CheckboxChecked
+	}, res))
+
+	return &page{
+		title:   "Anchor Layout",
+		content: c,
+	}
+}
+
+func indexCheckbox(cs []*widget.Checkbox, c *widget.Checkbox) int {
+	for i, cb := range cs {
+		if cb == c {
+			return i
+		}
+	}
+	return -1
 }

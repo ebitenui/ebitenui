@@ -88,11 +88,11 @@ func (t *TextToolTip) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 }
 
 func (t *TextToolTip) createWidget() {
-	t.container = NewContainer(append(t.containerOpts, []ContainerOpt{
-		ContainerOpts.Layout(NewFillLayout(
-			FillLayoutOpts.Padding(t.padding),
+	t.container = NewContainer(append(t.containerOpts,
+		ContainerOpts.Layout(NewAnchorLayout(
+			AnchorLayoutOpts.Padding(t.padding),
 		)),
-	}...)...)
+	)...)
 
 	t.text = NewText(t.textOpts...)
 	t.text.Label = ""

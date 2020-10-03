@@ -75,17 +75,22 @@ func TestSelectComboButton_ContentVisible_Programmatic(t *testing.T) {
 func newSelectComboButton(t *testing.T, opts ...SelectComboButtonOpt) *SelectComboButton {
 	t.Helper()
 
-	b := NewSelectComboButton(append(opts, []SelectComboButtonOpt{
-		SelectComboButtonOpts.ComboButtonOpts(ComboButtonOpts.ButtonOpts(ButtonOpts.TextAndImage("", loadFont(t), &ButtonImageImage{
-			Idle:     newImageEmpty(t),
-			Disabled: newImageEmpty(t),
-		}, &ButtonTextColor{
-			Idle:     color.Transparent,
-			Disabled: color.Transparent,
-		}))),
-
-		SelectComboButtonOpts.ComboButtonOpts(ComboButtonOpts.Content(newButton(t))),
-	}...)...)
+	b := NewSelectComboButton(append(opts,
+		SelectComboButtonOpts.ComboButtonOpts(
+			ComboButtonOpts.ButtonOpts(
+				ButtonOpts.Image(&ButtonImage{
+					Idle: newNineSliceEmpty(t),
+				}),
+				ButtonOpts.TextAndImage("", loadFont(t), &ButtonImageImage{
+					Idle:     newImageEmpty(t),
+					Disabled: newImageEmpty(t),
+				}, &ButtonTextColor{
+					Idle:     color.Transparent,
+					Disabled: color.Transparent,
+				}),
+			),
+			ComboButtonOpts.Content(newButton(t))),
+	)...)
 
 	internalevent.ExecuteDeferredActions()
 	render(b, t)

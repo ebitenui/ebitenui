@@ -11,7 +11,7 @@ type toolTipContents struct {
 	widgetsWithTime []widget.HasWidget
 	showTime        bool
 
-	res *resources
+	res *uiResources
 
 	text     *widget.TextToolTip
 	timeText *widget.TextToolTip
@@ -23,21 +23,16 @@ func (t *toolTipContents) Create(w widget.HasWidget) widget.ToolTipWidget {
 	}
 
 	c := widget.NewContainer(
-		widget.ContainerOpts.BackgroundImage(t.res.images.toolTip),
+		widget.ContainerOpts.BackgroundImage(t.res.toolTip.background),
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-			widget.RowLayoutOpts.Padding(widget.Insets{
-				Left:   10,
-				Right:  10,
-				Top:    4,
-				Bottom: 4,
-			}),
+			widget.RowLayoutOpts.Padding(t.res.toolTip.padding),
 			widget.RowLayoutOpts.Spacing(2),
 		)))
 
 	t.text = widget.NewTextToolTip(
 		widget.TextToolTipOpts.TextOpts(
-			widget.TextOpts.Text("", t.res.fonts.toolTipFace, t.res.colors.textToolTip),
+			widget.TextOpts.Text("", t.res.toolTip.face, t.res.toolTip.color),
 		),
 	)
 	c.AddChild(t.text)
@@ -45,7 +40,7 @@ func (t *toolTipContents) Create(w widget.HasWidget) widget.ToolTipWidget {
 	if t.showTime && t.canShowTime(w) {
 		t.timeText = widget.NewTextToolTip(
 			widget.TextToolTipOpts.TextOpts(
-				widget.TextOpts.Text("", t.res.fonts.toolTipFace, t.res.colors.textToolTip),
+				widget.TextOpts.Text("", t.res.toolTip.face, t.res.toolTip.color),
 			),
 		)
 		c.AddChild(t.timeText)

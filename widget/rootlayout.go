@@ -7,22 +7,14 @@ import (
 // TODO: RootLayout should probably reside in "internal" subpackage
 
 type RootLayout struct {
-	layout   Layouter
-	widgets  []PreferredSizeLocateableWidget
-	lastRect image.Rectangle
+	widget PreferredSizeLocateableWidget
 }
 
 func NewRootLayout(w PreferredSizeLocateableWidget) *RootLayout {
 	r := RootLayout{
-		layout:  NewFillLayout(),
-		widgets: []PreferredSizeLocateableWidget{w},
+		widget: w,
 	}
-	r.MarkDirty()
 	return &r
-}
-
-func (r *RootLayout) MarkDirty() {
-	r.layout.(Dirtyable).MarkDirty()
 }
 
 func (r *RootLayout) PreferredSize(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) (int, int) {
@@ -30,13 +22,9 @@ func (r *RootLayout) PreferredSize(widgets []PreferredSizeLocateableWidget, rect
 }
 
 func (r *RootLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) {
-	r.layout.Layout(r.widgets, rect)
+	// unused
 }
 
 func (r *RootLayout) LayoutRoot(rect image.Rectangle) {
-	if rect != r.lastRect {
-		r.MarkDirty()
-	}
-
-	r.Layout(r.widgets, rect)
+	r.widget.SetLocation(rect)
 }

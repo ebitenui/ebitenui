@@ -10,7 +10,7 @@ import (
 func TestGraphic_PreferredSize(t *testing.T) {
 	is := is.New(t)
 
-	i := newImageEmptyWithSize(47, 11, t)
+	i := newImageEmptySize(47, 11, t)
 	g := newGraphic(t,
 		GraphicOpts.Image(i))
 	w, h := g.PreferredSize()

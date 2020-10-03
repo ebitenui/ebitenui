@@ -156,20 +156,28 @@ func newListComboButton(t *testing.T, opts ...ListComboButtonOpt) *ListComboButt
 	t.Helper()
 
 	l := NewListComboButton(append(opts, []ListComboButtonOpt{
-		ListComboButtonOpts.ListOpts(ListOpts.ScrollContainerOpts(ScrollContainerOpts.Image(&ScrollContainerImage{
-			Idle:     newNineSliceEmpty(t),
-			Disabled: newNineSliceEmpty(t),
-			Mask:     newNineSliceEmpty(t),
-		}))),
-		ListComboButtonOpts.ListOpts(ListOpts.EntryColor(&ListEntryColor{
-			Unselected:                 color.Transparent,
-			Selected:                   color.Transparent,
-			DisabledUnselected:         color.Transparent,
-			DisabledSelected:           color.Transparent,
-			SelectedBackground:         color.Transparent,
-			DisabledSelectedBackground: color.Transparent,
-		})),
-		ListComboButtonOpts.ListOpts(ListOpts.EntryFontFace(loadFont(t))),
+		ListComboButtonOpts.SelectComboButtonOpts(SelectComboButtonOpts.ComboButtonOpts(ComboButtonOpts.ButtonOpts(ButtonOpts.Image(&ButtonImage{
+			Idle: newNineSliceEmpty(t),
+		})))),
+		ListComboButtonOpts.ListOpts(
+			ListOpts.ScrollContainerOpts(ScrollContainerOpts.Image(&ScrollContainerImage{
+				Idle:     newNineSliceEmpty(t),
+				Disabled: newNineSliceEmpty(t),
+				Mask:     newNineSliceEmpty(t),
+			})),
+			ListOpts.SliderOpts(SliderOpts.Images(&SliderTrackImage{}, &ButtonImage{
+				Idle: newNineSliceEmpty(t),
+			})),
+			ListOpts.EntryColor(&ListEntryColor{
+				Unselected:                 color.Transparent,
+				Selected:                   color.Transparent,
+				DisabledUnselected:         color.Transparent,
+				DisabledSelected:           color.Transparent,
+				SelectedBackground:         color.Transparent,
+				DisabledSelectedBackground: color.Transparent,
+			}),
+			ListOpts.EntryFontFace(loadFont(t)),
+		),
 		ListComboButtonOpts.Text(loadFont(t), &ButtonImageImage{
 			Idle:     newImageEmpty(t),
 			Disabled: newImageEmpty(t),

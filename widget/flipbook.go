@@ -8,10 +8,10 @@ import (
 )
 
 // A FlipBook is a container that always renders exactly one child widget: the current page.
-// The current page will be embedded in a FillLayout.
+// The current page will be embedded in a AnchorLayout.
 type FlipBook struct {
-	containerOpts  []ContainerOpt
-	fillLayoutOpts []FillLayoutOpt
+	containerOpts    []ContainerOpt
+	anchorLayoutOpts []AnchorLayoutOpt
 
 	init          *MultiOnce
 	container     *Container
@@ -51,7 +51,7 @@ func (o flipBookOpts) ContainerOpts(opts ...ContainerOpt) FlipBookOpt {
 // WithPadding configures a FlipBook with padding i.
 func (o flipBookOpts) Padding(i Insets) FlipBookOpt {
 	return func(f *FlipBook) {
-		f.fillLayoutOpts = append(f.fillLayoutOpts, FillLayoutOpts.Padding(i))
+		f.anchorLayoutOpts = append(f.anchorLayoutOpts, AnchorLayoutOpts.Padding(i))
 	}
 }
 
@@ -110,10 +110,10 @@ func (f *FlipBook) WidgetAt(x int, y int) HasWidget {
 
 func (f *FlipBook) createWidget() {
 	f.container = NewContainer(append(f.containerOpts, []ContainerOpt{
-		ContainerOpts.Layout(NewFillLayout(f.fillLayoutOpts...)),
+		ContainerOpts.Layout(NewAnchorLayout(f.anchorLayoutOpts...)),
 	}...)...)
 	f.containerOpts = nil
-	f.fillLayoutOpts = nil
+	f.anchorLayoutOpts = nil
 }
 
 // SetPage sets the current page to be rendered to page. The previous page will no longer be rendered.

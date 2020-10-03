@@ -88,16 +88,6 @@ func NewButton(opts ...ButtonOpt) *Button {
 		ReleasedEvent: &event.Event{},
 		ClickedEvent:  &event.Event{},
 
-		Image:        &ButtonImage{},
-		GraphicImage: &ButtonImageImage{},
-		TextColor:    &ButtonTextColor{},
-		textPadding: Insets{
-			Left:   10,
-			Right:  10,
-			Top:    6,
-			Bottom: 6,
-		},
-
 		init: &MultiOnce{},
 	}
 
@@ -126,11 +116,18 @@ func (o buttonOpts) TextSimpleLeft(label string, face font.Face, color *ButtonTe
 	return func(b *Button) {
 		b.init.Append(func() {
 			b.container = NewContainer(
-				ContainerOpts.Layout(NewRowLayout(
-					RowLayoutOpts.Padding(padding))),
-				ContainerOpts.AutoDisableChildren())
+				ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(padding))),
+				ContainerOpts.AutoDisableChildren(),
+			)
 
-			b.text = NewText(TextOpts.Text(label, face, color.Idle))
+			b.text = NewText(
+				TextOpts.WidgetOpts(WidgetOpts.LayoutData(&AnchorLayoutData{
+					HorizontalPosition: AnchorLayoutPositionStart,
+					VerticalPosition:   AnchorLayoutPositionCenter,
+				})),
+				TextOpts.Text(label, face, color.Idle),
+				TextOpts.Position(TextPositionStart, TextPositionCenter),
+			)
 			b.container.AddChild(b.text)
 
 			b.autoUpdateTextAndGraphic = true
@@ -143,13 +140,18 @@ func (o buttonOpts) Text(label string, face font.Face, color *ButtonTextColor) B
 	return func(b *Button) {
 		b.init.Append(func() {
 			b.container = NewContainer(
-				ContainerOpts.Layout(NewFillLayout(
-					FillLayoutOpts.Padding(b.textPadding))),
-				ContainerOpts.AutoDisableChildren())
+				ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(b.textPadding))),
+				ContainerOpts.AutoDisableChildren(),
+			)
 
 			b.text = NewText(
+				TextOpts.WidgetOpts(WidgetOpts.LayoutData(&AnchorLayoutData{
+					HorizontalPosition: AnchorLayoutPositionCenter,
+					VerticalPosition:   AnchorLayoutPositionCenter,
+				})),
 				TextOpts.Text(label, face, color.Idle),
-				TextOpts.Position(TextPositionCenter))
+				TextOpts.Position(TextPositionCenter, TextPositionCenter),
+			)
 			b.container.AddChild(b.text)
 
 			b.autoUpdateTextAndGraphic = true
@@ -163,18 +165,18 @@ func (o buttonOpts) TextAndImage(label string, face font.Face, image *ButtonImag
 	return func(b *Button) {
 		b.init.Append(func() {
 			b.container = NewContainer(
-				ContainerOpts.Layout(NewRowLayout(
-					RowLayoutOpts.Direction(DirectionVertical),
-					RowLayoutOpts.Padding(b.textPadding))),
-				ContainerOpts.AutoDisableChildren())
+				ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(b.textPadding))),
+				ContainerOpts.AutoDisableChildren(),
+			)
 
 			c := NewContainer(
-				ContainerOpts.WidgetOpts(WidgetOpts.LayoutData(&RowLayoutData{
-					Position: RowLayoutPositionCenter,
+				ContainerOpts.WidgetOpts(WidgetOpts.LayoutData(&AnchorLayoutData{
+					HorizontalPosition: AnchorLayoutPositionCenter,
+					VerticalPosition:   AnchorLayoutPositionCenter,
 				})),
-				ContainerOpts.Layout(NewRowLayout(
-					RowLayoutOpts.Spacing(10))),
-				ContainerOpts.AutoDisableChildren())
+				ContainerOpts.Layout(NewRowLayout(RowLayoutOpts.Spacing(10))),
+				ContainerOpts.AutoDisableChildren(),
+			)
 			b.container.AddChild(c)
 
 			b.text = NewText(
@@ -216,10 +218,16 @@ func (o buttonOpts) withGraphic(opt GraphicOpt) ButtonOpt {
 	return func(b *Button) {
 		b.init.Append(func() {
 			b.container = NewContainer(
-				ContainerOpts.Layout(NewFillLayout(FillLayoutOpts.Padding(b.graphicPadding))),
+				ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(b.graphicPadding))),
 				ContainerOpts.AutoDisableChildren())
 
-			b.graphic = NewGraphic(opt)
+			b.graphic = NewGraphic(
+				opt,
+				GraphicOpts.WidgetOpts(WidgetOpts.LayoutData(&AnchorLayoutData{
+					HorizontalPosition: AnchorLayoutPositionCenter,
+					VerticalPosition:   AnchorLayoutPositionCenter,
+				})),
+			)
 			b.container.AddChild(b.graphic)
 
 			b.autoUpdateTextAndGraphic = true
@@ -271,11 +279,21 @@ func (b *Button) GetWidget() *Widget {
 func (b *Button) PreferredSize() (int, int) {
 	b.init.Do()
 
-	if b.container == nil || len(b.container.children) == 0 {
-		return 50, 50
+	w, h := 50, 50
+
+	if b.container != nil && len(b.container.children) > 0 {
+		w, h = b.container.PreferredSize()
 	}
 
-	return b.container.PreferredSize()
+	iw, ih := b.Image.Idle.MinSize()
+	if w < iw {
+		w = iw
+	}
+	if h < ih {
+		h = ih
+	}
+
+	return w, h
 }
 
 func (b *Button) SetLocation(rect img.Rectangle) {

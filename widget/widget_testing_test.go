@@ -68,10 +68,10 @@ func loadFont(t *testing.T) font.Face {
 
 func newImageEmpty(t *testing.T) *ebiten.Image {
 	t.Helper()
-	return newImageEmptyWithSize(0, 0, t)
+	return newImageEmptySize(0, 0, t)
 }
 
-func newImageEmptyWithSize(width int, height int, t *testing.T) *ebiten.Image {
+func newImageEmptySize(width int, height int, t *testing.T) *ebiten.Image {
 	t.Helper()
 	i, _ := ebiten.NewImage(width, height, ebiten.FilterDefault)
 	return i

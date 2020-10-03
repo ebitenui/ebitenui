@@ -136,6 +136,10 @@ func newList(t *testing.T, opts ...ListOpt) *List {
 				Mask:     newNineSliceEmpty(t),
 			})),
 
+			ListOpts.SliderOpts(SliderOpts.Images(&SliderTrackImage{}, &ButtonImage{
+				Idle: newNineSliceEmpty(t),
+			})),
+
 			ListOpts.EntryFontFace(loadFont(t)),
 
 			ListOpts.EntryColor(&ListEntryColor{

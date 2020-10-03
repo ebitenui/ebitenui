@@ -18,8 +18,9 @@ type Text struct {
 	Face  font.Face
 	Color color.Color
 
-	widgetOpts []WidgetOpt
-	position   TextPosition
+	widgetOpts         []WidgetOpt
+	horizontalPosition TextPosition
+	verticalPosition   TextPosition
 
 	init         *MultiOnce
 	widget       *Widget
@@ -80,9 +81,10 @@ func (o textOpts) Text(label string, face font.Face, color color.Color) TextOpt 
 	}
 }
 
-func (o textOpts) Position(p TextPosition) TextOpt {
+func (o textOpts) Position(h TextPosition, v TextPosition) TextOpt {
 	return func(t *Text) {
-		t.position = p
+		t.horizontalPosition = h
+		t.verticalPosition = v
 	}
 }
 
@@ -115,9 +117,16 @@ func (t *Text) draw(screen *ebiten.Image) {
 	w := r.Dx()
 	p := r.Min
 
+	switch t.verticalPosition {
+	case TextPositionCenter:
+		p = p.Add(image.Point{0, int((float64(r.Dy()) - t.measurements.boundingBoxHeight) / 2)})
+	case TextPositionEnd:
+		p = p.Add(image.Point{0, int((float64(r.Dy()) - t.measurements.boundingBoxHeight))})
+	}
+
 	for i, line := range t.measurements.lines {
 		lx := p.X
-		switch t.position {
+		switch t.horizontalPosition {
 		case TextPositionCenter:
 			lx += int(math.Round((float64(w) - t.measurements.lineWidths[i]) / 2))
 		case TextPositionEnd:

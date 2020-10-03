@@ -22,7 +22,12 @@ func TestComboButton_ContentVisible_Click(t *testing.T) {
 func newComboButton(t *testing.T, opts ...ComboButtonOpt) *ComboButton {
 	t.Helper()
 
-	b := NewComboButton(append(opts, ComboButtonOpts.Content(newButton(t)))...)
+	b := NewComboButton(append(opts, []ComboButtonOpt{
+		ComboButtonOpts.ButtonOpts(ButtonOpts.Image(&ButtonImage{
+			Idle: newNineSliceEmpty(t),
+		})),
+		ComboButtonOpts.Content(newButton(t)),
+	}...)...)
 	internalevent.ExecuteDeferredActions()
 	render(b, t)
 	return b

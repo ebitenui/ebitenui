@@ -13,8 +13,8 @@ import (
 // width and height.
 type NineSlice struct {
 	image       *ebiten.Image
-	widths      []int
-	heights     []int
+	widths      [3]int
+	heights     [3]int
 	transparent bool
 
 	init      sync.Once
@@ -29,14 +29,22 @@ var colorImages map[color.Color]*ebiten.Image = map[color.Color]*ebiten.Image{}
 
 var colorNineSlices map[color.Color]*NineSlice = map[color.Color]*NineSlice{}
 
+func NewNineSlice(image *ebiten.Image, widths [3]int, heights [3]int) *NineSlice {
+	return &NineSlice{
+		image:   image,
+		widths:  widths,
+		heights: heights,
+	}
+}
+
 // NewNineSliceSimple constructs a new NineSlice from image. borderWidthHeight specifies the width of the
 // left and right column and the height of the top and bottom row. centerWidthHeight specifies the width
 // of the center column and row.
 func NewNineSliceSimple(image *ebiten.Image, borderWidthHeight int, centerWidthHeight int) *NineSlice {
 	return &NineSlice{
 		image:   image,
-		widths:  []int{borderWidthHeight, centerWidthHeight, borderWidthHeight},
-		heights: []int{borderWidthHeight, centerWidthHeight, borderWidthHeight},
+		widths:  [3]int{borderWidthHeight, centerWidthHeight, borderWidthHeight},
+		heights: [3]int{borderWidthHeight, centerWidthHeight, borderWidthHeight},
 	}
 }
 
@@ -54,8 +62,8 @@ func NewNineSliceColor(c color.Color) *NineSlice {
 	} else {
 		n = &NineSlice{
 			image:   NewImageColor(c),
-			widths:  []int{0, 1, 0},
-			heights: []int{0, 1, 0},
+			widths:  [3]int{0, 1, 0},
+			heights: [3]int{0, 1, 0},
 		}
 	}
 	colorNineSlices[c] = n
@@ -113,6 +121,14 @@ func (n *NineSlice) Draw(screen *ebiten.Image, width int, height int, optsFunc D
 		sy += sh
 		ty += th
 	}
+}
+
+func (n *NineSlice) MinSize() (int, int) {
+	if n.transparent {
+		return 0, 0
+	}
+
+	return n.widths[0] + n.widths[2], n.heights[0] + n.heights[2]
 }
 
 func (n *NineSlice) drawTile(screen *ebiten.Image, tile *ebiten.Image, tx int, ty int, sw int, sh int, tw int, th int, optsFunc DrawImageOptionsFunc) {
