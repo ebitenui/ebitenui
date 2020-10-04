@@ -11,6 +11,9 @@ with widgets, such as buttons, lists, combo boxes, and so on. It uses the [retai
 
 *Ebiten UI is currently under development and should not yet be used in production.*
 
+![Screenshots](ebiten-ui.gif)
+
+
 License
 -------
 
