@@ -342,6 +342,10 @@ func RenderWithDeferred(screen *ebiten.Image, rs []Renderer) {
 }
 
 func renderDeferredRenderQueue(screen *ebiten.Image) {
+	defer func(d []RenderFunc) {
+		deferredRenders = d[:0]
+	}(deferredRenders)
+
 	for len(deferredRenders) > 0 {
 		r := deferredRenders[0]
 		deferredRenders = deferredRenders[1:]

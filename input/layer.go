@@ -153,6 +153,10 @@ func SetupInputLayersWithDeferred(ls []Layerer) {
 }
 
 func setupDeferredInputLayers() {
+	defer func(d []SetupInputLayerFunc) {
+		deferredSetupInputLayers = d[:0]
+	}(deferredSetupInputLayers)
+
 	for len(deferredSetupInputLayers) > 0 {
 		s := deferredSetupInputLayers[0]
 		deferredSetupInputLayers = deferredSetupInputLayers[1:]
