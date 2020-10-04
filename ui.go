@@ -4,8 +4,8 @@ import (
 	"image"
 	"sync"
 
+	"github.com/blizzy78/ebitenui/event"
 	"github.com/blizzy78/ebitenui/input"
-	internalevent "github.com/blizzy78/ebitenui/internal/event"
 	internalinput "github.com/blizzy78/ebitenui/internal/input"
 	"github.com/blizzy78/ebitenui/widget"
 
@@ -43,7 +43,7 @@ func (u *UI) Update() {
 func (u *UI) Draw(screen *ebiten.Image, rect image.Rectangle) {
 	u.init.Do(u.initUI)
 
-	internalevent.ExecuteDeferredActions()
+	event.ExecuteDeferredActions()
 
 	internalinput.Draw()
 	defer internalinput.AfterDraw()

@@ -4,7 +4,7 @@ import (
 	"image/color"
 	"testing"
 
-	internalevent "github.com/blizzy78/ebitenui/internal/event"
+	"github.com/blizzy78/ebitenui/event"
 	"github.com/matryer/is"
 )
 
@@ -55,7 +55,7 @@ func TestListComboButton_SetSelectedEntry(t *testing.T) {
 			}))
 
 	l.SetSelectedEntry(entries[1])
-	internalevent.ExecuteDeferredActions()
+	event.ExecuteDeferredActions()
 
 	is.Equal(l.SelectedEntry(), entries[1])
 	is.Equal(eventArgs.Entry, entries[1])
@@ -63,7 +63,7 @@ func TestListComboButton_SetSelectedEntry(t *testing.T) {
 	is.Equal(l.Label(), "label second")
 
 	l.SetSelectedEntry(entries[1])
-	internalevent.ExecuteDeferredActions()
+	event.ExecuteDeferredActions()
 	is.Equal(numEvents, 1)
 }
 
@@ -187,7 +187,7 @@ func newListComboButton(t *testing.T, opts ...ListComboButtonOpt) *ListComboButt
 		}),
 	}...)...)
 
-	internalevent.ExecuteDeferredActions()
+	event.ExecuteDeferredActions()
 	render(l, t)
 	return l
 }

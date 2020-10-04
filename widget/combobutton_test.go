@@ -3,7 +3,7 @@ package widget
 import (
 	"testing"
 
-	internalevent "github.com/blizzy78/ebitenui/internal/event"
+	"github.com/blizzy78/ebitenui/event"
 	"github.com/matryer/is"
 )
 
@@ -28,7 +28,7 @@ func newComboButton(t *testing.T, opts ...ComboButtonOpt) *ComboButton {
 		})),
 		ComboButtonOpts.Content(newButton(t)),
 	}...)...)
-	internalevent.ExecuteDeferredActions()
+	event.ExecuteDeferredActions()
 	render(b, t)
 	return b
 }

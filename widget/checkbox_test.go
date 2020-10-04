@@ -3,7 +3,7 @@ package widget
 import (
 	"testing"
 
-	internalevent "github.com/blizzy78/ebitenui/internal/event"
+	"github.com/blizzy78/ebitenui/event"
 	"github.com/matryer/is"
 )
 
@@ -47,13 +47,13 @@ func TestCheckbox_SetState(t *testing.T) {
 		}))
 
 	c.SetState(CheckboxChecked)
-	internalevent.ExecuteDeferredActions()
+	event.ExecuteDeferredActions()
 
 	is.Equal(eventArgs.State, CheckboxChecked)
 	is.Equal(c.State(), CheckboxChecked)
 
 	c.SetState(CheckboxChecked)
-	internalevent.ExecuteDeferredActions()
+	event.ExecuteDeferredActions()
 
 	is.Equal(numEvents, 1)
 }
@@ -94,7 +94,7 @@ func newCheckbox(t *testing.T, opts ...CheckboxOpt) *Checkbox {
 			},
 		}),
 	}...)...)
-	internalevent.ExecuteDeferredActions()
+	event.ExecuteDeferredActions()
 	render(c, t)
 	return c
 }
