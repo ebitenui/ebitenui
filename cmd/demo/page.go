@@ -665,12 +665,11 @@ func anchorLayoutPage(res *uiResources) *page {
 	)
 	c.AddChild(p)
 
-	b := widget.NewButton(
-		widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.AnchorLayoutData{})),
-		widget.ButtonOpts.Image(res.button.image),
-		widget.ButtonOpts.TextPadding(res.button.padding),
-		widget.ButtonOpts.Text("Hi!", res.button.face, res.button.text))
-	p.Container().AddChild(b)
+	sp := newSizedPanel(50, 50,
+		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.AnchorLayoutData{})),
+		widget.ContainerOpts.BackgroundImage(res.panel.image),
+	)
+	p.Container().AddChild(sp.Container())
 
 	c.AddChild(newSeparator(res, &widget.RowLayoutData{
 		Stretch: true,
@@ -705,7 +704,7 @@ func anchorLayoutPage(res *uiResources) *page {
 	widget.NewRadioGroup(
 		widget.RadioGroupOpts.Checkboxes(hCBs...),
 		widget.RadioGroupOpts.ChangedHandler(func(args *widget.RadioGroupChangedEventArgs) {
-			ald := b.GetWidget().LayoutData.(*widget.AnchorLayoutData)
+			ald := sp.Container().GetWidget().LayoutData.(*widget.AnchorLayoutData)
 			ald.HorizontalPosition = widget.AnchorLayoutPosition(indexCheckbox(hCBs, args.Active))
 			p.Container().RequestRelayout()
 		}),
@@ -716,10 +715,11 @@ func anchorLayoutPage(res *uiResources) *page {
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 			widget.RowLayoutOpts.Spacing(10),
 		)),
+		widget.ContainerOpts.AutoDisableChildren(),
 	)
 	posC.AddChild(vPosC)
 
-	vPosC.AddChild(widget.NewText(widget.TextOpts.Text("Vertical", res.text.face, res.text.idleColor)))
+	vPosC.AddChild(widget.NewLabel(widget.LabelOpts.Text("Vertical", res.label.face, res.label.text)))
 
 	vCBs := []*widget.Checkbox{}
 	for _, l := range labels {
@@ -731,7 +731,7 @@ func anchorLayoutPage(res *uiResources) *page {
 	widget.NewRadioGroup(
 		widget.RadioGroupOpts.Checkboxes(vCBs...),
 		widget.RadioGroupOpts.ChangedHandler(func(args *widget.RadioGroupChangedEventArgs) {
-			ald := b.GetWidget().LayoutData.(*widget.AnchorLayoutData)
+			ald := sp.Container().GetWidget().LayoutData.(*widget.AnchorLayoutData)
 			ald.VerticalPosition = widget.AnchorLayoutPosition(indexCheckbox(vCBs, args.Active))
 			p.Container().RequestRelayout()
 		}),
@@ -747,13 +747,23 @@ func anchorLayoutPage(res *uiResources) *page {
 
 	stretchC.AddChild(widget.NewText(widget.TextOpts.Text("Stretch", res.text.face, res.text.idleColor)))
 
-	stretchC.AddChild(newCheckbox("Horizontal", func(args *widget.CheckboxChangedEventArgs) {
-		ald := b.GetWidget().LayoutData.(*widget.AnchorLayoutData)
+	stretchHorizontalCheckbox := newCheckbox("Horizontal", func(args *widget.CheckboxChangedEventArgs) {
+		ald := sp.Container().GetWidget().LayoutData.(*widget.AnchorLayoutData)
 		ald.StretchHorizontal = args.State == widget.CheckboxChecked
 		p.Container().RequestRelayout()
 
 		hPosC.GetWidget().Disabled = args.State == widget.CheckboxChecked
-	}, res))
+	}, res)
+	stretchC.AddChild(stretchHorizontalCheckbox)
+
+	stretchVerticalCheckbox := newCheckbox("Vertical", func(args *widget.CheckboxChangedEventArgs) {
+		ald := sp.Container().GetWidget().LayoutData.(*widget.AnchorLayoutData)
+		ald.StretchVertical = args.State == widget.CheckboxChecked
+		p.Container().RequestRelayout()
+
+		vPosC.GetWidget().Disabled = args.State == widget.CheckboxChecked
+	}, res)
+	stretchC.AddChild(stretchVerticalCheckbox)
 
 	return &page{
 		title:   "Anchor Layout",
