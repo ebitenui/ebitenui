@@ -10,9 +10,9 @@ import (
 
 type Label struct {
 	Label string
-	Face  font.Face
 
 	textOpts []TextOpt
+	face     font.Face
 	color    *LabelColor
 
 	init *MultiOnce
@@ -53,7 +53,7 @@ func (o labelOpts) TextOpts(opts ...TextOpt) LabelOpt {
 func (o labelOpts) Text(label string, face font.Face, color *LabelColor) LabelOpt {
 	return func(l *Label) {
 		l.Label = label
-		l.Face = face
+		l.face = face
 		l.color = color
 	}
 }
@@ -76,6 +76,8 @@ func (l *Label) PreferredSize() (int, int) {
 func (l *Label) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	l.init.Do()
 
+	l.text.Label = l.Label
+
 	if l.text.GetWidget().Disabled {
 		l.text.Color = l.color.Disabled
 	} else {
@@ -87,7 +89,8 @@ func (l *Label) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 func (l *Label) createWidget() {
 	l.text = NewText(append(l.textOpts, []TextOpt{
-		TextOpts.Text(l.Label, l.Face, l.color.Idle),
+		TextOpts.Text(l.Label, l.face, l.color.Idle),
 	}...)...)
 	l.textOpts = nil
+	l.face = nil
 }

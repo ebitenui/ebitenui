@@ -78,7 +78,7 @@ func (c *controlMock) GetWidget() *Widget {
 
 func (c *controlMock) PreferredSize() (int, int) {
 	c.Called()
-	return 50, 50
+	return -1, -1
 }
 
 func (c *controlMock) SetLocation(rect image.Rectangle) {

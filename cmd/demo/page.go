@@ -316,10 +316,12 @@ func sliderPage(res *uiResources) *page {
 
 		sc := widget.NewContainer(
 			widget.ContainerOpts.Layout(widget.NewRowLayout(
-				widget.RowLayoutOpts.Spacing(10))))
+				widget.RowLayoutOpts.Spacing(10))),
+			widget.ContainerOpts.AutoDisableChildren(),
+		)
 		c.AddChild(sc)
 
-		var text *widget.Text
+		var text *widget.Label
 
 		s := widget.NewSlider(
 			widget.SliderOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
@@ -338,11 +340,12 @@ func sliderPage(res *uiResources) *page {
 		sc.AddChild(s)
 		sliders = append(sliders, s)
 
-		text = widget.NewText(
-			widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
+		text = widget.NewLabel(
+			widget.LabelOpts.TextOpts(widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
 				Position: widget.RowLayoutPositionCenter,
-			})),
-			widget.TextOpts.Text(fmt.Sprintf("%d", s.Current), res.text.face, res.text.idleColor))
+			}))),
+			widget.LabelOpts.Text(fmt.Sprintf("%d", s.Current), res.label.face, res.label.text),
+		)
 		sc.AddChild(text)
 	}
 
@@ -352,7 +355,7 @@ func sliderPage(res *uiResources) *page {
 
 	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
 		for _, s := range sliders {
-			s.GetWidget().Disabled = args.State == widget.CheckboxChecked
+			s.GetWidget().Parent().Disabled = args.State == widget.CheckboxChecked
 		}
 	}, res))
 
