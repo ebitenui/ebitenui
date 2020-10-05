@@ -47,7 +47,7 @@ func loadFont(t *testing.T) font.Face {
 	t.Helper()
 
 	loadFontOnce.Do(func() {
-		data, err := ioutil.ReadFile("testdata/fonts/JetBrainsMonoNL-Regular.ttf")
+		data, err := ioutil.ReadFile("testdata/fonts/NotoSans-Regular.ttf")
 		if err != nil {
 			panic(err)
 		}
