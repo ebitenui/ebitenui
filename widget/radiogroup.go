@@ -84,9 +84,9 @@ func (r *RadioGroup) SetActive(a *Checkbox) {
 	})
 	r.doneEvent.Fire(nil)
 
-	if r.active != oldActive {
+	if a != oldActive {
 		r.ChangedEvent.Fire(&RadioGroupChangedEventArgs{
-			Active: r.active,
+			Active: a,
 		})
 	}
 }
