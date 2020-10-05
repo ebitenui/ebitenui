@@ -9,6 +9,6 @@ require (
 	github.com/stretchr/testify v1.6.1
 	golang.org/x/exp v0.0.0-20200924195034-c827fd4f18b9 // indirect
 	golang.org/x/image v0.0.0-20200927104501-e162460cd6b5
-	golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f // indirect
+	golang.org/x/sys v0.0.0-20201004230629-f6757f270073 // indirect
 	golang.org/x/text v0.3.3
 )
