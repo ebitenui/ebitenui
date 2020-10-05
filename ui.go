@@ -43,7 +43,7 @@ func (u *UI) Update() {
 func (u *UI) Draw(screen *ebiten.Image, rect image.Rectangle) {
 	u.init.Do(u.initUI)
 
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 
 	internalinput.Draw()
 	defer internalinput.AfterDraw()

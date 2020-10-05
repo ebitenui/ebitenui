@@ -26,20 +26,20 @@ func TestSelectComboButton_SetSelectedEntry(t *testing.T) {
 
 	entry := "foo"
 	b.SetSelectedEntry(entry)
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 
 	is.Equal(b.SelectedEntry(), entry)
 	is.Equal(eventArgs.Entry, entry)
 	is.Equal(b.Label(), "label foo")
 
 	b.SetSelectedEntry(entry)
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 
 	is.Equal(numEvents, 1)
 
 	entry2 := "bar"
 	b.SetSelectedEntry(entry2)
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 
 	is.Equal(eventArgs.PreviousEntry, entry)
 }
@@ -62,12 +62,12 @@ func TestSelectComboButton_ContentVisible_Programmatic(t *testing.T) {
 	b := newSelectComboButton(t)
 
 	b.SetContentVisible(true)
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 
 	is.True(b.ContentVisible())
 
 	b.SetContentVisible(false)
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 
 	is.True(!b.ContentVisible())
 }
@@ -92,7 +92,7 @@ func newSelectComboButton(t *testing.T, opts ...SelectComboButtonOpt) *SelectCom
 			ComboButtonOpts.Content(newButton(t))),
 	)...)
 
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 	render(b, t)
 	return b
 }

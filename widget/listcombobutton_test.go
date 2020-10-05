@@ -55,7 +55,7 @@ func TestListComboButton_SetSelectedEntry(t *testing.T) {
 			}))
 
 	l.SetSelectedEntry(entries[1])
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 
 	is.Equal(l.SelectedEntry(), entries[1])
 	is.Equal(eventArgs.Entry, entries[1])
@@ -63,7 +63,7 @@ func TestListComboButton_SetSelectedEntry(t *testing.T) {
 	is.Equal(l.Label(), "label second")
 
 	l.SetSelectedEntry(entries[1])
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 	is.Equal(numEvents, 1)
 }
 
@@ -187,7 +187,7 @@ func newListComboButton(t *testing.T, opts ...ListComboButtonOpt) *ListComboButt
 		}),
 	}...)...)
 
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 	render(l, t)
 	return l
 }

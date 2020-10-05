@@ -22,7 +22,7 @@ func newGraphic(t *testing.T, opts ...GraphicOpt) *Graphic {
 	t.Helper()
 
 	g := NewGraphic(opts...)
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 	render(g, t)
 	return g
 }

@@ -10,8 +10,8 @@ func AddDeferred(d DeferredAction) {
 	deferredActions = append(deferredActions, d)
 }
 
-// ExecuteDeferredActions processes the queue of deferred actions and executes them.
-func ExecuteDeferredActions() {
+// ExecuteDeferred processes the queue of deferred actions and executes them.
+func ExecuteDeferred() {
 	defer func(d []DeferredAction) {
 		deferredActions = d[:0]
 	}(deferredActions)

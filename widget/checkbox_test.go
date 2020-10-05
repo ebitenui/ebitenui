@@ -47,13 +47,13 @@ func TestCheckbox_SetState(t *testing.T) {
 		}))
 
 	c.SetState(CheckboxChecked)
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 
 	is.Equal(eventArgs.State, CheckboxChecked)
 	is.Equal(c.State(), CheckboxChecked)
 
 	c.SetState(CheckboxChecked)
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 
 	is.Equal(numEvents, 1)
 }
@@ -92,9 +92,12 @@ func newCheckbox(t *testing.T, opts ...CheckboxOpt) *Checkbox {
 			Unchecked: &ButtonImageImage{
 				Idle: newImageEmpty(t),
 			},
+			Checked: &ButtonImageImage{
+				Idle: newImageEmpty(t),
+			},
 		}),
 	}...)...)
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 	render(c, t)
 	return c
 }

@@ -98,7 +98,7 @@ func leftMouseButtonPress(w HasWidget, t *testing.T) {
 		OffsetY: 0,
 	})
 
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 }
 
 func leftMouseButtonRelease(w HasWidget, t *testing.T) {
@@ -112,7 +112,7 @@ func leftMouseButtonRelease(w HasWidget, t *testing.T) {
 		Inside:  true,
 	})
 
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 }
 
 func render(r Renderer, t *testing.T) {
@@ -120,5 +120,5 @@ func render(r Renderer, t *testing.T) {
 
 	screen, _ := ebiten.NewImage(0, 0, ebiten.FilterDefault)
 	RenderWithDeferred(screen, []Renderer{r})
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 }

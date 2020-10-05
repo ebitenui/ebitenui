@@ -46,7 +46,7 @@ func newFlipBook(t *testing.T, opts ...FlipBookOpt) *FlipBook {
 	t.Helper()
 
 	f := NewFlipBook(opts...)
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 	render(f, t)
 	return f
 }

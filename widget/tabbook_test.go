@@ -40,14 +40,14 @@ func TestTabBook_SetTab(t *testing.T) {
 		}))
 
 	tb.SetTab(tab2)
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 
 	is.Equal(tb.Tab(), tab2)
 	is.Equal(eventArgs.Tab, tab2)
 	is.Equal(eventArgs.PreviousTab, tab1)
 
 	tb.SetTab(tab2)
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 	is.Equal(numEvents, 1)
 }
 
@@ -92,7 +92,7 @@ func newTabBook(t *testing.T, opts ...TabBookOpt) *TabBook {
 		}),
 	}...)...)
 
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 	render(tb, t)
 	return tb
 }

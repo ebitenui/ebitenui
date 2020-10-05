@@ -28,7 +28,7 @@ func newComboButton(t *testing.T, opts ...ComboButtonOpt) *ComboButton {
 		})),
 		ComboButtonOpts.Content(newButton(t)),
 	}...)...)
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 	render(b, t)
 	return b
 }

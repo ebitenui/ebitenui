@@ -48,13 +48,13 @@ func TestList_SetSelectedEntry(t *testing.T) {
 		}))
 
 	list.SetSelectedEntry(entries[1])
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 
 	is.Equal(eventArgs.Entry, entries[1])
 	is.Equal(list.SelectedEntry(), entries[1])
 
 	list.SetSelectedEntry(entries[1])
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 
 	is.Equal(numEvents, 1)
 }
@@ -152,7 +152,7 @@ func newList(t *testing.T, opts ...ListOpt) *List {
 			}),
 		}...)...)
 
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 	render(l, t)
 	return l
 }

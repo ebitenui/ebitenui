@@ -60,7 +60,7 @@ func newButton(t *testing.T, opts ...ButtonOpt) *Button {
 			Idle: newNineSliceEmpty(t),
 		}),
 	}...)...)
-	event.ExecuteDeferredActions()
+	event.ExecuteDeferred()
 	render(b, t)
 	return b
 }
