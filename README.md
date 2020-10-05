@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/blizzy78/ebitenui.svg?branch=master)](https://travis-ci.org/blizzy78/ebitenui) [![GoDoc](https://godoc.org/github.com/blizzy78/ebitenui?status.svg)](https://pkg.go.dev/github.com/blizzy78/ebitenui)
+[![Build Status](https://travis-ci.org/blizzy78/ebitenui.svg?branch=master)](https://travis-ci.org/blizzy78/ebitenui) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=blizzy78_ebitenui&metric=alert_status)](https://sonarcloud.io/dashboard?id=blizzy78_ebitenui) [![GoDoc](https://godoc.org/github.com/blizzy78/ebitenui?status.svg)](https://pkg.go.dev/github.com/blizzy78/ebitenui)
 
 
 Ebiten UI
