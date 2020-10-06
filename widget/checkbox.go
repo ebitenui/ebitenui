@@ -118,14 +118,13 @@ func (c *Checkbox) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 }
 
 func (c *Checkbox) createWidget() {
-	c.button = NewButton(
-		append(c.buttonOpts, []ButtonOpt{
-			ButtonOpts.Graphic(c.image.Unchecked.Idle),
+	c.button = NewButton(append(c.buttonOpts, []ButtonOpt{
+		ButtonOpts.Graphic(c.image.Unchecked.Idle),
 
-			ButtonOpts.ClickedHandler(func(args *ButtonClickedEventArgs) {
-				c.SetState(c.state.Advance(c.triState))
-			}),
-		}...)...)
+		ButtonOpts.ClickedHandler(func(args *ButtonClickedEventArgs) {
+			c.SetState(c.state.Advance(c.triState))
+		}),
+	}...)...)
 	c.buttonOpts = nil
 }
 

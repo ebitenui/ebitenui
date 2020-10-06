@@ -109,9 +109,7 @@ func (f *FlipBook) WidgetAt(x int, y int) HasWidget {
 }
 
 func (f *FlipBook) createWidget() {
-	f.container = NewContainer(append(f.containerOpts, []ContainerOpt{
-		ContainerOpts.Layout(NewAnchorLayout(f.anchorLayoutOpts...)),
-	}...)...)
+	f.container = NewContainer(append(f.containerOpts, ContainerOpts.Layout(NewAnchorLayout(f.anchorLayoutOpts...)))...)
 	f.containerOpts = nil
 	f.anchorLayoutOpts = nil
 }

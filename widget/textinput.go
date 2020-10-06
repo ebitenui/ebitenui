@@ -437,14 +437,10 @@ func (t *TextInput) createWidget() {
 	t.widget = NewWidget(t.widgetOpts...)
 	t.widgetOpts = nil
 
-	t.caret = NewCaret(append(t.caretOpts, []CaretOpt{
-		CaretOpts.Color(t.color.Caret),
-	}...)...)
+	t.caret = NewCaret(append(t.caretOpts, CaretOpts.Color(t.color.Caret))...)
 	t.caretOpts = nil
 
-	t.text = NewText(
-		TextOpts.Text("", t.face, color.White),
-	)
+	t.text = NewText(TextOpts.Text("", t.face, color.White))
 
 	t.mask = image.NewNineSliceColor(color.RGBA{255, 0, 255, 255})
 }

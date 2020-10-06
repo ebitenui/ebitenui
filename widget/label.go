@@ -88,9 +88,7 @@ func (l *Label) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 }
 
 func (l *Label) createWidget() {
-	l.text = NewText(append(l.textOpts, []TextOpt{
-		TextOpts.Text(l.Label, l.face, l.color.Idle),
-	}...)...)
+	l.text = NewText(append(l.textOpts, TextOpts.Text(l.Label, l.face, l.color.Idle))...)
 	l.textOpts = nil
 	l.face = nil
 }

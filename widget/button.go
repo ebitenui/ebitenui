@@ -401,48 +401,47 @@ func (b *Button) Text() *Text {
 }
 
 func (b *Button) createWidget() {
-	b.widget = NewWidget(
-		append(b.widgetOpts, []WidgetOpt{
-			WidgetOpts.CursorEnterHandler(func(args *WidgetCursorEnterEventArgs) {
-				if !b.widget.Disabled {
-					b.hovering = true
-				}
-			}),
+	b.widget = NewWidget(append(b.widgetOpts, []WidgetOpt{
+		WidgetOpts.CursorEnterHandler(func(args *WidgetCursorEnterEventArgs) {
+			if !b.widget.Disabled {
+				b.hovering = true
+			}
+		}),
 
-			WidgetOpts.CursorExitHandler(func(args *WidgetCursorExitEventArgs) {
-				b.hovering = false
-			}),
+		WidgetOpts.CursorExitHandler(func(args *WidgetCursorExitEventArgs) {
+			b.hovering = false
+		}),
 
-			WidgetOpts.MouseButtonPressedHandler(func(args *WidgetMouseButtonPressedEventArgs) {
-				if !b.widget.Disabled {
-					b.pressing = true
+		WidgetOpts.MouseButtonPressedHandler(func(args *WidgetMouseButtonPressedEventArgs) {
+			if !b.widget.Disabled {
+				b.pressing = true
 
-					b.PressedEvent.Fire(&ButtonPressedEventArgs{
-						Button:  b,
-						OffsetX: args.OffsetX,
-						OffsetY: args.OffsetY,
+				b.PressedEvent.Fire(&ButtonPressedEventArgs{
+					Button:  b,
+					OffsetX: args.OffsetX,
+					OffsetY: args.OffsetY,
+				})
+			}
+		}),
+
+		WidgetOpts.MouseButtonReleasedHandler(func(args *WidgetMouseButtonReleasedEventArgs) {
+			b.pressing = false
+
+			if !b.widget.Disabled {
+				b.ReleasedEvent.Fire(&ButtonReleasedEventArgs{
+					Button:  b,
+					Inside:  args.Inside,
+					OffsetX: args.OffsetX,
+					OffsetY: args.OffsetY,
+				})
+
+				if args.Inside {
+					b.ClickedEvent.Fire(&ButtonClickedEventArgs{
+						Button: b,
 					})
 				}
-			}),
-
-			WidgetOpts.MouseButtonReleasedHandler(func(args *WidgetMouseButtonReleasedEventArgs) {
-				b.pressing = false
-
-				if !b.widget.Disabled {
-					b.ReleasedEvent.Fire(&ButtonReleasedEventArgs{
-						Button:  b,
-						Inside:  args.Inside,
-						OffsetX: args.OffsetX,
-						OffsetY: args.OffsetY,
-					})
-
-					if args.Inside {
-						b.ClickedEvent.Fire(&ButtonClickedEventArgs{
-							Button: b,
-						})
-					}
-				}
-			}),
-		}...)...)
+			}
+		}),
+	}...)...)
 	b.widgetOpts = nil
 }

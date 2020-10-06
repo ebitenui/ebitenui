@@ -261,11 +261,10 @@ func (l *List) createWidget() {
 		content.AddChild(but)
 	}
 
-	l.scrollContainer = NewScrollContainer(
-		append(l.scrollContainerOpts, []ScrollContainerOpt{
-			ScrollContainerOpts.Content(content),
-			ScrollContainerOpts.StretchContentWidth(),
-		}...)...)
+	l.scrollContainer = NewScrollContainer(append(l.scrollContainerOpts, []ScrollContainerOpt{
+		ScrollContainerOpts.Content(content),
+		ScrollContainerOpts.StretchContentWidth(),
+	}...)...)
 	l.scrollContainerOpts = nil
 	l.container.AddChild(l.scrollContainer)
 
@@ -274,15 +273,14 @@ func (l *List) createWidget() {
 			return int(math.Round(float64(l.scrollContainer.ContentRect().Dy()) / float64(content.GetWidget().Rect.Dy()) * 1000))
 		}
 
-		l.vSlider = NewSlider(
-			append(l.sliderOpts, []SliderOpt{
-				SliderOpts.Direction(DirectionVertical),
-				SliderOpts.MinMax(0, 1000),
-				SliderOpts.PageSizeFunc(pageSizeFunc),
-				SliderOpts.ChangedHandler(func(args *SliderChangedEventArgs) {
-					l.scrollContainer.ScrollTop = float64(args.Slider.Current) / 1000
-				}),
-			}...)...)
+		l.vSlider = NewSlider(append(l.sliderOpts, []SliderOpt{
+			SliderOpts.Direction(DirectionVertical),
+			SliderOpts.MinMax(0, 1000),
+			SliderOpts.PageSizeFunc(pageSizeFunc),
+			SliderOpts.ChangedHandler(func(args *SliderChangedEventArgs) {
+				l.scrollContainer.ScrollTop = float64(args.Slider.Current) / 1000
+			}),
+		}...)...)
 		l.container.AddChild(l.vSlider)
 
 		l.scrollContainer.widget.ScrolledEvent.AddHandler(func(args interface{}) {
@@ -296,18 +294,16 @@ func (l *List) createWidget() {
 	}
 
 	if !l.hideHorizontalSlider {
-		l.hSlider = NewSlider(
-			append(l.sliderOpts, []SliderOpt{
-				SliderOpts.Direction(DirectionHorizontal),
-				SliderOpts.MinMax(0, 1000),
-				SliderOpts.PageSizeFunc(func() int {
-					return int(math.Round(float64(l.scrollContainer.ContentRect().Dx()) / float64(content.GetWidget().Rect.Dx()) * 1000))
-				}),
-				SliderOpts.ChangedHandler(func(args *SliderChangedEventArgs) {
-					l.scrollContainer.ScrollLeft = float64(args.Slider.Current) / 1000
-				}),
-			}...)...,
-		)
+		l.hSlider = NewSlider(append(l.sliderOpts, []SliderOpt{
+			SliderOpts.Direction(DirectionHorizontal),
+			SliderOpts.MinMax(0, 1000),
+			SliderOpts.PageSizeFunc(func() int {
+				return int(math.Round(float64(l.scrollContainer.ContentRect().Dx()) / float64(content.GetWidget().Rect.Dx()) * 1000))
+			}),
+			SliderOpts.ChangedHandler(func(args *SliderChangedEventArgs) {
+				l.scrollContainer.ScrollLeft = float64(args.Slider.Current) / 1000
+			}),
+		}...)...)
 		l.container.AddChild(l.hSlider)
 	}
 

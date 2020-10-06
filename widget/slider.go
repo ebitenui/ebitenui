@@ -335,58 +335,56 @@ func (s *Slider) clampCurrentMinMax() {
 }
 
 func (s *Slider) createWidget() {
-	s.widget = NewWidget(
-		append(s.widgetOpts, []WidgetOpt{
-			WidgetOpts.CursorEnterHandler(func(args *WidgetCursorEnterEventArgs) {
-				if !s.widget.Disabled {
-					s.hovering = true
-				}
-			}),
+	s.widget = NewWidget(append(s.widgetOpts, []WidgetOpt{
+		WidgetOpts.CursorEnterHandler(func(args *WidgetCursorEnterEventArgs) {
+			if !s.widget.Disabled {
+				s.hovering = true
+			}
+		}),
 
-			WidgetOpts.CursorExitHandler(func(args *WidgetCursorExitEventArgs) {
-				s.hovering = false
-			}),
+		WidgetOpts.CursorExitHandler(func(args *WidgetCursorExitEventArgs) {
+			s.hovering = false
+		}),
 
-			// TODO: keeping the mouse button pressed should move the handle repeatedly (in PageSize steps) until it stops under the cursor
-			WidgetOpts.MouseButtonPressedHandler(func(args *WidgetMouseButtonPressedEventArgs) {
-				if !s.widget.Disabled {
-					x, y := input.CursorPosition()
-					ps := s.pageSizeFunc()
-					rect := s.handle.GetWidget().Rect
-					if s.direction == DirectionHorizontal {
-						if x < rect.Min.X {
-							s.Current -= ps
-						} else if x >= rect.Max.X {
-							s.Current += ps
-						}
-					} else {
-						if y < rect.Min.Y {
-							s.Current -= ps
-						} else if y >= rect.Max.Y {
-							s.Current += ps
-						}
+		// TODO: keeping the mouse button pressed should move the handle repeatedly (in PageSize steps) until it stops under the cursor
+		WidgetOpts.MouseButtonPressedHandler(func(args *WidgetMouseButtonPressedEventArgs) {
+			if !s.widget.Disabled {
+				x, y := input.CursorPosition()
+				ps := s.pageSizeFunc()
+				rect := s.handle.GetWidget().Rect
+				if s.direction == DirectionHorizontal {
+					if x < rect.Min.X {
+						s.Current -= ps
+					} else if x >= rect.Max.X {
+						s.Current += ps
 					}
-
-					s.clampCurrentMinMax()
+				} else {
+					if y < rect.Min.Y {
+						s.Current -= ps
+					} else if y >= rect.Max.Y {
+						s.Current += ps
+					}
 				}
-			}),
-		}...)...)
+
+				s.clampCurrentMinMax()
+			}
+		}),
+	}...)...)
 	s.widgetOpts = nil
 
-	s.handle = NewButton(
-		append(s.handleOpts, []ButtonOpt{
-			ButtonOpts.KeepPressedOnExit(),
+	s.handle = NewButton(append(s.handleOpts, []ButtonOpt{
+		ButtonOpts.KeepPressedOnExit(),
 
-			ButtonOpts.PressedHandler(func(args *ButtonPressedEventArgs) {
-				s.dragging = true
-				s.handlePressedCursorX, s.handlePressedCursorY = input.CursorPosition()
-				s.handlePressedOffsetX = args.OffsetX
-				s.handlePressedOffsetY = args.OffsetY
-				s.handlePressedInternalCurrent = s.currentToInternal(s.Current)
-			}),
+		ButtonOpts.PressedHandler(func(args *ButtonPressedEventArgs) {
+			s.dragging = true
+			s.handlePressedCursorX, s.handlePressedCursorY = input.CursorPosition()
+			s.handlePressedOffsetX = args.OffsetX
+			s.handlePressedOffsetY = args.OffsetY
+			s.handlePressedInternalCurrent = s.currentToInternal(s.Current)
+		}),
 
-			ButtonOpts.ReleasedHandler(func(args *ButtonReleasedEventArgs) {
-				s.dragging = false
-			}),
-		}...)...)
+		ButtonOpts.ReleasedHandler(func(args *ButtonReleasedEventArgs) {
+			s.dragging = false
+		}),
+	}...)...)
 }

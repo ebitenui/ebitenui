@@ -128,29 +128,28 @@ func TestList_EntrySelectedEvent_User_AllowReselect(t *testing.T) {
 func newList(t *testing.T, opts ...ListOpt) *List {
 	t.Helper()
 
-	l := NewList(
-		append(opts, []ListOpt{
-			ListOpts.ScrollContainerOpts(ScrollContainerOpts.Image(&ScrollContainerImage{
-				Idle:     newNineSliceEmpty(t),
-				Disabled: newNineSliceEmpty(t),
-				Mask:     newNineSliceEmpty(t),
-			})),
+	l := NewList(append(opts, []ListOpt{
+		ListOpts.ScrollContainerOpts(ScrollContainerOpts.Image(&ScrollContainerImage{
+			Idle:     newNineSliceEmpty(t),
+			Disabled: newNineSliceEmpty(t),
+			Mask:     newNineSliceEmpty(t),
+		})),
 
-			ListOpts.SliderOpts(SliderOpts.Images(&SliderTrackImage{}, &ButtonImage{
-				Idle: newNineSliceEmpty(t),
-			})),
+		ListOpts.SliderOpts(SliderOpts.Images(&SliderTrackImage{}, &ButtonImage{
+			Idle: newNineSliceEmpty(t),
+		})),
 
-			ListOpts.EntryFontFace(loadFont(t)),
+		ListOpts.EntryFontFace(loadFont(t)),
 
-			ListOpts.EntryColor(&ListEntryColor{
-				Unselected:                 color.Transparent,
-				Selected:                   color.Transparent,
-				DisabledUnselected:         color.Transparent,
-				DisabledSelected:           color.Transparent,
-				SelectedBackground:         color.Transparent,
-				DisabledSelectedBackground: color.Transparent,
-			}),
-		}...)...)
+		ListOpts.EntryColor(&ListEntryColor{
+			Unselected:                 color.Transparent,
+			Selected:                   color.Transparent,
+			DisabledUnselected:         color.Transparent,
+			DisabledSelected:           color.Transparent,
+			SelectedBackground:         color.Transparent,
+			DisabledSelectedBackground: color.Transparent,
+		}),
+	}...)...)
 
 	event.ExecuteDeferred()
 	render(l, t)

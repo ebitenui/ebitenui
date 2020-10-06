@@ -147,12 +147,10 @@ func headerContainer(res *uiResources) widget.PreferredSizeLocateableWidget {
 }
 
 func header(label string, res *uiResources, opts ...widget.ContainerOpt) widget.PreferredSizeLocateableWidget {
-	c := widget.NewContainer(
-		append(opts, []widget.ContainerOpt{
-			widget.ContainerOpts.BackgroundImage(res.header.background),
-			widget.ContainerOpts.Layout(widget.NewAnchorLayout(widget.AnchorLayoutOpts.Padding(res.header.padding))),
-		}...)...,
-	)
+	c := widget.NewContainer(append(opts, []widget.ContainerOpt{
+		widget.ContainerOpts.BackgroundImage(res.header.background),
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout(widget.AnchorLayoutOpts.Padding(res.header.padding))),
+	}...)...)
 
 	c.AddChild(widget.NewText(
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.AnchorLayoutData{

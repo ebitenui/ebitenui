@@ -158,10 +158,8 @@ func (c *ComboButton) renderContent(screen *ebiten.Image, def DeferredRenderFunc
 }
 
 func (c *ComboButton) createWidget() {
-	c.button = NewButton(append(c.buttonOpts, []ButtonOpt{
-		ButtonOpts.ClickedHandler(func(args *ButtonClickedEventArgs) {
-			c.ContentVisible = !c.ContentVisible
-		}),
-	}...)...)
+	c.button = NewButton(append(c.buttonOpts, ButtonOpts.ClickedHandler(func(args *ButtonClickedEventArgs) {
+		c.ContentVisible = !c.ContentVisible
+	}))...)
 	c.buttonOpts = nil
 }

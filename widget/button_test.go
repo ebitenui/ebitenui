@@ -55,11 +55,9 @@ func TestButton_ClickedEvent_User(t *testing.T) {
 func newButton(t *testing.T, opts ...ButtonOpt) *Button {
 	t.Helper()
 
-	b := NewButton(append(opts, []ButtonOpt{
-		ButtonOpts.Image(&ButtonImage{
-			Idle: newNineSliceEmpty(t),
-		}),
-	}...)...)
+	b := NewButton(append(opts, ButtonOpts.Image(&ButtonImage{
+		Idle: newNineSliceEmpty(t),
+	}))...)
 	event.ExecuteDeferred()
 	render(b, t)
 	return b
