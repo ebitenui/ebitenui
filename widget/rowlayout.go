@@ -6,7 +6,6 @@ type rowLayout struct {
 	direction Direction
 	padding   Insets
 	spacing   int
-	dirty     bool
 }
 
 type RowLayoutOpt func(f *rowLayout)
@@ -67,14 +66,6 @@ func (r *rowLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (int,
 }
 
 func (r *rowLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) {
-	if !r.dirty {
-		return
-	}
-
-	defer func() {
-		r.dirty = false
-	}()
-
 	r.layout(widgets, rect, true, func(w PreferredSizeLocateableWidget, wr image.Rectangle) {
 		w.SetLocation(wr)
 	})
@@ -168,8 +159,4 @@ func (r *rowLayout) applyPosition(ld *RowLayoutData, wx int, wy int, ww int, wh 
 	}
 
 	return wx, wy
-}
-
-func (r *rowLayout) MarkDirty() {
-	r.dirty = true
 }

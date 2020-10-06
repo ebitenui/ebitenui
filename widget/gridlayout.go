@@ -12,7 +12,6 @@ type gridLayout struct {
 	rowSpacing    int
 	columnStretch []bool
 	rowStretch    []bool
-	dirty         bool
 }
 
 type GridLayoutOpt func(g *gridLayout)
@@ -79,14 +78,6 @@ func (g *gridLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (int
 }
 
 func (g *gridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) {
-	if !g.dirty {
-		return
-	}
-
-	defer func() {
-		g.dirty = false
-	}()
-
 	rect = g.padding.Apply(rect)
 
 	colWidths, rowHeights := g.preferredColumnWidthsAndRowHeights(widgets)
@@ -267,8 +258,4 @@ func sumInts(ints []int) int {
 		s += i
 	}
 	return s
-}
-
-func (g *gridLayout) MarkDirty() {
-	g.dirty = true
 }

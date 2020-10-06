@@ -4,7 +4,6 @@ import "image"
 
 type anchorLayout struct {
 	padding Insets
-	dirty   bool
 }
 
 type AnchorLayoutOpt func(a *anchorLayout)
@@ -56,14 +55,6 @@ func (a *anchorLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (i
 }
 
 func (a *anchorLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) {
-	if !a.dirty {
-		return
-	}
-
-	defer func() {
-		a.dirty = false
-	}()
-
 	if len(widgets) == 0 {
 		return
 	}
@@ -112,8 +103,4 @@ func (a *anchorLayout) applyLayoutData(ld *AnchorLayoutData, wx int, wy int, ww 
 	}
 
 	return wx, wy, ww, wh
-}
-
-func (a *anchorLayout) MarkDirty() {
-	a.dirty = true
 }

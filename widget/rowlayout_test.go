@@ -133,6 +133,5 @@ func TestRowLayout_Layout(t *testing.T) {
 func newRowLayout(t *testing.T, opts ...RowLayoutOpt) Layouter {
 	t.Helper()
 	l := NewRowLayout(opts...)
-	l.(Dirtyable).MarkDirty()
 	return l
 }

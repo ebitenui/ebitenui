@@ -13,8 +13,9 @@ type Container struct {
 	BackgroundImage     *image.NineSlice
 	AutoDisableChildren bool
 
-	widgetOpts []WidgetOpt
-	layout     Layouter
+	widgetOpts  []WidgetOpt
+	layout      Layouter
+	layoutDirty bool
 
 	init     *MultiOnce
 	widget   *Widget
@@ -114,11 +115,7 @@ func (c *Container) removeChild(child PreferredSizeLocateableWidget) {
 func (c *Container) RequestRelayout() {
 	c.init.Do()
 
-	if c.layout != nil {
-		if d, ok := c.layout.(Dirtyable); ok {
-			d.MarkDirty()
-		}
-	}
+	c.layoutDirty = true
 
 	for _, ch := range c.children {
 		if r, ok := ch.(Relayoutable); ok {
@@ -156,9 +153,9 @@ func (c *Container) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 		}
 	}
 
-	c.doLayout()
-
 	c.widget.Render(screen, def)
+
+	c.doLayout()
 
 	c.draw(screen)
 
@@ -170,8 +167,9 @@ func (c *Container) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 }
 
 func (c *Container) doLayout() {
-	if c.layout != nil {
+	if c.layout != nil && c.layoutDirty {
 		c.layout.Layout(c.children, c.widget.Rect)
+		c.layoutDirty = false
 	}
 }
 

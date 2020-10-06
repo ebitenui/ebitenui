@@ -17,10 +17,6 @@ type Locateable interface {
 	SetLocation(rect image.Rectangle)
 }
 
-type Dirtyable interface {
-	MarkDirty()
-}
-
 type Locater interface {
 	WidgetAt(x int, y int) HasWidget
 }

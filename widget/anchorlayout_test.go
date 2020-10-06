@@ -52,6 +52,5 @@ func TestAnchorLayout_Layout_Fill(t *testing.T) {
 func newAnchorLayout(t *testing.T, opts ...AnchorLayoutOpt) Layouter {
 	t.Helper()
 	l := NewAnchorLayout(opts...)
-	l.(Dirtyable).MarkDirty()
 	return l
 }

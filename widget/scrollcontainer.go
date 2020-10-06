@@ -192,9 +192,11 @@ func (s *ScrollContainer) renderContent(screen *ebiten.Image, def DeferredRender
 
 		rect = rect.Sub(img.Point{int(math.Round(float64(cw-crect.Dx()) * s.ScrollLeft)), int(math.Round(float64(ch-crect.Dy()) * s.ScrollTop))})
 
-		l.SetLocation(rect)
-		if r, ok := s.content.(Relayoutable); ok {
-			r.RequestRelayout()
+		if rect != s.content.GetWidget().Rect {
+			l.SetLocation(rect)
+			if r, ok := s.content.(Relayoutable); ok {
+				r.RequestRelayout()
+			}
 		}
 	}
 

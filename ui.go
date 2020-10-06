@@ -2,7 +2,6 @@ package ebitenui
 
 import (
 	"image"
-	"sync"
 
 	"github.com/blizzy78/ebitenui/event"
 	"github.com/blizzy78/ebitenui/input"
@@ -19,8 +18,6 @@ type UI struct {
 	ToolTip     *widget.ToolTip
 	DragAndDrop *widget.DragAndDrop
 
-	init          sync.Once
-	layout        *widget.RootLayout
 	lastRect      image.Rectangle
 	focusedWidget widget.HasWidget
 	inputLayerers []input.Layerer
@@ -32,7 +29,6 @@ type RemoveWindowFunc func()
 
 // Update updates u. This function should be called in the Ebiten Update function.
 func (u *UI) Update() {
-	u.init.Do(u.initUI)
 	internalinput.Update()
 }
 
@@ -41,8 +37,6 @@ func (u *UI) Update() {
 //
 // If rect changes from one frame to the next, u.Container.RequestRelayout is called.
 func (u *UI) Draw(screen *ebiten.Image, rect image.Rectangle) {
-	u.init.Do(u.initUI)
-
 	event.ExecuteDeferred()
 
 	internalinput.Draw()
@@ -58,7 +52,7 @@ func (u *UI) Draw(screen *ebiten.Image, rect image.Rectangle) {
 
 	u.handleFocus()
 	u.setupInputLayers()
-	u.layout.LayoutRoot(rect)
+	u.Container.SetLocation(rect)
 	u.render(screen)
 }
 
@@ -153,8 +147,4 @@ func (u *UI) removeWindow(w *widget.Window) {
 			break
 		}
 	}
-}
-
-func (u *UI) initUI() {
-	u.layout = widget.NewRootLayout(u.Container)
 }
