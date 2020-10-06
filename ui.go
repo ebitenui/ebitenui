@@ -36,11 +36,14 @@ func (u *UI) Update() {
 // This function should be called in the Ebiten Draw function.
 //
 // If rect changes from one frame to the next, u.Container.RequestRelayout is called.
-func (u *UI) Draw(screen *ebiten.Image, rect image.Rectangle) {
+func (u *UI) Draw(screen *ebiten.Image) {
 	event.ExecuteDeferred()
 
 	internalinput.Draw()
 	defer internalinput.AfterDraw()
+
+	w, h := screen.Size()
+	rect := image.Rect(0, 0, w, h)
 
 	defer func() {
 		u.lastRect = rect

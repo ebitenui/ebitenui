@@ -1,7 +1,6 @@
 package main
 
 import (
-	img "image"
 	"log"
 	"sort"
 
@@ -368,12 +367,11 @@ func (g *game) Layout(outsideWidth int, outsideHeight int) (int, int) {
 	return outsideWidth, outsideHeight
 }
 
-func (g *game) Update(screen *ebiten.Image) error {
+func (g *game) Update(_ *ebiten.Image) error {
 	g.ui.Update()
 	return nil
 }
 
 func (g *game) Draw(screen *ebiten.Image) {
-	w, h := screen.Size()
-	g.ui.Draw(screen, img.Rect(0, 0, w, h))
+	g.ui.Draw(screen)
 }
