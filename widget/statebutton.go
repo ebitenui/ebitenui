@@ -8,6 +8,7 @@ import (
 )
 
 type StateButton struct {
+	// TODO: changing this should fire an event
 	State interface{}
 
 	buttonOpts []ButtonOpt

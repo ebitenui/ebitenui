@@ -95,7 +95,8 @@ func (l *LabeledCheckbox) createWidget() {
 	l.container = NewContainer(
 		ContainerOpts.Layout(NewRowLayout(
 			RowLayoutOpts.Spacing(l.spacing))),
-		ContainerOpts.AutoDisableChildren())
+		ContainerOpts.AutoDisableChildren(),
+	)
 
 	l.checkbox = NewCheckbox(append(l.checkboxOpts, CheckboxOpts.ButtonOpts(ButtonOpts.WidgetOpts(WidgetOpts.LayoutData(&RowLayoutData{
 		Position: RowLayoutPositionCenter,

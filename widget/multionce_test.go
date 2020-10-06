@@ -9,17 +9,19 @@ import (
 func TestMultiOnce_Do(t *testing.T) {
 	is := is.New(t)
 
-	count := 0
-
 	m := MultiOnce{}
-	m.Append(func() {
+
+	count := 0
+	f := func() {
 		count++
-	})
-	m.Append(func() {
-		count++
-	})
+	}
+
+	m.Append(f)
+	m.Append(f)
 
 	m.Do()
+	is.Equal(count, 2)
+
 	m.Do()
 	is.Equal(count, 2)
 }

@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/blizzy78/ebitenui/event"
 	"github.com/blizzy78/ebitenui/image"
 	"github.com/blizzy78/ebitenui/input"
 	"github.com/hajimehoshi/ebiten"
@@ -14,6 +15,8 @@ import (
 )
 
 type TextInput struct {
+	ChangedEvent *event.Event
+
 	InputText string
 
 	widgetOpts      []WidgetOpt
@@ -38,6 +41,7 @@ type TextInput struct {
 	state          textInputState
 	scrollOffset   int
 	focused        bool
+	lastInputText  string
 }
 
 type TextInputOpt func(t *TextInput)
@@ -45,6 +49,13 @@ type TextInputOpt func(t *TextInput)
 const TextInputOpts = textInputOpts(true)
 
 type textInputOpts bool
+
+type TextInputChangedEventArgs struct {
+	TextInput *TextInput
+	InputText string
+}
+
+type TextInputChangedHandlerFunc func(args *TextInputChangedEventArgs)
 
 type TextInputImage struct {
 	Idle     *image.NineSlice
@@ -85,6 +96,8 @@ var textInputKeyToCommand = map[ebiten.Key]textInputControlCommand{
 
 func NewTextInput(opts ...TextInputOpt) *TextInput {
 	t := &TextInput{
+		ChangedEvent: &event.Event{},
+
 		repeatDelay:    300 * time.Millisecond,
 		repeatInterval: 35 * time.Millisecond,
 
@@ -119,6 +132,14 @@ func (o textInputOpts) WidgetOpts(opts ...WidgetOpt) TextInputOpt {
 func (o textInputOpts) CaretOpts(opts ...CaretOpt) TextInputOpt {
 	return func(t *TextInput) {
 		t.caretOpts = append(t.caretOpts, opts...)
+	}
+}
+
+func (o textInputOpts) ChangedHandler(f TextInputChangedHandlerFunc) TextInputOpt {
+	return func(t *TextInput) {
+		t.ChangedEvent.AddHandler(func(args interface{}) {
+			f(args.(*TextInputChangedEventArgs))
+		})
 	}
 }
 
@@ -182,6 +203,13 @@ func (t *TextInput) PreferredSize() (int, int) {
 
 func (t *TextInput) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	t.init.Do()
+
+	if t.InputText != t.lastInputText {
+		t.ChangedEvent.Fire(&TextInputChangedEventArgs{
+			TextInput: t,
+			InputText: t.InputText,
+		})
+	}
 
 	t.text.GetWidget().Disabled = t.widget.Disabled
 

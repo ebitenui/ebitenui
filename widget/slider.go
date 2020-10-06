@@ -208,16 +208,7 @@ func (s *Slider) draw(screen *ebiten.Image) {
 	}
 
 	if i != nil {
-		i.Draw(screen, s.widget.Rect.Dx(), s.widget.Rect.Dy(), func(opts *ebiten.DrawImageOptions) {
-			s.widget.drawImageOptions(opts)
-			s.drawImageOptions(opts)
-		})
-	}
-}
-
-func (s *Slider) drawImageOptions(opts *ebiten.DrawImageOptions) {
-	if s.widget.Disabled && s.trackImage.Disabled == nil {
-		opts.ColorM.Scale(1, 1, 1, 0.35)
+		i.Draw(screen, s.widget.Rect.Dx(), s.widget.Rect.Dy(), s.widget.drawImageOptions)
 	}
 }
 
