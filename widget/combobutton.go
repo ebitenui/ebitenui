@@ -110,6 +110,8 @@ func (c *ComboButton) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 func (c *ComboButton) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	c.init.Do()
 
+	c.handleClick()
+
 	c.button.Render(screen, def)
 
 	if c.content != nil && c.ContentVisible {
@@ -117,44 +119,63 @@ func (c *ComboButton) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	}
 }
 
-func (c *ComboButton) renderContent(screen *ebiten.Image, def DeferredRenderFunc) {
+func (c *ComboButton) handleClick() {
 	if input.MouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		x, y := input.CursorPosition()
 		p := image.Point{x, y}
 		if !p.In(c.button.GetWidget().Rect) && !p.In(c.content.GetWidget().Rect) {
 			c.ContentVisible = false
-			return
 		}
 	}
+}
+
+func (c *ComboButton) renderContent(screen *ebiten.Image, def DeferredRenderFunc) {
+	c.relayoutContent()
 
 	r, ok := c.content.(Renderer)
 	if !ok {
 		return
 	}
 
-	if l, ok := c.content.(Locateable); ok {
-		rect := c.button.GetWidget().Rect
-		x, y := rect.Min.X, rect.Max.Y+2
+	r.Render(screen, def)
+}
 
-		var w int
-		var h int
-		if p, ok := c.content.(PreferredSizer); ok {
-			w, h = p.PreferredSize()
-		} else {
-			w, h = 50, 50
-		}
-
-		if c.maxContentHeight > 0 && h > c.maxContentHeight {
-			h = c.maxContentHeight
-		}
-
-		l.SetLocation(image.Rect(x, y, x+w, y+h))
-		if r, ok := c.content.(Relayoutable); ok {
-			r.RequestRelayout()
-		}
+func (c *ComboButton) relayoutContent() {
+	l, ok := c.content.(Locateable)
+	if !ok {
+		return
 	}
 
-	r.Render(screen, def)
+	rect := c.button.GetWidget().Rect
+	x, y := rect.Min.X, rect.Max.Y+2
+
+	var w int
+	var h int
+	if p, ok := c.content.(PreferredSizer); ok {
+		w, h = p.PreferredSize()
+	} else {
+		w, h = 50, 50
+	}
+
+	if c.maxContentHeight > 0 && h > c.maxContentHeight {
+		h = c.maxContentHeight
+	}
+
+	cr := image.Rect(0, 0, w, h)
+	cr = cr.Add(image.Point{x, y})
+
+	if cr == c.content.GetWidget().Rect {
+		return
+	}
+
+	l.SetLocation(cr)
+
+	r, ok := c.content.(Relayoutable)
+	if !ok {
+		return
+	}
+
+	r.RequestRelayout()
 }
 
 func (c *ComboButton) createWidget() {

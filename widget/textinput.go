@@ -244,17 +244,8 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 			return t.charInputState(chars[0]), true
 		}
 
-		for key, cmd := range textInputKeyToCommand {
-			if input.KeyPressed(key) {
-				var delay time.Duration
-				if newKeyOrCommand {
-					delay = t.repeatDelay
-				} else {
-					delay = t.repeatInterval
-				}
-
-				return t.commandState(cmd, key, delay, nil, nil), true
-			}
+		if st := textInputCheckForCommand(t, newKeyOrCommand); st != nil {
+			return st, true
 		}
 
 		if input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, t.widget.EffectiveInputLayer()) {
@@ -263,6 +254,25 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 
 		return t.idleState(true), false
 	}
+}
+
+func textInputCheckForCommand(t *TextInput, newKeyOrCommand bool) textInputState {
+	for key, cmd := range textInputKeyToCommand {
+		if !input.KeyPressed(key) {
+			continue
+		}
+
+		var delay time.Duration
+		if newKeyOrCommand {
+			delay = t.repeatDelay
+		} else {
+			delay = t.repeatInterval
+		}
+
+		return t.commandState(cmd, key, delay, nil, nil)
+	}
+
+	return nil
 }
 
 func (t *TextInput) charInputState(c rune) textInputState {
