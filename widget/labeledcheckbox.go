@@ -98,14 +98,14 @@ func (l *LabeledCheckbox) createWidget() {
 		ContainerOpts.AutoDisableChildren(),
 	)
 
-	l.checkbox = NewCheckbox(append(l.checkboxOpts, CheckboxOpts.ButtonOpts(ButtonOpts.WidgetOpts(WidgetOpts.LayoutData(&RowLayoutData{
+	l.checkbox = NewCheckbox(append(l.checkboxOpts, CheckboxOpts.ButtonOpts(ButtonOpts.WidgetOpts(WidgetOpts.LayoutData(RowLayoutData{
 		Position: RowLayoutPositionCenter,
 	}))))...)
 	l.container.AddChild(l.checkbox)
 	l.checkboxOpts = nil
 
 	l.label = NewLabel(append(l.labelOpts, LabelOpts.TextOpts(TextOpts.WidgetOpts(
-		WidgetOpts.LayoutData(&RowLayoutData{
+		WidgetOpts.LayoutData(RowLayoutData{
 			Position: RowLayoutPositionCenter,
 		}),
 

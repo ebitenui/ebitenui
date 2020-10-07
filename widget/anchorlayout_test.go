@@ -42,46 +42,46 @@ func TestAnchorLayout_Layout(t *testing.T) {
 	prect := padding.Apply(rect)
 
 	tests := []struct {
-		ld       *AnchorLayoutData
+		ld       AnchorLayoutData
 		expected image.Rectangle
 	}{
 		{
-			&AnchorLayoutData{
+			AnchorLayoutData{
 				StretchHorizontal: true,
 				StretchVertical:   true,
 			},
 			prect,
 		},
 		{
-			&AnchorLayoutData{
+			AnchorLayoutData{
 				HorizontalPosition: AnchorLayoutPositionEnd,
 				VerticalPosition:   AnchorLayoutPositionStart,
 			},
 			wrect.Add(prect.Min).Add(image.Point{prect.Dx(), 0}).Sub(image.Point{ww, 0}),
 		},
 		{
-			&AnchorLayoutData{
+			AnchorLayoutData{
 				HorizontalPosition: AnchorLayoutPositionCenter,
 				VerticalPosition:   AnchorLayoutPositionCenter,
 			},
 			wrect.Add(prect.Min).Add(image.Point{(prect.Dx() - ww) / 2, (prect.Dy() - wh) / 2}),
 		},
 		{
-			&AnchorLayoutData{
+			AnchorLayoutData{
 				HorizontalPosition: AnchorLayoutPositionStart,
 				VerticalPosition:   AnchorLayoutPositionEnd,
 			},
 			wrect.Add(prect.Min).Add(image.Point{0, prect.Dy()}).Sub(image.Point{0, wh}),
 		},
 		{
-			&AnchorLayoutData{
+			AnchorLayoutData{
 				HorizontalPosition: AnchorLayoutPositionCenter,
 				StretchVertical:    true,
 			},
 			image.Rect(prect.Min.X+(prect.Dx()-ww)/2, prect.Min.Y, prect.Min.X+(prect.Dx()-ww)/2+ww, prect.Max.Y),
 		},
 		{
-			&AnchorLayoutData{
+			AnchorLayoutData{
 				StretchHorizontal: true,
 				VerticalPosition:  AnchorLayoutPositionCenter,
 			},

@@ -25,23 +25,23 @@ func TestRowLayout_PreferredSize(t *testing.T) {
 
 	widgets := []PreferredSizeLocateableWidget{
 		newSimpleWidget(10, 10, nil),
-		newSimpleWidget(20, 20, &RowLayoutData{
+		newSimpleWidget(20, 20, RowLayoutData{
 			Position: RowLayoutPositionCenter,
 		}),
-		newSimpleWidget(30, 30, &RowLayoutData{
+		newSimpleWidget(30, 30, RowLayoutData{
 			Position: RowLayoutPositionEnd,
 		}),
-		newSimpleWidget(40, 40, &RowLayoutData{
+		newSimpleWidget(40, 40, RowLayoutData{
 			Stretch: true,
 		}),
-		newSimpleWidget(200, 200, &RowLayoutData{
+		newSimpleWidget(200, 200, RowLayoutData{
 			MaxHeight: 45,
 		}),
-		newSimpleWidget(200, 200, &RowLayoutData{
+		newSimpleWidget(200, 200, RowLayoutData{
 			Position:  RowLayoutPositionCenter,
 			MaxHeight: 45,
 		}),
-		newSimpleWidget(200, 200, &RowLayoutData{
+		newSimpleWidget(200, 200, RowLayoutData{
 			Position:  RowLayoutPositionEnd,
 			MaxHeight: 45,
 		}),
@@ -58,7 +58,7 @@ func TestRowLayout_PreferredSize(t *testing.T) {
 			expectedWidth += spacing
 		}
 
-		if rld, ok := s.GetWidget().LayoutData.(*RowLayoutData); ok {
+		if rld, ok := s.GetWidget().LayoutData.(RowLayoutData); ok {
 			if rld.MaxHeight > 0 && h > rld.MaxHeight {
 				h = rld.MaxHeight
 			}
@@ -91,23 +91,23 @@ func TestRowLayout_Layout(t *testing.T) {
 
 	widgets := []PreferredSizeLocateableWidget{
 		newSimpleWidget(10, 10, nil),
-		newSimpleWidget(20, 20, &RowLayoutData{
+		newSimpleWidget(20, 20, RowLayoutData{
 			Position: RowLayoutPositionCenter,
 		}),
-		newSimpleWidget(30, 30, &RowLayoutData{
+		newSimpleWidget(30, 30, RowLayoutData{
 			Position: RowLayoutPositionEnd,
 		}),
-		newSimpleWidget(40, 40, &RowLayoutData{
+		newSimpleWidget(40, 40, RowLayoutData{
 			Stretch: true,
 		}),
-		newSimpleWidget(200, 200, &RowLayoutData{
+		newSimpleWidget(200, 200, RowLayoutData{
 			MaxHeight: 45,
 		}),
-		newSimpleWidget(200, 200, &RowLayoutData{
+		newSimpleWidget(200, 200, RowLayoutData{
 			Position:  RowLayoutPositionCenter,
 			MaxHeight: 45,
 		}),
-		newSimpleWidget(200, 200, &RowLayoutData{
+		newSimpleWidget(200, 200, RowLayoutData{
 			Position:  RowLayoutPositionEnd,
 			MaxHeight: 45,
 		}),

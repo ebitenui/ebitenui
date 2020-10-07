@@ -21,7 +21,7 @@ func buttonPage(res *uiResources) *page {
 	bs := []*widget.Button{}
 	for i := 0; i < 3; i++ {
 		b := widget.NewButton(
-			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
+			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Stretch: true,
 			})),
 			widget.ButtonOpts.Image(res.button.image),
@@ -32,7 +32,7 @@ func buttonPage(res *uiResources) *page {
 		bs = append(bs, b)
 	}
 
-	c.AddChild(newSeparator(res, &widget.RowLayoutData{
+	c.AddChild(newSeparator(res, widget.RowLayoutData{
 		Stretch: true,
 	}))
 
@@ -63,7 +63,7 @@ func checkboxPage(res *uiResources) *page {
 		widget.LabeledCheckboxOpts.LabelOpts(widget.LabelOpts.Text("Tri-State Checkbox", res.label.face, res.label.text)))
 	c.AddChild(cb2)
 
-	c.AddChild(newSeparator(res, &widget.RowLayoutData{
+	c.AddChild(newSeparator(res, widget.RowLayoutData{
 		Stretch: true,
 	}))
 
@@ -82,7 +82,7 @@ func listPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
 	listsContainer := widget.NewContainer(
-		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
+		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: true,
 		})),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
@@ -92,7 +92,7 @@ func listPage(res *uiResources) *page {
 	c.AddChild(listsContainer)
 
 	entries1 := []interface{}{"One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"}
-	list1 := newList(entries1, res, widget.WidgetOpts.LayoutData(&widget.GridLayoutData{
+	list1 := newList(entries1, res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
 		MaxHeight: 220,
 	}))
 	listsContainer.AddChild(list1)
@@ -107,7 +107,7 @@ func listPage(res *uiResources) *page {
 	bs := []*widget.Button{}
 	for i := 0; i < 3; i++ {
 		b := widget.NewButton(
-			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
+			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Stretch: true,
 			})),
 			widget.ButtonOpts.Image(res.button.image),
@@ -118,12 +118,12 @@ func listPage(res *uiResources) *page {
 	}
 
 	entries2 := []interface{}{"Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen", "Twenty"}
-	list2 := newList(entries2, res, widget.WidgetOpts.LayoutData(&widget.GridLayoutData{
+	list2 := newList(entries2, res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
 		MaxHeight: 220,
 	}))
 	listsContainer.AddChild(list2)
 
-	c.AddChild(newSeparator(res, &widget.RowLayoutData{
+	c.AddChild(newSeparator(res, widget.RowLayoutData{
 		Stretch: true,
 	}))
 
@@ -163,7 +163,7 @@ func comboButtonPage(res *uiResources) *page {
 		res)
 	c.AddChild(cb)
 
-	c.AddChild(newSeparator(res, &widget.RowLayoutData{
+	c.AddChild(newSeparator(res, widget.RowLayoutData{
 		Stretch: true,
 	}))
 
@@ -214,7 +214,7 @@ func tabBookPage(res *uiResources) *page {
 		widget.TabBookOpts.Spacing(15))
 	c.AddChild(t)
 
-	c.AddChild(newSeparator(res, &widget.RowLayoutData{
+	c.AddChild(newSeparator(res, widget.RowLayoutData{
 		Stretch: true,
 	}))
 
@@ -232,7 +232,7 @@ func gridLayoutPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
 	bc := widget.NewContainer(
-		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
+		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: true,
 		})),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
@@ -290,7 +290,7 @@ func rowLayoutPage(res *uiResources) *page {
 	labels := []string{"Tiny", "Medium", "Very Large"}
 	for _, l := range labels {
 		b := widget.NewButton(
-			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
+			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Stretch: true,
 			})),
 			widget.ButtonOpts.Image(res.button.image),
@@ -324,7 +324,7 @@ func sliderPage(res *uiResources) *page {
 		var text *widget.Label
 
 		s := widget.NewSlider(
-			widget.SliderOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
+			widget.SliderOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Position: widget.RowLayoutPositionCenter,
 			})),
 			widget.SliderOpts.MinMax(1, 20),
@@ -341,7 +341,7 @@ func sliderPage(res *uiResources) *page {
 		sliders = append(sliders, s)
 
 		text = widget.NewLabel(
-			widget.LabelOpts.TextOpts(widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
+			widget.LabelOpts.TextOpts(widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Position: widget.RowLayoutPositionCenter,
 			}))),
 			widget.LabelOpts.Text(fmt.Sprintf("%d", s.Current), res.label.face, res.label.text),
@@ -349,7 +349,7 @@ func sliderPage(res *uiResources) *page {
 		sc.AddChild(text)
 	}
 
-	c.AddChild(newSeparator(res, &widget.RowLayoutData{
+	c.AddChild(newSeparator(res, widget.RowLayoutData{
 		Stretch: true,
 	}))
 
@@ -392,7 +392,7 @@ func toolTipPage(res *uiResources, toolTips *toolTipContents, toolTip *widget.To
 		bc.AddChild(b)
 	}
 
-	c.AddChild(newSeparator(res, &widget.RowLayoutData{
+	c.AddChild(newSeparator(res, widget.RowLayoutData{
 		Stretch: true,
 	}))
 
@@ -437,7 +437,7 @@ func dragAndDropPage(res *uiResources, dnd *widget.DragAndDrop, drag *dragConten
 	dndContainer.AddChild(sourcePanel)
 
 	sourcePanel.Container().AddChild(widget.NewText(
-		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.AnchorLayoutData{
+		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			HorizontalPosition: widget.AnchorLayoutPositionCenter,
 			VerticalPosition:   widget.AnchorLayoutPositionCenter,
 		})),
@@ -453,7 +453,7 @@ func dragAndDropPage(res *uiResources, dnd *widget.DragAndDrop, drag *dragConten
 	dndContainer.AddChild(targetPanel)
 
 	targetText := widget.NewText(
-		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.AnchorLayoutData{
+		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			HorizontalPosition: widget.AnchorLayoutPositionCenter,
 			VerticalPosition:   widget.AnchorLayoutPositionCenter,
 		})),
@@ -489,7 +489,7 @@ func textInputPage(res *uiResources) *page {
 
 	t := widget.NewTextInput(
 		widget.TextInputOpts.Placeholder("Enter text here"),
-		widget.TextInputOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
+		widget.TextInputOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: true,
 		})),
 		widget.TextInputOpts.Image(res.textInput.image),
@@ -507,7 +507,7 @@ func textInputPage(res *uiResources) *page {
 	)
 	c.AddChild(t)
 
-	c.AddChild(newSeparator(res, &widget.RowLayoutData{
+	c.AddChild(newSeparator(res, widget.RowLayoutData{
 		Stretch: true,
 	}))
 
@@ -669,12 +669,12 @@ func anchorLayoutPage(res *uiResources) *page {
 	c.AddChild(p)
 
 	sp := newSizedPanel(50, 50,
-		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.AnchorLayoutData{})),
+		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{})),
 		widget.ContainerOpts.BackgroundImage(res.panel.image),
 	)
 	p.Container().AddChild(sp.Container())
 
-	c.AddChild(newSeparator(res, &widget.RowLayoutData{
+	c.AddChild(newSeparator(res, widget.RowLayoutData{
 		Stretch: true,
 	}))
 
@@ -707,8 +707,9 @@ func anchorLayoutPage(res *uiResources) *page {
 	widget.NewRadioGroup(
 		widget.RadioGroupOpts.Checkboxes(hCBs...),
 		widget.RadioGroupOpts.ChangedHandler(func(args *widget.RadioGroupChangedEventArgs) {
-			ald := sp.Container().GetWidget().LayoutData.(*widget.AnchorLayoutData)
+			ald := sp.Container().GetWidget().LayoutData.(widget.AnchorLayoutData)
 			ald.HorizontalPosition = widget.AnchorLayoutPosition(indexCheckbox(hCBs, args.Active))
+			sp.Container().GetWidget().LayoutData = ald
 			p.Container().RequestRelayout()
 		}),
 	)
@@ -734,8 +735,9 @@ func anchorLayoutPage(res *uiResources) *page {
 	widget.NewRadioGroup(
 		widget.RadioGroupOpts.Checkboxes(vCBs...),
 		widget.RadioGroupOpts.ChangedHandler(func(args *widget.RadioGroupChangedEventArgs) {
-			ald := sp.Container().GetWidget().LayoutData.(*widget.AnchorLayoutData)
+			ald := sp.Container().GetWidget().LayoutData.(widget.AnchorLayoutData)
 			ald.VerticalPosition = widget.AnchorLayoutPosition(indexCheckbox(vCBs, args.Active))
+			sp.Container().GetWidget().LayoutData = ald
 			p.Container().RequestRelayout()
 		}),
 	)
@@ -751,8 +753,9 @@ func anchorLayoutPage(res *uiResources) *page {
 	stretchC.AddChild(widget.NewText(widget.TextOpts.Text("Stretch", res.text.face, res.text.idleColor)))
 
 	stretchHorizontalCheckbox := newCheckbox("Horizontal", func(args *widget.CheckboxChangedEventArgs) {
-		ald := sp.Container().GetWidget().LayoutData.(*widget.AnchorLayoutData)
+		ald := sp.Container().GetWidget().LayoutData.(widget.AnchorLayoutData)
 		ald.StretchHorizontal = args.State == widget.CheckboxChecked
+		sp.Container().GetWidget().LayoutData = ald
 		p.Container().RequestRelayout()
 
 		hPosC.GetWidget().Disabled = args.State == widget.CheckboxChecked
@@ -760,8 +763,9 @@ func anchorLayoutPage(res *uiResources) *page {
 	stretchC.AddChild(stretchHorizontalCheckbox)
 
 	stretchVerticalCheckbox := newCheckbox("Vertical", func(args *widget.CheckboxChangedEventArgs) {
-		ald := sp.Container().GetWidget().LayoutData.(*widget.AnchorLayoutData)
+		ald := sp.Container().GetWidget().LayoutData.(widget.AnchorLayoutData)
 		ald.StretchVertical = args.State == widget.CheckboxChecked
+		sp.Container().GetWidget().LayoutData = ald
 		p.Container().RequestRelayout()
 
 		vPosC.GetWidget().Disabled = args.State == widget.CheckboxChecked

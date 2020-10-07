@@ -7,7 +7,7 @@ import "image"
 //
 // AnchorLayout will only layout the first widget in a container and ignore all other widgets.
 //
-// Widget.LayoutData of widgets being layouted by AnchorLayout need to be of type *AnchorLayoutData.
+// Widget.LayoutData of widgets being layouted by AnchorLayout need to be of type AnchorLayoutData.
 type AnchorLayout struct {
 	padding Insets
 }
@@ -91,7 +91,7 @@ func (a *AnchorLayout) Layout(widgets []PreferredSizeLocateableWidget, rect imag
 	wx := 0
 	wy := 0
 
-	if ald, ok := widget.GetWidget().LayoutData.(*AnchorLayoutData); ok {
+	if ald, ok := widget.GetWidget().LayoutData.(AnchorLayoutData); ok {
 		wx, wy, ww, wh = a.applyLayoutData(ald, wx, wy, ww, wh, rect)
 	}
 
@@ -102,7 +102,7 @@ func (a *AnchorLayout) Layout(widgets []PreferredSizeLocateableWidget, rect imag
 	widget.SetLocation(r)
 }
 
-func (a *AnchorLayout) applyLayoutData(ld *AnchorLayoutData, wx int, wy int, ww int, wh int, rect image.Rectangle) (int, int, int, int) {
+func (a *AnchorLayout) applyLayoutData(ld AnchorLayoutData, wx int, wy int, ww int, wh int, rect image.Rectangle) (int, int, int, int) {
 	if ld.StretchHorizontal {
 		ww = rect.Dx()
 	}

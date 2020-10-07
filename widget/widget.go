@@ -18,7 +18,7 @@ type Widget struct {
 
 	// LayoutData specifies additional optional data for a Layouter that is used to layout this widget's
 	// parent container. The exact type depends on the layout being used, for example, GridLayout requires
-	// *GridLayoutData to be used.
+	// GridLayoutData to be used.
 	LayoutData interface{}
 
 	// Disabled specifies whether the widget is disabled, whatever that means. Disabled widgets should

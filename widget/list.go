@@ -247,7 +247,7 @@ func (l *List) createWidget() {
 	for _, e := range l.entries {
 		e := e
 		but := NewButton(
-			ButtonOpts.WidgetOpts(WidgetOpts.LayoutData(&RowLayoutData{
+			ButtonOpts.WidgetOpts(WidgetOpts.LayoutData(RowLayoutData{
 				Stretch: true,
 			})),
 			ButtonOpts.Image(l.entryUnselectedColor),

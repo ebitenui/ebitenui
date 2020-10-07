@@ -123,7 +123,7 @@ func headerContainer(res *uiResources) widget.PreferredSizeLocateableWidget {
 	)
 
 	c.AddChild(header("Ebiten UI Demo", res,
-		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
+		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: true,
 		})),
 	))
@@ -152,7 +152,7 @@ func header(label string, res *uiResources, opts ...widget.ContainerOpt) widget.
 	}...)...)
 
 	c.AddChild(widget.NewText(
-		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.AnchorLayoutData{
+		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			HorizontalPosition: widget.AnchorLayoutPositionStart,
 			VerticalPosition:   widget.AnchorLayoutPositionCenter,
 		})),
@@ -241,14 +241,14 @@ func newPageContainer(res *uiResources) *pageContainer {
 	)
 
 	titleText := widget.NewText(
-		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
+		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: true,
 		})),
 		widget.TextOpts.Text("", res.text.titleFace, res.text.idleColor))
 	c.AddChild(titleText)
 
 	flipBook := widget.NewFlipBook(
-		widget.FlipBookOpts.ContainerOpts(widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
+		widget.FlipBookOpts.ContainerOpts(widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: true,
 		}))),
 	)
@@ -283,7 +283,7 @@ func newCheckbox(label string, changedHandler widget.CheckboxChangedHandlerFunc,
 
 func newPageContentContainer() *widget.Container {
 	return widget.NewContainer(
-		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.AnchorLayoutData{
+		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			StretchHorizontal: true,
 		})),
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
@@ -353,7 +353,7 @@ func newSeparator(res *uiResources, ld interface{}) widget.PreferredSizeLocateab
 		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(ld)))
 
 	c.AddChild(widget.NewGraphic(
-		widget.GraphicOpts.WidgetOpts(widget.WidgetOpts.LayoutData(&widget.RowLayoutData{
+		widget.GraphicOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch:   true,
 			MaxHeight: 2,
 		})),

@@ -121,7 +121,7 @@ func (o buttonOpts) TextSimpleLeft(label string, face font.Face, color *ButtonTe
 			)
 
 			b.text = NewText(
-				TextOpts.WidgetOpts(WidgetOpts.LayoutData(&AnchorLayoutData{
+				TextOpts.WidgetOpts(WidgetOpts.LayoutData(AnchorLayoutData{
 					HorizontalPosition: AnchorLayoutPositionStart,
 					VerticalPosition:   AnchorLayoutPositionCenter,
 				})),
@@ -145,7 +145,7 @@ func (o buttonOpts) Text(label string, face font.Face, color *ButtonTextColor) B
 			)
 
 			b.text = NewText(
-				TextOpts.WidgetOpts(WidgetOpts.LayoutData(&AnchorLayoutData{
+				TextOpts.WidgetOpts(WidgetOpts.LayoutData(AnchorLayoutData{
 					HorizontalPosition: AnchorLayoutPositionCenter,
 					VerticalPosition:   AnchorLayoutPositionCenter,
 				})),
@@ -170,7 +170,7 @@ func (o buttonOpts) TextAndImage(label string, face font.Face, image *ButtonImag
 			)
 
 			c := NewContainer(
-				ContainerOpts.WidgetOpts(WidgetOpts.LayoutData(&AnchorLayoutData{
+				ContainerOpts.WidgetOpts(WidgetOpts.LayoutData(AnchorLayoutData{
 					HorizontalPosition: AnchorLayoutPositionCenter,
 					VerticalPosition:   AnchorLayoutPositionCenter,
 				})),
@@ -180,14 +180,14 @@ func (o buttonOpts) TextAndImage(label string, face font.Face, image *ButtonImag
 			b.container.AddChild(c)
 
 			b.text = NewText(
-				TextOpts.WidgetOpts(WidgetOpts.LayoutData(&RowLayoutData{
+				TextOpts.WidgetOpts(WidgetOpts.LayoutData(RowLayoutData{
 					Stretch: true,
 				})),
 				TextOpts.Text(label, face, color.Idle))
 			c.AddChild(b.text)
 
 			b.graphic = NewGraphic(
-				GraphicOpts.WidgetOpts(WidgetOpts.LayoutData(&RowLayoutData{
+				GraphicOpts.WidgetOpts(WidgetOpts.LayoutData(RowLayoutData{
 					Stretch: true,
 				})),
 				GraphicOpts.Image(image.Idle))
@@ -223,7 +223,7 @@ func (o buttonOpts) withGraphic(opt GraphicOpt) ButtonOpt {
 
 			b.graphic = NewGraphic(
 				opt,
-				GraphicOpts.WidgetOpts(WidgetOpts.LayoutData(&AnchorLayoutData{
+				GraphicOpts.WidgetOpts(WidgetOpts.LayoutData(AnchorLayoutData{
 					HorizontalPosition: AnchorLayoutPositionCenter,
 					VerticalPosition:   AnchorLayoutPositionCenter,
 				})),

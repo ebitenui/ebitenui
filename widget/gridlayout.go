@@ -7,7 +7,7 @@ import (
 
 // GridLayout layouts widgets in a grid fashion, with columns or rows optionally being stretched.
 //
-// Widget.LayoutData of widgets being layouted by GridLayout need to be of type *GridLayoutData.
+// Widget.LayoutData of widgets being layouted by GridLayout need to be of type GridLayoutData.
 type GridLayout struct {
 	columns       int
 	padding       Insets
@@ -147,7 +147,7 @@ func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.
 		wx, wy := x, y
 
 		ld := w.GetWidget().LayoutData
-		if gld, ok := ld.(*GridLayoutData); ok {
+		if gld, ok := ld.(GridLayoutData); ok {
 			wx, wy, ww, wh = g.applyLayoutData(gld, wx, wy, ww, wh, x, y, cw, ch)
 		}
 
@@ -220,7 +220,7 @@ func (g *GridLayout) preferredColumnWidthsAndRowHeights(widgets []PreferredSizeL
 		ww, wh := w.PreferredSize()
 
 		ld := w.GetWidget().LayoutData
-		if gld, ok := ld.(*GridLayoutData); ok {
+		if gld, ok := ld.(GridLayoutData); ok {
 			ww, wh = g.applyMaxSize(gld, ww, wh)
 		}
 
@@ -242,7 +242,7 @@ func (g *GridLayout) preferredColumnWidthsAndRowHeights(widgets []PreferredSizeL
 	return colWidths, rowHeights
 }
 
-func (g *GridLayout) applyLayoutData(ld *GridLayoutData, wx int, wy int, ww int, wh int, x int, y int, cw int, ch int) (int, int, int, int) {
+func (g *GridLayout) applyLayoutData(ld GridLayoutData, wx int, wy int, ww int, wh int, x int, y int, cw int, ch int) (int, int, int, int) {
 	if ld.MaxWidth > 0 && ww > ld.MaxWidth {
 		ww = ld.MaxWidth
 	}
@@ -268,7 +268,7 @@ func (g *GridLayout) applyLayoutData(ld *GridLayoutData, wx int, wy int, ww int,
 	return wx, wy, ww, wh
 }
 
-func (g *GridLayout) applyMaxSize(ld *GridLayoutData, ww int, wh int) (int, int) {
+func (g *GridLayout) applyMaxSize(ld GridLayoutData, ww int, wh int) (int, int) {
 	if ld.MaxWidth > 0 && ww > ld.MaxWidth {
 		ww = ld.MaxWidth
 	}

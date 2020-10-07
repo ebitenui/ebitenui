@@ -5,7 +5,7 @@ import "image"
 // RowLayout layouts widgets in either a single row or a single column,
 // optionally stretching them in the other direction.
 //
-// Widget.LayoutData of widgets being layouted by RowLayout need to be of type *RowLayoutData.
+// Widget.LayoutData of widgets being layouted by RowLayout need to be of type RowLayoutData.
 type RowLayout struct {
 	direction Direction
 	padding   Insets
@@ -111,7 +111,7 @@ func (r *RowLayout) layout(widgets []PreferredSizeLocateableWidget, rect image.R
 		ww, wh := widget.PreferredSize()
 
 		ld := widget.GetWidget().LayoutData
-		if rld, ok := ld.(*RowLayoutData); ok {
+		if rld, ok := ld.(RowLayoutData); ok {
 			wx, wy, ww, wh = r.applyLayoutData(rld, wx, wy, ww, wh, usePosition, rect, x, y)
 		}
 
@@ -128,7 +128,7 @@ func (r *RowLayout) layout(widgets []PreferredSizeLocateableWidget, rect image.R
 	}
 }
 
-func (r *RowLayout) applyLayoutData(ld *RowLayoutData, wx int, wy int, ww int, wh int, usePosition bool, rect image.Rectangle, x int, y int) (int, int, int, int) {
+func (r *RowLayout) applyLayoutData(ld RowLayoutData, wx int, wy int, ww int, wh int, usePosition bool, rect image.Rectangle, x int, y int) (int, int, int, int) {
 	if usePosition {
 		ww, wh = r.applyStretch(ld, ww, wh, rect)
 	}
@@ -142,7 +142,7 @@ func (r *RowLayout) applyLayoutData(ld *RowLayoutData, wx int, wy int, ww int, w
 	return wx, wy, ww, wh
 }
 
-func (r *RowLayout) applyStretch(ld *RowLayoutData, ww int, wh int, rect image.Rectangle) (int, int) {
+func (r *RowLayout) applyStretch(ld RowLayoutData, ww int, wh int, rect image.Rectangle) (int, int) {
 	if !ld.Stretch {
 		return ww, wh
 	}
@@ -156,7 +156,7 @@ func (r *RowLayout) applyStretch(ld *RowLayoutData, ww int, wh int, rect image.R
 	return ww, wh
 }
 
-func (r *RowLayout) applyMaxSize(ld *RowLayoutData, ww int, wh int) (int, int) {
+func (r *RowLayout) applyMaxSize(ld RowLayoutData, ww int, wh int) (int, int) {
 	if ld.MaxWidth > 0 && ww > ld.MaxWidth {
 		ww = ld.MaxWidth
 	}
@@ -168,7 +168,7 @@ func (r *RowLayout) applyMaxSize(ld *RowLayoutData, ww int, wh int) (int, int) {
 	return ww, wh
 }
 
-func (r *RowLayout) applyPosition(ld *RowLayoutData, wx int, wy int, ww int, wh int, rect image.Rectangle, x int, y int) (int, int) {
+func (r *RowLayout) applyPosition(ld RowLayoutData, wx int, wy int, ww int, wh int, rect image.Rectangle, x int, y int) (int, int) {
 	switch ld.Position {
 	case RowLayoutPositionCenter:
 		if r.direction == DirectionHorizontal {
