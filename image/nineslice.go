@@ -17,8 +17,8 @@ type NineSlice struct {
 	heights     [3]int
 	transparent bool
 
-	init      sync.Once
-	subImages []*ebiten.Image
+	init  sync.Once
+	tiles [9]*ebiten.Image
 }
 
 // A DrawImageOptionsFunc is responsible for setting DrawImageOptions when drawing an image.
@@ -55,7 +55,7 @@ func NewNineSliceColor(c color.Color) *NineSlice {
 	}
 
 	var n *NineSlice
-	if c == color.Transparent {
+	if _, _, _, a := c.RGBA(); a == 0 {
 		n = &NineSlice{
 			transparent: true,
 		}
@@ -89,7 +89,11 @@ func (n *NineSlice) Draw(screen *ebiten.Image, width int, height int, optsFunc D
 		return
 	}
 
-	n.init.Do(n.createSubImages)
+	n.drawTiles(screen, width, height, optsFunc)
+}
+
+func (n *NineSlice) drawTiles(screen *ebiten.Image, width int, height int, optsFunc DrawImageOptionsFunc) {
+	n.init.Do(n.createTiles)
 
 	sy := 0
 	ty := 0
@@ -112,7 +116,7 @@ func (n *NineSlice) Draw(screen *ebiten.Image, width int, height int, optsFunc D
 				tw = sw
 			}
 
-			n.drawTile(screen, n.subImages[r*3+c], tx, ty, sw, sh, tw, th, optsFunc)
+			n.drawTile(screen, n.tiles[r*3+c], tx, ty, sw, sh, tw, th, optsFunc)
 
 			sx += sw
 			tx += tw
@@ -121,14 +125,6 @@ func (n *NineSlice) Draw(screen *ebiten.Image, width int, height int, optsFunc D
 		sy += sh
 		ty += th
 	}
-}
-
-func (n *NineSlice) MinSize() (int, int) {
-	if n.transparent {
-		return 0, 0
-	}
-
-	return n.widths[0] + n.widths[2], n.heights[0] + n.heights[2]
 }
 
 func (n *NineSlice) drawTile(screen *ebiten.Image, tile *ebiten.Image, tx int, ty int, sw int, sh int, tw int, th int, optsFunc DrawImageOptionsFunc) {
@@ -153,20 +149,16 @@ func (n *NineSlice) drawTile(screen *ebiten.Image, tile *ebiten.Image, tx int, t
 	_ = screen.DrawImage(tile, &opts)
 }
 
-func (n *NineSlice) createSubImages() {
+func (n *NineSlice) createTiles() {
 	defer func() {
 		n.image = nil
 	}()
 
-	n.subImages = make([]*ebiten.Image, 9)
+	n.tiles = [9]*ebiten.Image{}
 
-	// short-circuit if only the center tile is used
 	if n.centerOnly() {
-		w, h := n.image.Size()
-		if n.widths[1] == w && n.heights[1] == h {
-			n.subImages[1*3+1] = n.image
-			return
-		}
+		n.tiles[1*3+1] = n.image
+		return
 	}
 
 	sy := 0
@@ -174,7 +166,9 @@ func (n *NineSlice) createSubImages() {
 		sx := 0
 		for c, sw := range n.widths {
 			if sh > 0 && sw > 0 {
-				n.subImages[r*3+c] = n.image.SubImage(image.Rect(sx, sy, sx+sw, sy+sh)).(*ebiten.Image)
+				rect := image.Rect(0, 0, sw, sh)
+				rect = rect.Add(image.Point{sx, sy})
+				n.tiles[r*3+c] = n.image.SubImage(rect).(*ebiten.Image)
 			}
 			sx += sw
 		}
@@ -183,5 +177,18 @@ func (n *NineSlice) createSubImages() {
 }
 
 func (n *NineSlice) centerOnly() bool {
-	return n.widths[0] <= 0 && n.widths[2] <= 0 && n.heights[0] <= 0 && n.heights[2] <= 0
+	if n.widths[0] > 0 || n.widths[2] > 0 || n.heights[0] > 0 || n.heights[2] > 0 {
+		return false
+	}
+
+	w, h := n.image.Size()
+	return n.widths[1] == w && n.heights[1] == h
+}
+
+func (n *NineSlice) MinSize() (int, int) {
+	if n.transparent {
+		return 0, 0
+	}
+
+	return n.widths[0] + n.widths[2], n.heights[0] + n.heights[2]
 }
