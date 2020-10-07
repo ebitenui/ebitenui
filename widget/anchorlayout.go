@@ -6,6 +6,8 @@ import "image"
 // optionally stretching it in one or both directions.
 //
 // AnchorLayout will only layout the first widget in a container and ignore all other widgets.
+//
+// Widget.LayoutData of widgets being layouted by AnchorLayout need to be of type *AnchorLayoutData.
 type AnchorLayout struct {
 	padding Insets
 }

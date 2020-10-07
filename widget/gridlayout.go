@@ -6,6 +6,8 @@ import (
 )
 
 // GridLayout layouts widgets in a grid fashion, with columns or rows optionally being stretched.
+//
+// Widget.LayoutData of widgets being layouted by GridLayout need to be of type *GridLayoutData.
 type GridLayout struct {
 	columns       int
 	padding       Insets

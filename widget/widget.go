@@ -9,19 +9,24 @@ import (
 	"github.com/hajimehoshi/ebiten"
 )
 
-// A Widget is an abstraction of a user interface widget, such as a button.
+// A Widget is an abstraction of a user interface widget, such as a button. Actual widget implementations
+// "have" a Widget in their internal structure.
 type Widget struct {
-	// Rect specifies the widget's position on screen. It is usually not set directly, but a layout is
+	// Rect specifies the widget's position on screen. It is usually not set directly, but a Layouter is
 	// used to set the position in relation to other widgets or the space available.
 	Rect image.Rectangle
 
-	// LayoutData specifies additional optional data for the layout that is used to layout this widget's
-	// parent container. The exact type depends on the layout used, for example, a GridLayout requires
-	// GridLayoutData to be used.
+	// LayoutData specifies additional optional data for a Layouter that is used to layout this widget's
+	// parent container. The exact type depends on the layout being used, for example, GridLayout requires
+	// *GridLayoutData to be used.
 	LayoutData interface{}
 
-	// Disabled specifies whether user input is disabled for this widget. Widgets may choose to render
-	// in a "greyed-out" visual state.
+	// Disabled specifies whether the widget is disabled, whatever that means. Disabled widgets should
+	// usually render in some sort of "greyed out" visual state, and not react to user input.
+	//
+	// Not reacting to user input depends on the actual implementation. For example, List will not allow
+	// entry selection via clicking, but the scrollbars will still be usable. The reasoning is that from
+	// the user's perspective, scrolling does not change state, but only the display of that state.
 	Disabled bool
 
 	// CursorEnterEvent fires an event with *WidgetCursorEnterEventArgs when the cursor enters the widget's Rect.
@@ -30,16 +35,16 @@ type Widget struct {
 	// CursorExitEvent fires an event with *WidgetCursorExitEventArgs when the cursor exits the widget's Rect.
 	CursorExitEvent *event.Event
 
-	// MouseButtonPressedEvent fires an event with *WidgetMouseButtonPressedEventArgs when the cursor is inside
-	// the widget's Rect and a mouse button is pressed.
+	// MouseButtonPressedEvent fires an event with *WidgetMouseButtonPressedEventArgs when a mouse button is pressed
+	// while the cursor is inside the widget's Rect.
 	MouseButtonPressedEvent *event.Event
 
-	// MouseButtonReleasedEvent fires an event with *WidgetMouseButtonReleasedEventArgs when the cursor is inside
-	// the widget's Rect and a mouse button is released.
+	// MouseButtonReleasedEvent fires an event with *WidgetMouseButtonReleasedEventArgs when a mouse button is released
+	// while the cursor is inside the widget's Rect.
 	MouseButtonReleasedEvent *event.Event
 
-	// ScrolledEvent fires an event with *WidgetScrolledEventArgs when the cursor is inside the widget's Rect and
-	// the mouse wheel is scrolled.
+	// ScrolledEvent fires an event with *WidgetScrolledEventArgs when the mouse wheel is scrolled while
+	// the cursor is inside the widget's Rect.
 	ScrolledEvent *event.Event
 
 	FocusEvent *event.Event

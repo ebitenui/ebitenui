@@ -4,6 +4,8 @@ import "image"
 
 // RowLayout layouts widgets in either a single row or a single column,
 // optionally stretching them in the other direction.
+//
+// Widget.LayoutData of widgets being layouted by RowLayout need to be of type *RowLayoutData.
 type RowLayout struct {
 	direction Direction
 	padding   Insets
