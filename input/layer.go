@@ -31,7 +31,6 @@ type Layer struct {
 	DebugLabel string
 
 	// EventTypes is a bit mask that specifies the types of events the input layer is eligible for.
-	// Events types that are not set in this bit mask are passed on to lower input layers.
 	EventTypes LayerEventType
 
 	// BlockLower specifies if events will be passed on to lower input layers even if the current layer
@@ -41,8 +40,8 @@ type Layer struct {
 	// FullScreen specifies if the input layer covers the full screen.
 	FullScreen bool
 
-	// RectFunc is a function that returns the input layer's screen area of interest. This function is not
-	// called if FullScreen is true.
+	// RectFunc is a function that returns the input layer's screen area of interest. This function is only
+	// called if FullScreen is false.
 	RectFunc LayerRectFunc
 
 	invalid bool
@@ -56,16 +55,18 @@ type LayerEventType uint16
 
 const (
 	// LayerEventTypeAny is used for ActiveFor to indicate no special event types.
-	LayerEventTypeAny = LayerEventType(0b0000000000000000)
+	LayerEventTypeAny = LayerEventType(0)
+)
 
-	// LayerEventTypeAll indicates an interest in all event types.
-	LayerEventTypeAll = LayerEventType(0b1111111111111111)
-
+const (
 	// LayerEventTypeMouseButton indicates an interest in mouse button events.
-	LayerEventTypeMouseButton = LayerEventType(0b0000000000000001)
+	LayerEventTypeMouseButton = LayerEventType(1 << iota)
 
 	// LayerEventTypeWheel indicates an interest in mouse wheel events.
-	LayerEventTypeWheel = LayerEventType(0b0000000000000010)
+	LayerEventTypeWheel
+
+	// LayerEventTypeAll indicates an interest in all event types.
+	LayerEventTypeAll = LayerEventType(^uint16(0))
 )
 
 // DefaultLayer is the bottom-most input layer. It is a full screen layer that is eligible for all event types.
@@ -138,7 +139,7 @@ func (l *Layer) contains(x int, y int) bool {
 	return image.Point{x, y}.In(l.RectFunc())
 }
 
-// SetupInputLayersWithDeferred calls l to set up input layers. This function should not be called directly.
+// SetupInputLayersWithDeferred calls ls to set up input layers. This function is called by the UI.
 func SetupInputLayersWithDeferred(ls []Layerer) {
 	for _, layer := range layers {
 		layer.invalid = true

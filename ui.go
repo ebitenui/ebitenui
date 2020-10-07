@@ -14,8 +14,13 @@ import (
 // UI encapsulates a complete user interface that can be rendered onto the screen.
 // There should only be exactly one UI per application.
 type UI struct {
-	Container   *widget.Container
-	ToolTip     *widget.ToolTip
+	// Container is the root container of the UI hierarchy.
+	Container *widget.Container
+
+	// ToolTip is used to render mouse hover tool tips. It may be nil to disable rendering.
+	ToolTip *widget.ToolTip
+
+	// DragAndDrop is used to render drag widgets while dragging and dropping. It may be nil to disable rendering.
 	DragAndDrop *widget.DragAndDrop
 
 	lastRect      image.Rectangle
@@ -25,17 +30,17 @@ type UI struct {
 	windows       []*widget.Window
 }
 
+// RemoveWindowFunc is a function to remove a Window from rendering.
 type RemoveWindowFunc func()
 
-// Update updates u. This function should be called in the Ebiten Update function.
+// Update updates u. This method should be called in the Ebiten Update function.
 func (u *UI) Update() {
 	internalinput.Update()
 }
 
-// Draw renders u onto screen, with rect as the area reserved for rendering.
-// This function should be called in the Ebiten Draw function.
+// Draw renders u onto screen. This function should be called in the Ebiten Draw function.
 //
-// If rect changes from one frame to the next, u.Container.RequestRelayout is called.
+// If screen's size changes from one frame to the next, u.Container.RequestRelayout is called.
 func (u *UI) Draw(screen *ebiten.Image) {
 	event.ExecuteDeferred()
 
@@ -135,6 +140,7 @@ func (u *UI) render(screen *ebiten.Image) {
 	widget.RenderWithDeferred(screen, u.renderers)
 }
 
+// AddWindow adds window w to u for rendering. It returns a function to remove w from u.
 func (u *UI) AddWindow(w *widget.Window) RemoveWindowFunc {
 	u.windows = append(u.windows, w)
 

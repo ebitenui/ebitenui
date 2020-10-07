@@ -26,7 +26,7 @@ var (
 	AnyKeyPressed bool
 )
 
-// Update updates the input system.
+// Update updates the input system. This is called by the UI.
 func Update() {
 	LeftMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft)
 	MiddleMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle)
@@ -50,7 +50,7 @@ func Update() {
 	}
 }
 
-// Draw updates the input system.
+// Draw updates the input system. This is called by the UI.
 func Draw() {
 	LeftMouseButtonJustPressed = LeftMouseButtonPressed && LeftMouseButtonPressed != LastLeftMouseButtonPressed
 	MiddleMouseButtonJustPressed = MiddleMouseButtonPressed && MiddleMouseButtonPressed != LastMiddleMouseButtonPressed
@@ -61,6 +61,7 @@ func Draw() {
 	LastRightMouseButtonPressed = RightMouseButtonPressed
 }
 
+// AfterDraw updates the input system after the Ebiten Draw function has been called. This is called by the UI.
 func AfterDraw() {
 	InputChars = InputChars[:0]
 	WheelX, WheelY = 0, 0

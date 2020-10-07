@@ -5,7 +5,8 @@ import (
 	"math"
 )
 
-type gridLayout struct {
+// GridLayout layouts widgets in a grid fashion, with columns or rows optionally being stretched.
+type GridLayout struct {
 	columns       int
 	padding       Insets
 	columnSpacing int
@@ -14,29 +15,46 @@ type gridLayout struct {
 	rowStretch    []bool
 }
 
-type GridLayoutOpt func(g *gridLayout)
+// GridLayoutOpt is a function that configures g.
+type GridLayoutOpt func(g *GridLayout)
 
-type GridLayoutData struct {
-	MaxWidth           int
-	MaxHeight          int
-	HorizontalPosition GridLayoutPosition
-	VerticalPosition   GridLayoutPosition
-}
-
-type GridLayoutPosition int
-
-const (
-	GridLayoutPositionStart = GridLayoutPosition(iota)
-	GridLayoutPositionCenter
-	GridLayoutPositionEnd
-)
-
+// GridLayoutOpts contains functions that configure a GridLayout.
 const GridLayoutOpts = gridLayoutOpts(true)
 
 type gridLayoutOpts bool
 
-func NewGridLayout(opts ...GridLayoutOpt) Layouter {
-	g := &gridLayout{}
+// GridLayoutData specifies layout settings for a widget.
+type GridLayoutData struct {
+	// MaxWidth specifies the maximum width.
+	MaxWidth int
+
+	// MaxHeight specifies the maximum height..
+	MaxHeight int
+
+	// HorizontalPosition specifies the horizontal anchoring position inside the grid cell.
+	HorizontalPosition GridLayoutPosition
+
+	// VerticalPosition specifies the vertical anchoring position inside the grid cell.
+	VerticalPosition GridLayoutPosition
+}
+
+// GridLayoutPosition is the type used to specify an anchoring position.
+type GridLayoutPosition int
+
+const (
+	// GridLayoutPositionStart is the anchoring position for "left" (in the horizontal direction) or "top" (in the vertical direction.)
+	GridLayoutPositionStart = GridLayoutPosition(iota)
+
+	// GridLayoutPositionStart is the center anchoring position.
+	GridLayoutPositionCenter
+
+	// GridLayoutPositionStart is the anchoring position for "right" (in the horizontal direction) or "bottom" (in the vertical direction.)
+	GridLayoutPositionEnd
+)
+
+// NewGridLayout constructs a new GridLayout, configured by opts.
+func NewGridLayout(opts ...GridLayoutOpt) *GridLayout {
+	g := &GridLayout{}
 
 	for _, o := range opts {
 		o(g)
@@ -45,39 +63,47 @@ func NewGridLayout(opts ...GridLayoutOpt) Layouter {
 	return g
 }
 
+// Columns configures a grid layout to use c columns.
 func (o gridLayoutOpts) Columns(c int) GridLayoutOpt {
-	return func(g *gridLayout) {
+	return func(g *GridLayout) {
 		g.columns = c
 	}
 }
 
-func (o gridLayoutOpts) Padding(p Insets) GridLayoutOpt {
-	return func(g *gridLayout) {
-		g.padding = p
+// Padding configures a grid layout to use padding i.
+func (o gridLayoutOpts) Padding(i Insets) GridLayoutOpt {
+	return func(g *GridLayout) {
+		g.padding = i
 	}
 }
 
-func (o gridLayoutOpts) Spacing(columnSpacing int, rowSpacing int) GridLayoutOpt {
-	return func(g *gridLayout) {
-		g.columnSpacing = columnSpacing
-		g.rowSpacing = rowSpacing
+// Spacing configures a grid layout to separate columns by spacing c and rows by spacing r.
+func (o gridLayoutOpts) Spacing(c int, r int) GridLayoutOpt {
+	return func(g *GridLayout) {
+		g.columnSpacing = c
+		g.rowSpacing = r
 	}
 }
 
-func (o gridLayoutOpts) Stretch(columns []bool, rows []bool) GridLayoutOpt {
-	return func(g *gridLayout) {
-		g.columnStretch = columns
-		g.rowStretch = rows
+// Stretch configures a grid layout to stretch columns according to c and rows according to r.
+// The number of elements of c and r must correspond with the number of columns and rows in the
+// layout.
+func (o gridLayoutOpts) Stretch(c []bool, r []bool) GridLayoutOpt {
+	return func(g *GridLayout) {
+		g.columnStretch = c
+		g.rowStretch = r
 	}
 }
 
-func (g *gridLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (int, int) {
+// PreferredSize implements Layouter.
+func (g *GridLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (int, int) {
 	colWidths, rowHeights := g.preferredColumnWidthsAndRowHeights(widgets)
 	return g.padding.Dx() + g.columnSpacing*(len(colWidths)-1) + sumInts(colWidths),
 		g.padding.Dy() + g.rowSpacing*(len(rowHeights)-1) + sumInts(rowHeights)
 }
 
-func (g *gridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) {
+// Layout implements Layouter.
+func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) {
 	rect = g.padding.Apply(rect)
 
 	colWidths, rowHeights := g.preferredColumnWidthsAndRowHeights(widgets)
@@ -138,7 +164,7 @@ func (g *gridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.
 	}
 }
 
-func (g *gridLayout) stretchedCellSizes(colWidths []int, rowHeights []int, rect image.Rectangle) (int, int, int, int) {
+func (g *GridLayout) stretchedCellSizes(colWidths []int, rowHeights []int, rect image.Rectangle) (int, int, int, int) {
 	stretchedColWidth, stretchedRowHeight := 0, 0
 
 	remainingWidth := rect.Dx() - g.columnSpacing*(len(colWidths)-1)
@@ -174,15 +200,15 @@ func (g *gridLayout) stretchedCellSizes(colWidths []int, rowHeights []int, rect 
 	return stretchedColWidth, stretchedRowHeight, firstStretchedColWidth, firstStretchedRowHeight
 }
 
-func (g *gridLayout) columnStretched(c int) bool {
+func (g *GridLayout) columnStretched(c int) bool {
 	return g.columnStretch != nil && g.columnStretch[c]
 }
 
-func (g *gridLayout) rowStretched(r int) bool {
+func (g *GridLayout) rowStretched(r int) bool {
 	return g.rowStretch != nil && g.rowStretch[r]
 }
 
-func (g *gridLayout) preferredColumnWidthsAndRowHeights(widgets []PreferredSizeLocateableWidget) ([]int, []int) {
+func (g *GridLayout) preferredColumnWidthsAndRowHeights(widgets []PreferredSizeLocateableWidget) ([]int, []int) {
 	colWidths := make([]int, g.columns)
 	rowHeights := make([]int, int(math.Ceil(float64(len(widgets))/float64(g.columns))))
 
@@ -214,7 +240,7 @@ func (g *gridLayout) preferredColumnWidthsAndRowHeights(widgets []PreferredSizeL
 	return colWidths, rowHeights
 }
 
-func (g *gridLayout) applyLayoutData(ld *GridLayoutData, wx int, wy int, ww int, wh int, x int, y int, cw int, ch int) (int, int, int, int) {
+func (g *GridLayout) applyLayoutData(ld *GridLayoutData, wx int, wy int, ww int, wh int, x int, y int, cw int, ch int) (int, int, int, int) {
 	if ld.MaxWidth > 0 && ww > ld.MaxWidth {
 		ww = ld.MaxWidth
 	}
@@ -240,7 +266,7 @@ func (g *gridLayout) applyLayoutData(ld *GridLayoutData, wx int, wy int, ww int,
 	return wx, wy, ww, wh
 }
 
-func (g *gridLayout) applyMaxSize(ld *GridLayoutData, ww int, wh int) (int, int) {
+func (g *GridLayout) applyMaxSize(ld *GridLayoutData, ww int, wh int) (int, int) {
 	if ld.MaxWidth > 0 && ww > ld.MaxWidth {
 		ww = ld.MaxWidth
 	}

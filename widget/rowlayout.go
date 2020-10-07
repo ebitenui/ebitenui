@@ -2,35 +2,54 @@ package widget
 
 import "image"
 
-type rowLayout struct {
+// RowLayout layouts widgets in either a single row or a single column,
+// optionally stretching them in the other direction.
+type RowLayout struct {
 	direction Direction
 	padding   Insets
 	spacing   int
 }
 
-type RowLayoutOpt func(f *rowLayout)
-
-type RowLayoutData struct {
-	Position  RowLayoutPosition
-	Stretch   bool
-	MaxWidth  int
-	MaxHeight int
-}
-
-type RowLayoutPosition int
-
-const (
-	RowLayoutPositionStart = RowLayoutPosition(iota)
-	RowLayoutPositionCenter
-	RowLayoutPositionEnd
-)
-
+// RowLayoutOpts contains functions that configure a RowLayout.
 const RowLayoutOpts = rowLayoutOpts(true)
 
 type rowLayoutOpts bool
 
-func NewRowLayout(opts ...RowLayoutOpt) Layouter {
-	r := &rowLayout{}
+// RowLayoutOpt is a function that configures r.
+type RowLayoutOpt func(r *RowLayout)
+
+// RowLayoutData specifies layout settings for a widget.
+type RowLayoutData struct {
+	// Position specifies the anchoring position for the direction that is not the primary direction of the layout.
+	Position RowLayoutPosition
+
+	// Stretch specifies whether to stretch in the direction that is not the primary direction of the layout.
+	Stretch bool
+
+	// MaxWidth specifies the maximum width.
+	MaxWidth int
+
+	// MaxHeight specifies the maximum height.
+	MaxHeight int
+}
+
+// RowLayoutPosition is the type used to specify an anchoring position.
+type RowLayoutPosition int
+
+const (
+	// RowLayoutPositionStart is the anchoring position for "left" (in the horizontal direction) or "top" (in the vertical direction.)
+	RowLayoutPositionStart = RowLayoutPosition(iota)
+
+	// RowLayoutPositionCenter is the center anchoring position.
+	RowLayoutPositionCenter
+
+	// RowLayoutPositionEnd is the anchoring position for "right" (in the horizontal direction) or "bottom" (in the vertical direction.)
+	RowLayoutPositionEnd
+)
+
+// NewRowLayout constructs a new RowLayout, configured by opts.
+func NewRowLayout(opts ...RowLayoutOpt) *RowLayout {
+	r := &RowLayout{}
 
 	for _, o := range opts {
 		o(r)
@@ -39,25 +58,30 @@ func NewRowLayout(opts ...RowLayoutOpt) Layouter {
 	return r
 }
 
+// Direction configures a row layout to layout widgets in the primary direction d. This will also switch the meaning
+// of any widget's RowLayoutData.Position and RowLayoutData.Stretch to the other direction.
 func (o rowLayoutOpts) Direction(d Direction) RowLayoutOpt {
-	return func(r *rowLayout) {
+	return func(r *RowLayout) {
 		r.direction = d
 	}
 }
 
+// Padding configures a row layout to use padding i.
 func (o rowLayoutOpts) Padding(i Insets) RowLayoutOpt {
-	return func(r *rowLayout) {
+	return func(r *RowLayout) {
 		r.padding = i
 	}
 }
 
+// Spacing configures a row layout to separate widgets by spacing s.
 func (o rowLayoutOpts) Spacing(s int) RowLayoutOpt {
-	return func(f *rowLayout) {
+	return func(f *RowLayout) {
 		f.spacing = s
 	}
 }
 
-func (r *rowLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (int, int) {
+// PreferredSize implements Layouter.
+func (r *RowLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (int, int) {
 	rect := image.Rectangle{}
 	r.layout(widgets, image.Rectangle{}, false, func(w PreferredSizeLocateableWidget, wr image.Rectangle) {
 		rect = rect.Union(wr)
@@ -65,13 +89,14 @@ func (r *rowLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (int,
 	return rect.Dx() + r.padding.Dx(), rect.Dy() + r.padding.Dy()
 }
 
-func (r *rowLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) {
+// Layout implements Layouter.
+func (r *RowLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) {
 	r.layout(widgets, rect, true, func(w PreferredSizeLocateableWidget, wr image.Rectangle) {
 		w.SetLocation(wr)
 	})
 }
 
-func (r *rowLayout) layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle, usePosition bool, locationFunc func(w PreferredSizeLocateableWidget, wr image.Rectangle)) {
+func (r *RowLayout) layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle, usePosition bool, locationFunc func(w PreferredSizeLocateableWidget, wr image.Rectangle)) {
 	if len(widgets) == 0 {
 		return
 	}
@@ -101,7 +126,7 @@ func (r *rowLayout) layout(widgets []PreferredSizeLocateableWidget, rect image.R
 	}
 }
 
-func (r *rowLayout) applyLayoutData(ld *RowLayoutData, wx int, wy int, ww int, wh int, usePosition bool, rect image.Rectangle, x int, y int) (int, int, int, int) {
+func (r *RowLayout) applyLayoutData(ld *RowLayoutData, wx int, wy int, ww int, wh int, usePosition bool, rect image.Rectangle, x int, y int) (int, int, int, int) {
 	if usePosition {
 		ww, wh = r.applyStretch(ld, ww, wh, rect)
 	}
@@ -115,7 +140,7 @@ func (r *rowLayout) applyLayoutData(ld *RowLayoutData, wx int, wy int, ww int, w
 	return wx, wy, ww, wh
 }
 
-func (r *rowLayout) applyStretch(ld *RowLayoutData, ww int, wh int, rect image.Rectangle) (int, int) {
+func (r *RowLayout) applyStretch(ld *RowLayoutData, ww int, wh int, rect image.Rectangle) (int, int) {
 	if !ld.Stretch {
 		return ww, wh
 	}
@@ -129,7 +154,7 @@ func (r *rowLayout) applyStretch(ld *RowLayoutData, ww int, wh int, rect image.R
 	return ww, wh
 }
 
-func (r *rowLayout) applyMaxSize(ld *RowLayoutData, ww int, wh int) (int, int) {
+func (r *RowLayout) applyMaxSize(ld *RowLayoutData, ww int, wh int) (int, int) {
 	if ld.MaxWidth > 0 && ww > ld.MaxWidth {
 		ww = ld.MaxWidth
 	}
@@ -141,7 +166,7 @@ func (r *rowLayout) applyMaxSize(ld *RowLayoutData, ww int, wh int) (int, int) {
 	return ww, wh
 }
 
-func (r *rowLayout) applyPosition(ld *RowLayoutData, wx int, wy int, ww int, wh int, rect image.Rectangle, x int, y int) (int, int) {
+func (r *RowLayout) applyPosition(ld *RowLayoutData, wx int, wy int, ww int, wh int, rect image.Rectangle, x int, y int) (int, int) {
 	switch ld.Position {
 	case RowLayoutPositionCenter:
 		if r.direction == DirectionHorizontal {

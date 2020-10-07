@@ -34,7 +34,7 @@ func MouseButtonJustPressed(b ebiten.MouseButton) bool {
 	}
 }
 
-// MouseButtonPressedLayer returns whether mouse button b is currently pressed and input layer l is
+// MouseButtonPressedLayer returns whether mouse button b is currently pressed if input layer l is
 // eligible to handle it.
 func MouseButtonPressedLayer(b ebiten.MouseButton, l *Layer) bool {
 	if !MouseButtonPressed(b) {
@@ -45,7 +45,7 @@ func MouseButtonPressedLayer(b ebiten.MouseButton, l *Layer) bool {
 	return l.ActiveFor(x, y, LayerEventTypeMouseButton)
 }
 
-// MouseButtonJustPressedLayer returns whether mouse button b has just been pressed and input layer l
+// MouseButtonJustPressedLayer returns whether mouse button b has just been pressed if input layer l
 // is eligible to handle it. It only returns true during the first frame that the button is pressed.
 func MouseButtonJustPressedLayer(b ebiten.MouseButton, l *Layer) bool {
 	if !MouseButtonJustPressed(b) {
@@ -82,15 +82,18 @@ func WheelLayer(l *Layer) (float64, float64) {
 	return x, y
 }
 
+// InputChars returns user keyboard input.
 func InputChars() []rune { //nolint:golint
 	return internalinput.InputChars
 }
 
+// KeyPressed returns whether key k is currently pressed.
 func KeyPressed(k ebiten.Key) bool {
 	p, ok := internalinput.KeyPressed[k]
 	return ok && p
 }
 
+// AnyKeyPressed returns whether any key is currently pressed.
 func AnyKeyPressed() bool {
 	return internalinput.AnyKeyPressed
 }

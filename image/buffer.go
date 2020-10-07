@@ -17,7 +17,7 @@ type MaskedRenderBuffer struct {
 	maskedBuf *BufferedImage
 }
 
-// DrawFunc is the type of a function that draws something into buf.
+// DrawFunc is a function that draws something into buf.
 type DrawFunc func(buf *ebiten.Image)
 
 // Image returns the internal Ebiten Image. If b.Width or b.Height have changed, a new Image

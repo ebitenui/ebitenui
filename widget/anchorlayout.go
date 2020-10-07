@@ -2,33 +2,54 @@ package widget
 
 import "image"
 
-type anchorLayout struct {
+// AnchorLayout layouts a single widget anchored to either a corner or edge of a rectangle,
+// optionally stretching it in one or both directions.
+//
+// AnchorLayout will only layout the first widget in a container and ignore all other widgets.
+type AnchorLayout struct {
 	padding Insets
 }
 
-type AnchorLayoutOpt func(a *anchorLayout)
+// AnchorLayoutOpt is a function that configures a.
+type AnchorLayoutOpt func(a *AnchorLayout)
 
+// AnchorLayoutOpts contains functions that configure an AnchorLayout.
 const AnchorLayoutOpts = anchorLayoutOpts(true)
 
 type anchorLayoutOpts bool
 
+// AnchorLayoutPosition is the type used to specify an anchoring position.
 type AnchorLayoutPosition int
 
+// AnchorLayoutData specifies layout settings for a widget.
 type AnchorLayoutData struct {
+	// HorizontalPosition specifies the horizontal anchoring position.
 	HorizontalPosition AnchorLayoutPosition
-	VerticalPosition   AnchorLayoutPosition
-	StretchHorizontal  bool
-	StretchVertical    bool
+
+	// VerticalPosition specifies the vertical anchoring position.
+	VerticalPosition AnchorLayoutPosition
+
+	// StretchHorizontal specifies whether to stretch in the horizontal direction.
+	StretchHorizontal bool
+
+	// StretchVertical specifies whether to stretch in the vertical direction.
+	StretchVertical bool
 }
 
 const (
+	// AnchorLayoutPositionStart is the anchoring position for "left" (in the horizontal direction) or "top" (in the vertical direction.)
 	AnchorLayoutPositionStart = AnchorLayoutPosition(iota)
+
+	// AnchorLayoutPositionCenter is the center anchoring position.
 	AnchorLayoutPositionCenter
+
+	// AnchorLayoutPositionEnd is the anchoring position for "right" (in the horizontal direction) or "bottom" (in the vertical direction.)
 	AnchorLayoutPositionEnd
 )
 
-func NewAnchorLayout(opts ...AnchorLayoutOpt) Layouter {
-	a := &anchorLayout{}
+// NewAnchorLayout constructs a new AnchorLayout, configured by opts.
+func NewAnchorLayout(opts ...AnchorLayoutOpt) *AnchorLayout {
+	a := &AnchorLayout{}
 
 	for _, o := range opts {
 		o(a)
@@ -37,13 +58,15 @@ func NewAnchorLayout(opts ...AnchorLayoutOpt) Layouter {
 	return a
 }
 
+// Padding configures an anchor layout to use padding i.
 func (o anchorLayoutOpts) Padding(i Insets) AnchorLayoutOpt {
-	return func(a *anchorLayout) {
+	return func(a *AnchorLayout) {
 		a.padding = i
 	}
 }
 
-func (a *anchorLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (int, int) {
+// PreferredSize implements Layouter.
+func (a *AnchorLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (int, int) {
 	px, py := a.padding.Dx(), a.padding.Dy()
 
 	if len(widgets) == 0 {
@@ -54,7 +77,8 @@ func (a *anchorLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (i
 	return w + px, h + py
 }
 
-func (a *anchorLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) {
+// Layout implements Layouter.
+func (a *AnchorLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) {
 	if len(widgets) == 0 {
 		return
 	}
@@ -76,7 +100,7 @@ func (a *anchorLayout) Layout(widgets []PreferredSizeLocateableWidget, rect imag
 	widget.SetLocation(r)
 }
 
-func (a *anchorLayout) applyLayoutData(ld *AnchorLayoutData, wx int, wy int, ww int, wh int, rect image.Rectangle) (int, int, int, int) {
+func (a *AnchorLayout) applyLayoutData(ld *AnchorLayoutData, wx int, wy int, ww int, wh int, rect image.Rectangle) (int, int, int, int) {
 	if ld.StretchHorizontal {
 		ww = rect.Dx()
 	}
