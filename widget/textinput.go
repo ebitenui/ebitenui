@@ -406,8 +406,7 @@ func (t *TextInput) renderImage(screen *ebiten.Image) {
 }
 
 func (t *TextInput) renderTextAndCaret(screen *ebiten.Image, def DeferredRenderFunc) {
-	w, h := screen.Size()
-	t.renderBuf.Draw(screen, w, h,
+	t.renderBuf.Draw(screen,
 		func(buf *ebiten.Image) {
 			t.drawTextAndCaret(buf, def)
 		},

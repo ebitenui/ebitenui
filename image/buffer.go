@@ -11,11 +11,13 @@ type BufferedImage struct {
 	image *ebiten.Image
 }
 
+// MaskedRenderBuffer is a helper to draw images using a mask.
 type MaskedRenderBuffer struct {
 	renderBuf *BufferedImage
 	maskedBuf *BufferedImage
 }
 
+// DrawFunc is the type of a function that draws something into buf.
 type DrawFunc func(buf *ebiten.Image)
 
 // Image returns the internal Ebiten Image. If b.Width or b.Height have changed, a new Image
@@ -33,6 +35,7 @@ func (b *BufferedImage) Image() *ebiten.Image {
 	return b.image
 }
 
+// NewMaskedRenderBuffer returns a new MaskedRenderBuffer.
 func NewMaskedRenderBuffer() *MaskedRenderBuffer {
 	return &MaskedRenderBuffer{
 		renderBuf: &BufferedImage{},
@@ -40,7 +43,11 @@ func NewMaskedRenderBuffer() *MaskedRenderBuffer {
 	}
 }
 
-func (m *MaskedRenderBuffer) Draw(screen *ebiten.Image, w int, h int, d DrawFunc, dm DrawFunc) {
+// Draw calls d to draw onto screen, using the mask drawn by dm. The buffer images passed
+// to d and dm are of the same size as screen.
+func (m *MaskedRenderBuffer) Draw(screen *ebiten.Image, d DrawFunc, dm DrawFunc) {
+	w, h := screen.Size()
+
 	m.renderBuf.Width, m.renderBuf.Height = w, h
 	renderBuf := m.renderBuf.Image()
 	_ = renderBuf.Clear()

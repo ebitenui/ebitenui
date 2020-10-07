@@ -29,11 +29,12 @@ var colorImages map[color.Color]*ebiten.Image = map[color.Color]*ebiten.Image{}
 
 var colorNineSlices map[color.Color]*NineSlice = map[color.Color]*NineSlice{}
 
-func NewNineSlice(image *ebiten.Image, widths [3]int, heights [3]int) *NineSlice {
+// NewNineSlice constructs a new NineSlice from i, having columns widths w and row heights h.
+func NewNineSlice(i *ebiten.Image, w [3]int, h [3]int) *NineSlice {
 	return &NineSlice{
-		image:   image,
-		widths:  widths,
-		heights: heights,
+		image:   i,
+		widths:  w,
+		heights: h,
 	}
 }
 
@@ -185,6 +186,8 @@ func (n *NineSlice) centerOnly() bool {
 	return n.widths[1] == w && n.heights[1] == h
 }
 
+// MinSize returns the minimum width and height to draw n correctly. If n is drawn with a smaller size,
+// the corner or edge tiles will overlap.
 func (n *NineSlice) MinSize() (int, int) {
 	if n.transparent {
 		return 0, 0

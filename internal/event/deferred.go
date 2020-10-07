@@ -1,11 +1,14 @@
 package event
 
+// A DeferredAction is an action that is executed at a later time.
 type DeferredAction interface {
+	// Do executes the action.
 	Do()
 }
 
 var deferredActions []DeferredAction
 
+// AddDeferred adds d to the queue of deferred actions.
 func AddDeferred(d DeferredAction) {
 	deferredActions = append(deferredActions, d)
 }

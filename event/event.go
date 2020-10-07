@@ -8,7 +8,8 @@ type Event struct {
 	handlers  []handler
 }
 
-// A HandlerFunc is a function that receives and handles an event.
+// A HandlerFunc is a function that receives and handles an event. When firing an event using
+// Event.Fire, arbitrary event arguments may be passed that are in turn passed on to the handler function.
 type HandlerFunc func(args interface{})
 
 // RemoveHandlerFunc is a function that removes a handler from an event.
@@ -29,7 +30,7 @@ type deferredAddHandler struct {
 	handler handler
 }
 
-// AddHandler registers handler h with e. It returns a function to remove h from e if desired.
+// AddHandler registers event handler h with e. It returns a function to remove h from e if desired.
 func (e *Event) AddHandler(h HandlerFunc) RemoveHandlerFunc {
 	e.idCounter++
 
@@ -64,10 +65,11 @@ func (e *Event) removeHandler(id uint32) {
 	e.handlers = append(e.handlers[:index], e.handlers[index+1:]...)
 }
 
-// Fire fires an event to all registered handlers.
+// Fire fires an event to all registered handlers. Arbitrary event arguments may be passed
+// which are in turn passed on to event handlers.
 //
 // Events are not fired directly, but are put into a deferred queue. This queue is then
-// processed by the UI system.
+// processed by the UI.
 func (e *Event) Fire(args interface{}) {
 	internalevent.AddDeferred(&deferredEvent{
 		event: e,
@@ -91,7 +93,7 @@ func (a *deferredAddHandler) Do() {
 	a.event.handlers = append(a.event.handlers, a.handler)
 }
 
-// AddEventHandlerOneShot registers handler h with e. When e fires an event, h is removed from e automatically.
+// AddEventHandlerOneShot registers event handler h with e. When e fires an event, h is removed from e immediately.
 func AddEventHandlerOneShot(e *Event, h HandlerFunc) {
 	var r RemoveHandlerFunc
 	rh := func(args interface{}) {

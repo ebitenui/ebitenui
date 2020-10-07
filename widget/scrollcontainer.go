@@ -200,9 +200,7 @@ func (s *ScrollContainer) renderContent(screen *ebiten.Image, def DeferredRender
 		}
 	}
 
-	w, h := screen.Size()
-
-	s.renderBuf.Draw(screen, w, h,
+	s.renderBuf.Draw(screen,
 		func(buf *ebiten.Image) {
 			r.Render(buf, def)
 		},
