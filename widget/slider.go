@@ -8,7 +8,7 @@ import (
 	"github.com/blizzy78/ebitenui/image"
 	"github.com/blizzy78/ebitenui/input"
 
-	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type Slider struct {

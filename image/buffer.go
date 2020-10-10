@@ -1,6 +1,6 @@
 package image
 
-import "github.com/hajimehoshi/ebiten"
+import "github.com/hajimehoshi/ebiten/v2"
 
 // BufferedImage is a wrapper for an Ebiten Image that helps with caching the Image.
 // As long as Width and Height stay the same, no new Image will be created.
@@ -29,7 +29,7 @@ func (b *BufferedImage) Image() *ebiten.Image {
 	}
 
 	if b.image == nil || b.Width != w || b.Height != h {
-		b.image, _ = ebiten.NewImage(b.Width, b.Height, ebiten.FilterDefault)
+		b.image = ebiten.NewImage(b.Width, b.Height)
 	}
 
 	return b.image
@@ -50,18 +50,18 @@ func (m *MaskedRenderBuffer) Draw(screen *ebiten.Image, d DrawFunc, dm DrawFunc)
 
 	m.renderBuf.Width, m.renderBuf.Height = w, h
 	renderBuf := m.renderBuf.Image()
-	_ = renderBuf.Clear()
+	renderBuf.Clear()
 
 	m.maskedBuf.Width, m.maskedBuf.Height = w, h
 	maskedBuf := m.maskedBuf.Image()
-	_ = maskedBuf.Clear()
+	maskedBuf.Clear()
 
 	d(renderBuf)
 	dm(maskedBuf)
 
-	_ = maskedBuf.DrawImage(renderBuf, &ebiten.DrawImageOptions{
+	maskedBuf.DrawImage(renderBuf, &ebiten.DrawImageOptions{
 		CompositeMode: ebiten.CompositeModeSourceIn,
 	})
 
-	_ = screen.DrawImage(maskedBuf, nil)
+	screen.DrawImage(maskedBuf, nil)
 }

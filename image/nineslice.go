@@ -5,7 +5,7 @@ import (
 	"image/color"
 	"sync"
 
-	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 // A NineSlice is an image that can be drawn with any width and height. It is basically a 3x3 grid of image tiles:
@@ -77,8 +77,8 @@ func NewImageColor(c color.Color) *ebiten.Image {
 		return i
 	}
 
-	i, _ := ebiten.NewImage(1, 1, ebiten.FilterDefault)
-	_ = i.Fill(c)
+	i := ebiten.NewImage(1, 1)
+	i.Fill(c)
 	colorImages[c] = i
 	return i
 }
@@ -147,7 +147,7 @@ func (n *NineSlice) drawTile(screen *ebiten.Image, tile *ebiten.Image, tx int, t
 		optsFunc(&opts)
 	}
 
-	_ = screen.DrawImage(tile, &opts)
+	screen.DrawImage(tile, &opts)
 }
 
 func (n *NineSlice) createTiles() {

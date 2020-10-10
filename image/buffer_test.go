@@ -3,7 +3,7 @@ package image
 import (
 	"testing"
 
-	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
 )
 

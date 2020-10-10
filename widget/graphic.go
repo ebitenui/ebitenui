@@ -5,7 +5,7 @@ import (
 
 	img "image"
 
-	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type Graphic struct {
@@ -86,7 +86,7 @@ func (g *Graphic) draw(screen *ebiten.Image) {
 		w, h := g.Image.Size()
 		opts.GeoM.Translate(float64((g.widget.Rect.Dx()-w)/2), float64((g.widget.Rect.Dy()-h)/2))
 		g.widget.drawImageOptions(&opts)
-		_ = screen.DrawImage(g.Image, &opts)
+		screen.DrawImage(g.Image, &opts)
 	} else if g.ImageNineSlice != nil {
 		g.ImageNineSlice.Draw(screen, g.widget.Rect.Dx(), g.widget.Rect.Dy(), g.widget.drawImageOptions)
 	}

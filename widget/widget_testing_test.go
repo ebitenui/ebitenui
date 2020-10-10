@@ -10,7 +10,7 @@ import (
 	"github.com/blizzy78/ebitenui/image"
 
 	"github.com/golang/freetype/truetype"
-	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/v2"
 	"golang.org/x/image/font"
 )
 
@@ -73,8 +73,7 @@ func newImageEmpty(t *testing.T) *ebiten.Image {
 
 func newImageEmptySize(width int, height int, t *testing.T) *ebiten.Image {
 	t.Helper()
-	i, _ := ebiten.NewImage(width, height, ebiten.FilterDefault)
-	return i
+	return ebiten.NewImage(width, height)
 }
 
 func newNineSliceEmpty(t *testing.T) *image.NineSlice {
@@ -118,7 +117,7 @@ func leftMouseButtonRelease(w HasWidget, t *testing.T) {
 func render(r Renderer, t *testing.T) {
 	t.Helper()
 
-	screen, _ := ebiten.NewImage(0, 0, ebiten.FilterDefault)
+	screen := ebiten.NewImage(0, 0)
 	RenderWithDeferred(screen, []Renderer{r})
 	event.ExecuteDeferred()
 }

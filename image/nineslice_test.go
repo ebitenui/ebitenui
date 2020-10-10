@@ -4,7 +4,7 @@ import (
 	"image/color"
 	"testing"
 
-	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
 )
 
@@ -29,6 +29,5 @@ func TestNineSlice_MinSize(t *testing.T) {
 
 func newImageEmptySize(width int, height int, t *testing.T) *ebiten.Image {
 	t.Helper()
-	i, _ := ebiten.NewImage(width, height, ebiten.FilterDefault)
-	return i
+	return ebiten.NewImage(width, height)
 }

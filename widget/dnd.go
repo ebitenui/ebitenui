@@ -6,7 +6,7 @@ import (
 
 	"github.com/blizzy78/ebitenui/event"
 	"github.com/blizzy78/ebitenui/input"
-	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type DragAndDrop struct {

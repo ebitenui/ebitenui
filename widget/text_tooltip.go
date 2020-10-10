@@ -3,7 +3,7 @@ package widget
 import (
 	img "image"
 
-	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type TextToolTip struct {

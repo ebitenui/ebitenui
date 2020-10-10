@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/blizzy78/ebitenui/input"
-	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type ToolTip struct {

@@ -7,7 +7,7 @@ import (
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
 
-	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/v2"
 
 	_ "image/png"
 
@@ -367,7 +367,7 @@ func (g *game) Layout(outsideWidth int, outsideHeight int) (int, int) {
 	return outsideWidth, outsideHeight
 }
 
-func (g *game) Update(_ *ebiten.Image) error {
+func (g *game) Update() error {
 	g.ui.Update()
 	return nil
 }

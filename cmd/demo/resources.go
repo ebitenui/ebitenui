@@ -6,8 +6,7 @@ import (
 
 	"github.com/blizzy78/ebitenui/image"
 	"github.com/blizzy78/ebitenui/widget"
-	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"golang.org/x/image/font"
 )
 
@@ -387,37 +386,37 @@ func newComboButtonResources(fonts *fonts) (*comboButtonResources, error) {
 }
 
 func newListResources(fonts *fonts) (*listResources, error) {
-	idle, _, err := ebitenutil.NewImageFromFile("graphics/list-idle.png", ebiten.FilterDefault)
+	idle, _, err := ebitenutil.NewImageFromFile("graphics/list-idle.png")
 	if err != nil {
 		return nil, err
 	}
 
-	disabled, _, err := ebitenutil.NewImageFromFile("graphics/list-disabled.png", ebiten.FilterDefault)
+	disabled, _, err := ebitenutil.NewImageFromFile("graphics/list-disabled.png")
 	if err != nil {
 		return nil, err
 	}
 
-	mask, _, err := ebitenutil.NewImageFromFile("graphics/list-mask.png", ebiten.FilterDefault)
+	mask, _, err := ebitenutil.NewImageFromFile("graphics/list-mask.png")
 	if err != nil {
 		return nil, err
 	}
 
-	trackIdle, _, err := ebitenutil.NewImageFromFile("graphics/list-track-idle.png", ebiten.FilterDefault)
+	trackIdle, _, err := ebitenutil.NewImageFromFile("graphics/list-track-idle.png")
 	if err != nil {
 		return nil, err
 	}
 
-	trackDisabled, _, err := ebitenutil.NewImageFromFile("graphics/list-track-disabled.png", ebiten.FilterDefault)
+	trackDisabled, _, err := ebitenutil.NewImageFromFile("graphics/list-track-disabled.png")
 	if err != nil {
 		return nil, err
 	}
 
-	handleIdle, _, err := ebitenutil.NewImageFromFile("graphics/slider-handle-idle.png", ebiten.FilterDefault)
+	handleIdle, _, err := ebitenutil.NewImageFromFile("graphics/slider-handle-idle.png")
 	if err != nil {
 		return nil, err
 	}
 
-	handleHover, _, err := ebitenutil.NewImageFromFile("graphics/slider-handle-hover.png", ebiten.FilterDefault)
+	handleHover, _, err := ebitenutil.NewImageFromFile("graphics/slider-handle-hover.png")
 	if err != nil {
 		return nil, err
 	}
@@ -471,27 +470,27 @@ func newListResources(fonts *fonts) (*listResources, error) {
 }
 
 func newSliderResources() (*sliderResources, error) {
-	idle, _, err := ebitenutil.NewImageFromFile("graphics/slider-track-idle.png", ebiten.FilterDefault)
+	idle, _, err := ebitenutil.NewImageFromFile("graphics/slider-track-idle.png")
 	if err != nil {
 		return nil, err
 	}
 
-	disabled, _, err := ebitenutil.NewImageFromFile("graphics/slider-track-disabled.png", ebiten.FilterDefault)
+	disabled, _, err := ebitenutil.NewImageFromFile("graphics/slider-track-disabled.png")
 	if err != nil {
 		return nil, err
 	}
 
-	handleIdle, _, err := ebitenutil.NewImageFromFile("graphics/slider-handle-idle.png", ebiten.FilterDefault)
+	handleIdle, _, err := ebitenutil.NewImageFromFile("graphics/slider-handle-idle.png")
 	if err != nil {
 		return nil, err
 	}
 
-	handleHover, _, err := ebitenutil.NewImageFromFile("graphics/slider-handle-hover.png", ebiten.FilterDefault)
+	handleHover, _, err := ebitenutil.NewImageFromFile("graphics/slider-handle-hover.png")
 	if err != nil {
 		return nil, err
 	}
 
-	handleDisabled, _, err := ebitenutil.NewImageFromFile("graphics/slider-handle-disabled.png", ebiten.FilterDefault)
+	handleDisabled, _, err := ebitenutil.NewImageFromFile("graphics/slider-handle-disabled.png")
 	if err != nil {
 		return nil, err
 	}
@@ -625,12 +624,12 @@ func newHeaderResources(fonts *fonts) (*headerResources, error) {
 }
 
 func newTextInputResources(fonts *fonts) (*textInputResources, error) {
-	idle, _, err := ebitenutil.NewImageFromFile("graphics/text-input-idle.png", ebiten.FilterDefault)
+	idle, _, err := ebitenutil.NewImageFromFile("graphics/text-input-idle.png")
 	if err != nil {
 		return nil, err
 	}
 
-	disabled, _, err := ebitenutil.NewImageFromFile("graphics/text-input-disabled.png", ebiten.FilterDefault)
+	disabled, _, err := ebitenutil.NewImageFromFile("graphics/text-input-disabled.png")
 	if err != nil {
 		return nil, err
 	}
@@ -659,7 +658,7 @@ func newTextInputResources(fonts *fonts) (*textInputResources, error) {
 }
 
 func newToolTipResources(fonts *fonts) (*toolTipResources, error) {
-	bg, _, err := ebitenutil.NewImageFromFile("graphics/tool-tip.png", ebiten.FilterDefault)
+	bg, _, err := ebitenutil.NewImageFromFile("graphics/tool-tip.png")
 	if err != nil {
 		return nil, err
 	}

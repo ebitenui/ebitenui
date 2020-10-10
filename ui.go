@@ -8,7 +8,7 @@ import (
 	internalinput "github.com/blizzy78/ebitenui/internal/input"
 	"github.com/blizzy78/ebitenui/widget"
 
-	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 // UI encapsulates a complete user interface that can be rendered onto the screen.

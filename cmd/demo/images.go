@@ -4,12 +4,12 @@ import (
 	"github.com/blizzy78/ebitenui/image"
 	"github.com/blizzy78/ebitenui/widget"
 
-	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 func loadGraphicImages(idle string, disabled string) (*widget.ButtonImageImage, error) {
-	idleImage, _, err := ebitenutil.NewImageFromFile(idle, ebiten.FilterDefault)
+	idleImage, _, err := ebitenutil.NewImageFromFile(idle)
 	if err != nil {
 		return nil, err
 	}
@@ -17,7 +17,7 @@ func loadGraphicImages(idle string, disabled string) (*widget.ButtonImageImage, 
 	var disabledImage *ebiten.Image
 	if disabled != "" {
 		var err error
-		if disabledImage, _, err = ebitenutil.NewImageFromFile(disabled, ebiten.FilterDefault); err != nil {
+		if disabledImage, _, err = ebitenutil.NewImageFromFile(disabled); err != nil {
 			return nil, err
 		}
 	}
@@ -29,7 +29,7 @@ func loadGraphicImages(idle string, disabled string) (*widget.ButtonImageImage, 
 }
 
 func loadImageNineSlice(path string, centerWidth int, centerHeight int) (*image.NineSlice, error) {
-	i, _, err := ebitenutil.NewImageFromFile(path, ebiten.FilterDefault)
+	i, _, err := ebitenutil.NewImageFromFile(path)
 	if err != nil {
 		return nil, err
 	}

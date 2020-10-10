@@ -2,6 +2,7 @@ package main
 
 import (
 	"image/color"
+	_ "image/png"
 	"io/ioutil"
 	"log"
 
@@ -9,8 +10,8 @@ import (
 	"github.com/blizzy78/ebitenui/image"
 	"github.com/blizzy78/ebitenui/widget"
 	"github.com/golang/freetype/truetype"
-	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"golang.org/x/image/font"
 )
 
@@ -103,7 +104,7 @@ func (g *game) Layout(outsideWidth int, outsideHeight int) (int, int) {
 }
 
 // Update implements Game.
-func (g *game) Update(_ *ebiten.Image) error {
+func (g *game) Update() error {
 	// update the UI
 	g.ui.Update()
 	return nil
@@ -139,7 +140,7 @@ func loadButtonImage() (*widget.ButtonImage, error) {
 }
 
 func loadNineSlice(path string, w [3]int, h [3]int) (*image.NineSlice, error) {
-	i, _, err := ebitenutil.NewImageFromFile(path, ebiten.FilterDefault)
+	i, _, err := ebitenutil.NewImageFromFile(path)
 	if err != nil {
 		return nil, err
 	}
