@@ -14,5 +14,15 @@
 			"env": {},
 			"args": []
 		},
+		{
+			"name": "Launch Scaffold",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/cmd/scaffold",
+			"cwd": "${workspaceFolder}/cmd/scaffold",
+			"env": {},
+			"args": []
+		},
 	]
 }

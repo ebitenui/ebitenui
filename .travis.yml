@@ -15,4 +15,5 @@ before_script:
 - sleep 3 # give xvfb some time to start
 after_script:
 - go build ./cmd/demo
+- go build ./cmd/scaffold
 - goveralls -service=travis-ci
