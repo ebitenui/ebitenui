@@ -21,9 +21,10 @@ type ComboButton struct {
 
 type ComboButtonOpt func(c *ComboButton)
 
-const ComboButtonOpts = comboButtonOpts(true)
+type ComboButtonOptions struct {
+}
 
-type comboButtonOpts bool
+var ComboButtonOpts ComboButtonOptions
 
 func NewComboButton(opts ...ComboButtonOpt) *ComboButton {
 	c := &ComboButton{
@@ -39,19 +40,19 @@ func NewComboButton(opts ...ComboButtonOpt) *ComboButton {
 	return c
 }
 
-func (o comboButtonOpts) ButtonOpts(opts ...ButtonOpt) ComboButtonOpt {
+func (o ComboButtonOptions) ButtonOpts(opts ...ButtonOpt) ComboButtonOpt {
 	return func(c *ComboButton) {
 		c.buttonOpts = append(c.buttonOpts, opts...)
 	}
 }
 
-func (o comboButtonOpts) Content(c HasWidget) ComboButtonOpt {
+func (o ComboButtonOptions) Content(c HasWidget) ComboButtonOpt {
 	return func(cb *ComboButton) {
 		cb.content = c
 	}
 }
 
-func (o comboButtonOpts) MaxContentHeight(h int) ComboButtonOpt {
+func (o ComboButtonOptions) MaxContentHeight(h int) ComboButtonOpt {
 	return func(c *ComboButton) {
 		c.maxContentHeight = h
 	}

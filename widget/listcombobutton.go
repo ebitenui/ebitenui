@@ -32,9 +32,10 @@ type ListComboButtonEntrySelectedEventArgs struct {
 
 type ListComboButtonEntrySelectedHandlerFunc func(args *ListComboButtonEntrySelectedEventArgs)
 
-const ListComboButtonOpts = listComboButtonOpts(true)
+type ListComboButtonOptions struct {
+}
 
-type listComboButtonOpts bool
+var ListComboButtonOpts ListComboButtonOptions
 
 func NewListComboButton(opts ...ListComboButtonOpt) *ListComboButton {
 	l := &ListComboButton{
@@ -52,30 +53,30 @@ func NewListComboButton(opts ...ListComboButtonOpt) *ListComboButton {
 	return l
 }
 
-func (o listComboButtonOpts) SelectComboButtonOpts(opts ...SelectComboButtonOpt) ListComboButtonOpt {
+func (o ListComboButtonOptions) SelectComboButtonOpts(opts ...SelectComboButtonOpt) ListComboButtonOpt {
 	return func(l *ListComboButton) {
 		l.buttonOpts = append(l.buttonOpts, opts...)
 	}
 }
 
-func (o listComboButtonOpts) ListOpts(opts ...ListOpt) ListComboButtonOpt {
+func (o ListComboButtonOptions) ListOpts(opts ...ListOpt) ListComboButtonOpt {
 	return func(l *ListComboButton) {
 		l.listOpts = append(l.listOpts, opts...)
 	}
 }
 
-func (o listComboButtonOpts) Text(face font.Face, image *ButtonImageImage, color *ButtonTextColor) ListComboButtonOpt {
+func (o ListComboButtonOptions) Text(face font.Face, image *ButtonImageImage, color *ButtonTextColor) ListComboButtonOpt {
 	return o.SelectComboButtonOpts(SelectComboButtonOpts.ComboButtonOpts(ComboButtonOpts.ButtonOpts(ButtonOpts.TextAndImage("", face, image, color))))
 }
 
-func (o listComboButtonOpts) EntryLabelFunc(button SelectComboButtonEntryLabelFunc, list ListEntryLabelFunc) ListComboButtonOpt {
+func (o ListComboButtonOptions) EntryLabelFunc(button SelectComboButtonEntryLabelFunc, list ListEntryLabelFunc) ListComboButtonOpt {
 	return func(l *ListComboButton) {
 		l.buttonOpts = append(l.buttonOpts, SelectComboButtonOpts.EntryLabelFunc(button))
 		l.listOpts = append(l.listOpts, ListOpts.EntryLabelFunc(list))
 	}
 }
 
-func (o listComboButtonOpts) EntrySelectedHandler(f ListComboButtonEntrySelectedHandlerFunc) ListComboButtonOpt {
+func (o ListComboButtonOptions) EntrySelectedHandler(f ListComboButtonEntrySelectedHandlerFunc) ListComboButtonOpt {
 	return func(l *ListComboButton) {
 		l.EntrySelectedEvent.AddHandler(func(args interface{}) {
 			f(args.(*ListComboButtonEntrySelectedEventArgs))

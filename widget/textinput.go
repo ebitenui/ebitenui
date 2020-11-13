@@ -46,9 +46,8 @@ type TextInput struct {
 
 type TextInputOpt func(t *TextInput)
 
-const TextInputOpts = textInputOpts(true)
-
-type textInputOpts bool
+type TextInputOptions struct {
+}
 
 type TextInputChangedEventArgs struct {
 	TextInput *TextInput
@@ -75,6 +74,8 @@ type textInputState func() (textInputState, bool)
 type textInputControlCommand int
 
 type textInputCommandFunc func()
+
+var TextInputOpts TextInputOptions
 
 const (
 	textInputGoLeft = textInputControlCommand(iota + 1)
@@ -123,19 +124,19 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 	return t
 }
 
-func (o textInputOpts) WidgetOpts(opts ...WidgetOpt) TextInputOpt {
+func (o TextInputOptions) WidgetOpts(opts ...WidgetOpt) TextInputOpt {
 	return func(t *TextInput) {
 		t.widgetOpts = append(t.widgetOpts, opts...)
 	}
 }
 
-func (o textInputOpts) CaretOpts(opts ...CaretOpt) TextInputOpt {
+func (o TextInputOptions) CaretOpts(opts ...CaretOpt) TextInputOpt {
 	return func(t *TextInput) {
 		t.caretOpts = append(t.caretOpts, opts...)
 	}
 }
 
-func (o textInputOpts) ChangedHandler(f TextInputChangedHandlerFunc) TextInputOpt {
+func (o TextInputOptions) ChangedHandler(f TextInputChangedHandlerFunc) TextInputOpt {
 	return func(t *TextInput) {
 		t.ChangedEvent.AddHandler(func(args interface{}) {
 			f(args.(*TextInputChangedEventArgs))
@@ -143,43 +144,43 @@ func (o textInputOpts) ChangedHandler(f TextInputChangedHandlerFunc) TextInputOp
 	}
 }
 
-func (o textInputOpts) Image(i *TextInputImage) TextInputOpt {
+func (o TextInputOptions) Image(i *TextInputImage) TextInputOpt {
 	return func(t *TextInput) {
 		t.image = i
 	}
 }
 
-func (o textInputOpts) Color(c *TextInputColor) TextInputOpt {
+func (o TextInputOptions) Color(c *TextInputColor) TextInputOpt {
 	return func(t *TextInput) {
 		t.color = c
 	}
 }
 
-func (o textInputOpts) Padding(i Insets) TextInputOpt {
+func (o TextInputOptions) Padding(i Insets) TextInputOpt {
 	return func(t *TextInput) {
 		t.padding = i
 	}
 }
 
-func (o textInputOpts) Face(f font.Face) TextInputOpt {
+func (o TextInputOptions) Face(f font.Face) TextInputOpt {
 	return func(t *TextInput) {
 		t.face = f
 	}
 }
 
-func (o textInputOpts) RepeatInterval(i time.Duration) TextInputOpt {
+func (o TextInputOptions) RepeatInterval(i time.Duration) TextInputOpt {
 	return func(t *TextInput) {
 		t.repeatInterval = i
 	}
 }
 
-func (o textInputOpts) Validation(f TextInputValidationFunc) TextInputOpt {
+func (o TextInputOptions) Validation(f TextInputValidationFunc) TextInputOpt {
 	return func(t *TextInput) {
 		t.validationFunc = f
 	}
 }
 
-func (o textInputOpts) Placeholder(s string) TextInputOpt {
+func (o TextInputOptions) Placeholder(s string) TextInputOpt {
 	return func(t *TextInput) {
 		t.placeholderText = s
 	}

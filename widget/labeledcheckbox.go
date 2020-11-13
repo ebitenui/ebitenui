@@ -20,9 +20,10 @@ type LabeledCheckbox struct {
 
 type LabeledCheckboxOpt func(l *LabeledCheckbox)
 
-const LabeledCheckboxOpts = labeledCheckboxOpts(true)
+type LabeledCheckboxOptions struct {
+}
 
-type labeledCheckboxOpts bool
+var LabeledCheckboxOpts LabeledCheckboxOptions
 
 func NewLabeledCheckbox(opts ...LabeledCheckboxOpt) *LabeledCheckbox {
 	l := &LabeledCheckbox{
@@ -40,19 +41,19 @@ func NewLabeledCheckbox(opts ...LabeledCheckboxOpt) *LabeledCheckbox {
 	return l
 }
 
-func (o labeledCheckboxOpts) CheckboxOpts(opts ...CheckboxOpt) LabeledCheckboxOpt {
+func (o LabeledCheckboxOptions) CheckboxOpts(opts ...CheckboxOpt) LabeledCheckboxOpt {
 	return func(l *LabeledCheckbox) {
 		l.checkboxOpts = append(l.checkboxOpts, opts...)
 	}
 }
 
-func (o labeledCheckboxOpts) LabelOpts(opts ...LabelOpt) LabeledCheckboxOpt {
+func (o LabeledCheckboxOptions) LabelOpts(opts ...LabelOpt) LabeledCheckboxOpt {
 	return func(l *LabeledCheckbox) {
 		l.labelOpts = append(l.labelOpts, opts...)
 	}
 }
 
-func (o labeledCheckboxOpts) Spacing(s int) LabeledCheckboxOpt {
+func (o LabeledCheckboxOptions) Spacing(s int) LabeledCheckboxOpt {
 	return func(l *LabeledCheckbox) {
 		l.spacing = s
 	}

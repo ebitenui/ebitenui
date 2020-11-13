@@ -20,10 +20,8 @@ type GridLayout struct {
 // GridLayoutOpt is a function that configures g.
 type GridLayoutOpt func(g *GridLayout)
 
-// GridLayoutOpts contains functions that configure a GridLayout.
-const GridLayoutOpts = gridLayoutOpts(true)
-
-type gridLayoutOpts bool
+type GridLayoutOptions struct {
+}
 
 // GridLayoutData specifies layout settings for a widget.
 type GridLayoutData struct {
@@ -54,6 +52,9 @@ const (
 	GridLayoutPositionEnd
 )
 
+// GridLayoutOpts contains functions that configure a GridLayout.
+var GridLayoutOpts GridLayoutOptions
+
 // NewGridLayout constructs a new GridLayout, configured by opts.
 func NewGridLayout(opts ...GridLayoutOpt) *GridLayout {
 	g := &GridLayout{}
@@ -66,21 +67,21 @@ func NewGridLayout(opts ...GridLayoutOpt) *GridLayout {
 }
 
 // Columns configures a grid layout to use c columns.
-func (o gridLayoutOpts) Columns(c int) GridLayoutOpt {
+func (o GridLayoutOptions) Columns(c int) GridLayoutOpt {
 	return func(g *GridLayout) {
 		g.columns = c
 	}
 }
 
 // Padding configures a grid layout to use padding i.
-func (o gridLayoutOpts) Padding(i Insets) GridLayoutOpt {
+func (o GridLayoutOptions) Padding(i Insets) GridLayoutOpt {
 	return func(g *GridLayout) {
 		g.padding = i
 	}
 }
 
 // Spacing configures a grid layout to separate columns by spacing c and rows by spacing r.
-func (o gridLayoutOpts) Spacing(c int, r int) GridLayoutOpt {
+func (o GridLayoutOptions) Spacing(c int, r int) GridLayoutOpt {
 	return func(g *GridLayout) {
 		g.columnSpacing = c
 		g.rowSpacing = r
@@ -90,7 +91,7 @@ func (o gridLayoutOpts) Spacing(c int, r int) GridLayoutOpt {
 // Stretch configures a grid layout to stretch columns according to c and rows according to r.
 // The number of elements of c and r must correspond with the number of columns and rows in the
 // layout.
-func (o gridLayoutOpts) Stretch(c []bool, r []bool) GridLayoutOpt {
+func (o GridLayoutOptions) Stretch(c []bool, r []bool) GridLayoutOpt {
 	return func(g *GridLayout) {
 		g.columnStretch = c
 		g.rowStretch = r

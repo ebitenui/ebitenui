@@ -20,9 +20,10 @@ type TextToolTip struct {
 
 type TextToolTipOpt func(t *TextToolTip)
 
-const TextToolTipOpts = textToolTipOpts(true)
+type TextToolTipOptions struct {
+}
 
-type textToolTipOpts bool
+var TextToolTipOpts TextToolTipOptions
 
 func NewTextToolTip(opts ...TextToolTipOpt) *TextToolTip {
 	t := &TextToolTip{
@@ -38,19 +39,19 @@ func NewTextToolTip(opts ...TextToolTipOpt) *TextToolTip {
 	return t
 }
 
-func (o textToolTipOpts) ContainerOpts(opts ...ContainerOpt) TextToolTipOpt {
+func (o TextToolTipOptions) ContainerOpts(opts ...ContainerOpt) TextToolTipOpt {
 	return func(t *TextToolTip) {
 		t.containerOpts = append(t.containerOpts, opts...)
 	}
 }
 
-func (o textToolTipOpts) TextOpts(opts ...TextOpt) TextToolTipOpt {
+func (o TextToolTipOptions) TextOpts(opts ...TextOpt) TextToolTipOpt {
 	return func(t *TextToolTip) {
 		t.textOpts = append(t.textOpts, opts...)
 	}
 }
 
-func (o textToolTipOpts) Padding(i Insets) TextToolTipOpt {
+func (o TextToolTipOptions) Padding(i Insets) TextToolTipOpt {
 	return func(t *TextToolTip) {
 		t.padding = i
 	}

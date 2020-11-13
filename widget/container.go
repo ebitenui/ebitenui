@@ -26,9 +26,10 @@ type ContainerOpt func(c *Container)
 
 type RemoveChildFunc func()
 
-const ContainerOpts = containerOpts(true)
+type ContainerOptions struct {
+}
 
-type containerOpts bool
+var ContainerOpts ContainerOptions
 
 type PreferredSizeLocateableWidget interface {
 	HasWidget
@@ -50,25 +51,25 @@ func NewContainer(opts ...ContainerOpt) *Container {
 	return c
 }
 
-func (o containerOpts) WidgetOpts(opts ...WidgetOpt) ContainerOpt {
+func (o ContainerOptions) WidgetOpts(opts ...WidgetOpt) ContainerOpt {
 	return func(c *Container) {
 		c.widgetOpts = append(c.widgetOpts, opts...)
 	}
 }
 
-func (o containerOpts) BackgroundImage(i *image.NineSlice) ContainerOpt {
+func (o ContainerOptions) BackgroundImage(i *image.NineSlice) ContainerOpt {
 	return func(c *Container) {
 		c.BackgroundImage = i
 	}
 }
 
-func (o containerOpts) AutoDisableChildren() ContainerOpt {
+func (o ContainerOptions) AutoDisableChildren() ContainerOpt {
 	return func(c *Container) {
 		c.AutoDisableChildren = true
 	}
 }
 
-func (o containerOpts) Layout(layout Layouter) ContainerOpt {
+func (o ContainerOptions) Layout(layout Layouter) ContainerOpt {
 	return func(c *Container) {
 		c.layout = layout
 	}

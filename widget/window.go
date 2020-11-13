@@ -15,9 +15,10 @@ type Window struct {
 
 type WindowOpt func(w *Window)
 
-const WindowOpts = windowOpts(true)
+type WindowOptions struct {
+}
 
-type windowOpts bool
+var WindowOpts WindowOptions
 
 func NewWindow(opts ...WindowOpt) *Window {
 	w := &Window{}
@@ -29,13 +30,13 @@ func NewWindow(opts ...WindowOpt) *Window {
 	return w
 }
 
-func (o windowOpts) Contents(c *Container) WindowOpt {
+func (o WindowOptions) Contents(c *Container) WindowOpt {
 	return func(w *Window) {
 		w.contents = c
 	}
 }
 
-func (o windowOpts) Modal() WindowOpt {
+func (o WindowOptions) Modal() WindowOpt {
 	return func(w *Window) {
 		w.Modal = true
 	}

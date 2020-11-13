@@ -78,9 +78,10 @@ type ButtonReleasedHandlerFunc func(args *ButtonReleasedEventArgs)
 
 type ButtonClickedHandlerFunc func(args *ButtonClickedEventArgs)
 
-const ButtonOpts = buttonOpts(true)
+type ButtonOptions struct {
+}
 
-type buttonOpts bool
+var ButtonOpts ButtonOptions
 
 func NewButton(opts ...ButtonOpt) *Button {
 	b := &Button{
@@ -100,19 +101,19 @@ func NewButton(opts ...ButtonOpt) *Button {
 	return b
 }
 
-func (o buttonOpts) WidgetOpts(opts ...WidgetOpt) ButtonOpt {
+func (o ButtonOptions) WidgetOpts(opts ...WidgetOpt) ButtonOpt {
 	return func(b *Button) {
 		b.widgetOpts = append(b.widgetOpts, opts...)
 	}
 }
 
-func (o buttonOpts) Image(i *ButtonImage) ButtonOpt {
+func (o ButtonOptions) Image(i *ButtonImage) ButtonOpt {
 	return func(b *Button) {
 		b.Image = i
 	}
 }
 
-func (o buttonOpts) TextSimpleLeft(label string, face font.Face, color *ButtonTextColor, padding Insets) ButtonOpt {
+func (o ButtonOptions) TextSimpleLeft(label string, face font.Face, color *ButtonTextColor, padding Insets) ButtonOpt {
 	return func(b *Button) {
 		b.init.Append(func() {
 			b.container = NewContainer(
@@ -136,7 +137,7 @@ func (o buttonOpts) TextSimpleLeft(label string, face font.Face, color *ButtonTe
 	}
 }
 
-func (o buttonOpts) Text(label string, face font.Face, color *ButtonTextColor) ButtonOpt {
+func (o ButtonOptions) Text(label string, face font.Face, color *ButtonTextColor) ButtonOpt {
 	return func(b *Button) {
 		b.init.Append(func() {
 			b.container = NewContainer(
@@ -161,7 +162,7 @@ func (o buttonOpts) Text(label string, face font.Face, color *ButtonTextColor) B
 }
 
 // TODO: add parameter for image position (start/end)
-func (o buttonOpts) TextAndImage(label string, face font.Face, image *ButtonImageImage, color *ButtonTextColor) ButtonOpt {
+func (o ButtonOptions) TextAndImage(label string, face font.Face, image *ButtonImageImage, color *ButtonTextColor) ButtonOpt {
 	return func(b *Button) {
 		b.init.Append(func() {
 			b.container = NewContainer(
@@ -200,21 +201,21 @@ func (o buttonOpts) TextAndImage(label string, face font.Face, image *ButtonImag
 	}
 }
 
-func (o buttonOpts) TextPadding(p Insets) ButtonOpt {
+func (o ButtonOptions) TextPadding(p Insets) ButtonOpt {
 	return func(b *Button) {
 		b.textPadding = p
 	}
 }
 
-func (o buttonOpts) Graphic(i *ebiten.Image) ButtonOpt {
+func (o ButtonOptions) Graphic(i *ebiten.Image) ButtonOpt {
 	return o.withGraphic(GraphicOpts.Image(i))
 }
 
-func (o buttonOpts) GraphicNineSlice(i *image.NineSlice) ButtonOpt {
+func (o ButtonOptions) GraphicNineSlice(i *image.NineSlice) ButtonOpt {
 	return o.withGraphic(GraphicOpts.ImageNineSlice(i))
 }
 
-func (o buttonOpts) withGraphic(opt GraphicOpt) ButtonOpt {
+func (o ButtonOptions) withGraphic(opt GraphicOpt) ButtonOpt {
 	return func(b *Button) {
 		b.init.Append(func() {
 			b.container = NewContainer(
@@ -235,19 +236,19 @@ func (o buttonOpts) withGraphic(opt GraphicOpt) ButtonOpt {
 	}
 }
 
-func (o buttonOpts) GraphicPadding(i Insets) ButtonOpt {
+func (o ButtonOptions) GraphicPadding(i Insets) ButtonOpt {
 	return func(b *Button) {
 		b.graphicPadding = i
 	}
 }
 
-func (o buttonOpts) KeepPressedOnExit() ButtonOpt {
+func (o ButtonOptions) KeepPressedOnExit() ButtonOpt {
 	return func(b *Button) {
 		b.KeepPressedOnExit = true
 	}
 }
 
-func (o buttonOpts) PressedHandler(f ButtonPressedHandlerFunc) ButtonOpt {
+func (o ButtonOptions) PressedHandler(f ButtonPressedHandlerFunc) ButtonOpt {
 	return func(b *Button) {
 		b.PressedEvent.AddHandler(func(args interface{}) {
 			f(args.(*ButtonPressedEventArgs))
@@ -255,7 +256,7 @@ func (o buttonOpts) PressedHandler(f ButtonPressedHandlerFunc) ButtonOpt {
 	}
 }
 
-func (o buttonOpts) ReleasedHandler(f ButtonReleasedHandlerFunc) ButtonOpt {
+func (o ButtonOptions) ReleasedHandler(f ButtonReleasedHandlerFunc) ButtonOpt {
 	return func(b *Button) {
 		b.ReleasedEvent.AddHandler(func(args interface{}) {
 			f(args.(*ButtonReleasedEventArgs))
@@ -263,7 +264,7 @@ func (o buttonOpts) ReleasedHandler(f ButtonReleasedHandlerFunc) ButtonOpt {
 	}
 }
 
-func (o buttonOpts) ClickedHandler(f ButtonClickedHandlerFunc) ButtonOpt {
+func (o ButtonOptions) ClickedHandler(f ButtonClickedHandlerFunc) ButtonOpt {
 	return func(b *Button) {
 		b.ClickedEvent.AddHandler(func(args interface{}) {
 			f(args.(*ButtonClickedEventArgs))

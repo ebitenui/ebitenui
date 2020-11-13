@@ -37,15 +37,16 @@ type CheckboxChangedEventArgs struct {
 
 type CheckboxChangedHandlerFunc func(args *CheckboxChangedEventArgs)
 
+type CheckboxOptions struct {
+}
+
 const (
 	CheckboxUnchecked = CheckboxState(iota)
 	CheckboxChecked
 	CheckboxGreyed
 )
 
-const CheckboxOpts = checkboxOpts(true)
-
-type checkboxOpts bool
+var CheckboxOpts CheckboxOptions
 
 func NewCheckbox(opts ...CheckboxOpt) *Checkbox {
 	c := &Checkbox{
@@ -63,25 +64,25 @@ func NewCheckbox(opts ...CheckboxOpt) *Checkbox {
 	return c
 }
 
-func (o checkboxOpts) ButtonOpts(opts ...ButtonOpt) CheckboxOpt {
+func (o CheckboxOptions) ButtonOpts(opts ...ButtonOpt) CheckboxOpt {
 	return func(c *Checkbox) {
 		c.buttonOpts = append(c.buttonOpts, opts...)
 	}
 }
 
-func (o checkboxOpts) Image(i *CheckboxGraphicImage) CheckboxOpt {
+func (o CheckboxOptions) Image(i *CheckboxGraphicImage) CheckboxOpt {
 	return func(c *Checkbox) {
 		c.image = i
 	}
 }
 
-func (o checkboxOpts) TriState() CheckboxOpt {
+func (o CheckboxOptions) TriState() CheckboxOpt {
 	return func(c *Checkbox) {
 		c.triState = true
 	}
 }
 
-func (o checkboxOpts) ChangedHandler(f CheckboxChangedHandlerFunc) CheckboxOpt {
+func (o CheckboxOptions) ChangedHandler(f CheckboxChangedHandlerFunc) CheckboxOpt {
 	return func(c *Checkbox) {
 		c.ChangedEvent.AddHandler(func(args interface{}) {
 			f(args.(*CheckboxChangedEventArgs))

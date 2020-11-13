@@ -29,9 +29,10 @@ type Caret struct {
 
 type CaretOpt func(c *Caret)
 
-const CaretOpts = caretOpts(true)
+type CaretOptions struct {
+}
 
-type caretOpts bool
+var CaretOpts CaretOptions
 
 type caretBlinkState func() caretBlinkState
 
@@ -52,13 +53,13 @@ func NewCaret(opts ...CaretOpt) *Caret {
 	return c
 }
 
-func (o caretOpts) Color(c color.Color) CaretOpt {
+func (o CaretOptions) Color(c color.Color) CaretOpt {
 	return func(ca *Caret) {
 		ca.color = c
 	}
 }
 
-func (o caretOpts) Size(face font.Face, width int) CaretOpt {
+func (o CaretOptions) Size(face font.Face, width int) CaretOpt {
 	return func(c *Caret) {
 		c.face = face
 		c.Width = width

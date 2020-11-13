@@ -37,9 +37,8 @@ const (
 	TextPositionEnd
 )
 
-const TextOpts = textOpts(true)
-
-type textOpts bool
+type TextOptions struct {
+}
 
 type textMeasurements struct {
 	label string
@@ -52,6 +51,8 @@ type textMeasurements struct {
 	boundingBoxWidth  float64
 	boundingBoxHeight float64
 }
+
+var TextOpts TextOptions
 
 func NewText(opts ...TextOpt) *Text {
 	t := &Text{
@@ -67,13 +68,13 @@ func NewText(opts ...TextOpt) *Text {
 	return t
 }
 
-func (o textOpts) WidgetOpts(opts ...WidgetOpt) TextOpt {
+func (o TextOptions) WidgetOpts(opts ...WidgetOpt) TextOpt {
 	return func(t *Text) {
 		t.widgetOpts = append(t.widgetOpts, opts...)
 	}
 }
 
-func (o textOpts) Text(label string, face font.Face, color color.Color) TextOpt {
+func (o TextOptions) Text(label string, face font.Face, color color.Color) TextOpt {
 	return func(t *Text) {
 		t.Label = label
 		t.Face = face
@@ -81,7 +82,7 @@ func (o textOpts) Text(label string, face font.Face, color color.Color) TextOpt 
 	}
 }
 
-func (o textOpts) Position(h TextPosition, v TextPosition) TextOpt {
+func (o TextOptions) Position(h TextPosition, v TextPosition) TextOpt {
 	return func(t *Text) {
 		t.horizontalPosition = h
 		t.verticalPosition = v

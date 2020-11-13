@@ -58,9 +58,10 @@ type SliderChangedEventArgs struct {
 
 type SliderChangedHandlerFunc func(args *SliderChangedEventArgs)
 
-const SliderOpts = sliderOpts(true)
+type SliderOptions struct {
+}
 
-type sliderOpts bool
+var SliderOpts SliderOptions
 
 func NewSlider(opts ...SliderOpt) *Slider {
 	s := &Slider{
@@ -90,51 +91,51 @@ func NewSlider(opts ...SliderOpt) *Slider {
 	return s
 }
 
-func (o sliderOpts) WidgetOpts(opts ...WidgetOpt) SliderOpt {
+func (o SliderOptions) WidgetOpts(opts ...WidgetOpt) SliderOpt {
 	return func(s *Slider) {
 		s.widgetOpts = append(s.widgetOpts, opts...)
 	}
 }
 
-func (o sliderOpts) Direction(d Direction) SliderOpt {
+func (o SliderOptions) Direction(d Direction) SliderOpt {
 	return func(s *Slider) {
 		s.direction = d
 	}
 }
 
-func (o sliderOpts) Images(track *SliderTrackImage, handle *ButtonImage) SliderOpt {
+func (o SliderOptions) Images(track *SliderTrackImage, handle *ButtonImage) SliderOpt {
 	return func(s *Slider) {
 		s.trackImage = track
 		s.handleOpts = append(s.handleOpts, ButtonOpts.Image(handle))
 	}
 }
 
-func (o sliderOpts) TrackPadding(i Insets) SliderOpt {
+func (o SliderOptions) TrackPadding(i Insets) SliderOpt {
 	return func(s *Slider) {
 		s.trackPadding = i
 	}
 }
 
-func (o sliderOpts) HandleSize(s int) SliderOpt {
+func (o SliderOptions) HandleSize(s int) SliderOpt {
 	return func(sl *Slider) {
 		sl.handleSize = s
 	}
 }
 
-func (o sliderOpts) MinMax(min int, max int) SliderOpt {
+func (o SliderOptions) MinMax(min int, max int) SliderOpt {
 	return func(s *Slider) {
 		s.Min = min
 		s.Max = max
 	}
 }
 
-func (o sliderOpts) PageSizeFunc(f SliderPageSizeFunc) SliderOpt {
+func (o SliderOptions) PageSizeFunc(f SliderPageSizeFunc) SliderOpt {
 	return func(s *Slider) {
 		s.pageSizeFunc = f
 	}
 }
 
-func (o sliderOpts) ChangedHandler(f SliderChangedHandlerFunc) SliderOpt {
+func (o SliderOptions) ChangedHandler(f SliderChangedHandlerFunc) SliderOpt {
 	return func(s *Slider) {
 		s.ChangedEvent.AddHandler(func(args interface{}) {
 			f(args.(*SliderChangedEventArgs))

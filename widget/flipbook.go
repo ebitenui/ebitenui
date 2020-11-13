@@ -21,10 +21,11 @@ type FlipBook struct {
 // FlipBookOpt is a function that configures f.
 type FlipBookOpt func(f *FlipBook)
 
-// FlipBookOpts contains functions that configure a FlipBook.
-const FlipBookOpts = flipBookOpts(true)
+type FlipBookOptions struct {
+}
 
-type flipBookOpts bool
+// FlipBookOpts contains functions that configure a FlipBook.
+var FlipBookOpts FlipBookOptions
 
 // NewFlipBook constructs a new FlipBook configured with opts.
 func NewFlipBook(opts ...FlipBookOpt) *FlipBook {
@@ -42,14 +43,14 @@ func NewFlipBook(opts ...FlipBookOpt) *FlipBook {
 }
 
 // WithContainerOpts configures a FlipBook with opts.
-func (o flipBookOpts) ContainerOpts(opts ...ContainerOpt) FlipBookOpt {
+func (o FlipBookOptions) ContainerOpts(opts ...ContainerOpt) FlipBookOpt {
 	return func(f *FlipBook) {
 		f.containerOpts = append(f.containerOpts, opts...)
 	}
 }
 
 // WithPadding configures a FlipBook with padding i.
-func (o flipBookOpts) Padding(i Insets) FlipBookOpt {
+func (o FlipBookOptions) Padding(i Insets) FlipBookOpt {
 	return func(f *FlipBook) {
 		f.anchorLayoutOpts = append(f.anchorLayoutOpts, AnchorLayoutOpts.Padding(i))
 	}

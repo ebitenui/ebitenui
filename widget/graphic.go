@@ -20,9 +20,10 @@ type Graphic struct {
 
 type GraphicOpt func(g *Graphic)
 
-const GraphicOpts = graphicOpts(true)
+type GraphicOptions struct {
+}
 
-type graphicOpts bool
+var GraphicOpts GraphicOptions
 
 func NewGraphic(opts ...GraphicOpt) *Graphic {
 	g := &Graphic{
@@ -38,19 +39,19 @@ func NewGraphic(opts ...GraphicOpt) *Graphic {
 	return g
 }
 
-func (o graphicOpts) WidgetOpts(opts ...WidgetOpt) GraphicOpt {
+func (o GraphicOptions) WidgetOpts(opts ...WidgetOpt) GraphicOpt {
 	return func(g *Graphic) {
 		g.widgetOpts = append(g.widgetOpts, opts...)
 	}
 }
 
-func (o graphicOpts) Image(i *ebiten.Image) GraphicOpt {
+func (o GraphicOptions) Image(i *ebiten.Image) GraphicOpt {
 	return func(g *Graphic) {
 		g.Image = i
 	}
 }
 
-func (o graphicOpts) ImageNineSlice(i *image.NineSlice) GraphicOpt {
+func (o GraphicOptions) ImageNineSlice(i *image.NineSlice) GraphicOpt {
 	return func(g *Graphic) {
 		g.ImageNineSlice = i
 	}

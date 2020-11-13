@@ -22,9 +22,10 @@ type DragAndDrop struct {
 
 type DragAndDropOpt func(d *DragAndDrop)
 
-const DragAndDropOpts = dragAndDropOpts(true)
+type DragAndDropOptions struct {
+}
 
-type dragAndDropOpts bool
+var DragAndDropOpts DragAndDropOptions
 
 type DragContentsCreater interface {
 	Create(HasWidget, int, int) (DragWidget, interface{})
@@ -70,25 +71,25 @@ func NewDragAndDrop(opts ...DragAndDropOpt) *DragAndDrop {
 	return d
 }
 
-func (o dragAndDropOpts) Container(c Locater) DragAndDropOpt {
+func (o DragAndDropOptions) Container(c Locater) DragAndDropOpt {
 	return func(d *DragAndDrop) {
 		d.container = c
 	}
 }
 
-func (o dragAndDropOpts) ContentsCreater(c DragContentsCreater) DragAndDropOpt {
+func (o DragAndDropOptions) ContentsCreater(c DragContentsCreater) DragAndDropOpt {
 	return func(d *DragAndDrop) {
 		d.contentsCreater = c
 	}
 }
 
-func (o dragAndDropOpts) MinDragStartDistance(d int) DragAndDropOpt {
+func (o DragAndDropOptions) MinDragStartDistance(d int) DragAndDropOpt {
 	return func(dnd *DragAndDrop) {
 		dnd.minDragStartDistance = d
 	}
 }
 
-func (o dragAndDropOpts) DroppedHandler(f DragAndDropDroppedHandlerFunc) DragAndDropOpt {
+func (o DragAndDropOptions) DroppedHandler(f DragAndDropDroppedHandlerFunc) DragAndDropOpt {
 	return func(d *DragAndDrop) {
 		d.DroppedEvent.AddHandler(func(args interface{}) {
 			f(args.(*DragAndDropDroppedEventArgs))

@@ -33,9 +33,10 @@ type ScrollContainerImage struct {
 	Mask     *image.NineSlice
 }
 
-const ScrollContainerOpts = scrollContainerOpts(true)
+type ScrollContainerOptions struct {
+}
 
-type scrollContainerOpts bool
+var ScrollContainerOpts ScrollContainerOptions
 
 func NewScrollContainer(opts ...ScrollContainerOpt) *ScrollContainer {
 	s := &ScrollContainer{
@@ -53,31 +54,31 @@ func NewScrollContainer(opts ...ScrollContainerOpt) *ScrollContainer {
 	return s
 }
 
-func (o scrollContainerOpts) WidgetOpts(opts ...WidgetOpt) ScrollContainerOpt {
+func (o ScrollContainerOptions) WidgetOpts(opts ...WidgetOpt) ScrollContainerOpt {
 	return func(s *ScrollContainer) {
 		s.widgetOpts = append(s.widgetOpts, opts...)
 	}
 }
 
-func (o scrollContainerOpts) Image(i *ScrollContainerImage) ScrollContainerOpt {
+func (o ScrollContainerOptions) Image(i *ScrollContainerImage) ScrollContainerOpt {
 	return func(s *ScrollContainer) {
 		s.image = i
 	}
 }
 
-func (o scrollContainerOpts) Content(c HasWidget) ScrollContainerOpt {
+func (o ScrollContainerOptions) Content(c HasWidget) ScrollContainerOpt {
 	return func(s *ScrollContainer) {
 		s.content = c
 	}
 }
 
-func (o scrollContainerOpts) Padding(p Insets) ScrollContainerOpt {
+func (o ScrollContainerOptions) Padding(p Insets) ScrollContainerOpt {
 	return func(s *ScrollContainer) {
 		s.padding = p
 	}
 }
 
-func (o scrollContainerOpts) StretchContentWidth() ScrollContainerOpt {
+func (o ScrollContainerOptions) StretchContentWidth() ScrollContainerOpt {
 	return func(s *ScrollContainer) {
 		s.stretchContentWidth = true
 	}

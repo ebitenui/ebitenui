@@ -13,15 +13,16 @@ type RadioGroup struct {
 
 type RadioGroupOpt func(r *RadioGroup)
 
-const RadioGroupOpts = radioGroupOpts(true)
-
-type radioGroupOpts bool
+type RadioGroupOptions struct {
+}
 
 type RadioGroupChangedEventArgs struct {
 	Active *Checkbox
 }
 
 type RadioGroupChangedHandlerFunc func(args *RadioGroupChangedEventArgs)
+
+var RadioGroupOpts RadioGroupOptions
 
 func NewRadioGroup(opts ...RadioGroupOpt) *RadioGroup {
 	r := &RadioGroup{
@@ -45,13 +46,13 @@ func NewRadioGroup(opts ...RadioGroupOpt) *RadioGroup {
 	return r
 }
 
-func (o radioGroupOpts) Checkboxes(cb ...*Checkbox) RadioGroupOpt {
+func (o RadioGroupOptions) Checkboxes(cb ...*Checkbox) RadioGroupOpt {
 	return func(r *RadioGroup) {
 		r.checkboxes = cb
 	}
 }
 
-func (o radioGroupOpts) ChangedHandler(f RadioGroupChangedHandlerFunc) RadioGroupOpt {
+func (o RadioGroupOptions) ChangedHandler(f RadioGroupChangedHandlerFunc) RadioGroupOpt {
 	return func(r *RadioGroup) {
 		r.ChangedEvent.AddHandler(func(args interface{}) {
 			f(args.(*RadioGroupChangedEventArgs))

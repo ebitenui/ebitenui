@@ -62,9 +62,10 @@ type ListEntrySelectedEventArgs struct {
 
 type ListEntrySelectedHandlerFunc func(args *ListEntrySelectedEventArgs)
 
-const ListOpts = listOpts(true)
+type ListOptions struct {
+}
 
-type listOpts bool
+var ListOpts ListOptions
 
 func NewList(opts ...ListOpt) *List {
 	l := &List{
@@ -82,61 +83,61 @@ func NewList(opts ...ListOpt) *List {
 	return l
 }
 
-func (o listOpts) ContainerOpts(opts ...ContainerOpt) ListOpt {
+func (o ListOptions) ContainerOpts(opts ...ContainerOpt) ListOpt {
 	return func(l *List) {
 		l.containerOpts = append(l.containerOpts, opts...)
 	}
 }
 
-func (o listOpts) ScrollContainerOpts(opts ...ScrollContainerOpt) ListOpt {
+func (o ListOptions) ScrollContainerOpts(opts ...ScrollContainerOpt) ListOpt {
 	return func(l *List) {
 		l.scrollContainerOpts = append(l.scrollContainerOpts, opts...)
 	}
 }
 
-func (o listOpts) SliderOpts(opts ...SliderOpt) ListOpt {
+func (o ListOptions) SliderOpts(opts ...SliderOpt) ListOpt {
 	return func(l *List) {
 		l.sliderOpts = append(l.sliderOpts, opts...)
 	}
 }
 
-func (o listOpts) ControlWidgetSpacing(s int) ListOpt {
+func (o ListOptions) ControlWidgetSpacing(s int) ListOpt {
 	return func(l *List) {
 		l.controlWidgetSpacing = s
 	}
 }
 
-func (o listOpts) HideHorizontalSlider() ListOpt {
+func (o ListOptions) HideHorizontalSlider() ListOpt {
 	return func(l *List) {
 		l.hideHorizontalSlider = true
 	}
 }
 
-func (o listOpts) HideVerticalSlider() ListOpt {
+func (o ListOptions) HideVerticalSlider() ListOpt {
 	return func(l *List) {
 		l.hideVerticalSlider = true
 	}
 }
 
-func (o listOpts) Entries(e []interface{}) ListOpt {
+func (o ListOptions) Entries(e []interface{}) ListOpt {
 	return func(l *List) {
 		l.entries = e
 	}
 }
 
-func (o listOpts) EntryLabelFunc(f ListEntryLabelFunc) ListOpt {
+func (o ListOptions) EntryLabelFunc(f ListEntryLabelFunc) ListOpt {
 	return func(l *List) {
 		l.entryLabelFunc = f
 	}
 }
 
-func (o listOpts) EntryFontFace(f font.Face) ListOpt {
+func (o ListOptions) EntryFontFace(f font.Face) ListOpt {
 	return func(l *List) {
 		l.entryFace = f
 	}
 }
 
-func (o listOpts) EntryColor(c *ListEntryColor) ListOpt {
+func (o ListOptions) EntryColor(c *ListEntryColor) ListOpt {
 	return func(l *List) {
 		l.entryUnselectedColor = &ButtonImage{
 			Idle:     image.NewNineSliceColor(color.Transparent),
@@ -160,13 +161,13 @@ func (o listOpts) EntryColor(c *ListEntryColor) ListOpt {
 	}
 }
 
-func (o listOpts) EntryTextPadding(i Insets) ListOpt {
+func (o ListOptions) EntryTextPadding(i Insets) ListOpt {
 	return func(l *List) {
 		l.entryTextPadding = i
 	}
 }
 
-func (o listOpts) EntrySelectedHandler(f ListEntrySelectedHandlerFunc) ListOpt {
+func (o ListOptions) EntrySelectedHandler(f ListEntrySelectedHandlerFunc) ListOpt {
 	return func(l *List) {
 		l.EntrySelectedEvent.AddHandler(func(args interface{}) {
 			f(args.(*ListEntrySelectedEventArgs))
@@ -174,7 +175,7 @@ func (o listOpts) EntrySelectedHandler(f ListEntrySelectedHandlerFunc) ListOpt {
 	}
 }
 
-func (o listOpts) AllowReselect() ListOpt {
+func (o ListOptions) AllowReselect() ListOpt {
 	return func(l *List) {
 		l.allowReselect = true
 	}

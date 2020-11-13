@@ -15,10 +15,8 @@ type AnchorLayout struct {
 // AnchorLayoutOpt is a function that configures a.
 type AnchorLayoutOpt func(a *AnchorLayout)
 
-// AnchorLayoutOpts contains functions that configure an AnchorLayout.
-const AnchorLayoutOpts = anchorLayoutOpts(true)
-
-type anchorLayoutOpts bool
+type AnchorLayoutOptions struct {
+}
 
 // AnchorLayoutPosition is the type used to specify an anchoring position.
 type AnchorLayoutPosition int
@@ -49,6 +47,9 @@ const (
 	AnchorLayoutPositionEnd
 )
 
+// AnchorLayoutOpts contains functions that configure an AnchorLayout.
+var AnchorLayoutOpts AnchorLayoutOptions
+
 // NewAnchorLayout constructs a new AnchorLayout, configured by opts.
 func NewAnchorLayout(opts ...AnchorLayoutOpt) *AnchorLayout {
 	a := &AnchorLayout{}
@@ -61,7 +62,7 @@ func NewAnchorLayout(opts ...AnchorLayoutOpt) *AnchorLayout {
 }
 
 // Padding configures an anchor layout to use padding i.
-func (o anchorLayoutOpts) Padding(i Insets) AnchorLayoutOpt {
+func (o AnchorLayoutOptions) Padding(i Insets) AnchorLayoutOpt {
 	return func(a *AnchorLayout) {
 		a.padding = i
 	}

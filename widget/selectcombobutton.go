@@ -32,9 +32,10 @@ type SelectComboButtonEntrySelectedEventArgs struct {
 
 type SelectComboButtonEntrySelectedHandlerFunc func(args *SelectComboButtonEntrySelectedEventArgs)
 
-const SelectComboButtonOpts = selectComboButtonOpts(true)
+type SelectComboButtonOptions struct {
+}
 
-type selectComboButtonOpts bool
+var SelectComboButtonOpts SelectComboButtonOptions
 
 func NewSelectComboButton(opts ...SelectComboButtonOpt) *SelectComboButton {
 	s := &SelectComboButton{
@@ -54,13 +55,13 @@ func NewSelectComboButton(opts ...SelectComboButtonOpt) *SelectComboButton {
 	return s
 }
 
-func (o selectComboButtonOpts) ComboButtonOpts(opts ...ComboButtonOpt) SelectComboButtonOpt {
+func (o SelectComboButtonOptions) ComboButtonOpts(opts ...ComboButtonOpt) SelectComboButtonOpt {
 	return func(s *SelectComboButton) {
 		s.buttonOpts = append(s.buttonOpts, opts...)
 	}
 }
 
-func (o selectComboButtonOpts) EntrySelectedHandler(f SelectComboButtonEntrySelectedHandlerFunc) SelectComboButtonOpt {
+func (o SelectComboButtonOptions) EntrySelectedHandler(f SelectComboButtonEntrySelectedHandlerFunc) SelectComboButtonOpt {
 	return func(s *SelectComboButton) {
 		s.EntrySelectedEvent.AddHandler(func(args interface{}) {
 			f(args.(*SelectComboButtonEntrySelectedEventArgs))
@@ -68,7 +69,7 @@ func (o selectComboButtonOpts) EntrySelectedHandler(f SelectComboButtonEntrySele
 	}
 }
 
-func (o selectComboButtonOpts) EntryLabelFunc(f SelectComboButtonEntryLabelFunc) SelectComboButtonOpt {
+func (o SelectComboButtonOptions) EntryLabelFunc(f SelectComboButtonEntryLabelFunc) SelectComboButtonOpt {
 	return func(s *SelectComboButton) {
 		s.entryLabelFunc = f
 	}

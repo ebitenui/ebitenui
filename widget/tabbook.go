@@ -46,9 +46,10 @@ type TabBookTabSelectedEventArgs struct {
 
 type TabBookTabSelectedHandlerFunc func(args *TabBookTabSelectedEventArgs)
 
-const TabBookOpts = tabBookOpts(true)
+type TabBookOptions struct {
+}
 
-type tabBookOpts bool
+var TabBookOpts TabBookOptions
 
 func NewTabBook(opts ...TabBookOpt) *TabBook {
 	t := &TabBook{
@@ -74,25 +75,25 @@ func NewTabBookTab(label string, widget PreferredSizeLocateableWidget) *TabBookT
 	}
 }
 
-func (o tabBookOpts) ContainerOpts(opts ...ContainerOpt) TabBookOpt {
+func (o TabBookOptions) ContainerOpts(opts ...ContainerOpt) TabBookOpt {
 	return func(t *TabBook) {
 		t.containerOpts = append(t.containerOpts, opts...)
 	}
 }
 
-func (o tabBookOpts) TabButtonOpts(opts ...StateButtonOpt) TabBookOpt {
+func (o TabBookOptions) TabButtonOpts(opts ...StateButtonOpt) TabBookOpt {
 	return func(t *TabBook) {
 		t.buttonOpts = append(t.buttonOpts, opts...)
 	}
 }
 
-func (o tabBookOpts) FlipBookOpts(opts ...FlipBookOpt) TabBookOpt {
+func (o TabBookOptions) FlipBookOpts(opts ...FlipBookOpt) TabBookOpt {
 	return func(t *TabBook) {
 		t.flipBookOpts = append(t.flipBookOpts, opts...)
 	}
 }
 
-func (o tabBookOpts) TabButtonImage(idle *ButtonImage, selected *ButtonImage) TabBookOpt {
+func (o TabBookOptions) TabButtonImage(idle *ButtonImage, selected *ButtonImage) TabBookOpt {
 	return func(t *TabBook) {
 		t.buttonImages = map[interface{}]*ButtonImage{
 			false: idle,
@@ -101,32 +102,32 @@ func (o tabBookOpts) TabButtonImage(idle *ButtonImage, selected *ButtonImage) Ta
 	}
 }
 
-func (o tabBookOpts) TabButtonSpacing(s int) TabBookOpt {
+func (o TabBookOptions) TabButtonSpacing(s int) TabBookOpt {
 	return func(t *TabBook) {
 		t.buttonSpacing = s
 	}
 }
 
-func (o tabBookOpts) TabButtonText(face font.Face, color *ButtonTextColor) TabBookOpt {
+func (o TabBookOptions) TabButtonText(face font.Face, color *ButtonTextColor) TabBookOpt {
 	return func(t *TabBook) {
 		t.buttonFace = face
 		t.buttonColor = color
 	}
 }
 
-func (o tabBookOpts) Spacing(s int) TabBookOpt {
+func (o TabBookOptions) Spacing(s int) TabBookOpt {
 	return func(t *TabBook) {
 		t.spacing = s
 	}
 }
 
-func (o tabBookOpts) Tabs(tabs ...*TabBookTab) TabBookOpt {
+func (o TabBookOptions) Tabs(tabs ...*TabBookTab) TabBookOpt {
 	return func(t *TabBook) {
 		t.tabs = append(t.tabs, tabs...)
 	}
 }
 
-func (o tabBookOpts) TabSelectedHandler(f TabBookTabSelectedHandlerFunc) TabBookOpt {
+func (o TabBookOptions) TabSelectedHandler(f TabBookTabSelectedHandlerFunc) TabBookOpt {
 	return func(t *TabBook) {
 		t.TabSelectedEvent.AddHandler(func(args interface{}) {
 			f(args.(*TabBookTabSelectedEventArgs))

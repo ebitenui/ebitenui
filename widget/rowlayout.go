@@ -12,10 +12,8 @@ type RowLayout struct {
 	spacing   int
 }
 
-// RowLayoutOpts contains functions that configure a RowLayout.
-const RowLayoutOpts = rowLayoutOpts(true)
-
-type rowLayoutOpts bool
+type RowLayoutOptions struct {
+}
 
 // RowLayoutOpt is a function that configures r.
 type RowLayoutOpt func(r *RowLayout)
@@ -49,6 +47,9 @@ const (
 	RowLayoutPositionEnd
 )
 
+// RowLayoutOpts contains functions that configure a RowLayout.
+var RowLayoutOpts RowLayoutOptions
+
 // NewRowLayout constructs a new RowLayout, configured by opts.
 func NewRowLayout(opts ...RowLayoutOpt) *RowLayout {
 	r := &RowLayout{}
@@ -62,21 +63,21 @@ func NewRowLayout(opts ...RowLayoutOpt) *RowLayout {
 
 // Direction configures a row layout to layout widgets in the primary direction d. This will also switch the meaning
 // of any widget's RowLayoutData.Position and RowLayoutData.Stretch to the other direction.
-func (o rowLayoutOpts) Direction(d Direction) RowLayoutOpt {
+func (o RowLayoutOptions) Direction(d Direction) RowLayoutOpt {
 	return func(r *RowLayout) {
 		r.direction = d
 	}
 }
 
 // Padding configures a row layout to use padding i.
-func (o rowLayoutOpts) Padding(i Insets) RowLayoutOpt {
+func (o RowLayoutOptions) Padding(i Insets) RowLayoutOpt {
 	return func(r *RowLayout) {
 		r.padding = i
 	}
 }
 
 // Spacing configures a row layout to separate widgets by spacing s.
-func (o rowLayoutOpts) Spacing(s int) RowLayoutOpt {
+func (o RowLayoutOptions) Spacing(s int) RowLayoutOpt {
 	return func(f *RowLayout) {
 		f.spacing = s
 	}

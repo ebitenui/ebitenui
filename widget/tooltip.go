@@ -23,10 +23,6 @@ type ToolTip struct {
 
 type ToolTipOpt func(t *ToolTip)
 
-const ToolTipOpts = toolTipOpts(true)
-
-type toolTipOpts bool
-
 type toolTipState func(*ebiten.Image, DeferredRenderFunc) (toolTipState, bool)
 
 type ToolTipContentsCreater interface {
@@ -43,6 +39,11 @@ type ToolTipContentsUpdater interface {
 	Update(HasWidget)
 }
 
+type ToolTipOptions struct {
+}
+
+var ToolTipOpts ToolTipOptions
+
 func NewToolTip(opts ...ToolTipOpt) *ToolTip {
 	t := &ToolTip{
 		offset: img.Point{0, 20},
@@ -56,31 +57,31 @@ func NewToolTip(opts ...ToolTipOpt) *ToolTip {
 	return t
 }
 
-func (o toolTipOpts) Container(c Locater) ToolTipOpt {
+func (o ToolTipOptions) Container(c Locater) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.container = c
 	}
 }
 
-func (o toolTipOpts) ContentsCreater(c ToolTipContentsCreater) ToolTipOpt {
+func (o ToolTipOptions) ContentsCreater(c ToolTipContentsCreater) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.contentsCreater = c
 	}
 }
 
-func (o toolTipOpts) Offset(off img.Point) ToolTipOpt {
+func (o ToolTipOptions) Offset(off img.Point) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.offset = off
 	}
 }
 
-func (o toolTipOpts) Sticky() ToolTipOpt {
+func (o ToolTipOptions) Sticky() ToolTipOpt {
 	return func(t *ToolTip) {
 		t.Sticky = true
 	}
 }
 
-func (o toolTipOpts) Delay(d time.Duration) ToolTipOpt {
+func (o ToolTipOptions) Delay(d time.Duration) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.Delay = d
 	}

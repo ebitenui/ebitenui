@@ -26,9 +26,10 @@ type LabelColor struct {
 	Disabled color.Color
 }
 
-const LabelOpts = labelOpts(true)
+type LabelOptions struct {
+}
 
-type labelOpts bool
+var LabelOpts LabelOptions
 
 func NewLabel(opts ...LabelOpt) *Label {
 	l := &Label{
@@ -44,13 +45,13 @@ func NewLabel(opts ...LabelOpt) *Label {
 	return l
 }
 
-func (o labelOpts) TextOpts(opts ...TextOpt) LabelOpt {
+func (o LabelOptions) TextOpts(opts ...TextOpt) LabelOpt {
 	return func(l *Label) {
 		l.textOpts = append(l.textOpts, opts...)
 	}
 }
 
-func (o labelOpts) Text(label string, face font.Face, color *LabelColor) LabelOpt {
+func (o LabelOptions) Text(label string, face font.Face, color *LabelColor) LabelOpt {
 	return func(l *Label) {
 		l.Label = label
 		l.face = face

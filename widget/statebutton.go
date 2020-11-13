@@ -20,9 +20,10 @@ type StateButton struct {
 
 type StateButtonOpt func(s *StateButton)
 
-const StateButtonOpts = stateButtonOpts(true)
+type StateButtonOptions struct {
+}
 
-type stateButtonOpts bool
+var StateButtonOpts StateButtonOptions
 
 func NewStateButton(opts ...StateButtonOpt) *StateButton {
 	s := &StateButton{
@@ -40,13 +41,13 @@ func NewStateButton(opts ...StateButtonOpt) *StateButton {
 	return s
 }
 
-func (o stateButtonOpts) ButtonOpts(opts ...ButtonOpt) StateButtonOpt {
+func (o StateButtonOptions) ButtonOpts(opts ...ButtonOpt) StateButtonOpt {
 	return func(s *StateButton) {
 		s.buttonOpts = append(s.buttonOpts, opts...)
 	}
 }
 
-func (o stateButtonOpts) StateImages(states map[interface{}]*ButtonImage) StateButtonOpt {
+func (o StateButtonOptions) StateImages(states map[interface{}]*ButtonImage) StateButtonOpt {
 	return func(s *StateButton) {
 		initial := true
 		for st, i := range states {
