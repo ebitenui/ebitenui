@@ -16,4 +16,5 @@ func BenchmarkExecuteDeferred(b *testing.B) {
 }
 
 func (a *nopAction) Do() {
+	// empty
 }
