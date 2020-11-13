@@ -1,4 +1,4 @@
-module scaffold
+module github.com/blizzy78/ebitenui/_scaffold
 
 go 1.15
 
