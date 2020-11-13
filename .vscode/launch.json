@@ -9,8 +9,8 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "debug",
-			"program": "${workspaceFolder}/cmd/demo",
-			"cwd": "${workspaceFolder}/cmd/demo",
+			"program": "${workspaceFolder}/_demo",
+			"cwd": "${workspaceFolder}/_demo",
 			"env": {},
 			"args": []
 		},
@@ -19,8 +19,8 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "debug",
-			"program": "${workspaceFolder}/cmd/scaffold",
-			"cwd": "${workspaceFolder}/cmd/scaffold",
+			"program": "${workspaceFolder}/_scaffold",
+			"cwd": "${workspaceFolder}/_scaffold",
 			"env": {},
 			"args": []
 		},
