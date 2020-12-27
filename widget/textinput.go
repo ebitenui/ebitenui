@@ -205,6 +205,10 @@ func (t *TextInput) PreferredSize() (int, int) {
 func (t *TextInput) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	t.init.Do()
 
+	defer func() {
+		t.lastInputText = t.InputText
+	}()
+
 	if t.InputText != t.lastInputText {
 		t.ChangedEvent.Fire(&TextInputChangedEventArgs{
 			TextInput: t,

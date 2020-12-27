@@ -22,6 +22,21 @@ func TestTextInput_ChangedEvent(t *testing.T) {
 	is.Equal(eventArgs.InputText, "foo")
 }
 
+func TestTextInput_ChangedEvent_OnlyOnce(t *testing.T) {
+	is := is.New(t)
+
+	numEvents := 0
+	ti := newTextInput(t, TextInputOpts.ChangedHandler(func(args *TextInputChangedEventArgs) {
+		numEvents++
+	}))
+
+	ti.InputText = "foo"
+	render(ti, t)
+	render(ti, t)
+
+	is.Equal(numEvents, 1)
+}
+
 func newTextInput(t *testing.T, opts ...TextInputOpt) *TextInput {
 	ti := NewTextInput(append(opts, []TextInputOpt{
 		TextInputOpts.Face(loadFont(t)),
