@@ -4,6 +4,7 @@ import (
 	img "image"
 	"image/color"
 	"math"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -30,18 +31,20 @@ type TextInput struct {
 	validationFunc  TextInputValidationFunc
 	placeholderText string
 
-	init           *MultiOnce
-	commandToFunc  map[textInputControlCommand]textInputCommandFunc
-	widget         *Widget
-	caret          *Caret
-	text           *Text
-	renderBuf      *image.MaskedRenderBuffer
-	mask           *image.NineSlice
-	cursorPosition int
-	state          textInputState
-	scrollOffset   int
-	focused        bool
-	lastInputText  string
+	init            *MultiOnce
+	commandToFunc   map[textInputControlCommand]textInputCommandFunc
+	widget          *Widget
+	caret           *Caret
+	text            *Text
+	renderBuf       *image.MaskedRenderBuffer
+	mask            *image.NineSlice
+	cursorPosition  int
+	state           textInputState
+	scrollOffset    int
+	focused         bool
+	lastInputText   string
+	secure          bool
+	secureInputText string
 }
 
 type TextInputOpt func(t *TextInput)
@@ -186,6 +189,12 @@ func (o TextInputOptions) Placeholder(s string) TextInputOpt {
 	}
 }
 
+func (o TextInputOptions) Secure(b bool) TextInputOpt {
+	return func(t *TextInput) {
+		t.secure = b
+	}
+}
+
 func (t *TextInput) GetWidget() *Widget {
 	t.init.Do()
 	return t.widget
@@ -323,6 +332,7 @@ func (t *TextInput) doInsert(c rune) {
 	}
 
 	t.InputText = s
+	t.secureInputText = strings.Repeat("*", len([]rune(t.InputText)))
 	t.cursorPosition++
 }
 
@@ -370,6 +380,7 @@ func (t *TextInput) doGoXY(x int, y int) {
 func (t *TextInput) doBackspace() {
 	if t.cursorPosition > 0 {
 		t.InputText = removeChar(t.InputText, t.cursorPosition-1)
+		t.secureInputText = strings.Repeat("*", len([]rune(t.InputText)))
 		t.cursorPosition--
 	}
 	t.caret.ResetBlinking()
@@ -378,6 +389,7 @@ func (t *TextInput) doBackspace() {
 func (t *TextInput) doDelete() {
 	if t.cursorPosition < len([]rune(t.InputText)) {
 		t.InputText = removeChar(t.InputText, t.cursorPosition)
+		t.secureInputText = strings.Repeat("*", len([]rune(t.InputText)))
 	}
 	t.caret.ResetBlinking()
 }
@@ -426,9 +438,14 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFun
 	tr := rect
 	tr = tr.Add(img.Point{t.padding.Left, t.padding.Top})
 
+	inputStr := t.InputText
+	if t.secure {
+		inputStr = t.secureInputText
+	}
+
 	cx := 0
 	if t.focused {
-		sub := string([]rune(t.InputText)[:t.cursorPosition])
+		sub := string([]rune(inputStr)[:t.cursorPosition])
 		cx = fontAdvance(sub, t.face)
 
 		dx := tr.Min.X + t.scrollOffset + cx + t.caret.Width + t.padding.Right - rect.Max.X
@@ -446,7 +463,7 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFun
 
 	t.text.SetLocation(tr)
 	if len([]rune(t.InputText)) > 0 {
-		t.text.Label = t.InputText
+		t.text.Label = inputStr
 	} else {
 		t.text.Label = t.placeholderText
 	}
