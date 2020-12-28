@@ -1,0 +1,19 @@
+body {
+  padding-top: 5rem;
+}
+
+main {
+  margin-bottom: 5rem;
+}
+
+pre {
+  padding: 1rem;
+  font-size: 100%;
+}
+
+ol ol,
+ol ul,
+ul ol,
+ul ul {
+  margin-bottom: 1rem;
+}

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="/fontawesome-free-5.15.1-web/css/all.min.css"/>
+  <link rel="stylesheet" href="/css/styles.css"/>
+
+  <title>Custom Widgets &ndash; Ebiten UI</title>
+</head>
+
+
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="/">Ebiten UI</a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link "  href="/">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link "  href="/usage">Usage</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="/custom-widgets">Custom Widgets</a>
+          </li>
+        </ul>
+      
+      <ul class="navbar-nav">
+        <li class="nav-item d-flex">
+          <a class="nav-link" href="https://github.com/blizzy78/ebitenui">
+            <i class="fab fa-github"></i>
+            Source
+          </a>
+          <a class="nav-link" href="https://pkg.go.dev/github.com/blizzy78/ebitenui">
+            <i class="fas fa-book"></i>
+            Package Docs
+          </a>
+        </li>
+    </form>
+    </div>
+  </div>
+</nav>
+
+
+    <div class="container">
+      <div class="alert alert-warning mt-3 mb-4" role="alert">
+  This documentation is currently under construction and may be incomplete or have missing parts.
+</div>
+
+    </div>
+
+    <main>
+      <div class="container">
+        <h1 id="implementing-custom-widgets">Implementing Custom Widgets</h1>
+<p>With Ebiten UI it is not too difficult to implement custom widgets. These can range from just grouping
+together a bunch of buttons to implementing a whole new widget. This page describes the concepts
+behind doing so.</p>
+<h2 id="retained-mode-vs-immediate-mode">Retained Mode vs Immediate Mode</h2>
+<p>From the API user&rsquo;s perspective, Ebiten UI adopts the &ldquo;<a href="https://en.wikipedia.org/wiki/Retained_mode">retained mode</a>&rdquo; model for user interfaces.
+Actual widget implementations on the other hand always work in &ldquo;<a href="https://en.wikipedia.org/wiki/Immediate_mode_(computer_graphics)">immediate mode</a>&rdquo; - this is however
+not noticeable for the API user. The reason for immediate mode is that Ebiten will cause widgets
+to draw their current state in each GPU frame.</p>
+<h2 id="implementation-structure">Implementation Structure</h2>
+<p>The basic structure of a widget&rsquo;s implementation is as follows:</p>
+<ol>
+<li>
+<p>Each implementation needs to &ldquo;have&rdquo; a <a href="https://pkg.go.dev/github.com/blizzy78/ebitenui/widget#Widget">Widget</a>. For simple &ldquo;inheriting&rdquo; implementations, an already
+existing widget implementation may be useful, while for completely new implementations Widget itself
+can be used.</p>
+<p>Some examples:</p>
+<ul>
+<li>A new button implementation that is a regular <a href="https://pkg.go.dev/github.com/blizzy78/ebitenui/widget#Button">Button</a>, but behaves a bit differently: The new
+implementation will use a regular Button as its widget.</li>
+<li>A row of buttons behaving together as a single widget: The widget implementation could use
+<a href="https://pkg.go.dev/github.com/blizzy78/ebitenui/widget#Container">Container</a> as its widget, with the Container having regular Buttons as children.</li>
+<li>A completely new widget that draws original images onto the screen: This implementation will use
+Widget directly.</li>
+</ul>
+<p>Do note that the implementation&rsquo;s widget will always be used to render first, after that, the
+implementation is free to render additional things. If it is not desirable that the widget renders
+anything, you need to use Widget (because it does not actually render anything onto the screen.)</p>
+</li>
+<li>
+<p>A constructor function that takes options. Options are constructed using functions, such as
+ButtonOpts.Image. A constructor function and options are not strictly necessary, but they allow
+for easy future expansion.</p>
+</li>
+<li>
+<p>Implement interface <a href="https://pkg.go.dev/github.com/blizzy78/ebitenui/widget#PreferredSizeLocateableWidget">PreferredSizeLocateableWidget</a>:</p>
+<ul>
+<li>PreferredSize returns the widget&rsquo;s preferred size. This may depend on text being rendered,
+for example.</li>
+<li>SetLocation is used by Layouters to position the widget on the screen.</li>
+<li>GetWidget returns the implementation&rsquo;s widget, see above.</li>
+</ul>
+</li>
+<li>
+<p>(optional) If the implementation is to actually render anything onto the screen, implement interface
+<a href="https://pkg.go.dev/github.com/blizzy78/ebitenui/widget#Renderer">Renderer</a>.</p>
+</li>
+<li>
+<p>(optional) If the implementation fires any events on its own (for example, on a timed basis),
+implement interface <a href="https://pkg.go.dev/github.com/blizzy78/ebitenui/widget#Renderer">Renderer</a> and fire events in the Render method.</p>
+</li>
+<li>
+<p>(optional) If it is necessary to block user input from reaching widgets rendered below the widget
+(if overlapping), implement interface <a href="https://pkg.go.dev/github.com/blizzy78/ebitenui/input#Layerer">Layerer</a>.</p>
+</li>
+</ol>
+
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
+
+  </body>
+</html>
