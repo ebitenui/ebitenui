@@ -98,7 +98,7 @@ func main() {
 	}
 }
 
-// Update implements Game.
+// Layout implements Game.
 func (g *game) Layout(outsideWidth int, outsideHeight int) (int, int) {
 	return outsideWidth, outsideHeight
 }
