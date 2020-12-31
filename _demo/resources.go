@@ -27,7 +27,8 @@ const (
 
 	headerColor = textIdleColor
 
-	textInputCaretColor = "e7c34b"
+	textInputCaretColor         = "e7c34b"
+	textInputDisabledCaretColor = "766326"
 
 	toolTipColor = backgroundColor
 
@@ -650,9 +651,10 @@ func newTextInputResources(fonts *fonts) (*textInputResources, error) {
 		face: fonts.face,
 
 		color: &widget.TextInputColor{
-			Idle:     hexToColor(textIdleColor),
-			Disabled: hexToColor(textDisabledColor),
-			Caret:    hexToColor(textInputCaretColor),
+			Idle:          hexToColor(textIdleColor),
+			Disabled:      hexToColor(textDisabledColor),
+			Caret:         hexToColor(textInputCaretColor),
+			DisabledCaret: hexToColor(textInputDisabledCaretColor),
 		},
 	}, nil
 }

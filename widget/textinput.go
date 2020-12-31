@@ -62,9 +62,10 @@ type TextInputImage struct {
 }
 
 type TextInputColor struct {
-	Idle     color.Color
-	Disabled color.Color
-	Caret    color.Color
+	Idle          color.Color
+	Disabled      color.Color
+	Caret         color.Color
+	DisabledCaret color.Color
 }
 
 type TextInputValidationFunc func(newInputText string) bool
@@ -462,8 +463,15 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFun
 	t.text.Render(screen, def)
 
 	if t.focused {
+		if t.widget.Disabled {
+			t.caret.Color = t.color.DisabledCaret
+		} else {
+			t.caret.Color = t.color.Caret
+		}
+
 		tr = tr.Add(img.Point{cx, 0})
 		t.caret.SetLocation(tr)
+
 		t.caret.Render(screen, def)
 	}
 }

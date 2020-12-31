@@ -14,8 +14,8 @@ import (
 
 type Caret struct {
 	Width int
+	Color color.Color
 
-	color         color.Color
 	face          font.Face
 	blinkInterval time.Duration
 
@@ -55,7 +55,7 @@ func NewCaret(opts ...CaretOpt) *Caret {
 
 func (o CaretOptions) Color(c color.Color) CaretOpt {
 	return func(ca *Caret) {
-		ca.color = c
+		ca.Color = c
 	}
 }
 
@@ -91,6 +91,8 @@ func (c *Caret) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	if !c.visible {
 		return
 	}
+
+	c.image = image.NewNineSliceColor(c.Color)
 
 	c.image.Draw(screen, c.Width, c.height, func(opts *ebiten.DrawImageOptions) {
 		p := c.widget.Rect.Min
@@ -130,8 +132,6 @@ func (c *Caret) blinkState(visible bool, timer *time.Timer, expired *atomic.Valu
 
 func (c *Caret) createWidget() {
 	c.widget = NewWidget()
-
-	c.image = image.NewNineSliceColor(c.color)
 
 	m := c.face.Metrics()
 	c.height = int(math.Round(fixedInt26_6ToFloat64(m.Ascent + m.Descent)))
