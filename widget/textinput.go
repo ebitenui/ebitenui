@@ -372,7 +372,7 @@ func (t *TextInput) doGoXY(x int, y int) {
 }
 
 func (t *TextInput) doBackspace() {
-	if t.cursorPosition > 0 {
+	if !t.widget.Disabled && t.cursorPosition > 0 {
 		t.InputText = removeChar(t.InputText, t.cursorPosition-1)
 		t.cursorPosition--
 	}
@@ -380,7 +380,7 @@ func (t *TextInput) doBackspace() {
 }
 
 func (t *TextInput) doDelete() {
-	if t.cursorPosition < len([]rune(t.InputText)) {
+	if !t.widget.Disabled && t.cursorPosition < len([]rune(t.InputText)) {
 		t.InputText = removeChar(t.InputText, t.cursorPosition)
 	}
 	t.caret.ResetBlinking()
