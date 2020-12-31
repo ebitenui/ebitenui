@@ -56,7 +56,8 @@ func NewNineSliceColor(c color.Color) *NineSlice {
 	}
 
 	var n *NineSlice
-	if _, _, _, a := c.RGBA(); a == 0 {
+	_, _, _, a := c.RGBA()
+	if a == 0 {
 		n = &NineSlice{
 			transparent: true,
 		}

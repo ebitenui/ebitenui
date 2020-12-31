@@ -16,8 +16,8 @@ func loadGraphicImages(idle string, disabled string) (*widget.ButtonImageImage, 
 
 	var disabledImage *ebiten.Image
 	if disabled != "" {
-		var err error
-		if disabledImage, _, err = ebitenutil.NewImageFromFile(disabled); err != nil {
+		disabledImage, _, err := ebitenutil.NewImageFromFile(disabled)
+		if err != nil {
 			return nil, err
 		}
 	}

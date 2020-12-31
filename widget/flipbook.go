@@ -102,7 +102,8 @@ func (f *FlipBook) WidgetAt(x int, y int) HasWidget {
 		return nil
 	}
 
-	if w := f.container.WidgetAt(x, y); w != nil {
+	w := f.container.WidgetAt(x, y)
+	if w != nil {
 		return w
 	}
 

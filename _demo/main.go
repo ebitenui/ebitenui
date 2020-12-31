@@ -43,7 +43,8 @@ func main() {
 		ui: ui,
 	}
 
-	if err := ebiten.RunGame(&game); err != nil {
+	err := ebiten.RunGame(&game)
+	if err != nil {
 		log.Print(err)
 	}
 }

@@ -207,7 +207,8 @@ func (c *Container) WidgetAt(x int, y int) HasWidget {
 
 	for _, ch := range c.children {
 		if wl, ok := ch.(Locater); ok {
-			if w := wl.WidgetAt(x, y); w != nil {
+			w := wl.WidgetAt(x, y)
+			if w != nil {
 				return w
 			}
 

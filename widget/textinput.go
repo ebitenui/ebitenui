@@ -250,7 +250,8 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 			return t.charInputState(chars[0]), true
 		}
 
-		if st := textInputCheckForCommand(t, newKeyOrCommand); st != nil {
+		st := textInputCheckForCommand(t, newKeyOrCommand)
+		if st != nil {
 			return st, true
 		}
 
