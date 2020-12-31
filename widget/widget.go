@@ -150,7 +150,7 @@ type WidgetMouseButtonReleasedHandlerFunc func(args *WidgetMouseButtonReleasedEv
 // WidgetScrolledHandlerFunc is a function that handles mouse wheel scroll events.
 type WidgetScrolledHandlerFunc func(args *WidgetScrolledEventArgs) //nolint:golint
 
-type WidgetOptions struct { //nolint:go-lint
+type WidgetOptions struct { //nolint:golint
 }
 
 // WidgetOpts contains functions that configure a Widget.
