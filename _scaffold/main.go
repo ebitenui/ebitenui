@@ -93,7 +93,7 @@ func main() {
 	}
 
 	// run Ebiten main loop
-	err := ebiten.RunGame(&game)
+	err = ebiten.RunGame(&game)
 	if err != nil {
 		log.Println(err)
 	}
