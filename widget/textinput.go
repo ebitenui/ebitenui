@@ -305,7 +305,9 @@ func (t *TextInput) commandState(cmd textInputControlCommand, key ebiten.Key, de
 		}
 
 		if timer == nil {
-			t.commandToFunc[cmd]()
+			if !t.widget.Disabled {
+				t.commandToFunc[cmd]()
+			}
 
 			expired = &atomic.Value{}
 			expired.Store(false)
