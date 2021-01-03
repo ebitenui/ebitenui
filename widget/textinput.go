@@ -219,6 +219,10 @@ func (t *TextInput) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 			TextInput: t,
 			InputText: t.InputText,
 		})
+
+		if t.secure == true {
+			t.secureInputText = strings.Repeat("*", len([]rune(t.InputText)))
+		}
 	}
 
 	t.text.GetWidget().Disabled = t.widget.Disabled
@@ -332,7 +336,6 @@ func (t *TextInput) doInsert(c rune) {
 	}
 
 	t.InputText = s
-	t.secureInputText = strings.Repeat("*", len([]rune(t.InputText)))
 	t.cursorPosition++
 }
 
@@ -380,7 +383,6 @@ func (t *TextInput) doGoXY(x int, y int) {
 func (t *TextInput) doBackspace() {
 	if t.cursorPosition > 0 {
 		t.InputText = removeChar(t.InputText, t.cursorPosition-1)
-		t.secureInputText = strings.Repeat("*", len([]rune(t.InputText)))
 		t.cursorPosition--
 	}
 	t.caret.ResetBlinking()
@@ -389,7 +391,6 @@ func (t *TextInput) doBackspace() {
 func (t *TextInput) doDelete() {
 	if t.cursorPosition < len([]rune(t.InputText)) {
 		t.InputText = removeChar(t.InputText, t.cursorPosition)
-		t.secureInputText = strings.Repeat("*", len([]rune(t.InputText)))
 	}
 	t.caret.ResetBlinking()
 }
