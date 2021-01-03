@@ -507,12 +507,34 @@ func textInputPage(res *uiResources) *page {
 	)
 	c.AddChild(t)
 
+	tSecure := widget.NewTextInput(
+		widget.TextInputOpts.Placeholder("Enter password here"),
+		widget.TextInputOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Stretch: true,
+		})),
+		widget.TextInputOpts.Image(res.textInput.image),
+		widget.TextInputOpts.Color(res.textInput.color),
+		widget.TextInputOpts.Padding(widget.Insets{
+			Left:   13,
+			Right:  13,
+			Top:    7,
+			Bottom: 7,
+		}),
+		widget.TextInputOpts.Face(res.textInput.face),
+		widget.TextInputOpts.CaretOpts(
+			widget.CaretOpts.Size(res.textInput.face, 2),
+		),
+		widget.TextInputOpts.Secure(true),
+	)
+	c.AddChild(tSecure)
+
 	c.AddChild(newSeparator(res, widget.RowLayoutData{
 		Stretch: true,
 	}))
 
 	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
 		t.GetWidget().Disabled = args.State == widget.CheckboxChecked
+		tSecure.GetWidget().Disabled = args.State == widget.CheckboxChecked
 	}, res))
 
 	return &page{
