@@ -487,8 +487,7 @@ func dragAndDropPage(res *uiResources, dnd *widget.DragAndDrop, drag *dragConten
 func textInputPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
-	t := widget.NewTextInput(
-		widget.TextInputOpts.Placeholder("Enter text here"),
+	tOpts := []widget.TextInputOpt{
 		widget.TextInputOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: true,
 		})),
@@ -504,27 +503,18 @@ func textInputPage(res *uiResources) *page {
 		widget.TextInputOpts.CaretOpts(
 			widget.CaretOpts.Size(res.textInput.face, 2),
 		),
+	}
+
+	t := widget.NewTextInput(append(
+		tOpts,
+		widget.TextInputOpts.Placeholder("Enter text here"))...,
 	)
 	c.AddChild(t)
 
-	tSecure := widget.NewTextInput(
-		widget.TextInputOpts.Placeholder("Enter password here"),
-		widget.TextInputOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
-			Stretch: true,
-		})),
-		widget.TextInputOpts.Image(res.textInput.image),
-		widget.TextInputOpts.Color(res.textInput.color),
-		widget.TextInputOpts.Padding(widget.Insets{
-			Left:   13,
-			Right:  13,
-			Top:    7,
-			Bottom: 7,
-		}),
-		widget.TextInputOpts.Face(res.textInput.face),
-		widget.TextInputOpts.CaretOpts(
-			widget.CaretOpts.Size(res.textInput.face, 2),
-		),
-		widget.TextInputOpts.Secure(true),
+	tSecure := widget.NewTextInput(append(
+		tOpts,
+		widget.TextInputOpts.Placeholder("Enter secure text here"),
+		widget.TextInputOpts.Secure(true))...,
 	)
 	c.AddChild(tSecure)
 
