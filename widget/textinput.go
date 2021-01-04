@@ -215,21 +215,6 @@ func (t *TextInput) PreferredSize() (int, int) {
 func (t *TextInput) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	t.init.Do()
 
-	defer func() {
-		t.lastInputText = t.InputText
-	}()
-
-	if t.InputText != t.lastInputText {
-		t.ChangedEvent.Fire(&TextInputChangedEventArgs{
-			TextInput: t,
-			InputText: t.InputText,
-		})
-
-		if t.secure == true {
-			t.secureInputText = strings.Repeat("*", len([]rune(t.InputText)))
-		}
-	}
-
 	t.text.GetWidget().Disabled = t.widget.Disabled
 
 	if t.cursorPosition > len([]rune(t.InputText)) {
@@ -243,6 +228,21 @@ func (t *TextInput) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 		}
 		if !rerun {
 			break
+		}
+	}
+
+	defer func() {
+		t.lastInputText = t.InputText
+	}()
+
+	if t.InputText != t.lastInputText {
+		t.ChangedEvent.Fire(&TextInputChangedEventArgs{
+			TextInput: t,
+			InputText: t.InputText,
+		})
+
+		if t.secure {
+			t.secureInputText = strings.Repeat("*", len([]rune(t.InputText)))
 		}
 	}
 
