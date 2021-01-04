@@ -172,19 +172,14 @@ func (s *ScrollContainer) renderContent(screen *ebiten.Image, def DeferredRender
 	}
 
 	if l, ok := s.content.(Locateable); ok {
-		var cw int
-		var ch int
+		cw, ch := 50, 50
 		if p, ok := s.content.(PreferredSizer); ok {
 			cw, ch = p.PreferredSize()
-		} else {
-			cw, ch = 50, 50
 		}
 
 		crect := s.ContentRect()
-		if s.stretchContentWidth {
-			if cw < crect.Dx() {
-				cw = crect.Dx()
-			}
+		if s.stretchContentWidth && cw < crect.Dx() {
+			cw = crect.Dx()
 		}
 
 		rect := img.Rect(0, 0, cw, ch)
@@ -195,6 +190,7 @@ func (s *ScrollContainer) renderContent(screen *ebiten.Image, def DeferredRender
 
 		if rect != s.content.GetWidget().Rect {
 			l.SetLocation(rect)
+
 			if r, ok := s.content.(Relayoutable); ok {
 				r.RequestRelayout()
 			}

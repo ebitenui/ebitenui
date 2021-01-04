@@ -110,38 +110,28 @@ func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.
 	rect = g.padding.Apply(rect)
 
 	colWidths, rowHeights := g.preferredColumnWidthsAndRowHeights(widgets)
-
 	stretchedColWidth, stretchedRowHeight, firstStretchedColWidth, firstStretchedRowHeight := g.stretchedCellSizes(colWidths, rowHeights, rect)
-
-	// part 2: layout
 
 	c, r := 0, 0
 	x, y := 0, 0
 	firstStretchedCol, firstStretchedRow := true, true
 	for _, w := range widgets {
-		var cw int
-		var ch int
-
+		cw := colWidths[c]
 		if g.columnStretched(c) {
+			cw = stretchedColWidth
 			if firstStretchedCol {
 				cw = firstStretchedColWidth
 				firstStretchedCol = false
-			} else {
-				cw = stretchedColWidth
 			}
-		} else {
-			cw = colWidths[c]
 		}
 
+		ch := rowHeights[r]
 		if g.rowStretched(r) {
+			ch = stretchedRowHeight
 			if firstStretchedRow {
 				ch = firstStretchedRowHeight
 				firstStretchedRow = false
-			} else {
-				ch = stretchedRowHeight
 			}
-		} else {
-			ch = rowHeights[r]
 		}
 
 		ww, wh := cw, ch
