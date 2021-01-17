@@ -260,7 +260,7 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 
 		chars := input.InputChars()
 		if len(chars) > 0 {
-			return t.charInputState(chars[0]), true
+			return t.charsInputState(chars), true
 		}
 
 		st := textInputCheckForCommand(t, newKeyOrCommand)
@@ -295,7 +295,7 @@ func textInputCheckForCommand(t *TextInput, newKeyOrCommand bool) textInputState
 	return nil
 }
 
-func (t *TextInput) charInputState(c rune) textInputState {
+func (t *TextInput) charsInputState(c []rune) textInputState {
 	return func() (textInputState, bool) {
 		if !t.widget.Disabled {
 			t.doInsert(c)
@@ -334,15 +334,15 @@ func (t *TextInput) commandState(cmd textInputControlCommand, key ebiten.Key, de
 	}
 }
 
-func (t *TextInput) doInsert(c rune) {
-	s := insertChar(t.InputText, c, t.cursorPosition)
+func (t *TextInput) doInsert(c []rune) {
+	s := string(insertChars([]rune(t.InputText), c, t.cursorPosition))
 
 	if t.validationFunc != nil && !t.validationFunc(s) {
 		return
 	}
 
 	t.InputText = s
-	t.cursorPosition++
+	t.cursorPosition += len(c)
 }
 
 func (t *TextInput) doGoLeft() {
@@ -380,15 +380,14 @@ func (t *TextInput) doGoXY(x int, y int) {
 			x = tr.Max.X
 		}
 
-		i := fontStringIndex(t.InputText, t.face, x-t.scrollOffset-tr.Min.X)
-		t.cursorPosition = i
+		t.cursorPosition = fontStringIndex([]rune(t.InputText), t.face, x-t.scrollOffset-tr.Min.X)
 		t.caret.ResetBlinking()
 	}
 }
 
 func (t *TextInput) doBackspace() {
 	if !t.widget.Disabled && t.cursorPosition > 0 {
-		t.InputText = removeChar(t.InputText, t.cursorPosition-1)
+		t.InputText = string(removeChar([]rune(t.InputText), t.cursorPosition-1))
 		t.cursorPosition--
 	}
 	t.caret.ResetBlinking()
@@ -396,19 +395,24 @@ func (t *TextInput) doBackspace() {
 
 func (t *TextInput) doDelete() {
 	if !t.widget.Disabled && t.cursorPosition < len([]rune(t.InputText)) {
-		t.InputText = removeChar(t.InputText, t.cursorPosition)
+		t.InputText = string(removeChar([]rune(t.InputText), t.cursorPosition))
 	}
 	t.caret.ResetBlinking()
 }
 
-func insertChar(s string, r rune, pos int) string {
-	b := string([]rune(s)[:pos])
-	a := string([]rune(s)[pos:])
-	return b + string(r) + a
+func insertChars(r []rune, c []rune, pos int) []rune {
+	res := make([]rune, len(r)+len(c))
+	copy(res, r[:pos])
+	copy(res[pos:], c)
+	copy(res[pos+len(c):], r[pos:])
+	return res
 }
 
-func removeChar(s string, pos int) string {
-	return string([]rune(s)[:pos]) + string([]rune(s)[pos+1:])
+func removeChar(r []rune, pos int) []rune {
+	res := make([]rune, len(r)-1)
+	copy(res, r[:pos])
+	copy(res[pos:], r[pos+1:])
+	return res
 }
 
 func (t *TextInput) renderImage(screen *ebiten.Image) {
@@ -519,39 +523,44 @@ func fontAdvance(s string, f font.Face) int {
 	return int(math.Round(fixedInt26_6ToFloat64(a)))
 }
 
-func fontStringIndex(s string, f font.Face, x int) int {
+// fontStringIndex returns an index into r that corresponds closest to pixel position x
+// when string(r) is drawn using f. Pixel position x==0 corresponds to r[0].
+func fontStringIndex(r []rune, f font.Face, x int) int {
 	start := 0
-	end := len(s)
-	var p int
+	end := len(r)
+	p := 0
+loop:
 	for {
 		p = start + (end-start)/2
-		sub := string([]rune(s)[:p])
+		sub := string(r[:p])
 		a := fontAdvance(sub, f)
 
-		if x-a == 0 {
-			return p
-		}
-
-		if x-a > 0 {
+		switch {
+		// x is right of advance
+		case x > a:
 			if p == start {
-				break
+				break loop
 			}
 
 			start = p
-		} else {
+
+		// x is left of advance
+		case x < a:
 			if end == p {
-				break
+				break loop
 			}
 
 			end = p
+
+		// x matches advance exactly
+		default:
+			return p
 		}
 	}
 
-	if len(s) > 0 {
-		sub := string([]rune(s)[:p])
-		a1 := fontAdvance(sub, f)
-		sub = string([]rune(s)[:p+1])
-		a2 := fontAdvance(sub, f)
+	if len(r) > 0 {
+		a1 := fontAdvance(string(r[:p]), f)
+		a2 := fontAdvance(string(r[:p+1]), f)
 		if math.Abs(float64(x-a2)) < math.Abs(float64(x-a1)) {
 			p++
 		}

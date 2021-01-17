@@ -101,6 +101,20 @@ func TestTextInput_DoDelete_Disabled(t *testing.T) {
 	render(ti, t)
 }
 
+func TestTextInput_DoInsert(t *testing.T) {
+	is := is.New(t)
+
+	ti := newTextInput(t)
+	ti.InputText = "foo"
+	ti.cursorPosition = 1
+	render(ti, t)
+
+	ti.doInsert([]rune("ab€c"))
+
+	is.Equal(ti.InputText, "fab€coo")
+	is.Equal(ti.cursorPosition, 5)
+}
+
 func newTextInput(t *testing.T, opts ...TextInputOpt) *TextInput {
 	ti := NewTextInput(append(opts, []TextInputOpt{
 		TextInputOpts.Face(loadFont(t)),
