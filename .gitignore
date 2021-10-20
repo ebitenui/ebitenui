@@ -1,2 +1,5 @@
 /_demo/__debug_bin
 /_scaffold/__debug_bin
+.idea
+go.sum
+.vscode

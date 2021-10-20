@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"fmt"
@@ -18,7 +18,7 @@ type page struct {
 func buttonPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
-	bs := []*widget.Button{}
+	var bs []*widget.Button
 	for i := 0; i < 3; i++ {
 		b := widget.NewButton(
 			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
@@ -104,7 +104,7 @@ func listPage(res *uiResources) *page {
 		)))
 	listsContainer.AddChild(buttonsContainer)
 
-	bs := []*widget.Button{}
+	var bs []*widget.Button
 	for i := 0; i < 3; i++ {
 		b := widget.NewButton(
 			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
@@ -144,7 +144,7 @@ func listPage(res *uiResources) *page {
 func comboButtonPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
-	entries := []interface{}{}
+	var entries []interface{}
 	for i := 1; i <= 20; i++ {
 		entries = append(entries, i)
 	}
@@ -180,7 +180,7 @@ func comboButtonPage(res *uiResources) *page {
 func tabBookPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
-	tabs := []*widget.TabBookTab{}
+	var tabs []*widget.TabBookTab
 
 	for i := 0; i < 4; i++ {
 		tc := widget.NewContainer(
@@ -309,7 +309,7 @@ func sliderPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
 	pageSizes := []int{3, 10}
-	sliders := []*widget.Slider{}
+	var sliders []*widget.Slider
 
 	for _, ps := range pageSizes {
 		ps := ps
@@ -624,7 +624,7 @@ func openWindow(res *uiResources, ui func() *ebitenui.UI) {
 
 	ww, wh := ebiten.WindowSize()
 	r := image.Rect(0, 0, ww*3/4, wh/3)
-	r = r.Add(image.Point{ww / 4 / 2, wh * 2 / 3 / 2})
+	r = r.Add(image.Point{X: ww / 4 / 2, Y: wh * 2 / 3 / 2})
 	w.SetLocation(r)
 
 	rw = ui().AddWindow(w)
@@ -663,7 +663,7 @@ func openWindow2(res *uiResources, ui func() *ebitenui.UI) {
 
 	ww, wh := ebiten.WindowSize()
 	r := image.Rect(0, 0, ww/2, wh/2)
-	r = r.Add(image.Point{ww * 4 / 10, wh / 2 / 2})
+	r = r.Add(image.Point{X: ww * 4 / 10, Y: wh / 2 / 2})
 	w.SetLocation(r)
 
 	rw = ui().AddWindow(w)
@@ -709,7 +709,7 @@ func anchorLayoutPage(res *uiResources) *page {
 	hPosC.AddChild(widget.NewLabel(widget.LabelOpts.Text("Horizontal", res.label.face, res.label.text)))
 
 	labels := []string{"Start", "Center", "End"}
-	hCBs := []*widget.Checkbox{}
+	var hCBs []*widget.Checkbox
 	for _, l := range labels {
 		cb := newCheckbox(l, nil, res)
 		hPosC.AddChild(cb)
@@ -737,7 +737,7 @@ func anchorLayoutPage(res *uiResources) *page {
 
 	vPosC.AddChild(widget.NewLabel(widget.LabelOpts.Text("Vertical", res.label.face, res.label.text)))
 
-	vCBs := []*widget.Checkbox{}
+	var vCBs []*widget.Checkbox
 	for _, l := range labels {
 		cb := newCheckbox(l, nil, res)
 		vPosC.AddChild(cb)
