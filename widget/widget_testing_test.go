@@ -68,7 +68,7 @@ func loadFont(t *testing.T) font.Face {
 
 func newImageEmpty(t *testing.T) *ebiten.Image {
 	t.Helper()
-	return newImageEmptySize(0, 0, t)
+	return newImageEmptySize(1, 1, t)
 }
 
 func newImageEmptySize(width int, height int, t *testing.T) *ebiten.Image {
@@ -117,7 +117,7 @@ func leftMouseButtonRelease(w HasWidget, t *testing.T) {
 func render(r Renderer, t *testing.T) {
 	t.Helper()
 
-	screen := ebiten.NewImage(0, 0)
+	screen := ebiten.NewImage(1, 1)
 	RenderWithDeferred(screen, []Renderer{r})
 	event.ExecuteDeferred()
 }
