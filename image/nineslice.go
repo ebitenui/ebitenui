@@ -163,9 +163,11 @@ func (n *NineSlice) createTiles() {
 		return
 	}
 
-	sy := 0
+	min := n.image.Bounds().Min
+
+	sy := min.Y
 	for r, sh := range n.heights {
-		sx := 0
+		sx := min.X
 		for c, sw := range n.widths {
 			if sh > 0 && sw > 0 {
 				rect := image.Rect(0, 0, sw, sh)
