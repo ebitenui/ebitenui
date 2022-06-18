@@ -503,17 +503,17 @@ func textInputPage(res *uiResources, ui func() *ebitenui.UI) *page {
 		widget.TextInputOpts.CaretOpts(
 			widget.CaretOpts.Size(res.textInput.face, 2),
 		),
-		widget.TextInputOpts.EnterFunc(func(text string, enable widget.TextInputEnable) {
-			println("Enter:", text)
-			enable(false) // llint: disable the TextInput widget, until the window (3) is closed
-			openWindow3(res, ui, text, enable)
-		}),
 	}
 
 	t := widget.NewTextInput(append(
 		tOpts,
-		widget.TextInputOpts.Placeholder("Enter text here"))...,
-	)
+		widget.TextInputOpts.Placeholder("Enter text here"),
+		widget.TextInputOpts.EnterFunc(func(text string, enable widget.TextInputEnable) {
+			println("TextInput Enter:", text)
+			enable(false) // llint: disable the TextInput widget, until the window (3) is closed
+			openWindow3(res, ui, text, enable)
+		}),
+	)...)
 	c.AddChild(t)
 
 	tSecure := widget.NewTextInput(append(
