@@ -484,7 +484,7 @@ func dragAndDropPage(res *uiResources, dnd *widget.DragAndDrop, drag *dragConten
 	}
 }
 
-func textInputPage(res *uiResources) *page {
+func textInputPage(res *uiResources, ui func() *ebitenui.UI) *page {
 	c := newPageContentContainer()
 
 	tOpts := []widget.TextInputOpt{
@@ -503,6 +503,11 @@ func textInputPage(res *uiResources) *page {
 		widget.TextInputOpts.CaretOpts(
 			widget.CaretOpts.Size(res.textInput.face, 2),
 		),
+		widget.TextInputOpts.EnterFunc(func(text string, enable widget.TextInputEnable) {
+			println("Enter:", text)
+			enable(false) // llint: disable the TextInput widget, until the window (3) is closed
+			openWindow3(res, ui, text, enable)
+		}),
 	}
 
 	t := widget.NewTextInput(append(
@@ -652,6 +657,46 @@ func openWindow2(res *uiResources, ui func() *ebitenui.UI) {
 		widget.ButtonOpts.Text("Close", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			rw()
+		}),
+	)
+	c.AddChild(cb)
+
+	w := widget.NewWindow(
+		widget.WindowOpts.Modal(),
+		widget.WindowOpts.Contents(c),
+	)
+
+	ww, wh := ebiten.WindowSize()
+	r := image.Rect(0, 0, ww/2, wh/2)
+	r = r.Add(image.Point{ww * 4 / 10, wh / 2 / 2})
+	w.SetLocation(r)
+
+	rw = ui().AddWindow(w)
+}
+
+func openWindow3(res *uiResources, ui func() *ebitenui.UI, text string, enable widget.TextInputEnable) {
+	var rw ebitenui.RemoveWindowFunc
+
+	c := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(res.panel.image),
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+			widget.RowLayoutOpts.Padding(res.panel.padding),
+			widget.RowLayoutOpts.Spacing(15),
+		)),
+	)
+
+	c.AddChild(widget.NewText(
+		widget.TextOpts.Text(fmt.Sprintf("Text Entered: %v", text), res.text.bigTitleFace, res.text.idleColor),
+	))
+
+	cb := widget.NewButton(
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.Text("Close", res.button.face, res.button.text),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			rw()
+			enable(true) // llint: re-enable the TextInput after the window is closed
 		}),
 	)
 	c.AddChild(cb)

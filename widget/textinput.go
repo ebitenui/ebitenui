@@ -45,7 +45,13 @@ type TextInput struct {
 	lastInputText   string
 	secure          bool
 	secureInputText string
+
+	enterFunc TextEnterFunc
 }
+
+type TextInputEnable func(enable bool)
+
+type TextEnterFunc func(text string, enable TextInputEnable)
 
 type TextInputOpt func(t *TextInput)
 
@@ -88,6 +94,7 @@ const (
 	textInputGoEnd
 	textInputBackspace
 	textInputDelete
+	textInputEnter
 )
 
 var textInputKeyToCommand = map[ebiten.Key]textInputControlCommand{
@@ -97,6 +104,7 @@ var textInputKeyToCommand = map[ebiten.Key]textInputControlCommand{
 	ebiten.KeyEnd:       textInputGoEnd,
 	ebiten.KeyBackspace: textInputBackspace,
 	ebiten.KeyDelete:    textInputDelete,
+	ebiten.KeyEnter:     textInputEnter,
 }
 
 func NewTextInput(opts ...TextInputOpt) *TextInput {
@@ -118,6 +126,7 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 	t.commandToFunc[textInputGoEnd] = t.doGoEnd
 	t.commandToFunc[textInputBackspace] = t.doBackspace
 	t.commandToFunc[textInputDelete] = t.doDelete
+	t.commandToFunc[textInputEnter] = t.doEnter
 
 	t.init.Append(t.createWidget)
 
@@ -126,6 +135,12 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 	}
 
 	return t
+}
+
+func (o TextInputOptions) EnterFunc(enterFunc TextEnterFunc) TextInputOpt {
+	return func(t *TextInput) {
+		t.enterFunc = enterFunc
+	}
 }
 
 func (o TextInputOptions) WidgetOpts(opts ...WidgetOpt) TextInputOpt {
@@ -398,6 +413,14 @@ func (t *TextInput) doDelete() {
 		t.InputText = string(removeChar([]rune(t.InputText), t.cursorPosition))
 	}
 	t.caret.ResetBlinking()
+}
+
+func (t *TextInput) doEnter() {
+	if t.enterFunc != nil && !t.widget.Disabled {
+		t.enterFunc(t.InputText, func(enable bool) {
+			t.widget.Disabled = !enable
+		})
+	}
 }
 
 func insertChars(r []rune, c []rune, pos int) []rune {
