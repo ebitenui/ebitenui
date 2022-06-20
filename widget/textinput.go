@@ -46,12 +46,12 @@ type TextInput struct {
 	secure          bool
 	secureInputText string
 
-	enterFunc TextEnterFunc
+	enterFunc TextInputEnterFunc
 }
 
 type TextInputEnable func(enable bool)
 
-type TextEnterFunc func(text string, enable TextInputEnable)
+type TextInputEnterFunc func(text string, enable TextInputEnable)
 
 type TextInputOpt func(t *TextInput)
 
@@ -137,7 +137,7 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 	return t
 }
 
-func (o TextInputOptions) EnterFunc(enterFunc TextEnterFunc) TextInputOpt {
+func (o TextInputOptions) EnterFunc(enterFunc TextInputEnterFunc) TextInputOpt {
 	return func(t *TextInput) {
 		t.enterFunc = enterFunc
 	}

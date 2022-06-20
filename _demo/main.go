@@ -8,6 +8,7 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
 	_ "image/png"
 
@@ -17,7 +18,8 @@ import (
 )
 
 type game struct {
-	ui *ebitenui.UI
+	uiEnabled bool
+	ui        *ebitenui.UI
 }
 
 type pageContainer struct {
@@ -40,7 +42,8 @@ func main() {
 	defer closeUI()
 
 	game := game{
-		ui: ui,
+		ui:        ui,
+		uiEnabled: true,
 	}
 
 	err = ebiten.RunGame(&game)
@@ -189,7 +192,7 @@ func demoContainer(res *uiResources, toolTips *toolTipContents, toolTip *widget.
 		sliderPage(res),
 		toolTipPage(res, toolTips, toolTip),
 		dragAndDropPage(res, dnd, drag),
-		textInputPage(res),
+		textInputPage(res, ui),
 		radioGroupPage(res),
 		windowPage(res, ui),
 		anchorLayoutPage(res),
@@ -369,10 +372,19 @@ func (g *game) Layout(outsideWidth int, outsideHeight int) (int, int) {
 }
 
 func (g *game) Update() error {
-	g.ui.Update()
+	if ebiten.IsKeyPressed(ebiten.KeyControl) && inpututil.IsKeyJustPressed(ebiten.KeyTab) {
+		g.uiEnabled = !g.uiEnabled
+	}
+	if g.uiEnabled {
+		g.ui.Update()
+	}
 	return nil
 }
 
 func (g *game) Draw(screen *ebiten.Image) {
-	g.ui.Draw(screen)
+	screen.Clear()
+
+	if g.uiEnabled {
+		g.ui.Draw(screen)
+	}
 }
