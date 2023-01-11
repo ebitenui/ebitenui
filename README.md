@@ -27,7 +27,7 @@ Social Media
 License
 -------
 
-Ebiten UI is licensed under the MIT license.
+Ebiten UI is licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
 Maintainers
 -------
