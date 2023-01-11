@@ -4,9 +4,9 @@ import (
 	"image/color"
 	"strconv"
 
+	"github.com/ebitenui/ebitenui/image"
+	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/mcarpenter622/ebitenui/image"
-	"github.com/mcarpenter622/ebitenui/widget"
 	"golang.org/x/image/font"
 )
 

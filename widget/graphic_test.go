@@ -3,8 +3,8 @@ package widget
 import (
 	"testing"
 
+	"github.com/ebitenui/ebitenui/event"
 	"github.com/matryer/is"
-	"github.com/mcarpenter622/ebitenui/event"
 )
 
 func TestGraphic_PreferredSize(t *testing.T) {

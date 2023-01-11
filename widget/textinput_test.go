@@ -4,8 +4,8 @@ import (
 	"image/color"
 	"testing"
 
+	"github.com/ebitenui/ebitenui/event"
 	"github.com/matryer/is"
-	"github.com/mcarpenter622/ebitenui/event"
 )
 
 func TestTextInput_ChangedEvent(t *testing.T) {

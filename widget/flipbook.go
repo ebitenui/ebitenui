@@ -3,8 +3,8 @@ package widget
 import (
 	img "image"
 
+	"github.com/ebitenui/ebitenui/input"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/mcarpenter622/ebitenui/input"
 )
 
 // A FlipBook is a container that always renders exactly one child widget: the current page.

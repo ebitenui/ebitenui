@@ -1,4 +1,4 @@
-module github.com/mcarpenter622/ebitenui
+module github.com/ebitenui/ebitenui
 
 go 1.19
 

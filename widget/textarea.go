@@ -5,7 +5,7 @@ import (
 	"image/color"
 	"math"
 
-	"github.com/mcarpenter622/ebitenui/input"
+	"github.com/ebitenui/ebitenui/input"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"golang.org/x/image/font"

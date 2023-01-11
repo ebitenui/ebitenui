@@ -7,7 +7,7 @@ replace github.com/mcarpenter/ebitenui => ../
 require (
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/hajimehoshi/ebiten/v2 v2.4.14
-	github.com/mcarpenter622/ebitenui v0.0.0-20221217222946-7ea1d7c4c81f // indirect
+	github.com/ebitenui/ebitenui v0.0.0-20221217222946-7ea1d7c4c81f // indirect
 	golang.org/x/image v0.2.0
 )
 

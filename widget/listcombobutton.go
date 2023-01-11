@@ -3,8 +3,8 @@ package widget
 import (
 	"image"
 
-	"github.com/mcarpenter622/ebitenui/event"
-	"github.com/mcarpenter622/ebitenui/input"
+	"github.com/ebitenui/ebitenui/event"
+	"github.com/ebitenui/ebitenui/input"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"golang.org/x/image/font"
