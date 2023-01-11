@@ -4,9 +4,9 @@ import (
 	img "image"
 	"math"
 
-	"github.com/blizzy78/ebitenui/event"
-	"github.com/blizzy78/ebitenui/image"
-	"github.com/blizzy78/ebitenui/input"
+	"github.com/mcarpenter622/ebitenui/event"
+	"github.com/mcarpenter622/ebitenui/image"
+	"github.com/mcarpenter622/ebitenui/input"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -19,13 +19,15 @@ type Slider struct {
 
 	ChangedEvent *event.Event
 
-	widgetOpts   []WidgetOpt
-	handleOpts   []ButtonOpt
-	direction    Direction
-	trackImage   *SliderTrackImage
-	trackPadding Insets
-	handleSize   int
-	pageSizeFunc SliderPageSizeFunc
+	widgetOpts      []WidgetOpt
+	handleOpts      []ButtonOpt
+	direction       Direction
+	trackImage      *SliderTrackImage
+	trackPadding    Insets
+	minHandleSize   int
+	fixedHandleSize int
+	trackOffset     int
+	pageSizeFunc    SliderPageSizeFunc
 
 	init                         *MultiOnce
 	widget                       *Widget
@@ -71,8 +73,8 @@ func NewSlider(opts ...SliderOpt) *Slider {
 
 		ChangedEvent: &event.Event{},
 
-		trackImage: &SliderTrackImage{},
-		handleSize: 16,
+		trackImage:    &SliderTrackImage{},
+		minHandleSize: 16,
 		pageSizeFunc: func() int {
 			return 10
 		},
@@ -115,10 +117,21 @@ func (o SliderOptions) TrackPadding(i Insets) SliderOpt {
 		s.trackPadding = i
 	}
 }
+func (o SliderOptions) TrackOffset(i int) SliderOpt {
+	return func(s *Slider) {
+		s.trackOffset = i
+	}
+}
 
-func (o SliderOptions) HandleSize(s int) SliderOpt {
+func (o SliderOptions) MinHandleSize(s int) SliderOpt {
 	return func(sl *Slider) {
-		sl.handleSize = s
+		sl.minHandleSize = s
+	}
+}
+
+func (o SliderOptions) FixedHandleSize(s int) SliderOpt {
+	return func(sl *Slider) {
+		sl.fixedHandleSize = s
 	}
 }
 
@@ -149,11 +162,24 @@ func (s *Slider) GetWidget() *Widget {
 }
 
 func (s *Slider) PreferredSize() (int, int) {
+	var w, h int
 	if s.direction == DirectionHorizontal {
-		return 200, s.handleSize + s.trackPadding.Top + s.trackPadding.Bottom
+		w = 0
+		h = s.minHandleSize + s.trackPadding.Top + s.trackPadding.Bottom
+	} else {
+		w = s.minHandleSize + s.trackPadding.Left + s.trackPadding.Right
+		h = 0
 	}
 
-	return s.handleSize + s.trackPadding.Left + s.trackPadding.Right, 200
+	if s.widget != nil {
+		if w < s.widget.MinWidth {
+			w = s.widget.MinWidth
+		}
+		if h < s.widget.MinHeight {
+			h = s.widget.MinHeight
+		}
+	}
+	return w, h
 }
 
 func (s *Slider) SetLocation(rect img.Rectangle) {
@@ -209,7 +235,13 @@ func (s *Slider) draw(screen *ebiten.Image) {
 	}
 
 	if i != nil {
-		i.Draw(screen, s.widget.Rect.Dx(), s.widget.Rect.Dy(), s.widget.drawImageOptions)
+		i.Draw(screen, s.widget.Rect.Dx(), s.widget.Rect.Dy(), func(opts *ebiten.DrawImageOptions) {
+			if s.direction == DirectionHorizontal {
+				opts.GeoM.Translate(float64(s.widget.Rect.Min.X), float64(s.widget.Rect.Min.Y+s.trackOffset))
+			} else {
+				opts.GeoM.Translate(float64(s.widget.Rect.Min.X+s.trackOffset), float64(s.widget.Rect.Min.Y))
+			}
+		})
 	}
 }
 
@@ -224,8 +256,8 @@ func (s *Slider) fireEvents() {
 
 func (s *Slider) updateHandleSize(handleLength float64) {
 	l := int(math.Round(handleLength))
-	if l < s.handleSize {
-		l = s.handleSize
+	if l < s.minHandleSize {
+		l = s.minHandleSize
 	}
 
 	rect := s.widget.Rect
@@ -295,10 +327,18 @@ func (s *Slider) handleLengthAndTrackLength() (float64, float64) {
 	length := float64(s.Max - s.Min + 1)
 
 	ps := s.pageSizeFunc()
-	handleLength := float64(ps) / length * trackLength
-	if handleLength < float64(s.handleSize) {
-		handleLength = float64(s.handleSize)
+
+	handleLength := 0.0
+
+	if s.fixedHandleSize != 0 {
+		handleLength = float64(s.fixedHandleSize)
+	} else {
+		handleLength = float64(ps) / length * trackLength
+		if handleLength < float64(s.minHandleSize) {
+			handleLength = float64(s.minHandleSize)
+		}
 	}
+
 	if handleLength > trackLength {
 		handleLength = trackLength
 	}
@@ -328,18 +368,29 @@ func (s *Slider) clampCurrentMinMax() {
 
 func (s *Slider) createWidget() {
 	s.widget = NewWidget(append(s.widgetOpts, []WidgetOpt{
-		WidgetOpts.CursorEnterHandler(func(args *WidgetCursorEnterEventArgs) {
+		WidgetOpts.CursorEnterHandler(func(_ *WidgetCursorEnterEventArgs) {
 			if !s.widget.Disabled {
 				s.hovering = true
 			}
 		}),
 
-		WidgetOpts.CursorExitHandler(func(args *WidgetCursorExitEventArgs) {
+		WidgetOpts.CursorExitHandler(func(_ *WidgetCursorExitEventArgs) {
 			s.hovering = false
+		}),
+		WidgetOpts.ScrolledHandler(func(args *WidgetScrolledEventArgs) {
+			if !s.widget.Disabled {
+				ps := s.pageSizeFunc()
+				if s.direction == DirectionHorizontal {
+					s.Current += ps * int(args.Y)
+				} else {
+					s.Current += ps * int(args.X)
+				}
+				s.clampCurrentMinMax()
+			}
 		}),
 
 		// TODO: keeping the mouse button pressed should move the handle repeatedly (in PageSize steps) until it stops under the cursor
-		WidgetOpts.MouseButtonPressedHandler(func(args *WidgetMouseButtonPressedEventArgs) {
+		WidgetOpts.MouseButtonPressedHandler(func(_ *WidgetMouseButtonPressedEventArgs) {
 			if !s.widget.Disabled {
 				x, y := input.CursorPosition()
 				ps := s.pageSizeFunc()
@@ -375,8 +426,20 @@ func (s *Slider) createWidget() {
 			s.handlePressedInternalCurrent = s.currentToInternal(s.Current)
 		}),
 
-		ButtonOpts.ReleasedHandler(func(args *ButtonReleasedEventArgs) {
+		ButtonOpts.ReleasedHandler(func(_ *ButtonReleasedEventArgs) {
 			s.dragging = false
 		}),
+
+		ButtonOpts.WidgetOpts(WidgetOpts.ScrolledHandler(func(args *WidgetScrolledEventArgs) {
+			if !s.widget.Disabled {
+				ps := s.pageSizeFunc()
+				if s.direction == DirectionHorizontal {
+					s.Current += ps * int(args.Y)
+				} else {
+					s.Current += ps * int(args.X)
+				}
+				s.clampCurrentMinMax()
+			}
+		})),
 	}...)...)
 }

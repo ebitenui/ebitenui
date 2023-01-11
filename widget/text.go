@@ -14,10 +14,11 @@ import (
 )
 
 type Text struct {
-	Label string
-	Face  font.Face
-	Color color.Color
-
+	Label              string
+	Face               font.Face
+	Color              color.Color
+	MaxWidth           float64
+	Inset              Insets
 	widgetOpts         []WidgetOpt
 	horizontalPosition TextPosition
 	verticalPosition   TextPosition
@@ -41,8 +42,9 @@ type TextOptions struct {
 }
 
 type textMeasurements struct {
-	label string
-	face  font.Face
+	label    string
+	face     font.Face
+	maxWidth float64
 
 	lines             []string
 	lineWidths        []float64
@@ -82,6 +84,12 @@ func (o TextOptions) Text(label string, face font.Face, color color.Color) TextO
 	}
 }
 
+func (o TextOptions) Insets(inset Insets) TextOpt {
+	return func(t *Text) {
+		t.Inset = inset
+	}
+}
+
 func (o TextOptions) Position(h TextPosition, v TextPosition) TextOpt {
 	return func(t *Text) {
 		t.horizontalPosition = h
@@ -102,7 +110,16 @@ func (t *Text) SetLocation(rect image.Rectangle) {
 func (t *Text) PreferredSize() (int, int) {
 	t.init.Do()
 	t.measure()
-	return int(math.Ceil(t.measurements.boundingBoxWidth)), int(math.Ceil(t.measurements.boundingBoxHeight))
+	w := int(math.Ceil(t.measurements.boundingBoxWidth))
+	h := int(math.Ceil(t.measurements.boundingBoxHeight))
+
+	if t.widget != nil && h < t.widget.MinHeight {
+		h = t.widget.MinHeight
+	}
+	if t.widget != nil && w < t.widget.MinWidth {
+		w = t.widget.MinWidth
+	}
+	return w, h
 }
 
 func (t *Text) Render(screen *ebiten.Image, def DeferredRenderFunc) {
@@ -131,7 +148,9 @@ func (t *Text) draw(screen *ebiten.Image) {
 		case TextPositionCenter:
 			lx += int(math.Round((float64(w) - t.measurements.lineWidths[i]) / 2))
 		case TextPositionEnd:
-			lx += int(math.Ceil(float64(w) - t.measurements.lineWidths[i]))
+			lx += int(math.Ceil(float64(w)-t.measurements.lineWidths[i])) - t.Inset.Right
+		default:
+			lx += t.Inset.Left
 		}
 
 		ly := int(math.Round(float64(p.Y) + t.measurements.lineHeight*float64(i) + t.measurements.ascent))
@@ -141,16 +160,17 @@ func (t *Text) draw(screen *ebiten.Image) {
 }
 
 func (t *Text) measure() {
-	if t.Label == t.measurements.label && t.Face == t.measurements.face {
+	if t.Label == t.measurements.label && t.Face == t.measurements.face && t.MaxWidth == t.measurements.maxWidth {
 		return
 	}
 
 	m := t.Face.Metrics()
 
 	t.measurements = textMeasurements{
-		label:  t.Label,
-		face:   t.Face,
-		ascent: fixedInt26_6ToFloat64(m.Ascent),
+		label:    t.Label,
+		face:     t.Face,
+		ascent:   fixedInt26_6ToFloat64(m.Ascent),
+		maxWidth: t.MaxWidth,
 	}
 
 	fh := fixedInt26_6ToFloat64(m.Ascent + m.Descent)
@@ -160,14 +180,50 @@ func (t *Text) measure() {
 	s := bufio.NewScanner(strings.NewReader(t.Label))
 	for s.Scan() {
 		line := s.Text()
-		t.measurements.lines = append(t.measurements.lines, line)
+		var newLine string = ""
+		var newLineWidth float64 = float64(t.Inset.Left + t.Inset.Right)
+		words := strings.Split(line, " ")
+		if t.MaxWidth > 0 {
+			for _, word := range words {
+				word = word + " "
+				wordWidth := fixedInt26_6ToFloat64(font.MeasureString(t.Face, word))
 
-		lw := fixedInt26_6ToFloat64(font.MeasureString(t.Face, line))
-		t.measurements.lineWidths = append(t.measurements.lineWidths, lw)
+				if newLineWidth+wordWidth < t.MaxWidth {
+					newLine = newLine + word
+					newLineWidth += wordWidth
+				} else {
+					if newLine != "" {
+						t.measurements.lines = append(t.measurements.lines, newLine)
+						t.measurements.lineWidths = append(t.measurements.lineWidths, newLineWidth)
 
-		if lw > t.measurements.boundingBoxWidth {
-			t.measurements.boundingBoxWidth = lw
+						if newLineWidth > t.measurements.boundingBoxWidth {
+							t.measurements.boundingBoxWidth = newLineWidth
+						}
+					}
+					newLine = word
+					newLineWidth = wordWidth + float64(t.Inset.Left+t.Inset.Right)
+				}
+			}
+			if newLine != "" {
+				t.measurements.lines = append(t.measurements.lines, newLine)
+				t.measurements.lineWidths = append(t.measurements.lineWidths, newLineWidth)
+
+				if newLineWidth > t.measurements.boundingBoxWidth {
+					t.measurements.boundingBoxWidth = newLineWidth
+				}
+			}
+		} else {
+			line := s.Text()
+			t.measurements.lines = append(t.measurements.lines, line)
+
+			lw := fixedInt26_6ToFloat64(font.MeasureString(t.Face, line)) + float64(t.Inset.Left+t.Inset.Right)
+			t.measurements.lineWidths = append(t.measurements.lineWidths, lw)
+
+			if lw > t.measurements.boundingBoxWidth {
+				t.measurements.boundingBoxWidth = lw
+			}
 		}
+
 	}
 
 	t.measurements.boundingBoxHeight = float64(len(t.measurements.lines))*t.measurements.lineHeight - ld

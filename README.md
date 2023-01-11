@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/blizzy78/ebitenui.svg?branch=master)](https://travis-ci.org/blizzy78/ebitenui) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=blizzy78_ebitenui&metric=alert_status)](https://sonarcloud.io/dashboard?id=blizzy78_ebitenui) [![Coverage Status](https://coveralls.io/repos/github/blizzy78/ebitenui/badge.svg?branch=master)](https://coveralls.io/github/blizzy78/ebitenui?branch=master) [![GoDoc](https://pkg.go.dev/badge/github.com/blizzy78/ebitenui)](https://pkg.go.dev/github.com/blizzy78/ebitenui)
+[![Build Status](https://travis-ci.org/mcarpenter622/ebitenui.svg?branch=master)](https://travis-ci.org/mcarpenter622/ebitenui) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mcarpenter622_ebitenui&metric=alert_status)](https://sonarcloud.io/dashboard?id=mcarpenter622_ebitenui) [![Coverage Status](https://coveralls.io/repos/github/mcarpenter622/ebitenui/badge.svg?branch=master)](https://coveralls.io/github/mcarpenter622/ebitenui?branch=master) [![GoDoc](https://pkg.go.dev/badge/github.com/mcarpenter622/ebitenui)](https://pkg.go.dev/github.com/mcarpenter622/ebitenui)
 
 
 Ebiten UI
@@ -26,3 +26,8 @@ Ebiten UI is licensed under the MIT license.
 
 [Ebiten]: https://ebiten.org
 [retained mode]: https://en.wikipedia.org/wiki/Retained_mode
+
+Maintainers
+-------
+Currently maintained by Mark Carpenter <mark@dmn-dev.com>
+Originally written by Maik Schreiber <blizzy@blizzy.de>

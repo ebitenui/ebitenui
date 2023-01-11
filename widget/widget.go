@@ -3,8 +3,8 @@ package widget
 import (
 	"image"
 
-	"github.com/blizzy78/ebitenui/event"
-	"github.com/blizzy78/ebitenui/input"
+	"github.com/mcarpenter622/ebitenui/event"
+	"github.com/mcarpenter622/ebitenui/input"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -20,6 +20,12 @@ type Widget struct {
 	// parent container. The exact type depends on the layout being used, for example, GridLayout requires
 	// GridLayoutData to be used.
 	LayoutData interface{}
+
+	//The minimum width for this Widget
+	MinWidth int
+
+	//The minimum height for this Widget
+	MinHeight int
 
 	// Disabled specifies whether the widget is disabled, whatever that means. Disabled widgets should
 	// usually render in some sort of "greyed out" visual state, and not react to user input.
@@ -48,6 +54,9 @@ type Widget struct {
 	ScrolledEvent *event.Event
 
 	FocusEvent *event.Event
+
+	//Custom Data is a field to allow users to attach data to any widget
+	CustomData interface{}
 
 	parent                     *Widget
 	lastUpdateCursorEntered    bool
@@ -228,6 +237,20 @@ func (o WidgetOptions) ScrolledHandler(f WidgetScrolledHandlerFunc) WidgetOpt {
 	}
 }
 
+// WithCustomData configures a Widget with custom data cd.
+func (o WidgetOptions) CustomData(cd interface{}) WidgetOpt {
+	return func(w *Widget) {
+		w.CustomData = cd
+	}
+}
+
+func (o WidgetOptions) MinSize(minWidth int, minHeight int) WidgetOpt {
+	return func(w *Widget) {
+		w.MinWidth = minWidth
+		w.MinHeight = minHeight
+	}
+}
+
 func (w *Widget) drawImageOptions(opts *ebiten.DrawImageOptions) {
 	opts.GeoM.Translate(float64(w.Rect.Min.X), float64(w.Rect.Min.Y))
 }
@@ -280,8 +303,11 @@ func (w *Widget) fireEvents() {
 		w.lastUpdateCursorEntered = entered
 	}
 
-	if inside && input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, layer) {
+	if input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, layer) {
 		w.lastUpdateMouseLeftPressed = true
+	}
+
+	if inside && input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, layer) {
 		w.mouseLeftPressedInside = inside
 
 		off := p.Sub(w.Rect.Min)

@@ -3,21 +3,20 @@ package widget
 import (
 	"image"
 
-	"github.com/blizzy78/ebitenui/event"
-	"github.com/blizzy78/ebitenui/input"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/mcarpenter622/ebitenui/event"
+	"github.com/mcarpenter622/ebitenui/input"
 )
 
 type Checkbox struct {
-	ChangedEvent *event.Event
-
-	buttonOpts []ButtonOpt
-	image      *CheckboxGraphicImage
-	triState   bool
+	StateChangedEvent *event.Event
+	buttonOpts        []ButtonOpt
+	image             *CheckboxGraphicImage
+	triState          bool
 
 	init   *MultiOnce
 	button *Button
-	state  CheckboxState
+	state  WidgetState
 }
 
 type CheckboxOpt func(c *Checkbox)
@@ -28,11 +27,9 @@ type CheckboxGraphicImage struct {
 	Greyed    *ButtonImageImage
 }
 
-type CheckboxState int
-
 type CheckboxChangedEventArgs struct {
-	Checkbox *Checkbox
-	State    CheckboxState
+	Active *Checkbox
+	State  WidgetState
 }
 
 type CheckboxChangedHandlerFunc func(args *CheckboxChangedEventArgs)
@@ -40,17 +37,11 @@ type CheckboxChangedHandlerFunc func(args *CheckboxChangedEventArgs)
 type CheckboxOptions struct {
 }
 
-const (
-	CheckboxUnchecked = CheckboxState(iota)
-	CheckboxChecked
-	CheckboxGreyed
-)
-
 var CheckboxOpts CheckboxOptions
 
 func NewCheckbox(opts ...CheckboxOpt) *Checkbox {
 	c := &Checkbox{
-		ChangedEvent: &event.Event{},
+		StateChangedEvent: &event.Event{},
 
 		init: &MultiOnce{},
 	}
@@ -82,12 +73,35 @@ func (o CheckboxOptions) TriState() CheckboxOpt {
 	}
 }
 
-func (o CheckboxOptions) ChangedHandler(f CheckboxChangedHandlerFunc) CheckboxOpt {
+func (o CheckboxOptions) StateChangedHandler(f CheckboxChangedHandlerFunc) CheckboxOpt {
 	return func(c *Checkbox) {
-		c.ChangedEvent.AddHandler(func(args interface{}) {
+		c.StateChangedEvent.AddHandler(func(args interface{}) {
 			f(args.(*CheckboxChangedEventArgs))
 		})
 	}
+}
+
+func (tw *Checkbox) State() WidgetState {
+	return tw.state
+}
+
+func (tw *Checkbox) SetState(state WidgetState) {
+	if state == WidgetGreyed && !tw.triState {
+		panic("non-tri state Checkbox cannot be in greyed state")
+	}
+
+	if state != tw.state {
+		tw.state = state
+
+		tw.StateChangedEvent.Fire(&CheckboxChangedEventArgs{
+			Active: tw,
+			State:  tw.state,
+		})
+	}
+}
+
+func (tw *Checkbox) getStateChangedEvent() *event.Event {
+	return tw.StateChangedEvent
 }
 
 func (c *Checkbox) GetWidget() *Widget {
@@ -122,54 +136,35 @@ func (c *Checkbox) createWidget() {
 	c.button = NewButton(append(c.buttonOpts, []ButtonOpt{
 		ButtonOpts.Graphic(c.image.Unchecked.Idle),
 
-		ButtonOpts.ClickedHandler(func(args *ButtonClickedEventArgs) {
+		ButtonOpts.ClickedHandler(func(_ *ButtonClickedEventArgs) {
 			c.SetState(c.state.Advance(c.triState))
 		}),
 	}...)...)
 	c.buttonOpts = nil
 }
 
-func (c *Checkbox) State() CheckboxState {
-	return c.state
-}
-
-func (c *Checkbox) SetState(s CheckboxState) {
-	if s == CheckboxGreyed && !c.triState {
-		panic("non-tri state checkbox cannot be in greyed state")
+func (s WidgetState) Advance(triState bool) WidgetState {
+	if s == WidgetUnchecked {
+		return WidgetChecked
 	}
 
-	if s != c.state {
-		c.state = s
-
-		c.ChangedEvent.Fire(&CheckboxChangedEventArgs{
-			Checkbox: c,
-			State:    s,
-		})
-	}
-}
-
-func (s CheckboxState) Advance(triState bool) CheckboxState {
-	if s == CheckboxUnchecked {
-		return CheckboxChecked
-	}
-
-	if s == CheckboxChecked {
+	if s == WidgetChecked {
 		if triState {
-			return CheckboxGreyed
+			return WidgetGreyed
 		}
 
-		return CheckboxUnchecked
+		return WidgetUnchecked
 	}
 
-	return CheckboxUnchecked
+	return WidgetUnchecked
 }
 
-func (s CheckboxState) graphicImage(i *CheckboxGraphicImage) *ButtonImageImage {
-	if s == CheckboxChecked {
+func (s WidgetState) graphicImage(i *CheckboxGraphicImage) *ButtonImageImage {
+	if s == WidgetChecked {
 		return i.Checked
 	}
 
-	if s == CheckboxGreyed {
+	if s == WidgetGreyed {
 		return i.Greyed
 	}
 

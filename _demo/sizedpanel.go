@@ -3,8 +3,8 @@ package main
 import (
 	"image"
 
-	"github.com/blizzy78/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/mcarpenter622/ebitenui/widget"
 )
 
 type sizedPanel struct {

@@ -3,10 +3,10 @@ package ebitenui
 import (
 	"image"
 
-	"github.com/blizzy78/ebitenui/event"
-	"github.com/blizzy78/ebitenui/input"
-	internalinput "github.com/blizzy78/ebitenui/internal/input"
-	"github.com/blizzy78/ebitenui/widget"
+	"github.com/mcarpenter622/ebitenui/event"
+	"github.com/mcarpenter622/ebitenui/input"
+	internalinput "github.com/mcarpenter622/ebitenui/internal/input"
+	"github.com/mcarpenter622/ebitenui/widget"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -29,9 +29,6 @@ type UI struct {
 	renderers     []widget.Renderer
 	windows       []*widget.Window
 }
-
-// RemoveWindowFunc is a function to remove a Window from rendering.
-type RemoveWindowFunc func()
 
 // Update updates u. This method should be called in the Ebiten Update function.
 func (u *UI) Update() {
@@ -70,13 +67,25 @@ func (u *UI) handleFocus() {
 			u.focusedWidget.(widget.Focuser).Focus(false)
 			u.focusedWidget = nil
 		}
-
 		x, y := input.CursorPosition()
+
+		for _, window := range u.windows {
+			w := window.Contents.WidgetAt(x, y)
+			if w != nil && w.GetWidget().EffectiveInputLayer().ActiveFor(x, y, input.LayerEventTypeAll) {
+				if f, ok := w.(widget.Focuser); ok {
+					f.Focus(true)
+					u.focusedWidget = w
+					return
+				}
+			}
+		}
+
 		w := u.Container.WidgetAt(x, y)
-		if w != nil {
+		if w != nil && w.GetWidget().EffectiveInputLayer().ActiveFor(x, y, input.LayerEventTypeAll) {
 			if f, ok := w.(widget.Focuser); ok {
 				f.Focus(true)
 				u.focusedWidget = w
+				return
 			}
 		}
 	}
@@ -141,12 +150,14 @@ func (u *UI) render(screen *ebiten.Image) {
 }
 
 // AddWindow adds window w to u for rendering. It returns a function to remove w from u.
-func (u *UI) AddWindow(w *widget.Window) RemoveWindowFunc {
+func (u *UI) AddWindow(w *widget.Window) widget.RemoveWindowFunc {
 	u.windows = append(u.windows, w)
-
-	return func() {
+	closeFunc := func() {
 		u.removeWindow(w)
 	}
+
+	w.SetCloseFunction(closeFunc)
+	return closeFunc
 }
 
 func (u *UI) removeWindow(w *widget.Window) {
@@ -156,4 +167,8 @@ func (u *UI) removeWindow(w *widget.Window) {
 			break
 		}
 	}
+}
+
+func (u *UI) HasFocus() bool {
+	return u.focusedWidget != nil
 }

@@ -1,14 +1,29 @@
 package widget
 
-import "github.com/blizzy78/ebitenui/event"
+import (
+	"github.com/mcarpenter622/ebitenui/event"
+)
+
+type WidgetState int
+
+const (
+	WidgetUnchecked = WidgetState(iota)
+	WidgetChecked
+	WidgetGreyed
+)
+
+type RadioGroupElement interface {
+	SetState(state WidgetState)
+	getStateChangedEvent() *event.Event
+}
 
 type RadioGroup struct {
 	ChangedEvent *event.Event
 
-	checkboxes []*Checkbox
-	active     *Checkbox
-	listen     bool
-	doneEvent  *event.Event
+	elements  []RadioGroupElement
+	active    RadioGroupElement
+	listen    bool
+	doneEvent *event.Event
 }
 
 type RadioGroupOpt func(r *RadioGroup)
@@ -17,7 +32,7 @@ type RadioGroupOptions struct {
 }
 
 type RadioGroupChangedEventArgs struct {
-	Active *Checkbox
+	Active RadioGroupElement
 }
 
 type RadioGroupChangedHandlerFunc func(args *RadioGroupChangedEventArgs)
@@ -46,9 +61,15 @@ func NewRadioGroup(opts ...RadioGroupOpt) *RadioGroup {
 	return r
 }
 
-func (o RadioGroupOptions) Checkboxes(cb ...*Checkbox) RadioGroupOpt {
+func (o RadioGroupOptions) Elements(e ...RadioGroupElement) RadioGroupOpt {
 	return func(r *RadioGroup) {
-		r.checkboxes = cb
+		for idx := range e {
+			switch eletype := e[idx].(type) {
+			case *Button:
+				eletype.ToggleMode = true
+			}
+		}
+		r.elements = e
 	}
 }
 
@@ -60,22 +81,21 @@ func (o RadioGroupOptions) ChangedHandler(f RadioGroupChangedHandlerFunc) RadioG
 	}
 }
 
-func (r *RadioGroup) Active() *Checkbox {
+func (r *RadioGroup) Active() RadioGroupElement {
 	return r.active
 }
 
-func (r *RadioGroup) SetActive(a *Checkbox) {
+func (r *RadioGroup) SetActive(a RadioGroupElement) {
 	r.listen = false
-
 	oldActive := r.active
-	for _, c := range r.checkboxes {
+	for _, c := range r.elements {
 		if c == a {
 			r.active = c
 
 			// ignore unchecking and reset to checked
-			c.SetState(CheckboxChecked)
+			c.SetState(WidgetChecked)
 		} else {
-			c.SetState(CheckboxUnchecked)
+			c.SetState(WidgetUnchecked)
 		}
 	}
 
@@ -93,18 +113,21 @@ func (r *RadioGroup) SetActive(a *Checkbox) {
 }
 
 func (r *RadioGroup) create() {
-	for _, c := range r.checkboxes {
-		c.ChangedEvent.AddHandler(func(args interface{}) {
+	for _, c := range r.elements {
+		c.getStateChangedEvent().AddHandler(func(args interface{}) {
 			if !r.listen {
 				return
 			}
-
-			a := args.(*CheckboxChangedEventArgs)
-			r.SetActive(a.Checkbox)
+			switch args := args.(type) {
+			case *CheckboxChangedEventArgs:
+				r.SetActive(args.Active)
+			case *ButtonChangedEventArgs:
+				r.SetActive(args.Button)
+			}
 		})
 	}
 
-	if r.active == nil {
-		r.SetActive(r.checkboxes[0])
+	if r.active == nil && len(r.elements) > 0 {
+		r.SetActive(r.elements[0])
 	}
 }

@@ -4,9 +4,9 @@ import (
 	"image"
 	"math"
 
-	"github.com/blizzy78/ebitenui/event"
-	"github.com/blizzy78/ebitenui/input"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/mcarpenter622/ebitenui/event"
+	"github.com/mcarpenter622/ebitenui/input"
 )
 
 type DragAndDrop struct {

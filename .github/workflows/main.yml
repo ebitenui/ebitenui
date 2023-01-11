@@ -1,0 +1,26 @@
+name: Go
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.19
+    - name: Update apt-get
+      run: sudo apt-get update
+    - name: Install xorg-dev
+      run: sudo apt-get install -y xorg-dev
+    - name: Install libgl1-mesa-dev
+      run: sudo apt-get install -y libgl1-mesa-dev
+    - name: Build
+      run: go build -v ./...
