@@ -3,19 +3,19 @@ package widget
 import (
 	"testing"
 
-	"github.com/blizzy78/ebitenui/event"
 	"github.com/matryer/is"
+	"github.com/mcarpenter622/ebitenui/event"
 )
 
 func TestCheckbox_State_Initial(t *testing.T) {
 	is := is.New(t)
 
 	c := newCheckbox(t,
-		CheckboxOpts.ChangedHandler(func(args *CheckboxChangedEventArgs) {
+		CheckboxOpts.StateChangedHandler(func(_ *CheckboxChangedEventArgs) {
 			is.Fail() // event fired without previous action
 		}))
 
-	is.Equal(c.State(), CheckboxUnchecked)
+	is.Equal(c.State(), WidgetUnchecked)
 }
 
 func TestCheckbox_ChangedEvent_User(t *testing.T) {
@@ -24,14 +24,14 @@ func TestCheckbox_ChangedEvent_User(t *testing.T) {
 	var eventArgs *CheckboxChangedEventArgs
 
 	c := newCheckbox(t,
-		CheckboxOpts.ChangedHandler(func(args *CheckboxChangedEventArgs) {
+		CheckboxOpts.StateChangedHandler(func(args *CheckboxChangedEventArgs) {
 			eventArgs = args
 		}))
 
 	leftMouseButtonClick(c, t)
 
-	is.Equal(eventArgs.State, CheckboxChecked)
-	is.Equal(c.State(), CheckboxChecked)
+	is.Equal(eventArgs.State, WidgetChecked)
+	is.Equal(c.State(), WidgetChecked)
 }
 
 func TestCheckbox_SetState(t *testing.T) {
@@ -41,18 +41,18 @@ func TestCheckbox_SetState(t *testing.T) {
 	numEvents := 0
 
 	c := newCheckbox(t,
-		CheckboxOpts.ChangedHandler(func(args *CheckboxChangedEventArgs) {
+		CheckboxOpts.StateChangedHandler(func(args *CheckboxChangedEventArgs) {
 			eventArgs = args
 			numEvents++
 		}))
 
-	c.SetState(CheckboxChecked)
+	c.SetState(WidgetChecked)
 	event.ExecuteDeferred()
 
-	is.Equal(eventArgs.State, CheckboxChecked)
-	is.Equal(c.State(), CheckboxChecked)
+	is.Equal(eventArgs.State, WidgetChecked)
+	is.Equal(c.State(), WidgetChecked)
 
-	c.SetState(CheckboxChecked)
+	c.SetState(WidgetChecked)
 	event.ExecuteDeferred()
 
 	is.Equal(numEvents, 1)
@@ -63,9 +63,9 @@ func TestCheckbox_State_Cycle(t *testing.T) {
 
 	c := newCheckbox(t)
 	leftMouseButtonClick(c, t)
-	is.Equal(c.State(), CheckboxChecked)
+	is.Equal(c.State(), WidgetChecked)
 	leftMouseButtonClick(c, t)
-	is.Equal(c.State(), CheckboxUnchecked)
+	is.Equal(c.State(), WidgetUnchecked)
 }
 
 func TestCheckbox_State_Cycle_TriState(t *testing.T) {
@@ -73,11 +73,11 @@ func TestCheckbox_State_Cycle_TriState(t *testing.T) {
 
 	c := newCheckbox(t, CheckboxOpts.TriState())
 	leftMouseButtonClick(c, t)
-	is.Equal(c.State(), CheckboxChecked)
+	is.Equal(c.State(), WidgetChecked)
 	leftMouseButtonClick(c, t)
-	is.Equal(c.State(), CheckboxGreyed)
+	is.Equal(c.State(), WidgetGreyed)
 	leftMouseButtonClick(c, t)
-	is.Equal(c.State(), CheckboxUnchecked)
+	is.Equal(c.State(), WidgetUnchecked)
 }
 
 func newCheckbox(t *testing.T, opts ...CheckboxOpt) *Checkbox {

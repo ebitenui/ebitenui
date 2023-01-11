@@ -3,8 +3,8 @@ package widget
 import (
 	img "image"
 
-	"github.com/blizzy78/ebitenui/image"
-	"github.com/blizzy78/ebitenui/input"
+	"github.com/mcarpenter622/ebitenui/image"
+	"github.com/mcarpenter622/ebitenui/input"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -89,11 +89,11 @@ func (c *Container) AddChild(child PreferredSizeLocateableWidget) RemoveChildFun
 	c.RequestRelayout()
 
 	return func() {
-		c.removeChild(child)
+		c.RemoveChild(child)
 	}
 }
 
-func (c *Container) removeChild(child PreferredSizeLocateableWidget) {
+func (c *Container) RemoveChild(child PreferredSizeLocateableWidget) {
 	index := -1
 	for i, ch := range c.children {
 		if ch == child {
@@ -109,6 +109,15 @@ func (c *Container) removeChild(child PreferredSizeLocateableWidget) {
 	c.children = append(c.children[:index], c.children[index+1:]...)
 
 	child.GetWidget().parent = nil
+
+	c.RequestRelayout()
+}
+
+func (c *Container) RemoveChildren() {
+	for i := range c.children {
+		c.children[i].GetWidget().parent = nil
+	}
+	c.children = nil
 
 	c.RequestRelayout()
 }
@@ -136,8 +145,14 @@ func (c *Container) PreferredSize() (int, int) {
 	if c.layout == nil {
 		return 50, 50
 	}
-
-	return c.layout.PreferredSize(c.children)
+	w, h := c.layout.PreferredSize(c.children)
+	if c.widget != nil && h < c.widget.MinHeight {
+		h = c.widget.MinHeight
+	}
+	if c.widget != nil && w < c.widget.MinWidth {
+		w = c.widget.MinWidth
+	}
+	return w, h
 }
 
 func (c *Container) SetLocation(rect img.Rectangle) {

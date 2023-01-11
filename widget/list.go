@@ -5,9 +5,9 @@ import (
 	"image/color"
 	"math"
 
-	"github.com/blizzy78/ebitenui/event"
-	"github.com/blizzy78/ebitenui/image"
-	"github.com/blizzy78/ebitenui/input"
+	"github.com/mcarpenter622/ebitenui/event"
+	"github.com/mcarpenter622/ebitenui/image"
+	"github.com/mcarpenter622/ebitenui/input"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"golang.org/x/image/font"

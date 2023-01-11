@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/blizzy78/ebitenui/widget"
+	"github.com/mcarpenter622/ebitenui/widget"
 )
 
 type dragContents struct {

@@ -4,9 +4,9 @@ import (
 	img "image"
 	"image/color"
 
-	"github.com/blizzy78/ebitenui/event"
-	"github.com/blizzy78/ebitenui/image"
-	"github.com/blizzy78/ebitenui/input"
+	"github.com/mcarpenter622/ebitenui/event"
+	"github.com/mcarpenter622/ebitenui/image"
+	"github.com/mcarpenter622/ebitenui/input"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"golang.org/x/image/font"
@@ -15,12 +15,16 @@ import (
 type Button struct {
 	Image             *ButtonImage
 	KeepPressedOnExit bool
+	ToggleMode        bool
 	GraphicImage      *ButtonImageImage
 	TextColor         *ButtonTextColor
 
-	PressedEvent  *event.Event
-	ReleasedEvent *event.Event
-	ClickedEvent  *event.Event
+	PressedEvent       *event.Event
+	ReleasedEvent      *event.Event
+	ClickedEvent       *event.Event
+	CursorEnteredEvent *event.Event
+	CursorExitedEvent  *event.Event
+	StateChangedEvent  *event.Event
 
 	widgetOpts               []WidgetOpt
 	autoUpdateTextAndGraphic bool
@@ -34,6 +38,7 @@ type Button struct {
 	text      *Text
 	hovering  bool
 	pressing  bool
+	state     WidgetState
 }
 
 type ButtonOpt func(b *Button)
@@ -71,12 +76,23 @@ type ButtonReleasedEventArgs struct {
 type ButtonClickedEventArgs struct {
 	Button *Button
 }
-
+type ButtonHoverEventArgs struct {
+	Button  *Button
+	Entered bool
+}
+type ButtonChangedEventArgs struct {
+	Button *Button
+	State  WidgetState
+}
 type ButtonPressedHandlerFunc func(args *ButtonPressedEventArgs)
 
 type ButtonReleasedHandlerFunc func(args *ButtonReleasedEventArgs)
 
 type ButtonClickedHandlerFunc func(args *ButtonClickedEventArgs)
+
+type ButtonCursorHoverHandlerFunc func(args *ButtonHoverEventArgs)
+
+type ButtonChangedHandlerFunc func(args *ButtonChangedEventArgs)
 
 type ButtonOptions struct {
 }
@@ -85,9 +101,12 @@ var ButtonOpts ButtonOptions
 
 func NewButton(opts ...ButtonOpt) *Button {
 	b := &Button{
-		PressedEvent:  &event.Event{},
-		ReleasedEvent: &event.Event{},
-		ClickedEvent:  &event.Event{},
+		PressedEvent:       &event.Event{},
+		ReleasedEvent:      &event.Event{},
+		ClickedEvent:       &event.Event{},
+		CursorEnteredEvent: &event.Event{},
+		CursorExitedEvent:  &event.Event{},
+		StateChangedEvent:  &event.Event{},
 
 		init: &MultiOnce{},
 	}
@@ -248,6 +267,12 @@ func (o ButtonOptions) KeepPressedOnExit() ButtonOpt {
 	}
 }
 
+func (o ButtonOptions) ToggleMode() ButtonOpt {
+	return func(b *Button) {
+		b.ToggleMode = true
+	}
+}
+
 func (o ButtonOptions) PressedHandler(f ButtonPressedHandlerFunc) ButtonOpt {
 	return func(b *Button) {
 		b.PressedEvent.AddHandler(func(args interface{}) {
@@ -272,6 +297,55 @@ func (o ButtonOptions) ClickedHandler(f ButtonClickedHandlerFunc) ButtonOpt {
 	}
 }
 
+func (o ButtonOptions) CursorEnteredHandler(f ButtonCursorHoverHandlerFunc) ButtonOpt {
+	return func(b *Button) {
+		b.CursorEnteredEvent.AddHandler(func(args interface{}) {
+			f(args.(*ButtonHoverEventArgs))
+		})
+	}
+}
+
+func (o ButtonOptions) CursorExitedHandler(f ButtonCursorHoverHandlerFunc) ButtonOpt {
+	return func(b *Button) {
+		b.CursorExitedEvent.AddHandler(func(args interface{}) {
+			f(args.(*ButtonHoverEventArgs))
+		})
+	}
+}
+
+func (o ButtonOptions) StateChangedHandler(f ButtonChangedHandlerFunc) ButtonOpt {
+	return func(b *Button) {
+		b.StateChangedEvent.AddHandler(func(args interface{}) {
+			f(args.(*ButtonChangedEventArgs))
+		})
+	}
+}
+
+func (tw *Button) State() WidgetState {
+	return tw.state
+}
+
+func (tw *Button) SetState(state WidgetState) {
+	if state != tw.state {
+		tw.state = state
+
+		tw.StateChangedEvent.Fire(&ButtonChangedEventArgs{
+			Button: tw,
+			State:  tw.state,
+		})
+	}
+}
+
+func (tw *Button) getStateChangedEvent() *event.Event {
+	return tw.StateChangedEvent
+}
+
+func (b *Button) Configure(opts ...ButtonOpt) {
+	for _, o := range opts {
+		o(b)
+	}
+}
+
 func (b *Button) GetWidget() *Widget {
 	b.init.Do()
 	return b.widget
@@ -284,6 +358,13 @@ func (b *Button) PreferredSize() (int, int) {
 
 	if b.container != nil && len(b.container.children) > 0 {
 		w, h = b.container.PreferredSize()
+	}
+
+	if b.widget != nil && h < b.widget.MinHeight {
+		h = b.widget.MinHeight
+	}
+	if b.widget != nil && w < b.widget.MinWidth {
+		w = b.widget.MinWidth
 	}
 
 	iw, ih := b.Image.Idle.MinSize()
@@ -318,7 +399,7 @@ func (b *Button) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 	}
 
 	if b.pressing {
-		def(func(def input.DeferredSetupInputLayerFunc) {
+		def(func(_ input.DeferredSetupInputLayerFunc) {
 			b.widget.ElevateToNewInputLayer(&input.Layer{
 				DebugLabel: "button pressed",
 				EventTypes: input.LayerEventTypeAll,
@@ -372,7 +453,7 @@ func (b *Button) draw(screen *ebiten.Image) {
 		if b.Image.Disabled != nil {
 			i = b.Image.Disabled
 		}
-	case b.pressing && (b.hovering || b.KeepPressedOnExit):
+	case b.pressing && (b.hovering || b.KeepPressedOnExit) || (b.ToggleMode && b.state == WidgetChecked):
 		if b.Image.Pressed != nil {
 			i = b.Image.Pressed
 		}
@@ -403,14 +484,22 @@ func (b *Button) Text() *Text {
 
 func (b *Button) createWidget() {
 	b.widget = NewWidget(append(b.widgetOpts, []WidgetOpt{
-		WidgetOpts.CursorEnterHandler(func(args *WidgetCursorEnterEventArgs) {
+		WidgetOpts.CursorEnterHandler(func(_ *WidgetCursorEnterEventArgs) {
 			if !b.widget.Disabled {
 				b.hovering = true
 			}
+			b.CursorEnteredEvent.Fire(&ButtonHoverEventArgs{
+				Button:  b,
+				Entered: true,
+			})
 		}),
 
-		WidgetOpts.CursorExitHandler(func(args *WidgetCursorExitEventArgs) {
+		WidgetOpts.CursorExitHandler(func(_ *WidgetCursorExitEventArgs) {
 			b.hovering = false
+			b.CursorExitedEvent.Fire(&ButtonHoverEventArgs{
+				Button:  b,
+				Entered: false,
+			})
 		}),
 
 		WidgetOpts.MouseButtonPressedHandler(func(args *WidgetMouseButtonPressedEventArgs) {
@@ -440,6 +529,17 @@ func (b *Button) createWidget() {
 					b.ClickedEvent.Fire(&ButtonClickedEventArgs{
 						Button: b,
 					})
+					if b.ToggleMode {
+						if b.state == WidgetUnchecked {
+							b.state = WidgetChecked
+						} else {
+							b.state = WidgetUnchecked
+						}
+						b.StateChangedEvent.Fire(&ButtonChangedEventArgs{
+							Button: b,
+							State:  b.state,
+						})
+					}
 				}
 			}
 		}),

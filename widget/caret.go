@@ -7,8 +7,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/blizzy78/ebitenui/image"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/mcarpenter622/ebitenui/image"
 	"golang.org/x/image/font"
 )
 

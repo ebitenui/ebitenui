@@ -3,9 +3,9 @@ package widget
 import (
 	"image"
 
-	"github.com/blizzy78/ebitenui/event"
-	"github.com/blizzy78/ebitenui/input"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/mcarpenter622/ebitenui/event"
+	"github.com/mcarpenter622/ebitenui/input"
 	"golang.org/x/image/font"
 )
 

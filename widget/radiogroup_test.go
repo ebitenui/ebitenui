@@ -3,8 +3,8 @@ package widget
 import (
 	"testing"
 
-	"github.com/blizzy78/ebitenui/event"
 	"github.com/matryer/is"
+	"github.com/mcarpenter622/ebitenui/event"
 )
 
 func TestRadioGroup_Active_Initial(t *testing.T) {
@@ -24,7 +24,7 @@ func TestRadioGroup_Active_Initial(t *testing.T) {
 
 	is.Equal(r.Active(), cbs[0])
 	is.Equal(eventArgs.Active, cbs[0])
-	is.Equal(cbs[0].State(), CheckboxChecked)
+	is.Equal(cbs[0].State(), WidgetChecked)
 }
 
 func TestRadioGroup_ChangedEvent_User(t *testing.T) {
@@ -47,8 +47,8 @@ func TestRadioGroup_ChangedEvent_User(t *testing.T) {
 
 	is.Equal(r.Active(), cbs[1])
 	is.Equal(eventArgs.Active, cbs[1])
-	is.Equal(cbs[0].State(), CheckboxUnchecked)
-	is.Equal(cbs[1].State(), CheckboxChecked)
+	is.Equal(cbs[0].State(), WidgetUnchecked)
+	is.Equal(cbs[1].State(), WidgetChecked)
 }
 
 func TestRadioGroup_SetActive(t *testing.T) {
@@ -72,14 +72,19 @@ func TestRadioGroup_SetActive(t *testing.T) {
 
 	is.Equal(r.Active(), cbs[1])
 	is.Equal(eventArgs.Active, cbs[1])
-	is.Equal(cbs[0].State(), CheckboxUnchecked)
-	is.Equal(cbs[1].State(), CheckboxChecked)
+	is.Equal(cbs[0].State(), WidgetUnchecked)
+	is.Equal(cbs[1].State(), WidgetChecked)
 }
 
 func newRadioGroup(t *testing.T, cbs []*Checkbox, opts ...RadioGroupOpt) *RadioGroup {
 	t.Helper()
 
-	r := NewRadioGroup(append(opts, RadioGroupOpts.Checkboxes(cbs...))...)
+	elements := []RadioGroupElement{}
+
+	for _, cb := range cbs {
+		elements = append(elements, cb)
+	}
+	r := NewRadioGroup(append(opts, RadioGroupOpts.Elements(elements...))...)
 	event.ExecuteDeferred()
 	for _, c := range cbs {
 		render(c, t)

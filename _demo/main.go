@@ -9,11 +9,12 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 
+	"image/color"
 	_ "image/png"
 
-	"github.com/blizzy78/ebitenui"
-	"github.com/blizzy78/ebitenui/image"
-	"github.com/blizzy78/ebitenui/widget"
+	"github.com/mcarpenter622/ebitenui"
+	"github.com/mcarpenter622/ebitenui/image"
+	"github.com/mcarpenter622/ebitenui/widget"
 )
 
 type game struct {
@@ -101,7 +102,7 @@ func createUI() (*ebitenui.UI, func(), error) {
 	rootContainer.AddChild(urlContainer)
 
 	urlContainer.AddChild(widget.NewText(
-		widget.TextOpts.Text("github.com/blizzy78/ebitenui", res.text.smallFace, res.text.disabledColor)))
+		widget.TextOpts.Text("github.com/mcarpenter622/ebitenui", res.text.smallFace, res.text.disabledColor)))
 
 	ui = &ebitenui.UI{
 		Container: rootContainer,
@@ -193,6 +194,8 @@ func demoContainer(res *uiResources, toolTips *toolTipContents, toolTip *widget.
 		radioGroupPage(res),
 		windowPage(res, ui),
 		anchorLayoutPage(res),
+		textAreaPage(res),
+		progressBarPage(res),
 	}
 
 	collator := collate.New(language.English)
@@ -212,7 +215,7 @@ func demoContainer(res *uiResources, toolTips *toolTipContents, toolTip *widget.
 		widget.ListOpts.ScrollContainerOpts(widget.ScrollContainerOpts.Image(res.list.image)),
 		widget.ListOpts.SliderOpts(
 			widget.SliderOpts.Images(res.list.track, res.list.handle),
-			widget.SliderOpts.HandleSize(res.list.handleSize),
+			widget.SliderOpts.MinHandleSize(res.list.handleSize),
 			widget.SliderOpts.TrackPadding(res.list.trackPadding),
 		),
 		widget.ListOpts.EntryColor(res.list.entry),
@@ -274,7 +277,7 @@ func newCheckbox(label string, changedHandler widget.CheckboxChangedHandlerFunc,
 		widget.LabeledCheckboxOpts.CheckboxOpts(
 			widget.CheckboxOpts.ButtonOpts(widget.ButtonOpts.Image(res.checkbox.image)),
 			widget.CheckboxOpts.Image(res.checkbox.graphic),
-			widget.CheckboxOpts.ChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
+			widget.CheckboxOpts.StateChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
 				if changedHandler != nil {
 					changedHandler(args)
 				}
@@ -313,7 +316,7 @@ func newListComboButton(entries []interface{}, buttonLabel widget.SelectComboBut
 			),
 			widget.ListOpts.SliderOpts(
 				widget.SliderOpts.Images(res.list.track, res.list.handle),
-				widget.SliderOpts.HandleSize(res.list.handleSize),
+				widget.SliderOpts.MinHandleSize(res.list.handleSize),
 				widget.SliderOpts.TrackPadding(res.list.trackPadding)),
 			widget.ListOpts.EntryFontFace(res.list.face),
 			widget.ListOpts.EntryColor(res.list.entry),
@@ -329,7 +332,7 @@ func newList(entries []interface{}, res *uiResources, widgetOpts ...widget.Widge
 		widget.ListOpts.ScrollContainerOpts(widget.ScrollContainerOpts.Image(res.list.image)),
 		widget.ListOpts.SliderOpts(
 			widget.SliderOpts.Images(res.list.track, res.list.handle),
-			widget.SliderOpts.HandleSize(res.list.handleSize),
+			widget.SliderOpts.MinHandleSize(res.list.handleSize),
 			widget.SliderOpts.TrackPadding(res.list.trackPadding),
 		),
 		widget.ListOpts.HideHorizontalSlider(),
@@ -340,6 +343,23 @@ func newList(entries []interface{}, res *uiResources, widgetOpts ...widget.Widge
 		widget.ListOpts.EntryFontFace(res.list.face),
 		widget.ListOpts.EntryColor(res.list.entry),
 		widget.ListOpts.EntryTextPadding(res.list.entryPadding),
+	)
+}
+func newTextArea(text string, res *uiResources, widgetOpts ...widget.WidgetOpt) *widget.TextArea {
+	return widget.NewTextArea(
+		widget.TextAreaOpts.ContainerOpts(widget.ContainerOpts.WidgetOpts(widgetOpts...)),
+		widget.TextAreaOpts.ScrollContainerOpts(widget.ScrollContainerOpts.Image(res.list.image)),
+		widget.TextAreaOpts.SliderOpts(
+			widget.SliderOpts.Images(res.list.track, res.list.handle),
+			widget.SliderOpts.MinHandleSize(res.list.handleSize),
+			widget.SliderOpts.TrackPadding(res.list.trackPadding),
+		),
+		widget.TextAreaOpts.HideHorizontalSlider(),
+
+		widget.TextAreaOpts.FontFace(res.textArea.face),
+		widget.TextAreaOpts.FontColor(color.RGBA{R: 200, G: 100, B: 0, A: 255}),
+		widget.TextAreaOpts.TextPadding(res.textArea.entryPadding),
+		widget.TextAreaOpts.Text(text),
 	)
 }
 

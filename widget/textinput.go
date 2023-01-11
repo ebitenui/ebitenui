@@ -8,10 +8,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/blizzy78/ebitenui/event"
-	"github.com/blizzy78/ebitenui/image"
-	"github.com/blizzy78/ebitenui/input"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/mcarpenter622/ebitenui/event"
+	"github.com/mcarpenter622/ebitenui/image"
+	"github.com/mcarpenter622/ebitenui/input"
 	"golang.org/x/image/font"
 )
 
@@ -71,7 +71,7 @@ type TextInputColor struct {
 	DisabledCaret color.Color
 }
 
-type TextInputValidationFunc func(newInputText string) bool
+type TextInputValidationFunc func(newInputText string) (bool, *string)
 
 type textInputState func() (textInputState, bool)
 
@@ -209,7 +209,17 @@ func (t *TextInput) SetLocation(rect img.Rectangle) {
 func (t *TextInput) PreferredSize() (int, int) {
 	t.init.Do()
 	_, h := t.caret.PreferredSize()
-	return 50, h + t.padding.Top + t.padding.Bottom
+	h = h + t.padding.Top + t.padding.Bottom
+	w := 50
+
+	if t.widget != nil && h < t.widget.MinHeight {
+		h = t.widget.MinHeight
+	}
+	if t.widget != nil && w < t.widget.MinWidth {
+		w = t.widget.MinWidth
+	}
+
+	return w, h
 }
 
 func (t *TextInput) Render(screen *ebiten.Image, def DeferredRenderFunc) {
@@ -337,8 +347,15 @@ func (t *TextInput) commandState(cmd textInputControlCommand, key ebiten.Key, de
 func (t *TextInput) doInsert(c []rune) {
 	s := string(insertChars([]rune(t.InputText), c, t.cursorPosition))
 
-	if t.validationFunc != nil && !t.validationFunc(s) {
-		return
+	if t.validationFunc != nil {
+		result, replacement := t.validationFunc(s)
+		if !result {
+			if replacement != nil {
+				s = *replacement
+			} else {
+				return
+			}
+		}
 	}
 
 	t.InputText = s

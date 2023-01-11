@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/blizzy78/ebitenui"
-	"github.com/blizzy78/ebitenui/image"
-	"github.com/blizzy78/ebitenui/widget"
+	"github.com/mcarpenter622/ebitenui"
+	"github.com/mcarpenter622/ebitenui/image"
+	"github.com/mcarpenter622/ebitenui/widget"
 	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"

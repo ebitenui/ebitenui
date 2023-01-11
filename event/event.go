@@ -1,6 +1,6 @@
 package event
 
-import internalevent "github.com/blizzy78/ebitenui/internal/event"
+import internalevent "github.com/mcarpenter622/ebitenui/internal/event"
 
 // Event encapsulates an arbitrary event that event handlers may be interested in.
 type Event struct {

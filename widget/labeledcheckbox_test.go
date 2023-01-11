@@ -4,8 +4,8 @@ import (
 	"image/color"
 	"testing"
 
-	"github.com/blizzy78/ebitenui/event"
 	"github.com/matryer/is"
+	"github.com/mcarpenter622/ebitenui/event"
 )
 
 func TestLabeledCheckbox_SetState_User(t *testing.T) {
@@ -14,7 +14,7 @@ func TestLabeledCheckbox_SetState_User(t *testing.T) {
 	l := newLabeledCheckbox(t)
 	leftMouseButtonClick(labeledCheckboxLabel(l), t)
 
-	is.Equal(l.Checkbox().State(), CheckboxChecked)
+	is.Equal(l.Checkbox().State(), WidgetChecked)
 }
 
 func newLabeledCheckbox(t *testing.T, opts ...LabeledCheckboxOpt) *LabeledCheckbox {

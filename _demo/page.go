@@ -5,9 +5,9 @@ import (
 	"image"
 	"time"
 
-	"github.com/blizzy78/ebitenui"
-	"github.com/blizzy78/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/mcarpenter622/ebitenui"
+	"github.com/mcarpenter622/ebitenui/widget"
 )
 
 type page struct {
@@ -27,6 +27,8 @@ func buttonPage(res *uiResources) *page {
 			widget.ButtonOpts.Image(res.button.image),
 			widget.ButtonOpts.Text(fmt.Sprintf("Button %d", i+1), res.button.face, res.button.text),
 			widget.ButtonOpts.TextPadding(res.button.padding),
+			widget.ButtonOpts.CursorEnteredHandler(func(args *widget.ButtonHoverEventArgs) { fmt.Println("Cursor Entered: " + args.Button.Text().Label) }),
+			widget.ButtonOpts.CursorExitedHandler(func(args *widget.ButtonHoverEventArgs) { fmt.Println("Cursor Exited: " + args.Button.Text().Label) }),
 		)
 		c.AddChild(b)
 		bs = append(bs, b)
@@ -36,9 +38,35 @@ func buttonPage(res *uiResources) *page {
 		Stretch: true,
 	}))
 
+	toggles := []*widget.Button{}
+	for i := 0; i < 3; i++ {
+		b := widget.NewButton(
+			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Stretch: true,
+			})),
+			widget.ButtonOpts.Image(res.button.image),
+			widget.ButtonOpts.Text(fmt.Sprintf("Toggle Button %d", i+1), res.button.face, res.button.text),
+			widget.ButtonOpts.TextPadding(res.button.padding),
+			widget.ButtonOpts.CursorEnteredHandler(func(args *widget.ButtonHoverEventArgs) { fmt.Println("Cursor Entered: " + args.Button.Text().Label) }),
+			widget.ButtonOpts.CursorExitedHandler(func(args *widget.ButtonHoverEventArgs) { fmt.Println("Cursor Exited: " + args.Button.Text().Label) }),
+		)
+		c.AddChild(b)
+		bs = append(bs, b)
+		toggles = append(toggles, b)
+	}
+	elements := []widget.RadioGroupElement{}
+	for _, cb := range toggles {
+		elements = append(elements, cb)
+	}
+	widget.NewRadioGroup(widget.RadioGroupOpts.Elements(elements...))
+
+	c.AddChild(newSeparator(res, widget.RowLayoutData{
+		Stretch: true,
+	}))
+
 	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
 		for _, b := range bs {
-			b.GetWidget().Disabled = args.State == widget.CheckboxChecked
+			b.GetWidget().Disabled = args.State == widget.WidgetChecked
 		}
 	}, res))
 
@@ -68,8 +96,8 @@ func checkboxPage(res *uiResources) *page {
 	}))
 
 	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
-		cb1.GetWidget().Disabled = args.State == widget.CheckboxChecked
-		cb2.GetWidget().Disabled = args.State == widget.CheckboxChecked
+		cb1.GetWidget().Disabled = args.State == widget.WidgetChecked
+		cb2.GetWidget().Disabled = args.State == widget.WidgetChecked
 	}, res))
 
 	return &page{
@@ -128,15 +156,112 @@ func listPage(res *uiResources) *page {
 	}))
 
 	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
-		list1.GetWidget().Disabled = args.State == widget.CheckboxChecked
-		list2.GetWidget().Disabled = args.State == widget.CheckboxChecked
+		list1.GetWidget().Disabled = args.State == widget.WidgetChecked
+		list2.GetWidget().Disabled = args.State == widget.WidgetChecked
 		for _, b := range bs {
-			b.GetWidget().Disabled = args.State == widget.CheckboxChecked
+			b.GetWidget().Disabled = args.State == widget.WidgetChecked
 		}
 	}, res))
 
 	return &page{
 		title:   "List",
+		content: c,
+	}
+}
+
+func textAreaPage(res *uiResources) *page {
+	c := newPageContentContainer()
+
+	textAreaContainer := widget.NewContainer(
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Stretch: true,
+			}),
+			widget.WidgetOpts.MinSize(0, 220),
+		),
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			widget.GridLayoutOpts.Columns(1),
+			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{true}),
+			widget.GridLayoutOpts.Spacing(0, 0)),
+		),
+	)
+	c.AddChild(textAreaContainer)
+
+	textArea := newTextArea("Hello World!", res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
+		MaxHeight: 220,
+	}))
+	textAreaContainer.AddChild(textArea)
+
+	c.AddChild(newSeparator(res, widget.RowLayoutData{
+		Stretch: true,
+	}))
+	verticalRows := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(10),
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical))),
+		widget.ContainerOpts.AutoDisableChildren(),
+	)
+	c.AddChild(verticalRows)
+	tOpts := []widget.TextInputOpt{
+		widget.TextInputOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Stretch: true,
+		})),
+		widget.TextInputOpts.Image(res.textInput.image),
+		widget.TextInputOpts.Color(res.textInput.color),
+		widget.TextInputOpts.Padding(widget.Insets{
+			Left:   13,
+			Right:  13,
+			Top:    7,
+			Bottom: 7,
+		}),
+		widget.TextInputOpts.Face(res.textInput.face),
+		widget.TextInputOpts.CaretOpts(
+			widget.CaretOpts.Size(res.textInput.face, 2),
+		),
+	}
+
+	t := widget.NewTextInput(append(
+		tOpts,
+		widget.TextInputOpts.Placeholder("Enter text here"))...,
+	)
+	verticalRows.AddChild(t)
+
+	row := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(10))),
+		widget.ContainerOpts.AutoDisableChildren(),
+	)
+	verticalRows.AddChild(row)
+	b := widget.NewButton(
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.Text("Prepend", res.button.face, res.button.text),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			textArea.PrependText(t.InputText)
+		}),
+	)
+	row.AddChild(b)
+	b = widget.NewButton(
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.Text("Append", res.button.face, res.button.text),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			textArea.AppendText(t.InputText)
+		}),
+	)
+	row.AddChild(b)
+	b = widget.NewButton(
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.Text("Set", res.button.face, res.button.text),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			textArea.SetText(t.InputText)
+		}),
+	)
+	row.AddChild(b)
+
+	return &page{
+		title:   "Text Area",
 		content: c,
 	}
 }
@@ -168,7 +293,7 @@ func comboButtonPage(res *uiResources) *page {
 	}))
 
 	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
-		cb.GetWidget().Disabled = args.State == widget.CheckboxChecked
+		cb.GetWidget().Disabled = args.State == widget.WidgetChecked
 	}, res))
 
 	return &page{
@@ -219,7 +344,7 @@ func tabBookPage(res *uiResources) *page {
 	}))
 
 	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
-		t.GetWidget().Disabled = args.State == widget.CheckboxChecked
+		t.GetWidget().Disabled = args.State == widget.WidgetChecked
 	}, res))
 
 	return &page{
@@ -308,7 +433,7 @@ func rowLayoutPage(res *uiResources) *page {
 func sliderPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
-	pageSizes := []int{3, 10}
+	pageSizes := []int{3, 1}
 	sliders := []*widget.Slider{}
 
 	for _, ps := range pageSizes {
@@ -326,10 +451,11 @@ func sliderPage(res *uiResources) *page {
 		s := widget.NewSlider(
 			widget.SliderOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Position: widget.RowLayoutPositionCenter,
-			})),
-			widget.SliderOpts.MinMax(1, 20),
+			}), widget.WidgetOpts.MinSize(200, 6)),
+			widget.SliderOpts.MinMax(1, 10),
 			widget.SliderOpts.Images(res.slider.trackImage, res.slider.handle),
-			widget.SliderOpts.HandleSize(res.slider.handleSize),
+			widget.SliderOpts.FixedHandleSize(res.slider.handleSize),
+			widget.SliderOpts.TrackOffset(5),
 			widget.SliderOpts.PageSizeFunc(func() int {
 				return ps
 			}),
@@ -355,12 +481,82 @@ func sliderPage(res *uiResources) *page {
 
 	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
 		for _, s := range sliders {
-			s.GetWidget().Parent().Disabled = args.State == widget.CheckboxChecked
+			s.GetWidget().Parent().Disabled = args.State == widget.WidgetChecked
 		}
 	}, res))
 
 	return &page{
 		title:   "Slider",
+		content: c,
+	}
+}
+
+func progressBarPage(res *uiResources) *page {
+	c := newPageContentContainer()
+
+	sc := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(10))),
+		widget.ContainerOpts.AutoDisableChildren(),
+	)
+	c.AddChild(sc)
+
+	var text *widget.Label
+
+	progressBar := widget.NewProgressBar(
+		widget.ProgressBarOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Position: widget.RowLayoutPositionCenter}),
+			widget.WidgetOpts.MinSize(200, 30),
+		),
+		widget.ProgressBarOpts.Values(0, 20, 20),
+		widget.ProgressBarOpts.TrackPadding(widget.Insets{
+			Top:    3,
+			Bottom: 3,
+			Left:   2,
+			Right:  2,
+		}),
+		widget.ProgressBarOpts.Images(res.progressBar.trackImage, res.progressBar.fillImage),
+	)
+	sc.AddChild(progressBar)
+
+	text = widget.NewLabel(
+		widget.LabelOpts.TextOpts(widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Position: widget.RowLayoutPositionCenter,
+		}))),
+		widget.LabelOpts.Text(fmt.Sprintf("%d", progressBar.GetCurrent()), res.label.face, res.label.text),
+	)
+	sc.AddChild(text)
+
+	c.AddChild(newSeparator(res, widget.RowLayoutData{
+		Stretch: true,
+	}))
+	sc = widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(10))),
+		widget.ContainerOpts.AutoDisableChildren(),
+	)
+	c.AddChild(sc)
+	b := widget.NewButton(
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.Text("+ 1", res.button.face, res.button.text),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			progressBar.SetCurrent(progressBar.GetCurrent() + 1)
+		}),
+	)
+	sc.AddChild(b)
+	b = widget.NewButton(
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.Text("- 1", res.button.face, res.button.text),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			progressBar.SetCurrent(progressBar.GetCurrent() - 1)
+		}),
+	)
+	sc.AddChild(b)
+	return &page{
+		title:   "Progress Bar",
 		content: c,
 	}
 }
@@ -397,14 +593,14 @@ func toolTipPage(res *uiResources, toolTips *toolTipContents, toolTip *widget.To
 	}))
 
 	showTimeCheckbox := newCheckbox("Show additional infos in tool tips", func(args *widget.CheckboxChangedEventArgs) {
-		toolTips.showTime = args.State == widget.CheckboxChecked
+		toolTips.showTime = args.State == widget.WidgetChecked
 	}, res)
 	toolTips.Set(showTimeCheckbox, "If enabled, tool tips will show system time for demonstration.")
 	c.AddChild(showTimeCheckbox)
 
 	stickyDelayedCheckbox := newCheckbox("Tool tips are sticky and delayed", func(args *widget.CheckboxChangedEventArgs) {
-		toolTip.Sticky = args.State == widget.CheckboxChecked
-		if args.State == widget.CheckboxChecked {
+		toolTip.Sticky = args.State == widget.WidgetChecked
+		if args.State == widget.WidgetChecked {
 			toolTip.Delay = 800 * time.Millisecond
 		} else {
 			toolTip.Delay = 0
@@ -523,8 +719,8 @@ func textInputPage(res *uiResources) *page {
 	}))
 
 	c.AddChild(newCheckbox("Disabled", func(args *widget.CheckboxChangedEventArgs) {
-		t.GetWidget().Disabled = args.State == widget.CheckboxChecked
-		tSecure.GetWidget().Disabled = args.State == widget.CheckboxChecked
+		t.GetWidget().Disabled = args.State == widget.WidgetChecked
+		tSecure.GetWidget().Disabled = args.State == widget.WidgetChecked
 	}, res))
 
 	return &page{
@@ -543,7 +739,11 @@ func radioGroupPage(res *uiResources) *page {
 		cbs = append(cbs, cb.Checkbox())
 	}
 
-	widget.NewRadioGroup(widget.RadioGroupOpts.Checkboxes(cbs...))
+	elements := []widget.RadioGroupElement{}
+	for _, cb := range cbs {
+		elements = append(elements, cb)
+	}
+	widget.NewRadioGroup(widget.RadioGroupOpts.Elements(elements...))
 
 	return &page{
 		title:   "Radio Group",
@@ -571,7 +771,7 @@ func windowPage(res *uiResources, ui func() *ebitenui.UI) *page {
 }
 
 func openWindow(res *uiResources, ui func() *ebitenui.UI) {
-	var rw ebitenui.RemoveWindowFunc
+	var rw widget.RemoveWindowFunc
 
 	c := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(res.panel.image),
@@ -589,6 +789,30 @@ func openWindow(res *uiResources, ui func() *ebitenui.UI) {
 	c.AddChild(widget.NewText(
 		widget.TextOpts.Text("This window blocks all input to widgets below it.", res.text.face, res.text.idleColor),
 	))
+
+	tOpts := []widget.TextInputOpt{
+		widget.TextInputOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Stretch: true,
+		})),
+		widget.TextInputOpts.Image(res.textInput.image),
+		widget.TextInputOpts.Color(res.textInput.color),
+		widget.TextInputOpts.Padding(widget.Insets{
+			Left:   13,
+			Right:  13,
+			Top:    7,
+			Bottom: 7,
+		}),
+		widget.TextInputOpts.Face(res.textInput.face),
+		widget.TextInputOpts.CaretOpts(
+			widget.CaretOpts.Size(res.textInput.face, 2),
+		),
+	}
+
+	t := widget.NewTextInput(append(
+		tOpts,
+		widget.TextInputOpts.Placeholder("Enter text here"))...,
+	)
+	c.AddChild(t)
 
 	bc := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
@@ -619,9 +843,9 @@ func openWindow(res *uiResources, ui func() *ebitenui.UI) {
 
 	w := widget.NewWindow(
 		widget.WindowOpts.Modal(),
+		widget.WindowOpts.CloseOnClickOut(),
 		widget.WindowOpts.Contents(c),
 	)
-
 	ww, wh := ebiten.WindowSize()
 	r := image.Rect(0, 0, ww*3/4, wh/3)
 	r = r.Add(image.Point{ww / 4 / 2, wh * 2 / 3 / 2})
@@ -631,7 +855,7 @@ func openWindow(res *uiResources, ui func() *ebitenui.UI) {
 }
 
 func openWindow2(res *uiResources, ui func() *ebitenui.UI) {
-	var rw ebitenui.RemoveWindowFunc
+	var rw widget.RemoveWindowFunc
 
 	c := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(res.panel.image),
@@ -715,9 +939,12 @@ func anchorLayoutPage(res *uiResources) *page {
 		hPosC.AddChild(cb)
 		hCBs = append(hCBs, cb.Checkbox())
 	}
-
+	elements := []widget.RadioGroupElement{}
+	for _, cb := range hCBs {
+		elements = append(elements, cb)
+	}
 	widget.NewRadioGroup(
-		widget.RadioGroupOpts.Checkboxes(hCBs...),
+		widget.RadioGroupOpts.Elements(elements...),
 		widget.RadioGroupOpts.ChangedHandler(func(args *widget.RadioGroupChangedEventArgs) {
 			ald := sp.Container().GetWidget().LayoutData.(widget.AnchorLayoutData)
 			ald.HorizontalPosition = widget.AnchorLayoutPosition(indexCheckbox(hCBs, args.Active))
@@ -743,9 +970,12 @@ func anchorLayoutPage(res *uiResources) *page {
 		vPosC.AddChild(cb)
 		vCBs = append(vCBs, cb.Checkbox())
 	}
-
+	vElements := []widget.RadioGroupElement{}
+	for _, cb := range vCBs {
+		vElements = append(vElements, cb)
+	}
 	widget.NewRadioGroup(
-		widget.RadioGroupOpts.Checkboxes(vCBs...),
+		widget.RadioGroupOpts.Elements(vElements...),
 		widget.RadioGroupOpts.ChangedHandler(func(args *widget.RadioGroupChangedEventArgs) {
 			ald := sp.Container().GetWidget().LayoutData.(widget.AnchorLayoutData)
 			ald.VerticalPosition = widget.AnchorLayoutPosition(indexCheckbox(vCBs, args.Active))
@@ -766,21 +996,21 @@ func anchorLayoutPage(res *uiResources) *page {
 
 	stretchHorizontalCheckbox := newCheckbox("Horizontal", func(args *widget.CheckboxChangedEventArgs) {
 		ald := sp.Container().GetWidget().LayoutData.(widget.AnchorLayoutData)
-		ald.StretchHorizontal = args.State == widget.CheckboxChecked
+		ald.StretchHorizontal = args.State == widget.WidgetChecked
 		sp.Container().GetWidget().LayoutData = ald
 		p.Container().RequestRelayout()
 
-		hPosC.GetWidget().Disabled = args.State == widget.CheckboxChecked
+		hPosC.GetWidget().Disabled = args.State == widget.WidgetChecked
 	}, res)
 	stretchC.AddChild(stretchHorizontalCheckbox)
 
 	stretchVerticalCheckbox := newCheckbox("Vertical", func(args *widget.CheckboxChangedEventArgs) {
 		ald := sp.Container().GetWidget().LayoutData.(widget.AnchorLayoutData)
-		ald.StretchVertical = args.State == widget.CheckboxChecked
+		ald.StretchVertical = args.State == widget.WidgetChecked
 		sp.Container().GetWidget().LayoutData = ald
 		p.Container().RequestRelayout()
 
-		vPosC.GetWidget().Disabled = args.State == widget.CheckboxChecked
+		vPosC.GetWidget().Disabled = args.State == widget.WidgetChecked
 	}, res)
 	stretchC.AddChild(stretchVerticalCheckbox)
 
@@ -790,7 +1020,7 @@ func anchorLayoutPage(res *uiResources) *page {
 	}
 }
 
-func indexCheckbox(cs []*widget.Checkbox, c *widget.Checkbox) int {
+func indexCheckbox(cs []*widget.Checkbox, c widget.RadioGroupElement) int {
 	for i, cb := range cs {
 		if cb == c {
 			return i

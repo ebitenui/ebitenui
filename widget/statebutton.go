@@ -3,8 +3,8 @@ package widget
 import (
 	"image"
 
-	"github.com/blizzy78/ebitenui/input"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/mcarpenter622/ebitenui/input"
 )
 
 type StateButton struct {

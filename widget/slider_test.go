@@ -3,8 +3,8 @@ package widget
 import (
 	"testing"
 
-	"github.com/blizzy78/ebitenui/event"
 	"github.com/matryer/is"
+	"github.com/mcarpenter622/ebitenui/event"
 )
 
 func TestSlider_Current_Initial(t *testing.T) {

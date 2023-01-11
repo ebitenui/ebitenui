@@ -4,8 +4,8 @@ import (
 	"image/color"
 	"testing"
 
-	"github.com/blizzy78/ebitenui/event"
 	"github.com/matryer/is"
+	"github.com/mcarpenter622/ebitenui/event"
 )
 
 func TestLabel_SetLabel(t *testing.T) {
