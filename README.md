@@ -17,17 +17,19 @@ Documentation on how to use and extend Ebiten UI is available at [ebitenui.githu
 ![Screenshots](ebiten-ui.gif)
 
 
+Social Media
+-------
+* [Discord](https://discord.gg/ujEeeHgptU)
+
+* [Reddit](https://www.reddit.com/r/dmndev/)
+
+
 License
 -------
 
 Ebiten UI is licensed under the MIT license.
 
-
-
-[Ebiten]: https://ebiten.org
-[retained mode]: https://en.wikipedia.org/wiki/Retained_mode
-
 Maintainers
 -------
-Currently maintained by Mark Carpenter <mark@dmn-dev.com>
-Originally written by Maik Schreiber <blizzy@blizzy.de>
+* Currently maintained by Mark Carpenter <mark@dmn-dev.com>
+* Originally written by Maik Schreiber <blizzy@blizzy.de>
