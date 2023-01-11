@@ -1,8 +1,8 @@
 package input
 
 import (
+	internalinput "github.com/ebitenui/ebitenui/internal/input"
 	"github.com/hajimehoshi/ebiten/v2"
-	internalinput "github.com/mcarpenter622/ebitenui/internal/input"
 )
 
 // MouseButtonPressed returns whether mouse button b is currently pressed.

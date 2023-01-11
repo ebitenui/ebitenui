@@ -3,8 +3,8 @@ package widget
 import (
 	"testing"
 
+	"github.com/ebitenui/ebitenui/event"
 	"github.com/matryer/is"
-	"github.com/mcarpenter622/ebitenui/event"
 	"github.com/stretchr/testify/mock"
 )
 

@@ -6,8 +6,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/mcarpenter622/ebitenui/event"
-	"github.com/mcarpenter622/ebitenui/image"
+	"github.com/ebitenui/ebitenui/event"
+	"github.com/ebitenui/ebitenui/image"
 
 	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"

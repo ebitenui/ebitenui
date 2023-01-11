@@ -1,7 +1,7 @@
 package widget
 
 import (
-	"github.com/mcarpenter622/ebitenui/event"
+	"github.com/ebitenui/ebitenui/event"
 )
 
 type WidgetState int
