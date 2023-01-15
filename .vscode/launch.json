@@ -9,8 +9,8 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "debug",
-			"program": "${workspaceFolder}/_demo",
-			"cwd": "${workspaceFolder}/_demo",
+			"program": "${workspaceFolder}/_examples/demo",
+			"cwd": "${workspaceFolder}/_examples/demo",
 			"env": {},
 			"args": []
 		},
@@ -19,8 +19,8 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "debug",
-			"program": "${workspaceFolder}/_scaffold",
-			"cwd": "${workspaceFolder}/_scaffold",
+			"program": "${workspaceFolder}/_examples/scaffold",
+			"cwd": "${workspaceFolder}/_examples/scaffold",
 			"env": {},
 			"args": []
 		},
