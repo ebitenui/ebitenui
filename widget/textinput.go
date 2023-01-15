@@ -17,6 +17,7 @@ import (
 
 type TextInput struct {
 	ChangedEvent *event.Event
+	SubmitEvent  *event.Event
 
 	InputText string
 
@@ -31,20 +32,24 @@ type TextInput struct {
 	validationFunc  TextInputValidationFunc
 	placeholderText string
 
-	init            *MultiOnce
-	commandToFunc   map[textInputControlCommand]textInputCommandFunc
-	widget          *Widget
-	caret           *Caret
-	text            *Text
-	renderBuf       *image.MaskedRenderBuffer
-	mask            *image.NineSlice
-	cursorPosition  int
-	state           textInputState
-	scrollOffset    int
-	focused         bool
-	lastInputText   string
-	secure          bool
-	secureInputText string
+	init                  *MultiOnce
+	commandToFunc         map[textInputControlCommand]textInputCommandFunc
+	widget                *Widget
+	caret                 *Caret
+	text                  *Text
+	renderBuf             *image.MaskedRenderBuffer
+	mask                  *image.NineSlice
+	cursorPosition        int
+	state                 textInputState
+	scrollOffset          int
+	focused               bool
+	lastInputText         string
+	secure                bool
+	secureInputText       string
+	clearOnSubmit         bool
+	ignoreEmptySubmit     bool
+	allowDuplicateSubmit  bool
+	previousSubmittedText *string
 }
 
 type TextInputOpt func(t *TextInput)
@@ -88,6 +93,7 @@ const (
 	textInputGoEnd
 	textInputBackspace
 	textInputDelete
+	textInputEnter
 )
 
 var textInputKeyToCommand = map[ebiten.Key]textInputControlCommand{
@@ -97,11 +103,13 @@ var textInputKeyToCommand = map[ebiten.Key]textInputControlCommand{
 	ebiten.KeyEnd:       textInputGoEnd,
 	ebiten.KeyBackspace: textInputBackspace,
 	ebiten.KeyDelete:    textInputDelete,
+	ebiten.KeyEnter:     textInputEnter,
 }
 
 func NewTextInput(opts ...TextInputOpt) *TextInput {
 	t := &TextInput{
 		ChangedEvent: &event.Event{},
+		SubmitEvent:  &event.Event{},
 
 		repeatDelay:    300 * time.Millisecond,
 		repeatInterval: 35 * time.Millisecond,
@@ -118,6 +126,7 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 	t.commandToFunc[textInputGoEnd] = t.doGoEnd
 	t.commandToFunc[textInputBackspace] = t.doBackspace
 	t.commandToFunc[textInputDelete] = t.doDelete
+	t.commandToFunc[textInputEnter] = t.doEnter
 
 	t.init.Append(t.createWidget)
 
@@ -145,6 +154,32 @@ func (o TextInputOptions) ChangedHandler(f TextInputChangedHandlerFunc) TextInpu
 		t.ChangedEvent.AddHandler(func(args interface{}) {
 			f(args.(*TextInputChangedEventArgs))
 		})
+	}
+}
+
+func (o TextInputOptions) SubmitHandler(f TextInputChangedHandlerFunc) TextInputOpt {
+	return func(t *TextInput) {
+		t.SubmitEvent.AddHandler(func(args interface{}) {
+			f(args.(*TextInputChangedEventArgs))
+		})
+	}
+}
+
+func (o TextInputOptions) ClearOnSubmit(clearOnSubmit bool) TextInputOpt {
+	return func(t *TextInput) {
+		t.clearOnSubmit = clearOnSubmit
+	}
+}
+
+func (o TextInputOptions) IgnoreEmptySubmit(ignoreEmptySubmit bool) TextInputOpt {
+	return func(t *TextInput) {
+		t.ignoreEmptySubmit = ignoreEmptySubmit
+	}
+}
+
+func (o TextInputOptions) AllowDuplicateSubmit(allowDuplicateSubmit bool) TextInputOpt {
+	return func(t *TextInput) {
+		t.allowDuplicateSubmit = allowDuplicateSubmit
 	}
 }
 
@@ -415,6 +450,22 @@ func (t *TextInput) doDelete() {
 		t.InputText = string(removeChar([]rune(t.InputText), t.cursorPosition))
 	}
 	t.caret.ResetBlinking()
+}
+
+func (t *TextInput) doEnter() {
+	if !t.ignoreEmptySubmit || len(t.InputText) > 0 {
+		if t.allowDuplicateSubmit || t.previousSubmittedText == nil || t.InputText != *t.previousSubmittedText {
+			t.SubmitEvent.Fire(&TextInputChangedEventArgs{
+				TextInput: t,
+				InputText: t.InputText,
+			})
+			previousText := t.InputText
+			t.previousSubmittedText = &previousText
+		}
+	}
+	if t.clearOnSubmit {
+		t.InputText = ""
+	}
 }
 
 func insertChars(r []rune, c []rune, pos int) []rune {
