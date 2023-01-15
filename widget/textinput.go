@@ -464,6 +464,7 @@ func (t *TextInput) doEnter() {
 		}
 	}
 	if t.clearOnSubmit {
+		t.doGoStart()
 		t.InputText = ""
 	}
 }
