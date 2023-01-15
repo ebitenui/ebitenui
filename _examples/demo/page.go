@@ -701,18 +701,31 @@ func textInputPage(res *uiResources) *page {
 		),
 	}
 
+	label := widget.NewLabel(widget.LabelOpts.Text("", res.label.face, res.label.text))
 	t := widget.NewTextInput(append(
 		tOpts,
-		widget.TextInputOpts.Placeholder("Enter text here"))...,
+		widget.TextInputOpts.Placeholder("Enter text here"),
+		widget.TextInputOpts.AllowDuplicateSubmit(true),
+		widget.TextInputOpts.SubmitHandler(func(args *widget.TextInputChangedEventArgs) {
+			label.Label = fmt.Sprint("Unsecured Text Box Submitted: ", args.InputText)
+			fmt.Println(label.Label)
+		}))...,
 	)
 	c.AddChild(t)
 
 	tSecure := widget.NewTextInput(append(
 		tOpts,
 		widget.TextInputOpts.Placeholder("Enter secure text here"),
-		widget.TextInputOpts.Secure(true))...,
+		widget.TextInputOpts.Secure(true),
+		widget.TextInputOpts.ClearOnSubmit(true),
+		widget.TextInputOpts.IgnoreEmptySubmit(true),
+		widget.TextInputOpts.SubmitHandler(func(args *widget.TextInputChangedEventArgs) {
+			label.Label = fmt.Sprint("Secured Text Box Submitted: ", args.InputText)
+			fmt.Println(label.Label)
+		}))...,
 	)
 	c.AddChild(tSecure)
+	c.AddChild(label)
 
 	c.AddChild(newSeparator(res, widget.RowLayoutData{
 		Stretch: true,
