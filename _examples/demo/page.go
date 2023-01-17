@@ -785,19 +785,42 @@ func windowPage(res *uiResources, ui func() *ebitenui.UI) *page {
 
 func openWindow(res *uiResources, ui func() *ebitenui.UI) {
 	var rw widget.RemoveWindowFunc
+	var window *widget.Window
+
+	titleBar := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
+		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(3), widget.GridLayoutOpts.Stretch([]bool{true, false, false}, []bool{true}), widget.GridLayoutOpts.Padding(widget.Insets{
+			Left:   30,
+			Right:  5,
+			Top:    6,
+			Bottom: 5,
+		}))))
+
+	titleBar.AddChild(widget.NewText(
+		widget.TextOpts.Text("Modal Window", res.text.titleFace, res.textInput.color.Idle),
+		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionCenter),
+	))
+
+	titleBar.AddChild(widget.NewButton(
+		widget.ButtonOpts.Image(res.button.image),
+		widget.ButtonOpts.TextPadding(res.button.padding),
+		widget.ButtonOpts.Text("X", res.button.face, res.button.text),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			rw()
+		})),
+	)
 
 	c := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(res.panel.image),
-		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-			widget.RowLayoutOpts.Padding(res.panel.padding),
-			widget.RowLayoutOpts.Spacing(15),
-		)),
+		widget.ContainerOpts.Layout(
+			widget.NewGridLayout(
+				widget.GridLayoutOpts.Columns(1),
+				widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false, true, false}),
+				widget.GridLayoutOpts.Padding(res.panel.padding),
+				widget.GridLayoutOpts.Spacing(0, 15),
+			),
+		),
 	)
-
-	c.AddChild(widget.NewText(
-		widget.TextOpts.Text("Modal Window", res.text.bigTitleFace, res.text.idleColor),
-	))
 
 	c.AddChild(widget.NewText(
 		widget.TextOpts.Text("This window blocks all input to widgets below it.", res.text.face, res.text.idleColor),
@@ -823,9 +846,14 @@ func openWindow(res *uiResources, ui func() *ebitenui.UI) {
 
 	t := widget.NewTextInput(append(
 		tOpts,
+		widget.TextInputOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+			StretchHorizontal: true,
+		})),
 		widget.TextInputOpts.Placeholder("Enter text here"))...,
 	)
-	c.AddChild(t)
+	textContainer := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewAnchorLayout()))
+	textContainer.AddChild(t)
+	c.AddChild(textContainer)
 
 	bc := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
@@ -854,17 +882,27 @@ func openWindow(res *uiResources, ui func() *ebitenui.UI) {
 	)
 	bc.AddChild(cb)
 
-	w := widget.NewWindow(
+	window = widget.NewWindow(
 		widget.WindowOpts.Modal(),
-		widget.WindowOpts.CloseOnClickOut(),
 		widget.WindowOpts.Contents(c),
+		widget.WindowOpts.TitleBar(titleBar, 30),
+		widget.WindowOpts.Draggable(),
+		widget.WindowOpts.Resizeable(),
+		widget.WindowOpts.MinSize(500, 200),
+		widget.WindowOpts.MaxSize(600, 300),
+		widget.WindowOpts.ResizeHandler(func(args *widget.WindowChangedEventArgs) {
+			fmt.Println("Resize: ", args.Rect)
+		}),
+		widget.WindowOpts.MoveHandler(func(args *widget.WindowChangedEventArgs) {
+			fmt.Println("Move: ", args.Rect)
+		}),
 	)
 	ww, wh := ebiten.WindowSize()
-	r := image.Rect(0, 0, ww*3/4, wh/3)
+	r := image.Rect(0, 0, 550, 250)
 	r = r.Add(image.Point{ww / 4 / 2, wh * 2 / 3 / 2})
-	w.SetLocation(r)
+	window.SetLocation(r)
 
-	rw = ui().AddWindow(w)
+	rw = ui().AddWindow(window)
 }
 
 func openWindow2(res *uiResources, ui func() *ebitenui.UI) {

@@ -116,8 +116,9 @@ type progressBarResources struct {
 }
 
 type panelResources struct {
-	image   *image.NineSlice
-	padding widget.Insets
+	image    *image.NineSlice
+	titleBar *image.NineSlice
+	padding  widget.Insets
 }
 
 type tabBookResources struct {
@@ -574,9 +575,13 @@ func newPanelResources() (*panelResources, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	t, err := loadImageNineSlice("graphics/titlebar-idle.png", 10, 10)
+	if err != nil {
+		return nil, err
+	}
 	return &panelResources{
-		image: i,
+		image:    i,
+		titleBar: t,
 		padding: widget.Insets{
 			Left:   30,
 			Right:  30,
