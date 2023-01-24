@@ -26,7 +26,7 @@ func TestTextInput_ChangedEvent_OnlyOnce(t *testing.T) {
 	is := is.New(t)
 
 	numEvents := 0
-	ti := newTextInput(t, TextInputOpts.ChangedHandler(func(args *TextInputChangedEventArgs) {
+	ti := newTextInput(t, TextInputOpts.ChangedHandler(func(_ *TextInputChangedEventArgs) {
 		numEvents++
 	}))
 
@@ -62,7 +62,7 @@ func TestTextInput_DoBackspace_Disabled(t *testing.T) {
 	ti.cursorPosition = 1
 	render(ti, t)
 
-	ti.ChangedEvent.AddHandler(func(args interface{}) {
+	ti.ChangedEvent.AddHandler(func(_ interface{}) {
 		is.Fail() // received event even though widget is disabled
 	})
 
@@ -93,7 +93,7 @@ func TestTextInput_DoDelete_Disabled(t *testing.T) {
 	ti.InputText = "foo"
 	render(ti, t)
 
-	ti.ChangedEvent.AddHandler(func(args interface{}) {
+	ti.ChangedEvent.AddHandler(func(_ interface{}) {
 		is.Fail() // received event even though widget is disabled
 	})
 

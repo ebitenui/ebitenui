@@ -2,8 +2,6 @@ package main
 
 import (
 	"image/color"
-	_ "image/png"
-	"io/ioutil"
 	"log"
 
 	"github.com/ebitenui/ebitenui"
@@ -11,29 +9,21 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"golang.org/x/image/font"
+	"golang.org/x/image/font/gofont/goregular"
 )
 
+// Game object used by ebiten
 type game struct {
 	ui *ebitenui.UI
 }
 
 func main() {
 	// load images for button states: idle, hover, and pressed
-	buttonImage, err := loadButtonImage()
-	if err != nil {
-		log.Println(err)
-		return
-	}
+	buttonImage, _ := loadButtonImage()
 
 	// load button text font
-	face, err := loadFont("fonts/NotoSans-Regular.ttf", 20)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
+	face, _ := loadFont(20)
 	defer face.Close()
 
 	// construct a new container that serves as the root of the UI hierarchy
@@ -66,8 +56,10 @@ func main() {
 
 		// specify that the button's text needs some padding for correct display
 		widget.ButtonOpts.TextPadding(widget.Insets{
-			Left:  30,
-			Right: 30,
+			Left:   30,
+			Right:  30,
+			Top:    5,
+			Bottom: 5,
 		}),
 
 		// add a handler that reacts to clicking the button
@@ -86,14 +78,14 @@ func main() {
 
 	// Ebiten setup
 	ebiten.SetWindowSize(400, 400)
-	ebiten.SetWindowTitle("Ebiten UI Scaffold")
+	ebiten.SetWindowTitle("Ebiten UI - Buttons")
 
 	game := game{
 		ui: &ui,
 	}
 
 	// run Ebiten main loop
-	err = ebiten.RunGame(&game)
+	err := ebiten.RunGame(&game)
 	if err != nil {
 		log.Println(err)
 	}
@@ -118,20 +110,11 @@ func (g *game) Draw(screen *ebiten.Image) {
 }
 
 func loadButtonImage() (*widget.ButtonImage, error) {
-	idle, err := loadNineSlice("graphics/button-idle.png", [3]int{25, 12, 25}, [3]int{21, 0, 20})
-	if err != nil {
-		return nil, err
-	}
+	idle := image.NewNineSliceColor(color.RGBA{R: 170, G: 170, B: 180, A: 255})
 
-	hover, err := loadNineSlice("graphics/button-hover.png", [3]int{25, 12, 25}, [3]int{21, 0, 20})
-	if err != nil {
-		return nil, err
-	}
+	hover := image.NewNineSliceColor(color.RGBA{R: 130, G: 130, B: 150, A: 255})
 
-	pressed, err := loadNineSlice("graphics/button-pressed.png", [3]int{25, 12, 25}, [3]int{21, 0, 20})
-	if err != nil {
-		return nil, err
-	}
+	pressed := image.NewNineSliceColor(color.RGBA{R: 100, G: 100, B: 120, A: 255})
 
 	return &widget.ButtonImage{
 		Idle:    idle,
@@ -140,22 +123,8 @@ func loadButtonImage() (*widget.ButtonImage, error) {
 	}, nil
 }
 
-func loadNineSlice(path string, w [3]int, h [3]int) (*image.NineSlice, error) {
-	i, _, err := ebitenutil.NewImageFromFile(path)
-	if err != nil {
-		return nil, err
-	}
-
-	return image.NewNineSlice(i, w, h), nil
-}
-
-func loadFont(path string, size float64) (font.Face, error) {
-	fontData, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-
-	ttfFont, err := truetype.Parse(fontData)
+func loadFont(size float64) (font.Face, error) {
+	ttfFont, err := truetype.Parse(goregular.TTF)
 	if err != nil {
 		return nil, err
 	}

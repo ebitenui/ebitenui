@@ -121,7 +121,7 @@ func (d *DragAndDrop) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 }
 
 func (d *DragAndDrop) idleState() dragAndDropState {
-	return func(screen *ebiten.Image, def DeferredRenderFunc) (dragAndDropState, bool) {
+	return func(_ *ebiten.Image, _ DeferredRenderFunc) (dragAndDropState, bool) {
 		d.dragWidget = nil
 
 		if !input.MouseButtonJustPressed(ebiten.MouseButtonLeft) {
@@ -139,7 +139,7 @@ func (d *DragAndDrop) idleState() dragAndDropState {
 }
 
 func (d *DragAndDrop) dragArmedState(srcWidget HasWidget, srcX int, srcY int) dragAndDropState {
-	return func(screen *ebiten.Image, def DeferredRenderFunc) (dragAndDropState, bool) {
+	return func(_ *ebiten.Image, _ DeferredRenderFunc) (dragAndDropState, bool) {
 		if !input.MouseButtonPressed(ebiten.MouseButtonLeft) {
 			return d.idleState(), false
 		}
@@ -195,7 +195,7 @@ func (d *DragAndDrop) draggingState(srcWidget HasWidget, srcX int, srcY int, dra
 }
 
 func (d *DragAndDrop) droppingState(srcWidget HasWidget, srcX int, srcY int, targetWidget HasWidget, x int, y int, dragData interface{}) dragAndDropState {
-	return func(screen *ebiten.Image, def DeferredRenderFunc) (dragAndDropState, bool) {
+	return func(_ *ebiten.Image, _ DeferredRenderFunc) (dragAndDropState, bool) {
 		d.DroppedEvent.Fire(&DragAndDropDroppedEventArgs{
 			Source:  srcWidget,
 			SourceX: srcX,

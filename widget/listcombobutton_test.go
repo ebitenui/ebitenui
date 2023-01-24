@@ -16,7 +16,7 @@ func TestListComboButton_SelectedEntry_Initial(t *testing.T) {
 	l := newListComboButton(t,
 		ListComboButtonOpts.ListOpts(ListOpts.Entries(entries)),
 
-		ListComboButtonOpts.EntrySelectedHandler(func(args *ListComboButtonEntrySelectedEventArgs) {
+		ListComboButtonOpts.EntrySelectedHandler(func(_ *ListComboButtonEntrySelectedEventArgs) {
 			is.Fail() // event fired without previous action
 		}),
 

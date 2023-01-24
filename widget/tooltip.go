@@ -1,7 +1,6 @@
 package widget
 
 import (
-	"image"
 	img "image"
 	"sync/atomic"
 	"time"
@@ -100,7 +99,7 @@ func (t *ToolTip) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 }
 
 func (t *ToolTip) idleState() toolTipState {
-	return func(screen *ebiten.Image, def DeferredRenderFunc) (toolTipState, bool) {
+	return func(_ *ebiten.Image, _ DeferredRenderFunc) (toolTipState, bool) {
 		if input.MouseButtonPressed(ebiten.MouseButtonLeft) ||
 			input.MouseButtonPressed(ebiten.MouseButtonMiddle) ||
 			input.MouseButtonPressed(ebiten.MouseButtonRight) {
@@ -123,7 +122,7 @@ func (t *ToolTip) idleState() toolTipState {
 }
 
 func (t *ToolTip) armedState(srcWidget HasWidget, srcX int, srcY int, timer *time.Timer, expired *atomic.Value) toolTipState {
-	return func(screen *ebiten.Image, def DeferredRenderFunc) (toolTipState, bool) {
+	return func(_ *ebiten.Image, _ DeferredRenderFunc) (toolTipState, bool) {
 		x, y := input.CursorPosition()
 		w := t.container.WidgetAt(x, y)
 		if input.MouseButtonPressed(ebiten.MouseButtonLeft) ||
@@ -182,8 +181,8 @@ func (t *ToolTip) showingState(srcWidget HasWidget, srcX int, srcY int, tipWidge
 		}
 
 		sx, sy := tipWidget.PreferredSize()
-		r := image.Rect(0, 0, sx, sy)
-		r = r.Add(image.Point{srcX, srcY})
+		r := img.Rect(0, 0, sx, sy)
+		r = r.Add(img.Point{srcX, srcY})
 		r = r.Add(t.offset)
 		tipWidget.SetLocation(r)
 		if rl, ok := tipWidget.(Relayoutable); ok {

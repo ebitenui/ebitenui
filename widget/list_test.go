@@ -20,7 +20,7 @@ func TestList_SelectedEntry_Initial(t *testing.T) {
 			return e.(string)
 		}),
 
-		ListOpts.EntrySelectedHandler(func(args *ListEntrySelectedEventArgs) {
+		ListOpts.EntrySelectedHandler(func(_ *ListEntrySelectedEventArgs) {
 			is.Fail() // event fired without previous action
 		}))
 

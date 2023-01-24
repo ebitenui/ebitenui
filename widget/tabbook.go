@@ -192,7 +192,7 @@ func (t *TabBook) createWidget() {
 			StateButtonOpts.StateImages(t.buttonImages),
 			StateButtonOpts.ButtonOpts(
 				ButtonOpts.Text(tab.label, t.buttonFace, t.buttonColor),
-				ButtonOpts.ClickedHandler(func(args *ButtonClickedEventArgs) {
+				ButtonOpts.ClickedHandler(func(_ *ButtonClickedEventArgs) {
 					t.SetTab(tab)
 				})),
 		}...)...)

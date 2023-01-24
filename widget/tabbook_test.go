@@ -16,7 +16,7 @@ func TestTabBook_Tab_Initial(t *testing.T) {
 
 	tb := newTabBook(t,
 		TabBookOpts.Tabs(tab1, tab2),
-		TabBookOpts.TabSelectedHandler(func(args *TabBookTabSelectedEventArgs) {
+		TabBookOpts.TabSelectedHandler(func(_ *TabBookTabSelectedEventArgs) {
 			is.Fail() // event fired without previous action
 		}))
 
