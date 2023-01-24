@@ -15,16 +15,6 @@
 			"args": []
 		},
 		{
-			"name": "Launch Scaffold",
-			"type": "go",
-			"request": "launch",
-			"mode": "debug",
-			"program": "${workspaceFolder}/_examples/scaffold",
-			"cwd": "${workspaceFolder}/_examples/scaffold",
-			"env": {},
-			"args": []
-		},
-		{
 			"name": "Launch Button",
 			"type": "go",
 			"request": "launch",
