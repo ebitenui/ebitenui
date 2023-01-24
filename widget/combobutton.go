@@ -180,7 +180,7 @@ func (c *ComboButton) relayoutContent() {
 }
 
 func (c *ComboButton) createWidget() {
-	c.button = NewButton(append(c.buttonOpts, ButtonOpts.ClickedHandler(func(args *ButtonClickedEventArgs) {
+	c.button = NewButton(append(c.buttonOpts, ButtonOpts.ClickedHandler(func(_ *ButtonClickedEventArgs) {
 		c.ContentVisible = !c.ContentVisible
 	}))...)
 	c.buttonOpts = nil

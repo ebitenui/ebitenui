@@ -86,7 +86,7 @@ func (o RowLayoutOptions) Spacing(s int) RowLayoutOpt {
 // PreferredSize implements Layouter.
 func (r *RowLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (int, int) {
 	rect := image.Rectangle{}
-	r.layout(widgets, image.Rectangle{}, false, func(w PreferredSizeLocateableWidget, wr image.Rectangle) {
+	r.layout(widgets, image.Rectangle{}, false, func(_ PreferredSizeLocateableWidget, wr image.Rectangle) {
 		rect = rect.Union(wr)
 	})
 	return rect.Dx() + r.padding.Dx(), rect.Dy() + r.padding.Dy()

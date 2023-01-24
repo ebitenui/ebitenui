@@ -2,7 +2,7 @@ package widget
 
 import (
 	img "image"
-	"io/ioutil"
+	"os"
 	"sync"
 	"testing"
 
@@ -47,7 +47,7 @@ func loadFont(t *testing.T) font.Face {
 	t.Helper()
 
 	loadFontOnce.Do(func() {
-		data, err := ioutil.ReadFile("testdata/fonts/NotoSans-Regular.ttf")
+		data, err := os.ReadFile("testdata/fonts/NotoSans-Regular.ttf")
 		if err != nil {
 			panic(err)
 		}

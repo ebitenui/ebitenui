@@ -518,16 +518,17 @@ func progressBarPage(res *uiResources) *page {
 		}),
 		widget.ProgressBarOpts.Images(res.progressBar.trackImage, res.progressBar.fillImage),
 	)
-	sc.AddChild(progressBar)
 
 	text = widget.NewLabel(
-		widget.LabelOpts.TextOpts(widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
-			Position: widget.RowLayoutPositionCenter,
-		}))),
+		widget.LabelOpts.TextOpts(widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter)),
 		widget.LabelOpts.Text(fmt.Sprintf("%d", progressBar.GetCurrent()), res.label.face, res.label.text),
 	)
-	sc.AddChild(text)
-
+	stackedLayout := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewStackedLayout()),
+	)
+	stackedLayout.AddChild(progressBar)
+	stackedLayout.AddChild(text)
+	sc.AddChild(stackedLayout)
 	c.AddChild(newSeparator(res, widget.RowLayoutData{
 		Stretch: true,
 	}))
@@ -543,6 +544,7 @@ func progressBarPage(res *uiResources) *page {
 		widget.ButtonOpts.Text("+ 1", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			progressBar.SetCurrent(progressBar.GetCurrent() + 1)
+			text.Label = fmt.Sprintf("%d", progressBar.GetCurrent())
 		}),
 	)
 	sc.AddChild(b)
@@ -552,6 +554,7 @@ func progressBarPage(res *uiResources) *page {
 		widget.ButtonOpts.Text("- 1", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			progressBar.SetCurrent(progressBar.GetCurrent() - 1)
+			text.Label = fmt.Sprintf("%d", progressBar.GetCurrent())
 		}),
 	)
 	sc.AddChild(b)
@@ -889,7 +892,7 @@ func openWindow(res *uiResources, ui func() *ebitenui.UI) {
 		widget.WindowOpts.Draggable(),
 		widget.WindowOpts.Resizeable(),
 		widget.WindowOpts.MinSize(500, 200),
-		widget.WindowOpts.MaxSize(600, 300),
+		widget.WindowOpts.MaxSize(700, 400),
 		widget.WindowOpts.ResizeHandler(func(args *widget.WindowChangedEventArgs) {
 			fmt.Println("Resize: ", args.Rect)
 		}),

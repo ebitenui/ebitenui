@@ -265,8 +265,8 @@ func (w *Window) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	}
 	if w.Resizeable {
 		if w.container.GetWidget().inputLayer.ActiveFor(x, y, input.LayerEventTypeAll) {
-			xRect := image.Rect(w.container.GetWidget().Rect.Max.X-4, w.container.GetWidget().Rect.Min.Y, w.container.GetWidget().Rect.Max.X, w.container.GetWidget().Rect.Max.Y)
-			yRect := image.Rect(w.container.GetWidget().Rect.Min.X, w.container.GetWidget().Rect.Max.Y-4, w.container.GetWidget().Rect.Max.X, w.container.GetWidget().Rect.Max.Y)
+			xRect := image.Rect(w.container.GetWidget().Rect.Max.X-6, w.container.GetWidget().Rect.Min.Y, w.container.GetWidget().Rect.Max.X, w.container.GetWidget().Rect.Max.Y)
+			yRect := image.Rect(w.container.GetWidget().Rect.Min.X, w.container.GetWidget().Rect.Max.Y-6, w.container.GetWidget().Rect.Max.X, w.container.GetWidget().Rect.Max.Y)
 			cursorRect := image.Rect(x, y, x+1, y+1)
 			if cursorRect.Overlaps(xRect) {
 				ebiten.SetCursorShape(ebiten.CursorShapeEWResize)

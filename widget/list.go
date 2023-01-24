@@ -253,7 +253,7 @@ func (l *List) createWidget() {
 			})),
 			ButtonOpts.Image(l.entryUnselectedColor),
 			ButtonOpts.TextSimpleLeft(l.entryLabelFunc(e), l.entryFace, l.entryUnselectedTextColor, l.entryTextPadding),
-			ButtonOpts.ClickedHandler(func(args *ButtonClickedEventArgs) {
+			ButtonOpts.ClickedHandler(func(_ *ButtonClickedEventArgs) {
 				l.setSelectedEntry(e, true)
 			}))
 

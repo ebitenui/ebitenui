@@ -24,5 +24,25 @@
 			"env": {},
 			"args": []
 		},
+		{
+			"name": "Launch Button",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/_examples/widget_demos/button",
+			"cwd": "${workspaceFolder}/_examples/widget_demos/button",
+			"env": {},
+			"args": []
+		},
+		{
+			"name": "Launch Stacked Layout",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/_examples/widget_demos/stackedlayout",
+			"cwd": "${workspaceFolder}/_examples/widget_demos/stackedlayout",
+			"env": {},
+			"args": []
+		},
 	]
 }
