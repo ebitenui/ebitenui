@@ -24,21 +24,35 @@ var (
 	InputChars    []rune
 	KeyPressed    = map[ebiten.Key]bool{}
 	AnyKeyPressed bool
+	isTouched     bool
 )
 
 // Update updates the input system. This is called by the UI.
 func Update() {
-	LeftMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft)
-	MiddleMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle)
-	RightMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight)
-	CursorX, CursorY = ebiten.CursorPosition()
+	touches := ebiten.TouchIDs()
+	if len(touches) > 0 {
+		isTouched = true
+	}
+	if isTouched {
+		if len(touches) > 0 {
+			LeftMouseButtonPressed = true
+			CursorX, CursorY = ebiten.TouchPosition(touches[0])
+		} else {
+			LeftMouseButtonPressed = false
+			isTouched = false
+		}
+	} else {
+		LeftMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft)
+		MiddleMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle)
+		RightMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight)
+		CursorX, CursorY = ebiten.CursorPosition()
+	}
 
 	wx, wy := ebiten.Wheel()
 	WheelX += wx
 	WheelY += wy
 
-	InputChars = append(InputChars, ebiten.InputChars()...)
-
+	InputChars = ebiten.AppendInputChars(InputChars)
 	AnyKeyPressed = false
 	for k := ebiten.Key(0); k <= ebiten.KeyMax; k++ {
 		p := ebiten.IsKeyPressed(k)
