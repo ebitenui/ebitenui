@@ -225,14 +225,15 @@ func (w *Window) RequestRelayout() {
 }
 
 func (w *Window) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
-	if w.Modal {
-		w.container.GetWidget().ElevateToNewInputLayer(&input.Layer{
-			DebugLabel: "modal window",
-			EventTypes: input.LayerEventTypeAll,
-			BlockLower: true,
-			FullScreen: true,
-		})
-	}
+	w.container.GetWidget().ElevateToNewInputLayer(&input.Layer{
+		DebugLabel: "window",
+		EventTypes: input.LayerEventTypeAll,
+		BlockLower: true,
+		FullScreen: w.Modal,
+		RectFunc: func() image.Rectangle {
+			return w.container.GetWidget().Rect
+		},
+	})
 }
 
 func (w *Window) Render(screen *ebiten.Image, def DeferredRenderFunc) {
