@@ -5,13 +5,20 @@ import (
 	"image"
 	"image/color"
 	"math"
+	"regexp"
 	"strings"
 
+	"github.com/ebitenui/ebitenui/utilities/colorutil"
+	"github.com/ebitenui/ebitenui/utilities/datastructures"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 )
+
+const bbcodeRegEx = `\[color=[0-9a-fA-F]{6}\]|\[\/color\]`
+const COLOR_OPEN = "color="
+const COLOR_CLOSE = "/color]"
 
 type Text struct {
 	Label              string
@@ -23,9 +30,12 @@ type Text struct {
 	horizontalPosition TextPosition
 	verticalPosition   TextPosition
 
-	init         *MultiOnce
-	widget       *Widget
-	measurements textMeasurements
+	init          *MultiOnce
+	widget        *Widget
+	measurements  textMeasurements
+	bbcodeRegex   *regexp.Regexp
+	processBBCode bool
+	colorList     *datastructures.Stack[color.Color]
 }
 
 type TextOpt func(t *Text)
@@ -46,12 +56,17 @@ type textMeasurements struct {
 	face     font.Face
 	maxWidth float64
 
-	lines             []string
+	lines             [][]string
 	lineWidths        []float64
 	lineHeight        float64
 	ascent            float64
 	boundingBoxWidth  float64
 	boundingBoxHeight float64
+}
+
+type bbCodeText struct {
+	text  string
+	color color.Color
 }
 
 var TextOpts TextOptions
@@ -60,6 +75,7 @@ func NewText(opts ...TextOpt) *Text {
 	t := &Text{
 		init: &MultiOnce{},
 	}
+	t.bbcodeRegex, _ = regexp.Compile(bbcodeRegEx)
 
 	t.init.Append(t.createWidget)
 
@@ -94,6 +110,12 @@ func (o TextOptions) Position(h TextPosition, v TextPosition) TextOpt {
 	return func(t *Text) {
 		t.horizontalPosition = h
 		t.verticalPosition = v
+	}
+}
+
+func (o TextOptions) ProcessBBCode(processBBCode bool) TextOpt {
+	return func(t *Text) {
+		t.processBBCode = processBBCode
 	}
 }
 
@@ -142,6 +164,9 @@ func (t *Text) draw(screen *ebiten.Image) {
 		p = p.Add(image.Point{0, int((float64(r.Dy()) - t.measurements.boundingBoxHeight))})
 	}
 
+	t.colorList = &datastructures.Stack[color.Color]{}
+	t.colorList.Push(&t.Color)
+
 	for i, line := range t.measurements.lines {
 		lx := p.X
 		switch t.horizontalPosition {
@@ -155,15 +180,94 @@ func (t *Text) draw(screen *ebiten.Image) {
 
 		ly := int(math.Round(float64(p.Y) + t.measurements.lineHeight*float64(i) + t.measurements.ascent))
 
-		text.Draw(screen, line, t.Face, lx, ly, t.Color)
+		if t.processBBCode {
+			spaceWidth := font.MeasureString(t.Face, " ").Round()
+			for _, word := range line {
+				peices, updatedColor := t.handleBBCodeColor(word)
+				for _, peice := range peices {
+					text.Draw(screen, peice.text, t.Face, lx, ly, peice.color)
+					wordWidth := font.MeasureString(t.Face, peice.text)
+					lx += wordWidth.Round()
+				}
+				text.Draw(screen, " ", t.Face, lx, ly, updatedColor)
+				lx += spaceWidth
+			}
+		} else {
+			text.Draw(screen, strings.Join(line, " "), t.Face, lx, ly, t.Color)
+		}
 	}
+}
+
+func (t *Text) handleBBCodeColor(word string) ([]bbCodeText, color.Color) {
+	var result []bbCodeText
+	tags := t.bbcodeRegex.FindAllStringIndex(word, -1)
+	var newColor = *t.colorList.Top()
+	if len(tags) > 0 {
+		resultStr := ""
+		isTag := false
+		for idx := range word {
+			if len(tags) > 0 {
+				if tags[0][0] > idx || (isTag && idx < tags[0][1]) {
+					resultStr = resultStr + string(word[idx])
+				} else if tags[0][1] == idx {
+					if strings.HasPrefix(resultStr, COLOR_OPEN) {
+						c, err := colorutil.HexToColor(resultStr[6:12])
+						if err == nil {
+							t.colorList.Push(&c)
+							newColor = c
+						}
+					} else if resultStr == COLOR_CLOSE {
+						if t.colorList.Size() > 1 {
+							t.colorList.Pop()
+						}
+						newColor = *t.colorList.Top()
+					}
+					tags = tags[1:]
+					if len(tags) > 0 && tags[0][0] == idx {
+						resultStr = ""
+						isTag = true
+					} else {
+						resultStr = string(word[idx])
+						isTag = false
+					}
+				} else {
+					result = append(result, bbCodeText{text: resultStr, color: newColor})
+					resultStr = ""
+					isTag = true
+				}
+			} else {
+				resultStr = resultStr + string(word[idx])
+			}
+		}
+		if len(resultStr) > 0 {
+			if isTag {
+				if strings.HasPrefix(resultStr, COLOR_OPEN) {
+					c, err := colorutil.HexToColor(resultStr[6:12])
+					if err == nil {
+						t.colorList.Push(&c)
+						newColor = c
+					}
+				} else if resultStr == COLOR_CLOSE {
+					if t.colorList.Size() > 1 {
+						t.colorList.Pop()
+					}
+					newColor = *t.colorList.Top()
+				}
+			} else {
+				result = append(result, bbCodeText{text: resultStr, color: newColor})
+			}
+		}
+	} else {
+		result = append(result, bbCodeText{text: word, color: newColor})
+	}
+
+	return result, newColor
 }
 
 func (t *Text) measure() {
 	if t.Label == t.measurements.label && t.Face == t.measurements.face && t.MaxWidth == t.measurements.maxWidth {
 		return
 	}
-
 	m := t.Face.Metrics()
 
 	t.measurements = textMeasurements{
@@ -179,20 +283,28 @@ func (t *Text) measure() {
 
 	s := bufio.NewScanner(strings.NewReader(t.Label))
 	for s.Scan() {
-		line := s.Text()
-		var newLine string = ""
-		var newLineWidth float64 = float64(t.Inset.Left + t.Inset.Right)
-		words := strings.Split(line, " ")
 		if t.MaxWidth > 0 {
+			var newLine []string
+			var newLineWidth float64 = float64(t.Inset.Left + t.Inset.Right)
+			words := strings.Split(s.Text(), " ")
 			for _, word := range words {
-				word = word + " "
-				wordWidth := fixedInt26_6ToFloat64(font.MeasureString(t.Face, word))
+				wordWidth := fixedInt26_6ToFloat64(font.MeasureString(t.Face, word+" "))
 
+				//Strip out any bbcodes from size calculation
+				if t.processBBCode {
+					if t.bbcodeRegex.MatchString(word) {
+						cleaned := t.bbcodeRegex.ReplaceAllString(word, "")
+						wordWidth = fixedInt26_6ToFloat64(font.MeasureString(t.Face, cleaned+" "))
+					}
+				}
+
+				//If the new word doesnt push this past the max width continue adding to the current line
 				if newLineWidth+wordWidth < t.MaxWidth {
-					newLine = newLine + word
+					newLine = append(newLine, word)
 					newLineWidth += wordWidth
 				} else {
-					if newLine != "" {
+					//If the new word would push this past the max width save off the current line and start a new one
+					if len(newLine) != 0 {
 						t.measurements.lines = append(t.measurements.lines, newLine)
 						t.measurements.lineWidths = append(t.measurements.lineWidths, newLineWidth)
 
@@ -200,11 +312,12 @@ func (t *Text) measure() {
 							t.measurements.boundingBoxWidth = newLineWidth
 						}
 					}
-					newLine = word
+					newLine = []string{word}
 					newLineWidth = wordWidth + float64(t.Inset.Left+t.Inset.Right)
 				}
 			}
-			if newLine != "" {
+			//Save the final line
+			if len(newLine) != 0 {
 				t.measurements.lines = append(t.measurements.lines, newLine)
 				t.measurements.lineWidths = append(t.measurements.lineWidths, newLineWidth)
 
@@ -214,8 +327,7 @@ func (t *Text) measure() {
 			}
 		} else {
 			line := s.Text()
-			t.measurements.lines = append(t.measurements.lines, line)
-
+			t.measurements.lines = append(t.measurements.lines, []string{line})
 			lw := fixedInt26_6ToFloat64(font.MeasureString(t.Face, line)) + float64(t.Inset.Left+t.Inset.Right)
 			t.measurements.lineWidths = append(t.measurements.lineWidths, lw)
 
@@ -223,7 +335,6 @@ func (t *Text) measure() {
 				t.measurements.boundingBoxWidth = lw
 			}
 		}
-
 	}
 
 	t.measurements.boundingBoxHeight = float64(len(t.measurements.lines))*t.measurements.lineHeight - ld

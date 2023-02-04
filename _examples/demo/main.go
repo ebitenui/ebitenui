@@ -30,7 +30,7 @@ type pageContainer struct {
 func main() {
 	ebiten.SetWindowSize(900, 800)
 	ebiten.SetWindowTitle("Ebiten UI Demo")
-	ebiten.SetWindowResizable(true)
+	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	ebiten.SetScreenClearedEveryFrame(false)
 
 	ui, closeUI, err := createUI()
@@ -354,8 +354,9 @@ func newTextArea(text string, res *uiResources, widgetOpts ...widget.WidgetOpt) 
 			widget.SliderOpts.MinHandleSize(res.list.handleSize),
 			widget.SliderOpts.TrackPadding(res.list.trackPadding),
 		),
-		widget.TextAreaOpts.HideHorizontalSlider(),
-
+		widget.TextAreaOpts.ShowVerticalScrollbar(),
+		widget.TextAreaOpts.VerticalScrollMode(widget.PositionAtEnd),
+		widget.TextAreaOpts.ProcessBBCode(true),
 		widget.TextAreaOpts.FontFace(res.textArea.face),
 		widget.TextAreaOpts.FontColor(color.RGBA{R: 200, G: 100, B: 0, A: 255}),
 		widget.TextAreaOpts.TextPadding(res.textArea.entryPadding),

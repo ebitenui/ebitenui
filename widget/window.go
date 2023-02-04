@@ -123,12 +123,14 @@ func NewWindow(opts ...WindowOpt) *Window {
 	return w
 }
 
+// This is the container with the body of this window
 func (o WindowOptions) Contents(c *Container) WindowOpt {
 	return func(w *Window) {
 		w.Contents = c
 	}
 }
 
+// Sets the container for the TitleBar and its fixed height
 func (o WindowOptions) TitleBar(tb *Container, height int) WindowOpt {
 	return func(w *Window) {
 		w.TitleBar = tb
@@ -136,42 +138,50 @@ func (o WindowOptions) TitleBar(tb *Container, height int) WindowOpt {
 	}
 }
 
+// Sets the window to be modal. Blocking UI interactions on anything else.
 func (o WindowOptions) Modal() WindowOpt {
 	return func(w *Window) {
 		w.Modal = true
 	}
 }
 
+// Sets the window to be draggable. The handle for this is the titleBar.
+// If you haven't provided a titleBar this option is ignored
 func (o WindowOptions) Draggable() WindowOpt {
 	return func(w *Window) {
 		w.Draggable = true
 	}
 }
 
+// Sets the window to be resizeable
 func (o WindowOptions) Resizeable() WindowOpt {
 	return func(w *Window) {
 		w.Resizeable = true
 	}
 }
 
+// Sets the minimum size that the window can be reszied to
 func (o WindowOptions) MinSize(width int, height int) WindowOpt {
 	return func(w *Window) {
 		w.MinSize = &image.Point{X: width, Y: height}
 	}
 }
 
+// Set the maximum size that the window can be resized to
 func (o WindowOptions) MaxSize(width int, height int) WindowOpt {
 	return func(w *Window) {
 		w.MaxSize = &image.Point{X: width, Y: height}
 	}
 }
 
+// Close the window if the user clicks outside of the window
 func (o WindowOptions) CloseOnClickOut() WindowOpt {
 	return func(w *Window) {
 		w.closeOnClick = true
 	}
 }
 
+// This handler is triggered when a move event is completed
 func (o WindowOptions) MoveHandler(f WindowChangedHandlerFunc) WindowOpt {
 	return func(w *Window) {
 		w.MoveEvent.AddHandler(func(args interface{}) {
@@ -180,6 +190,7 @@ func (o WindowOptions) MoveHandler(f WindowChangedHandlerFunc) WindowOpt {
 	}
 }
 
+// This handler is triggered when a resize event is completed
 func (o WindowOptions) ResizeHandler(f WindowChangedHandlerFunc) WindowOpt {
 	return func(w *Window) {
 		w.ResizeEvent.AddHandler(func(args interface{}) {
@@ -188,16 +199,24 @@ func (o WindowOptions) ResizeHandler(f WindowChangedHandlerFunc) WindowOpt {
 	}
 }
 
-func (w *Window) SetCloseFunction(close RemoveWindowFunc) {
-	w.closeFunc = close
+// This option sets the size and location of the window.
+// It does not account for MinSize or MaxSize since they
+// may not be set when this option is run.
+func (o WindowOptions) Location(rect image.Rectangle) WindowOpt {
+	return func(w *Window) {
+		w.container.SetLocation(rect)
+	}
 }
 
+// This method is used to be able to close the window
 func (w *Window) Close() {
 	if w.closeFunc != nil {
 		w.closeFunc()
 	}
 }
 
+// This method will set the size and location of this window.
+// This method will account for specified MinSize and MaxSize values.
 func (w *Window) SetLocation(rect image.Rectangle) {
 	if w.MinSize != nil {
 		if rect.Dx() < w.MinSize.X {
@@ -220,10 +239,17 @@ func (w *Window) SetLocation(rect image.Rectangle) {
 	w.container.SetLocation(rect)
 }
 
+// Typically used internally.
+func (w *Window) SetCloseFunction(close RemoveWindowFunc) {
+	w.closeFunc = close
+}
+
+// Typically used internally
 func (w *Window) RequestRelayout() {
 	w.container.RequestRelayout()
 }
 
+// Typically used internally
 func (w *Window) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 	w.container.GetWidget().ElevateToNewInputLayer(&input.Layer{
 		DebugLabel: "window",
@@ -236,6 +262,7 @@ func (w *Window) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 	})
 }
 
+// Typically used internally
 func (w *Window) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	x, y := input.CursorPosition()
 

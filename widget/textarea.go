@@ -19,10 +19,12 @@ type TextArea struct {
 	foregroundColor      color.Color
 	textPadding          Insets
 	controlWidgetSpacing int
-	hideHorizontalSlider bool
-	hideVerticalSlider   bool
-	allowReselect        bool
+	showHorizontalSlider bool
+	showVerticalSlider   bool
+	processBBCode        bool
 	initialText          string
+	verticalScrollMode   ScrollMode
+	horizontalScrollMode ScrollMode
 
 	init            *MultiOnce
 	container       *Container
@@ -31,6 +33,22 @@ type TextArea struct {
 	hSlider         *Slider
 	text            *Text
 }
+
+type ScrollMode int
+
+const (
+	// Default. Scrolling is not automatically handled
+	None ScrollMode = iota
+
+	// The TextArea is automatically scrolled to the beginning on change
+	ScrollBeginning
+
+	// The TextArea is automatically scrolled to the end on change
+	ScrollEnd
+
+	// The TextArea will initially position the text at the end of the scroll area
+	PositionAtEnd
+)
 
 type TextAreaOpt func(l *TextArea)
 
@@ -61,69 +79,94 @@ func NewTextArea(opts ...TextAreaOpt) *TextArea {
 	return l
 }
 
+// Specify the Container options for the text area
 func (o TextAreaOptions) ContainerOpts(opts ...ContainerOpt) TextAreaOpt {
 	return func(l *TextArea) {
 		l.containerOpts = append(l.containerOpts, opts...)
 	}
 }
 
+// Specify the options for the scroll container
 func (o TextAreaOptions) ScrollContainerOpts(opts ...ScrollContainerOpt) TextAreaOpt {
 	return func(l *TextArea) {
 		l.scrollContainerOpts = append(l.scrollContainerOpts, opts...)
 	}
 }
 
+// Specify the options for the scroll bars
 func (o TextAreaOptions) SliderOpts(opts ...SliderOpt) TextAreaOpt {
 	return func(l *TextArea) {
 		l.sliderOpts = append(l.sliderOpts, opts...)
 	}
 }
 
+// Specify spacing between the text container and scrollbars
 func (o TextAreaOptions) ControlWidgetSpacing(s int) TextAreaOpt {
 	return func(l *TextArea) {
 		l.controlWidgetSpacing = s
 	}
 }
 
-func (o TextAreaOptions) HideHorizontalSlider() TextAreaOpt {
+// Show the horizontal scrollbar.
+func (o TextAreaOptions) ShowHorizontalScrollbar() TextAreaOpt {
 	return func(l *TextArea) {
-		l.hideHorizontalSlider = true
+		l.showHorizontalSlider = true
 	}
 }
 
-func (o TextAreaOptions) HideVerticalSlider() TextAreaOpt {
+// Show the vertical scrollbar.
+func (o TextAreaOptions) ShowVerticalScrollbar() TextAreaOpt {
 	return func(l *TextArea) {
-		l.hideVerticalSlider = true
+		l.showVerticalSlider = true
 	}
 }
 
+// Set how vertical scrolling should be handled
+func (o TextAreaOptions) VerticalScrollMode(scrollMode ScrollMode) TextAreaOpt {
+	return func(l *TextArea) {
+		l.verticalScrollMode = scrollMode
+	}
+}
+
+// Set how horizontal scrolling should be handled
+func (o TextAreaOptions) HorizontalScrollMode(scrollMode ScrollMode) TextAreaOpt {
+	return func(l *TextArea) {
+		l.horizontalScrollMode = scrollMode
+	}
+}
+
+// Set the font face for this text area
 func (o TextAreaOptions) FontFace(f font.Face) TextAreaOpt {
 	return func(l *TextArea) {
 		l.face = f
 	}
 }
 
+// Set the default color for the text area
 func (o TextAreaOptions) FontColor(color color.Color) TextAreaOpt {
 	return func(l *TextArea) {
 		l.foregroundColor = color
 	}
 }
 
+// Set how far from the edges of the textarea the text should be set
 func (o TextAreaOptions) TextPadding(i Insets) TextAreaOpt {
 	return func(l *TextArea) {
 		l.textPadding = i
 	}
 }
 
-func (o TextAreaOptions) AllowReselect() TextAreaOpt {
-	return func(l *TextArea) {
-		l.allowReselect = true
-	}
-}
-
+// Set the initial Text for the text area
 func (o TextAreaOptions) Text(initialText string) TextAreaOpt {
 	return func(l *TextArea) {
 		l.initialText = initialText
+	}
+}
+
+// Set whether or not the text area should process BBCodes. e.g. [color=FF0000]red[/color]
+func (o TextAreaOptions) ProcessBBCode(processBBCode bool) TextAreaOpt {
+	return func(l *TextArea) {
+		l.processBBCode = processBBCode
 	}
 }
 
@@ -178,10 +221,10 @@ func (l *TextArea) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 func (l *TextArea) createWidget() {
 	var cols int
-	if l.hideVerticalSlider {
-		cols = 1
-	} else {
+	if l.showVerticalSlider {
 		cols = 2
+	} else {
+		cols = 1
 	}
 
 	l.container = NewContainer(
@@ -200,6 +243,7 @@ func (l *TextArea) createWidget() {
 	l.text = NewText(
 		TextOpts.Text(l.initialText, l.face, l.foregroundColor),
 		TextOpts.Insets(l.textPadding),
+		TextOpts.ProcessBBCode(l.processBBCode),
 	)
 	content.AddChild(l.text)
 
@@ -210,7 +254,7 @@ func (l *TextArea) createWidget() {
 	l.scrollContainerOpts = nil
 	l.container.AddChild(l.scrollContainer)
 
-	if !l.hideVerticalSlider {
+	if l.showVerticalSlider {
 		pageSizeFunc := func() int {
 			return int(math.Round(float64(l.scrollContainer.ContentRect().Dy()) / float64(content.GetWidget().Rect.Dy()) * 1000))
 		}
@@ -223,6 +267,9 @@ func (l *TextArea) createWidget() {
 				l.scrollContainer.ScrollTop = float64(args.Slider.Current) / 1000
 			}),
 		}...)...)
+		if l.verticalScrollMode == ScrollEnd || l.verticalScrollMode == PositionAtEnd {
+			l.vSlider.Current = l.vSlider.Max
+		}
 		l.container.AddChild(l.vSlider)
 
 		l.scrollContainer.widget.ScrolledEvent.AddHandler(func(args interface{}) {
@@ -235,7 +282,7 @@ func (l *TextArea) createWidget() {
 		})
 	}
 
-	if !l.hideHorizontalSlider {
+	if l.showHorizontalSlider {
 		l.hSlider = NewSlider(append(l.sliderOpts, []SliderOpt{
 			SliderOpts.Direction(DirectionHorizontal),
 			SliderOpts.MinMax(0, 1000),
@@ -246,39 +293,73 @@ func (l *TextArea) createWidget() {
 				l.scrollContainer.ScrollLeft = float64(args.Slider.Current) / 1000
 			}),
 		}...)...)
+		if l.horizontalScrollMode == ScrollEnd || l.horizontalScrollMode == PositionAtEnd {
+			l.hSlider.Current = l.hSlider.Max
+		}
 		l.container.AddChild(l.hSlider)
 	}
 
 	l.sliderOpts = nil
 }
 
-func (l *TextArea) SetScrollTop(t float64) {
-	l.init.Do()
-	if l.vSlider != nil {
-		l.vSlider.Current = int(math.Round(t * 1000))
-	}
-	l.scrollContainer.ScrollTop = t
-}
-
-func (l *TextArea) SetScrollLeft(left float64) {
-	l.init.Do()
-	if l.hSlider != nil {
-		l.hSlider.Current = int(math.Round(left * 1000))
-	}
-	l.scrollContainer.ScrollLeft = left
-}
-
 func (l *TextArea) PrependText(value string) {
 	l.text.Label = value + l.text.Label
+
+	if l.showHorizontalSlider {
+		if l.horizontalScrollMode == ScrollBeginning {
+			l.hSlider.Current = 0
+		} else if l.horizontalScrollMode == ScrollEnd {
+			l.hSlider.Current = l.hSlider.Max
+		}
+	}
+	if l.showVerticalSlider {
+		if l.verticalScrollMode == ScrollBeginning {
+			l.vSlider.Current = 0
+		} else if l.verticalScrollMode == ScrollEnd {
+			l.vSlider.Current = l.vSlider.Max
+		}
+	}
 }
 
 func (l *TextArea) AppendText(value string) {
+
 	l.text.Label = l.text.Label + value
+
+	if l.showHorizontalSlider {
+		if l.horizontalScrollMode == ScrollBeginning {
+			l.hSlider.Current = 0
+		} else if l.horizontalScrollMode == ScrollEnd {
+			l.hSlider.Current = l.hSlider.Max
+		}
+	}
+	if l.showVerticalSlider {
+		if l.verticalScrollMode == ScrollBeginning {
+			l.vSlider.Current = 0
+		} else if l.verticalScrollMode == ScrollEnd {
+			l.vSlider.Current = l.vSlider.Max
+		}
+	}
 }
 
 func (l *TextArea) SetText(value string) {
 	l.text.Label = value
+
+	if l.showHorizontalSlider {
+		if l.horizontalScrollMode == ScrollBeginning {
+			l.hSlider.Current = 0
+		} else if l.horizontalScrollMode == ScrollEnd {
+			l.hSlider.Current = l.hSlider.Max
+		}
+	}
+	if l.showVerticalSlider {
+		if l.verticalScrollMode == ScrollBeginning {
+			l.vSlider.Current = 0
+		} else if l.verticalScrollMode == ScrollEnd {
+			l.vSlider.Current = l.vSlider.Max
+		}
+	}
 }
+
 func (l *TextArea) GetText() string {
 	return l.text.Label
 }
