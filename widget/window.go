@@ -41,6 +41,7 @@ type Window struct {
 	resizingWidth  bool
 	resizingHeight bool
 	originalSize   image.Point
+	init           *MultiOnce
 }
 
 type WindowOpt func(w *Window)
@@ -54,7 +55,9 @@ func NewWindow(opts ...WindowOpt) *Window {
 	w := &Window{
 		MoveEvent:   &event.Event{},
 		ResizeEvent: &event.Event{},
+		init:        &MultiOnce{},
 	}
+
 	for _, o := range opts {
 		o(w)
 	}
@@ -120,6 +123,8 @@ func NewWindow(opts ...WindowOpt) *Window {
 			}
 		})
 	}
+
+	w.init.Do()
 	return w
 }
 
@@ -200,11 +205,10 @@ func (o WindowOptions) ResizeHandler(f WindowChangedHandlerFunc) WindowOpt {
 }
 
 // This option sets the size and location of the window.
-// It does not account for MinSize or MaxSize since they
-// may not be set when this option is run.
+// This method will account for specified MinSize and MaxSize values.
 func (o WindowOptions) Location(rect image.Rectangle) WindowOpt {
 	return func(w *Window) {
-		w.container.SetLocation(rect)
+		w.init.Append(func() { w.container.SetLocation(rect) })
 	}
 }
 
