@@ -30,10 +30,9 @@ type TabBook struct {
 }
 
 type TabBookTab struct {
+	Container
 	Disabled bool
-
-	label  string
-	widget PreferredSizeLocateableWidget
+	label    string
 }
 
 type TabBookOpt func(t *TabBook)
@@ -68,11 +67,25 @@ func NewTabBook(opts ...TabBookOpt) *TabBook {
 	return t
 }
 
-func NewTabBookTab(label string, widget PreferredSizeLocateableWidget) *TabBookTab {
-	return &TabBookTab{
-		label:  label,
-		widget: widget,
+func NewTabBookTab(label string, opts ...ContainerOpt) *TabBookTab {
+	c := &TabBookTab{
+		label: label,
 	}
+	c.init = &MultiOnce{}
+	c.init.Append(c.createWidget)
+
+	//Set a default layout so that tabs use the full container
+	c.widgetOpts = append(c.widgetOpts, WidgetOpts.LayoutData(AnchorLayoutData{
+		StretchHorizontal:  true,
+		StretchVertical:    true,
+		HorizontalPosition: AnchorLayoutPositionCenter,
+		VerticalPosition:   AnchorLayoutPositionCenter,
+	}))
+
+	for _, o := range opts {
+		o(&c.Container)
+	}
+	return c
 }
 
 func (o TabBookOptions) ContainerOpts(opts ...ContainerOpt) TabBookOpt {
@@ -221,7 +234,7 @@ func (t *TabBook) setTab(tab *TabBookTab, fireEvent bool) {
 
 		t.tab = tab
 
-		t.flipBook.SetPage(tab.widget)
+		t.flipBook.SetPage(tab)
 
 		for bt, b := range t.tabToButton {
 			b.State = bt == tab

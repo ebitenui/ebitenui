@@ -24,7 +24,6 @@ func main() {
 
 	// load button text font
 	face, _ := loadFont(20)
-	defer face.Close()
 
 	// construct a new container that serves as the root of the UI hierarchy
 	rootContainer := widget.NewContainer(

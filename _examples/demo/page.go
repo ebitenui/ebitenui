@@ -308,7 +308,7 @@ func tabBookPage(res *uiResources) *page {
 	tabs := []*widget.TabBookTab{}
 
 	for i := 0; i < 4; i++ {
-		tc := widget.NewContainer(
+		tab := widget.NewTabBookTab(fmt.Sprintf("Tab %d", i+1),
 			widget.ContainerOpts.Layout(widget.NewRowLayout(
 				widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 				widget.RowLayoutOpts.Spacing(10))),
@@ -319,10 +319,9 @@ func tabBookPage(res *uiResources) *page {
 				widget.ButtonOpts.Image(res.button.image),
 				widget.ButtonOpts.TextPadding(res.button.padding),
 				widget.ButtonOpts.Text(fmt.Sprintf("Button %d on Tab %d", j+1, i+1), res.button.face, res.button.text))
-			tc.AddChild(b)
+			tab.AddChild(b)
 		}
 
-		tab := widget.NewTabBookTab(fmt.Sprintf("Tab %d", i+1), tc)
 		if i == 2 {
 			tab.Disabled = true
 		}

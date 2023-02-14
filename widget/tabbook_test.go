@@ -11,8 +11,8 @@ import (
 func TestTabBook_Tab_Initial(t *testing.T) {
 	is := is.New(t)
 
-	tab1 := NewTabBookTab("Tab 1", newSimpleWidget(50, 50, nil))
-	tab2 := NewTabBookTab("Tab 2", newSimpleWidget(50, 50, nil))
+	tab1 := NewTabBookTab("Tab 1", newTabContainerOpts()...)
+	tab2 := NewTabBookTab("Tab 2", newTabContainerOpts()...)
 
 	tb := newTabBook(t,
 		TabBookOpts.Tabs(tab1, tab2),
@@ -29,8 +29,8 @@ func TestTabBook_SetTab(t *testing.T) {
 	var eventArgs *TabBookTabSelectedEventArgs
 	numEvents := 0
 
-	tab1 := NewTabBookTab("Tab 1", newSimpleWidget(50, 50, nil))
-	tab2 := NewTabBookTab("Tab 2", newSimpleWidget(50, 50, nil))
+	tab1 := NewTabBookTab("Tab 1", newTabContainerOpts()...)
+	tab2 := NewTabBookTab("Tab 2", newTabContainerOpts()...)
 
 	tb := newTabBook(t,
 		TabBookOpts.Tabs(tab1, tab2),
@@ -57,8 +57,8 @@ func TestTabBook_TabSelectedEvent_User(t *testing.T) {
 	var eventArgs *TabBookTabSelectedEventArgs
 	numEvents := 0
 
-	tab1 := NewTabBookTab("Tab 1", newSimpleWidget(50, 50, nil))
-	tab2 := NewTabBookTab("Tab 2", newSimpleWidget(50, 50, nil))
+	tab1 := NewTabBookTab("Tab 1", newTabContainerOpts()...)
+	tab2 := NewTabBookTab("Tab 2", newTabContainerOpts()...)
 
 	tb := newTabBook(t,
 		TabBookOpts.Tabs(tab1, tab2),
@@ -103,4 +103,10 @@ func tabBookButtons(t *TabBook) []*StateButton {
 		buttons = append(buttons, t.tabToButton[tab])
 	}
 	return buttons
+}
+
+func newTabContainerOpts() []ContainerOpt {
+	result := []ContainerOpt{}
+
+	return result
 }

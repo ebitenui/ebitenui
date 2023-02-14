@@ -313,6 +313,10 @@ func (w *Window) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 				w.resizingWidth = false
 				w.resizingHeight = false
 			}
+		} else {
+			ebiten.SetCursorShape(ebiten.CursorShapeDefault)
+			w.resizingWidth = false
+			w.resizingHeight = false
 		}
 	}
 	w.container.Render(screen, def)
