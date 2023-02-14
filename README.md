@@ -12,9 +12,12 @@ All graphics used by Ebiten UI can be fully customized, so you can really make y
 
 Documentation on how to use and extend Ebiten UI is available at [ebitenui.github.io](https://ebitenui.github.io).
 
-*Ebiten UI is currently under development and should not yet be used in production.*
-
 ![Screenshots](ebiten-ui.gif)
+
+
+Used By
+------
+* [Roboden by Iskander](https://quasilyte.itch.io/roboden)
 
 
 Social Media
