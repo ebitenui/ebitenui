@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/ebitenui/ebitenui.svg?branch=master)](https://travis-ci.org/ebitenui/ebitenui) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ebitenui_ebitenui&metric=alert_status)](https://sonarcloud.io/dashboard?id=ebitenui_ebitenui) [![Coverage Status](https://coveralls.io/repos/github/ebitenui/ebitenui/badge.svg?branch=master)](https://coveralls.io/github/ebitenui/ebitenui?branch=master) [![GoDoc](https://pkg.go.dev/badge/github.com/ebitenui/ebitenui)](https://pkg.go.dev/github.com/ebitenui/ebitenui)
+[![GoDoc](https://pkg.go.dev/badge/github.com/ebitenui/ebitenui)](https://pkg.go.dev/github.com/ebitenui/ebitenui)
 
 
 Ebiten UI
