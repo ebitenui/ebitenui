@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/ebitenui/ebitenui.svg?branch=master)](https://travis-ci.org/ebitenui/ebitenui) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ebitenui_ebitenui&metric=alert_status)](https://sonarcloud.io/dashboard?id=ebitenui_ebitenui) [![Coverage Status](https://coveralls.io/repos/github/ebitenui/ebitenui/badge.svg?branch=master)](https://coveralls.io/github/ebitenui/ebitenui?branch=master) [![GoDoc](https://pkg.go.dev/badge/github.com/ebitenui/ebitenui)](https://pkg.go.dev/github.com/ebitenui/ebitenui)
+[![GoDoc](https://pkg.go.dev/badge/github.com/ebitenui/ebitenui)](https://pkg.go.dev/github.com/ebitenui/ebitenui)
 
 
 Ebiten UI
@@ -12,9 +12,12 @@ All graphics used by Ebiten UI can be fully customized, so you can really make y
 
 Documentation on how to use and extend Ebiten UI is available at [ebitenui.github.io](https://ebitenui.github.io).
 
-*Ebiten UI is currently under development and should not yet be used in production.*
-
 ![Screenshots](ebiten-ui.gif)
+
+
+Used By
+------
+* [Roboden by Iskander](https://quasilyte.itch.io/roboden)
 
 
 Social Media
