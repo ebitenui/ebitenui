@@ -55,6 +55,8 @@ type Widget struct {
 
 	FocusEvent *event.Event
 
+	ContextMenuEvent *event.Event
+
 	//Custom Data is a field to allow users to attach data to any widget
 	CustomData interface{}
 
@@ -63,6 +65,10 @@ type Widget struct {
 	lastUpdateMouseLeftPressed bool
 	mouseLeftPressedInside     bool
 	inputLayer                 *input.Layer
+
+	ContextMenu          *Container
+	ContextMenuWindow    *Window
+	ContextMenuCloseMode WindowCloseMode
 }
 
 // WidgetOpt is a function that configures w.
@@ -144,6 +150,11 @@ type WidgetFocusEventArgs struct { //nolint:golint
 	Focused bool
 }
 
+type WidgetContextMenuEventArgs struct { //nolint:golint
+	Widget   *Widget
+	Location image.Point
+}
+
 // WidgetCursorEnterHandlerFunc is a function that handles cursor enter events.
 type WidgetCursorEnterHandlerFunc func(args *WidgetCursorEnterEventArgs) //nolint:golint
 
@@ -176,6 +187,8 @@ func NewWidget(opts ...WidgetOpt) *Widget {
 		MouseButtonReleasedEvent: &event.Event{},
 		ScrolledEvent:            &event.Event{},
 		FocusEvent:               &event.Event{},
+		ContextMenuEvent:         &event.Event{},
+		ContextMenuCloseMode:     CLICK,
 	}
 
 	for _, o := range opts {
@@ -251,6 +264,18 @@ func (o WidgetOptions) MinSize(minWidth int, minHeight int) WidgetOpt {
 	}
 }
 
+func (o WidgetOptions) ContextMenu(contextMenu *Container) WidgetOpt {
+	return func(w *Widget) {
+		w.ContextMenu = contextMenu
+	}
+}
+
+func (o WidgetOptions) ContextMenuCloseMode(contextMenuCloseMode WindowCloseMode) WidgetOpt {
+	return func(w *Widget) {
+		w.ContextMenuCloseMode = contextMenuCloseMode
+	}
+}
+
 func (w *Widget) drawImageOptions(opts *ebiten.DrawImageOptions) {
 	opts.GeoM.Translate(float64(w.Rect.Min.X), float64(w.Rect.Min.Y))
 }
@@ -319,6 +344,12 @@ func (w *Widget) fireEvents() {
 		})
 	}
 
+	if inside && input.MouseButtonJustPressedLayer(ebiten.MouseButtonRight, layer) {
+		if w.ContextMenu != nil {
+			w.FireContextMenuEvent(nil, p)
+		}
+	}
+
 	if w.lastUpdateMouseLeftPressed && !input.MouseButtonPressedLayer(ebiten.MouseButtonLeft, layer) {
 		w.lastUpdateMouseLeftPressed = false
 
@@ -362,6 +393,18 @@ func WidgetFireFocusEvent(w *Widget, focused bool) { //nolint:golint
 		Widget:  w,
 		Focused: focused,
 	})
+}
+
+func (widget *Widget) FireContextMenuEvent(w *Widget, l image.Point) { //nolint:golint
+	if w == nil {
+		w = widget
+	}
+	if w.ContextMenu != nil {
+		widget.ContextMenuEvent.Fire(&WidgetContextMenuEventArgs{
+			Widget:   w,
+			Location: l,
+		})
+	}
 }
 
 // RenderWithDeferred renders r to screen. This function should not be called directly.

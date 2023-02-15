@@ -86,6 +86,11 @@ func (c *Container) AddChild(child PreferredSizeLocateableWidget) RemoveChildFun
 
 	child.GetWidget().parent = c.widget
 
+	child.GetWidget().ContextMenuEvent.AddHandler(func(args interface{}) {
+		a := args.(*WidgetContextMenuEventArgs)
+		c.GetWidget().FireContextMenuEvent(a.Widget, a.Location)
+	})
+
 	c.RequestRelayout()
 
 	return func() {

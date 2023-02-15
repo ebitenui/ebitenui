@@ -936,6 +936,7 @@ func openWindow2(res *uiResources, ui func() *ebitenui.UI) {
 	w := widget.NewWindow(
 		widget.WindowOpts.Modal(),
 		widget.WindowOpts.Contents(c),
+		widget.WindowOpts.CloseMode(widget.CLICK_OUT),
 	)
 
 	ww, wh := ebiten.WindowSize()

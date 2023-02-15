@@ -8,6 +8,17 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+type WindowCloseMode int
+
+const (
+	// The window will not automatically close
+	NONE WindowCloseMode = iota
+	// The window will close when you click anywhere
+	CLICK
+	// The window will close when you click outside the window
+	CLICK_OUT
+)
+
 type RemoveWindowFunc func()
 
 type WindowChangedEventArgs struct {
@@ -29,9 +40,9 @@ type Window struct {
 	MinSize    *image.Point
 	MaxSize    *image.Point
 
-	closeOnClick bool
-	closeFunc    RemoveWindowFunc
-	container    *Container
+	closeMode WindowCloseMode
+	closeFunc RemoveWindowFunc
+	container *Container
 
 	titleBarHeight int
 
@@ -115,11 +126,13 @@ func NewWindow(opts ...WindowOpt) *Window {
 		})
 	}
 
-	if w.closeOnClick {
+	if w.closeMode == CLICK || w.closeMode == CLICK_OUT {
 		w.container.GetWidget().MouseButtonReleasedEvent.AddHandler(func(args interface{}) {
 			a := args.(*WidgetMouseButtonReleasedEventArgs)
-			if !a.Inside && w.closeFunc != nil {
-				w.closeFunc()
+			if w.closeMode == CLICK || (w.closeMode == CLICK_OUT && !a.Inside) {
+				if w.closeFunc != nil {
+					w.closeFunc()
+				}
 			}
 		})
 	}
@@ -179,10 +192,10 @@ func (o WindowOptions) MaxSize(width int, height int) WindowOpt {
 	}
 }
 
-// Close the window if the user clicks outside of the window
-func (o WindowOptions) CloseOnClickOut() WindowOpt {
+// Set the way this window should close
+func (o WindowOptions) CloseMode(mode WindowCloseMode) WindowOpt {
 	return func(w *Window) {
-		w.closeOnClick = true
+		w.closeMode = mode
 	}
 }
 
@@ -241,6 +254,13 @@ func (w *Window) SetLocation(rect image.Rectangle) {
 	}
 
 	w.container.SetLocation(rect)
+}
+
+// Typically used internally.
+//
+//	Returns the root container that holds the provided titlebar and contents
+func (w *Window) GetContainer() *Container {
+	return w.container
 }
 
 // Typically used internally.

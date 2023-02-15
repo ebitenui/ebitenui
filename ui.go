@@ -28,11 +28,17 @@ type UI struct {
 	inputLayerers []input.Layerer
 	renderers     []widget.Renderer
 	windows       []*widget.Window
+
+	previousContainer *widget.Container
 }
 
 // Update updates u. This method should be called in the Ebiten Update function.
 func (u *UI) Update() {
 	internalinput.Update()
+	if u.previousContainer == nil || u.previousContainer != u.Container {
+		u.Container.GetWidget().ContextMenuEvent.AddHandler(u.handleContextMenu)
+		u.previousContainer = u.Container
+	}
 }
 
 // Draw renders u onto screen. This function should be called in the Ebiten Draw function.
@@ -59,6 +65,21 @@ func (u *UI) Draw(screen *ebiten.Image) {
 	u.setupInputLayers()
 	u.Container.SetLocation(rect)
 	u.render(screen)
+}
+
+func (u *UI) handleContextMenu(args interface{}) {
+	a := args.(*widget.WidgetContextMenuEventArgs)
+
+	x, y := a.Widget.ContextMenu.PreferredSize()
+	r := image.Rect(0, 0, x, y)
+	r = r.Add(a.Location)
+	a.Widget.ContextMenuWindow = widget.NewWindow(
+		widget.WindowOpts.Contents(a.Widget.ContextMenu),
+		widget.WindowOpts.CloseMode(a.Widget.ContextMenuCloseMode),
+		widget.WindowOpts.Modal(),
+		widget.WindowOpts.Location(r),
+	)
+	u.AddWindow(a.Widget.ContextMenuWindow)
 }
 
 func (u *UI) handleFocus() {
@@ -155,7 +176,7 @@ func (u *UI) AddWindow(w *widget.Window) widget.RemoveWindowFunc {
 	closeFunc := func() {
 		u.removeWindow(w)
 	}
-
+	w.GetContainer().GetWidget().ContextMenuEvent.AddHandler(u.handleContextMenu)
 	w.SetCloseFunction(closeFunc)
 	return closeFunc
 }
