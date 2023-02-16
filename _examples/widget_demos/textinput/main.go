@@ -22,7 +22,7 @@ type game struct {
 
 func main() {
 
-	// load button text font
+	// load the font
 	face, _ := loadFont(20)
 
 	// construct a new container that serves as the root of the UI hierarchy
