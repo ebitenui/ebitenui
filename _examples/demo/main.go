@@ -71,16 +71,6 @@ func createUI() (*ebitenui.UI, func(), error) {
 			widget.GridLayoutOpts.Spacing(0, 20))),
 		widget.ContainerOpts.BackgroundImage(res.background))
 
-	toolTips := toolTipContents{
-		tips: map[widget.HasWidget]string{},
-		res:  res,
-	}
-
-	toolTip := widget.NewToolTip(
-		widget.ToolTipOpts.Container(rootContainer),
-		widget.ToolTipOpts.ContentsCreater(&toolTips),
-	)
-
 	dnd := widget.NewDragAndDrop(
 		widget.DragAndDropOpts.Container(rootContainer),
 		widget.DragAndDropOpts.ContentsCreater(drag),
@@ -89,7 +79,7 @@ func createUI() (*ebitenui.UI, func(), error) {
 	rootContainer.AddChild(headerContainer(res))
 
 	var ui *ebitenui.UI
-	rootContainer.AddChild(demoContainer(res, &toolTips, toolTip, dnd, drag, func() *ebitenui.UI {
+	rootContainer.AddChild(demoContainer(res, dnd, drag, func() *ebitenui.UI {
 		return ui
 	}))
 
@@ -106,8 +96,6 @@ func createUI() (*ebitenui.UI, func(), error) {
 
 	ui = &ebitenui.UI{
 		Container: rootContainer,
-
-		ToolTip: toolTip,
 
 		DragAndDrop: dnd,
 	}
@@ -165,7 +153,7 @@ func header(label string, res *uiResources, opts ...widget.ContainerOpt) widget.
 	return c
 }
 
-func demoContainer(res *uiResources, toolTips *toolTipContents, toolTip *widget.ToolTip, dnd *widget.DragAndDrop, drag *dragContents,
+func demoContainer(res *uiResources, dnd *widget.DragAndDrop, drag *dragContents,
 	ui func() *ebitenui.UI) widget.PreferredSizeLocateableWidget {
 
 	demoContainer := widget.NewContainer(
@@ -188,7 +176,7 @@ func demoContainer(res *uiResources, toolTips *toolTipContents, toolTip *widget.
 		gridLayoutPage(res),
 		rowLayoutPage(res),
 		sliderPage(res),
-		toolTipPage(res, toolTips, toolTip),
+		toolTipPage(res),
 		dragAndDropPage(res, dnd, drag),
 		textInputPage(res),
 		radioGroupPage(res),

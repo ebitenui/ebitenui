@@ -59,6 +59,10 @@ func NewScrollContainer(opts ...ScrollContainerOpt) *ScrollContainer {
 		a := args.(*WidgetFocusEventArgs)
 		s.GetWidget().FireFocusEvent(a.Widget, a.Focused, a.Location)
 	})
+	s.content.GetWidget().ToolTipEvent.AddHandler(func(args interface{}) {
+		a := args.(*WidgetToolTipEventArgs)
+		s.GetWidget().FireToolTipEvent(a.Window, a.Show)
+	})
 	return s
 }
 

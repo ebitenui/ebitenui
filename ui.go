@@ -18,9 +18,6 @@ type UI struct {
 	// Container is the root container of the UI hierarchy.
 	Container *widget.Container
 
-	// ToolTip is used to render mouse hover tool tips. It may be nil to disable rendering.
-	ToolTip *widget.ToolTip
-
 	// DragAndDrop is used to render drag widgets while dragging and dropping. It may be nil to disable rendering.
 	DragAndDrop *widget.DragAndDrop
 
@@ -40,6 +37,14 @@ func (u *UI) Update() {
 	if u.previousContainer == nil || u.previousContainer != u.Container {
 		u.Container.GetWidget().ContextMenuEvent.AddHandler(u.handleContextMenu)
 		u.Container.GetWidget().FocusEvent.AddHandler(u.handleFocusEvent)
+		u.Container.GetWidget().ToolTipEvent.AddHandler(func(args interface{}) {
+			a := args.(*widget.WidgetToolTipEventArgs)
+			if a.Show {
+				u.addWindow(a.Window)
+			} else {
+				u.removeWindow(a.Window)
+			}
+		})
 
 		u.previousContainer = u.Container
 	}
@@ -192,9 +197,7 @@ func (u *UI) render(screen *ebiten.Image) {
 	if len(u.windows) > 0 {
 		num += len(u.windows)
 	}
-	if u.ToolTip != nil {
-		num++
-	}
+
 	if u.DragAndDrop != nil {
 		num++
 	}
@@ -208,9 +211,7 @@ func (u *UI) render(screen *ebiten.Image) {
 	for _, w := range u.windows {
 		u.renderers = append(u.renderers, w)
 	}
-	if u.ToolTip != nil {
-		u.renderers = append(u.renderers, u.ToolTip)
-	}
+
 	if u.DragAndDrop != nil {
 		u.renderers = append(u.renderers, u.DragAndDrop)
 	}
@@ -221,24 +222,37 @@ func (u *UI) render(screen *ebiten.Image) {
 
 // AddWindow adds window w to u for rendering. It returns a function to remove w from u.
 func (u *UI) AddWindow(w *widget.Window) widget.RemoveWindowFunc {
-	u.windows = append(u.windows, w)
 	closeFunc := func() {
 		u.removeWindow(w)
 	}
-	w.GetContainer().GetWidget().ContextMenuEvent.AddHandler(u.handleContextMenu)
-	w.GetContainer().GetWidget().FocusEvent.AddHandler(u.handleFocusEvent)
 
-	if w.Modal && u.focusedWidget != nil {
-		u.focusedWidget.(widget.Focuser).Focus(false)
+	if u.addWindow(w) {
+		w.GetContainer().GetWidget().ContextMenuEvent.AddHandler(u.handleContextMenu)
+		w.GetContainer().GetWidget().FocusEvent.AddHandler(u.handleFocusEvent)
+
+		if w.Modal && u.focusedWidget != nil {
+			u.focusedWidget.(widget.Focuser).Focus(false)
+		}
+
+		w.SetCloseFunction(closeFunc)
 	}
 
-	w.SetCloseFunction(closeFunc)
 	return closeFunc
 }
 
+func (u *UI) addWindow(w *widget.Window) bool {
+	for i := range u.windows {
+		if u.windows[i] == w {
+			return false
+		}
+	}
+	u.windows = append(u.windows, w)
+	return true
+}
+
 func (u *UI) removeWindow(w *widget.Window) {
-	for i, uw := range u.windows {
-		if uw == w {
+	for i := range u.windows {
+		if u.windows[i] == w {
 			u.windows = append(u.windows[:i], u.windows[i+1:]...)
 			break
 		}

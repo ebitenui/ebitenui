@@ -94,6 +94,10 @@ func (c *Container) AddChild(child PreferredSizeLocateableWidget) RemoveChildFun
 		a := args.(*WidgetFocusEventArgs)
 		c.GetWidget().FireFocusEvent(a.Widget, a.Focused, a.Location)
 	})
+	child.GetWidget().ToolTipEvent.AddHandler(func(args interface{}) {
+		a := args.(*WidgetToolTipEventArgs)
+		c.GetWidget().FireToolTipEvent(a.Window, a.Show)
+	})
 	c.RequestRelayout()
 
 	return func() {
@@ -128,6 +132,10 @@ func (c *Container) RemoveChildren() {
 	c.children = nil
 
 	c.RequestRelayout()
+}
+
+func (c *Container) Children() []PreferredSizeLocateableWidget {
+	return c.children
 }
 
 func (c *Container) RequestRelayout() {

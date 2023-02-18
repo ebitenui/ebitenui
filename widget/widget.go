@@ -57,6 +57,8 @@ type Widget struct {
 
 	ContextMenuEvent *event.Event
 
+	ToolTipEvent *event.Event
+
 	//Custom Data is a field to allow users to attach data to any widget
 	CustomData interface{}
 
@@ -70,6 +72,8 @@ type Widget struct {
 	ContextMenu          *Container
 	ContextMenuWindow    *Window
 	ContextMenuCloseMode WindowCloseMode
+
+	ToolTip *ToolTip
 }
 
 // WidgetOpt is a function that configures w.
@@ -157,6 +161,10 @@ type WidgetContextMenuEventArgs struct { //nolint:golint
 	Widget   *Widget
 	Location image.Point
 }
+type WidgetToolTipEventArgs struct { //nolint:golint
+	Window *Window
+	Show   bool
+}
 
 // WidgetCursorEnterHandlerFunc is a function that handles cursor enter events.
 type WidgetCursorEnterHandlerFunc func(args *WidgetCursorEnterEventArgs) //nolint:golint
@@ -191,6 +199,7 @@ func NewWidget(opts ...WidgetOpt) *Widget {
 		ScrolledEvent:            &event.Event{},
 		FocusEvent:               &event.Event{},
 		ContextMenuEvent:         &event.Event{},
+		ToolTipEvent:             &event.Event{},
 		ContextMenuCloseMode:     CLICK,
 	}
 
@@ -279,6 +288,12 @@ func (o WidgetOptions) ContextMenuCloseMode(contextMenuCloseMode WindowCloseMode
 	}
 }
 
+func (o WidgetOptions) ToolTip(toolTip *ToolTip) WidgetOpt {
+	return func(w *Widget) {
+		w.ToolTip = toolTip
+	}
+}
+
 func (w *Widget) drawImageOptions(opts *ebiten.DrawImageOptions) {
 	opts.GeoM.Translate(float64(w.Rect.Min.X), float64(w.Rect.Min.Y))
 }
@@ -303,11 +318,12 @@ func (w *Widget) EffectiveInputLayer() *input.Layer {
 	return l
 }
 
-// Render renders w onto screen. Since Widget is only an abstraction, it does not actually draw
-// anything, but it is still responsible for firing events. Concrete widget implementations should
 // always call this method first before rendering themselves.
 func (w *Widget) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	w.fireEvents()
+	if w.ToolTip != nil {
+		w.ToolTip.Render(w, screen, def)
+	}
 }
 
 func (w *Widget) fireEvents() {
@@ -415,6 +431,13 @@ func (widget *Widget) FireContextMenuEvent(w *Widget, l image.Point) { //nolint:
 			Location: l,
 		})
 	}
+}
+
+func (widget *Widget) FireToolTipEvent(w *Window, show bool) { //nolint:golint
+	widget.ToolTipEvent.Fire(&WidgetToolTipEventArgs{
+		Window: w,
+		Show:   show,
+	})
 }
 
 // RenderWithDeferred renders r to screen. This function should not be called directly.

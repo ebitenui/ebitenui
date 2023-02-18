@@ -2,7 +2,6 @@ package widget
 
 import (
 	"image"
-	img "image"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
@@ -94,7 +93,7 @@ func (o ListComboButtonOptions) TabOrder(tabOrder int) ListComboButtonOpt {
 
 func (l *ListComboButton) Focus(focused bool) {
 	l.init.Do()
-	l.GetWidget().FireFocusEvent(l, focused, img.Point{-1, -1})
+	l.GetWidget().FireFocusEvent(l, focused, image.Point{-1, -1})
 	l.button.button.button.focused = focused
 	if !focused {
 		l.SetContentVisible(false)

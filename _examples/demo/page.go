@@ -563,7 +563,7 @@ func progressBarPage(res *uiResources) *page {
 	}
 }
 
-func toolTipPage(res *uiResources, toolTips *toolTipContents, toolTip *widget.ToolTip) *page {
+func toolTipPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
 	c.AddChild(widget.NewText(
@@ -574,8 +574,38 @@ func toolTipPage(res *uiResources, toolTips *toolTipContents, toolTip *widget.To
 			widget.RowLayoutOpts.Spacing(15))))
 	c.AddChild(bc)
 
+	showTimeCheckbox := newCheckbox("Show additional infos in tool tips", func(args *widget.CheckboxChangedEventArgs) {
+
+	}, res)
+
 	for col := 0; col < 4; col++ {
+		tt := widget.NewContainer(
+			widget.ContainerOpts.BackgroundImage(res.toolTip.background),
+			widget.ContainerOpts.Layout(widget.NewRowLayout(
+				widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+				widget.RowLayoutOpts.Padding(res.toolTip.padding),
+				widget.RowLayoutOpts.Spacing(2),
+			)))
+
+		text := widget.NewText(
+			widget.TextOpts.Text(fmt.Sprintf("Tool tip for button %d", col+1), res.toolTip.face, res.toolTip.color),
+		)
+		tt.AddChild(text)
+		timeTxt := widget.NewText(
+			widget.TextOpts.Text("", res.toolTip.face, res.toolTip.color),
+		)
+		tt.AddChild(timeTxt)
 		b := widget.NewButton(
+			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.ToolTip(widget.NewToolTip(
+				widget.ToolTipOpts.Content(tt),
+				widget.ToolTipOpts.ToolTipUpdater(func(c *widget.Container) {
+					if showTimeCheckbox.Checkbox().State() == widget.WidgetChecked {
+						c.Children()[1].(*widget.Text).Label = time.Now().Local().Format("2006-01-02 15:04:05")
+					} else {
+						c.Children()[1].(*widget.Text).Label = ""
+					}
+				}),
+			))),
 			widget.ButtonOpts.Image(res.button.image),
 			widget.ButtonOpts.TextPadding(res.button.padding),
 			widget.ButtonOpts.Text(fmt.Sprintf("%s %d", string(rune('A'+col)), col+1), res.button.face, res.button.text))
@@ -584,9 +614,6 @@ func toolTipPage(res *uiResources, toolTips *toolTipContents, toolTip *widget.To
 			b.GetWidget().Disabled = true
 		}
 
-		toolTips.Set(b, fmt.Sprintf("Tool tip for button %d", col+1))
-		toolTips.widgetsWithTime = append(toolTips.widgetsWithTime, b)
-
 		bc.AddChild(b)
 	}
 
@@ -594,21 +621,19 @@ func toolTipPage(res *uiResources, toolTips *toolTipContents, toolTip *widget.To
 		Stretch: true,
 	}))
 
-	showTimeCheckbox := newCheckbox("Show additional infos in tool tips", func(args *widget.CheckboxChangedEventArgs) {
-		toolTips.showTime = args.State == widget.WidgetChecked
-	}, res)
-	toolTips.Set(showTimeCheckbox, "If enabled, tool tips will show system time for demonstration.")
 	c.AddChild(showTimeCheckbox)
-
 	stickyDelayedCheckbox := newCheckbox("Tool tips are sticky and delayed", func(args *widget.CheckboxChangedEventArgs) {
-		toolTip.Sticky = args.State == widget.WidgetChecked
-		if args.State == widget.WidgetChecked {
-			toolTip.Delay = 800 * time.Millisecond
-		} else {
-			toolTip.Delay = 0
+		children := bc.Children()
+		for i := range children {
+			if args.State == widget.WidgetChecked {
+				children[i].GetWidget().ToolTip.Delay = 800 * time.Millisecond
+				children[i].GetWidget().ToolTip.Position = widget.TOOLTIP_POS_CURSOR_STICKY
+			} else {
+				children[i].GetWidget().ToolTip.Delay = 0
+				children[i].GetWidget().ToolTip.Position = widget.TOOLTIP_POS_CURSOR_FOLLOW
+			}
 		}
 	}, res)
-	toolTips.Set(stickyDelayedCheckbox, "If enabled, tool tips do not show immediately and will not move with the cursor.")
 	c.AddChild(stickyDelayedCheckbox)
 
 	return &page{
