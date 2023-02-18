@@ -39,15 +39,20 @@ type Button struct {
 	hovering  bool
 	pressing  bool
 	state     WidgetState
+
+	tabOrder      int
+	focused       bool
+	justSubmitted bool
 }
 
 type ButtonOpt func(b *Button)
 
 type ButtonImage struct {
-	Idle     *image.NineSlice
-	Hover    *image.NineSlice
-	Pressed  *image.NineSlice
-	Disabled *image.NineSlice
+	Idle         *image.NineSlice
+	Hover        *image.NineSlice
+	Pressed      *image.NineSlice
+	PressedHover *image.NineSlice
+	Disabled     *image.NineSlice
 }
 
 type ButtonImageImage struct {
@@ -321,6 +326,12 @@ func (o ButtonOptions) StateChangedHandler(f ButtonChangedHandlerFunc) ButtonOpt
 	}
 }
 
+func (o ButtonOptions) TabOrder(tabOrder int) ButtonOpt {
+	return func(b *Button) {
+		b.tabOrder = tabOrder
+	}
+}
+
 func (tw *Button) State() WidgetState {
 	return tw.state
 }
@@ -344,6 +355,16 @@ func (b *Button) Configure(opts ...ButtonOpt) {
 	for _, o := range opts {
 		o(b)
 	}
+}
+
+func (b *Button) Focus(focused bool) {
+	b.init.Do()
+	b.GetWidget().FireFocusEvent(b, focused, img.Point{-1, -1})
+	b.focused = focused
+}
+
+func (b *Button) TabOrder() int {
+	return b.tabOrder
 }
 
 func (b *Button) GetWidget() *Widget {
@@ -420,7 +441,7 @@ func (b *Button) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	}
 
 	b.widget.Render(screen, def)
-
+	b.handleSubmit()
 	b.draw(screen)
 
 	if b.autoUpdateTextAndGraphic {
@@ -453,14 +474,23 @@ func (b *Button) draw(screen *ebiten.Image) {
 		if b.Image.Disabled != nil {
 			i = b.Image.Disabled
 		}
+	case b.focused, b.hovering:
+		if b.ToggleMode && b.state == WidgetChecked || b.pressing && (b.hovering || b.KeepPressedOnExit) {
+			if b.Image.PressedHover != nil {
+				i = b.Image.PressedHover
+			} else {
+				i = b.Image.Pressed
+			}
+		} else {
+			if b.Image.Hover != nil {
+				i = b.Image.Hover
+			}
+		}
 	case b.pressing && (b.hovering || b.KeepPressedOnExit) || (b.ToggleMode && b.state == WidgetChecked):
 		if b.Image.Pressed != nil {
 			i = b.Image.Pressed
 		}
-	case b.hovering:
-		if b.Image.Hover != nil {
-			i = b.Image.Hover
-		}
+
 	}
 
 	if i != nil {
@@ -468,6 +498,30 @@ func (b *Button) draw(screen *ebiten.Image) {
 			b.widget.drawImageOptions(opts)
 			b.drawImageOptions(opts)
 		})
+	}
+}
+
+func (b *Button) handleSubmit() {
+	if input.KeyPressed(ebiten.KeyEnter) || input.KeyPressed(ebiten.KeySpace) {
+		if !b.justSubmitted && b.focused {
+			b.ClickedEvent.Fire(&ButtonClickedEventArgs{
+				Button: b,
+			})
+			if b.ToggleMode {
+				if b.state == WidgetUnchecked {
+					b.state = WidgetChecked
+				} else {
+					b.state = WidgetUnchecked
+				}
+				b.StateChangedEvent.Fire(&ButtonChangedEventArgs{
+					Button: b,
+					State:  b.state,
+				})
+			}
+			b.justSubmitted = true
+		}
+	} else {
+		b.justSubmitted = false
 	}
 }
 

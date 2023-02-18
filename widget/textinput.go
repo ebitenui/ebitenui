@@ -50,6 +50,7 @@ type TextInput struct {
 	ignoreEmptySubmit     bool
 	allowDuplicateSubmit  bool
 	previousSubmittedText *string
+	tabOrder              int
 }
 
 type TextInputOpt func(t *TextInput)
@@ -126,7 +127,7 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 	t.commandToFunc[textInputGoEnd] = t.doGoEnd
 	t.commandToFunc[textInputBackspace] = t.doBackspace
 	t.commandToFunc[textInputDelete] = t.doDelete
-	t.commandToFunc[textInputEnter] = t.doEnter
+	t.commandToFunc[textInputEnter] = t.doSubmit
 
 	t.init.Append(t.createWidget)
 
@@ -230,7 +231,11 @@ func (o TextInputOptions) Secure(b bool) TextInputOpt {
 		t.secure = b
 	}
 }
-
+func (o TextInputOptions) TabOrder(to int) TextInputOpt {
+	return func(t *TextInput) {
+		t.tabOrder = to
+	}
+}
 func (t *TextInput) GetWidget() *Widget {
 	t.init.Do()
 	return t.widget
@@ -452,7 +457,7 @@ func (t *TextInput) doDelete() {
 	t.caret.ResetBlinking()
 }
 
-func (t *TextInput) doEnter() {
+func (t *TextInput) doSubmit() {
 	if !t.ignoreEmptySubmit || len(t.InputText) > 0 {
 		if t.allowDuplicateSubmit || t.previousSubmittedText == nil || t.InputText != *t.previousSubmittedText {
 			t.SubmitEvent.Fire(&TextInputChangedEventArgs{
@@ -570,13 +575,18 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFun
 
 func (t *TextInput) Focus(focused bool) {
 	t.init.Do()
-	WidgetFireFocusEvent(t.widget, focused)
+	t.GetWidget().FireFocusEvent(t, focused, img.Point{-1, -1})
 	t.caret.resetBlinking()
 	t.focused = focused
 }
 
+func (t *TextInput) TabOrder() int {
+	return t.tabOrder
+}
+
 func (t *TextInput) createWidget() {
 	t.widget = NewWidget(t.widgetOpts...)
+	t.widget.focusable = t
 	t.widgetOpts = nil
 
 	t.caret = NewCaret(append(t.caretOpts, CaretOpts.Color(t.color.Caret))...)

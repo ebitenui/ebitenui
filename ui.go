@@ -2,6 +2,7 @@ package ebitenui
 
 import (
 	"image"
+	"sort"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
@@ -30,6 +31,7 @@ type UI struct {
 	windows       []*widget.Window
 
 	previousContainer *widget.Container
+	tabWasPressed     bool
 }
 
 // Update updates u. This method should be called in the Ebiten Update function.
@@ -37,6 +39,8 @@ func (u *UI) Update() {
 	internalinput.Update()
 	if u.previousContainer == nil || u.previousContainer != u.Container {
 		u.Container.GetWidget().ContextMenuEvent.AddHandler(u.handleContextMenu)
+		u.Container.GetWidget().FocusEvent.AddHandler(u.handleFocusEvent)
+
 		u.previousContainer = u.Container
 	}
 }
@@ -60,8 +64,7 @@ func (u *UI) Draw(screen *ebiten.Image) {
 	if rect != u.lastRect {
 		u.Container.RequestRelayout()
 	}
-
-	u.handleFocus()
+	u.handleFocusChangeRequest()
 	u.setupInputLayers()
 	u.Container.SetLocation(rect)
 	u.render(screen)
@@ -82,33 +85,79 @@ func (u *UI) handleContextMenu(args interface{}) {
 	u.AddWindow(a.Widget.ContextMenuWindow)
 }
 
-func (u *UI) handleFocus() {
-	if input.MouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		if u.focusedWidget != nil {
+func (u *UI) handleFocusEvent(args interface{}) {
+	a := args.(*widget.WidgetFocusEventArgs)
+	if a.Focused { //New widget focused
+		if u.focusedWidget != nil && u.focusedWidget != a.Widget {
 			u.focusedWidget.(widget.Focuser).Focus(false)
-			u.focusedWidget = nil
 		}
-		x, y := input.CursorPosition()
+		u.focusedWidget = a.Widget
+	} else if a.Widget == u.focusedWidget { //Current widget focus removed
+		u.focusedWidget = nil
+	} else if a.Widget == nil { //Clicked out of focusable widgets
+		if u.focusedWidget != nil {
+			//If we didnt just click on the same widget
+			if !a.Location.In(u.focusedWidget.GetWidget().Rect) {
+				u.focusedWidget.(widget.Focuser).Focus(false)
+				u.focusedWidget = nil
+			}
+		}
+	}
+}
 
-		for _, window := range u.windows {
-			w := window.Contents.WidgetAt(x, y)
-			if w != nil && w.GetWidget().EffectiveInputLayer().ActiveFor(x, y, input.LayerEventTypeAll) {
-				if f, ok := w.(widget.Focuser); ok {
-					f.Focus(true)
-					u.focusedWidget = w
-					return
+func (u *UI) handleFocusChangeRequest() {
+	if input.KeyPressed(ebiten.KeyTab) {
+		if !u.tabWasPressed {
+			u.tabWasPressed = true
+			focusableWidgets := u.Container.GetFocusers()
+			//Loop through the windows array in reverse. If we find a modal window, only loop through its focusable widgets
+			for i := len(u.windows) - 1; i >= 0; i-- {
+				if !u.windows[i].Modal {
+					focusableWidgets = append(focusableWidgets, u.windows[i].GetContainer().GetFocusers()...)
+				} else {
+					focusableWidgets = u.windows[i].GetContainer().GetFocusers()
+					break
 				}
 			}
-		}
-
-		w := u.Container.WidgetAt(x, y)
-		if w != nil && w.GetWidget().EffectiveInputLayer().ActiveFor(x, y, input.LayerEventTypeAll) {
-			if f, ok := w.(widget.Focuser); ok {
-				f.Focus(true)
-				u.focusedWidget = w
-				return
+			len := len(focusableWidgets)
+			if len == 1 {
+				if u.focusedWidget != nil && u.focusedWidget.(widget.Focuser) != focusableWidgets[0] {
+					u.focusedWidget.(widget.Focuser).Focus(false)
+				}
+				focusableWidgets[0].Focus(true)
+			} else if len > 0 {
+				sort.SliceStable(focusableWidgets, func(i, j int) bool {
+					return focusableWidgets[i].TabOrder() < focusableWidgets[j].TabOrder()
+				})
+				if u.focusedWidget != nil {
+					if input.KeyPressed(ebiten.KeyShift) {
+						for i := 0; i < len; i++ {
+							if focusableWidgets[i] == u.focusedWidget.(widget.Focuser) {
+								u.focusedWidget.(widget.Focuser).Focus(false)
+								if i == 0 {
+									focusableWidgets[len-1].Focus(true)
+								} else {
+									focusableWidgets[i-1].Focus(true)
+								}
+								return
+							}
+						}
+					} else {
+						for i := 0; i < len-1; i++ {
+							if focusableWidgets[i] == u.focusedWidget.(widget.Focuser) {
+								u.focusedWidget.(widget.Focuser).Focus(false)
+								focusableWidgets[i+1].Focus(true)
+								return
+							}
+						}
+					}
+					u.focusedWidget.(widget.Focuser).Focus(false)
+				}
+				focusableWidgets[0].Focus(true)
 			}
 		}
+	} else {
+		u.tabWasPressed = false
 	}
 }
 
@@ -177,6 +226,12 @@ func (u *UI) AddWindow(w *widget.Window) widget.RemoveWindowFunc {
 		u.removeWindow(w)
 	}
 	w.GetContainer().GetWidget().ContextMenuEvent.AddHandler(u.handleContextMenu)
+	w.GetContainer().GetWidget().FocusEvent.AddHandler(u.handleFocusEvent)
+
+	if w.Modal && u.focusedWidget != nil {
+		u.focusedWidget.(widget.Focuser).Focus(false)
+	}
+
 	w.SetCloseFunction(closeFunc)
 	return closeFunc
 }
@@ -192,4 +247,10 @@ func (u *UI) removeWindow(w *widget.Window) {
 
 func (u *UI) HasFocus() bool {
 	return u.focusedWidget != nil
+}
+
+func (u *UI) ClearFocus() {
+	if u.focusedWidget != nil {
+		u.focusedWidget.(widget.Focuser).Focus(false)
+	}
 }

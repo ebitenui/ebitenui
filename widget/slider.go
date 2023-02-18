@@ -40,6 +40,9 @@ type Slider struct {
 	handlePressedOffsetX         int
 	handlePressedOffsetY         int
 	handlePressedInternalCurrent float64
+
+	tabOrder  int
+	justMoved bool
 }
 
 type SliderTrackImage struct {
@@ -156,6 +159,22 @@ func (o SliderOptions) ChangedHandler(f SliderChangedHandlerFunc) SliderOpt {
 	}
 }
 
+func (o SliderOptions) TabOrder(tabOrder int) SliderOpt {
+	return func(sl *Slider) {
+		sl.tabOrder = tabOrder
+	}
+}
+
+func (s *Slider) Focus(focused bool) {
+	s.init.Do()
+	s.GetWidget().FireFocusEvent(s, focused, img.Point{-1, -1})
+	s.handle.focused = focused
+}
+
+func (s *Slider) TabOrder() int {
+	return s.tabOrder
+}
+
 func (s *Slider) GetWidget() *Widget {
 	s.init.Do()
 	return s.widget
@@ -204,7 +223,9 @@ func (s *Slider) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 func (s *Slider) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	s.init.Do()
 
+	s.handleDirection()
 	s.clampCurrentMinMax()
+
 	s.handle.GetWidget().Disabled = s.widget.Disabled
 
 	s.widget.Render(screen, def)
@@ -242,6 +263,36 @@ func (s *Slider) draw(screen *ebiten.Image) {
 				opts.GeoM.Translate(float64(s.widget.Rect.Min.X+s.trackOffset), float64(s.widget.Rect.Min.Y))
 			}
 		})
+	}
+}
+
+func (s *Slider) handleDirection() {
+	if s.direction == DirectionHorizontal {
+		if input.KeyPressed(ebiten.KeyLeft) || input.KeyPressed(ebiten.KeyRight) {
+			if !s.justMoved && s.handle.focused {
+				changeDir := 1
+				if input.KeyPressed(ebiten.KeyLeft) {
+					changeDir = -1
+				}
+				s.Current = s.Current + (changeDir * s.pageSizeFunc())
+				s.justMoved = true
+			}
+		} else {
+			s.justMoved = false
+		}
+	} else {
+		if input.KeyPressed(ebiten.KeyUp) || input.KeyPressed(ebiten.KeyDown) {
+			if !s.justMoved && s.handle.focused {
+				changeDir := 1
+				if input.KeyPressed(ebiten.KeyUp) {
+					changeDir = -1
+				}
+				s.Current = s.Current + (changeDir * s.pageSizeFunc())
+				s.justMoved = true
+			}
+		} else {
+			s.justMoved = false
+		}
 	}
 }
 

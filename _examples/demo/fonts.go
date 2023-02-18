@@ -1,7 +1,7 @@
 package main
 
 import (
-	"io/ioutil"
+	"os"
 
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
@@ -63,7 +63,7 @@ func (f *fonts) close() {
 }
 
 func loadFont(path string, size float64) (font.Face, error) {
-	fontData, err := ioutil.ReadFile(path)
+	fontData, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

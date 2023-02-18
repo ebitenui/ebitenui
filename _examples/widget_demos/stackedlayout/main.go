@@ -107,8 +107,6 @@ func main() {
 	)
 	bottomRightContainer.AddChild(bottomRightButton)
 
-	// add the button as a child of the container
-	btnContainer.AddChild(button)
 	rootContainer := widget.NewContainer(
 		// the container will use a plain color as its background
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.RGBA{0x13, 0x1a, 0x22, 0xff})),

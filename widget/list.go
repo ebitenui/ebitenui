@@ -39,6 +39,11 @@ type List struct {
 	hSlider         *Slider
 	buttons         []*Button
 	selectedEntry   interface{}
+
+	focused    bool
+	tabOrder   int
+	justMoved  bool
+	focusIndex int
 }
 
 type ListOpt func(l *List)
@@ -51,6 +56,8 @@ type ListEntryColor struct {
 	DisabledUnselected         color.Color
 	DisabledSelected           color.Color
 	SelectedBackground         color.Color
+	FocusedBackground          color.Color
+	SelectedFocusedBackground  color.Color
 	DisabledSelectedBackground color.Color
 }
 
@@ -79,6 +86,8 @@ func NewList(opts ...ListOpt) *List {
 	for _, o := range opts {
 		o(l)
 	}
+
+	l.resetFocusIndex()
 
 	return l
 }
@@ -142,11 +151,13 @@ func (o ListOptions) EntryColor(c *ListEntryColor) ListOpt {
 		l.entryUnselectedColor = &ButtonImage{
 			Idle:     image.NewNineSliceColor(color.Transparent),
 			Disabled: image.NewNineSliceColor(color.Transparent),
+			Hover:    image.NewNineSliceColor(c.FocusedBackground),
 		}
 
 		l.entrySelectedColor = &ButtonImage{
 			Idle:     image.NewNineSliceColor(c.SelectedBackground),
 			Disabled: image.NewNineSliceColor(c.DisabledSelectedBackground),
+			Hover:    image.NewNineSliceColor(c.SelectedFocusedBackground),
 		}
 
 		l.entryUnselectedTextColor = &ButtonTextColor{
@@ -178,6 +189,12 @@ func (o ListOptions) EntrySelectedHandler(f ListEntrySelectedHandlerFunc) ListOp
 func (o ListOptions) AllowReselect() ListOpt {
 	return func(l *List) {
 		l.allowReselect = true
+	}
+}
+
+func (o ListOptions) TabOrder(tabOrder int) ListOpt {
+	return func(l *List) {
+		l.tabOrder = tabOrder
 	}
 }
 
@@ -219,8 +236,60 @@ func (l *List) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	}
 
 	l.scrollContainer.GetWidget().Disabled = d
-
+	l.handleInput()
 	l.container.Render(screen, def)
+}
+
+func (l *List) Focus(focused bool) {
+	l.init.Do()
+	l.GetWidget().FireFocusEvent(l, focused, img.Point{-1, -1})
+	l.focused = focused
+}
+
+func (l *List) TabOrder() int {
+	return l.tabOrder
+}
+
+func (l *List) handleInput() {
+	if l.focused && !l.GetWidget().Disabled && len(l.buttons) > 0 {
+		if input.KeyPressed(ebiten.KeyUp) || input.KeyPressed(ebiten.KeyDown) {
+			if !l.justMoved {
+				direction := -1
+				if input.KeyPressed(ebiten.KeyDown) {
+					direction = 1
+				}
+				l.buttons[l.focusIndex].focused = false
+				l.focusIndex += direction
+				if l.focusIndex < 0 {
+					l.focusIndex = len(l.buttons) - 1
+				}
+				if l.focusIndex >= len(l.buttons) {
+					l.focusIndex = 0
+				}
+				l.justMoved = true
+			}
+		} else {
+			l.justMoved = false
+		}
+
+		l.buttons[l.focusIndex].focused = true
+		l.ScrollVisible(l.buttons[l.focusIndex])
+	} else {
+		l.buttons[l.focusIndex].focused = false
+	}
+}
+
+func (l *List) resetFocusIndex() {
+	if len(l.buttons) > 0 {
+		l.buttons[l.focusIndex].focused = false
+		for i := 0; i < len(l.entries); i++ {
+			if l.entries[i] == l.selectedEntry {
+				l.focusIndex = i
+				return
+			}
+		}
+		l.focusIndex = 0
+	}
 }
 
 func (l *List) createWidget() {
@@ -242,7 +311,7 @@ func (l *List) createWidget() {
 	content := NewContainer(
 		ContainerOpts.Layout(NewRowLayout(
 			RowLayoutOpts.Direction(DirectionVertical))),
-		ContainerOpts.AutoDisableChildren())
+	)
 
 	l.buttons = make([]*Button, 0, len(l.entries))
 	for _, e := range l.entries {
@@ -321,7 +390,7 @@ func (l *List) setSelectedEntry(e interface{}, user bool) {
 
 		prev := l.selectedEntry
 		l.selectedEntry = e
-
+		l.resetFocusIndex()
 		for i, b := range l.buttons {
 			if l.entries[i] == e {
 				b.Image = l.entrySelectedColor
@@ -358,4 +427,27 @@ func (l *List) SetScrollLeft(left float64) {
 		l.hSlider.Current = int(math.Round(left * 1000))
 	}
 	l.scrollContainer.ScrollLeft = left
+}
+
+func (l *List) ScrollVisible(w HasWidget) {
+	rect := l.scrollContainer.ContentRect()
+	wrect := w.GetWidget().Rect
+	if !wrect.In(rect) {
+		ScrollTop := 0.0
+		ScrollLeft := 0.0
+		if wrect.Max.Y > rect.Max.Y {
+			ScrollTop += .1
+		} else if wrect.Min.Y < rect.Min.Y {
+			ScrollTop += -.1
+		}
+		if wrect.Max.X > rect.Max.X {
+			ScrollLeft += .1
+		} else if wrect.Min.X < rect.Min.X {
+			ScrollLeft += -.1
+		}
+		l.SetScrollTop(l.scrollContainer.ScrollTop + ScrollTop)
+		l.SetScrollLeft(l.scrollContainer.ScrollLeft + ScrollLeft)
+
+	}
+
 }

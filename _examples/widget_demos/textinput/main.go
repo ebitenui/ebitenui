@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"log"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"
@@ -90,7 +91,6 @@ func main() {
 	)
 
 	rootContainer.AddChild(standardTextInput)
-
 	// construct a secure textinput widget
 	secureTextInput := widget.NewTextInput(
 		widget.TextInputOpts.WidgetOpts(
@@ -154,11 +154,11 @@ func main() {
 
 		//This method is called whenever there is a text change.
 		//It allows the developer to allow or deny a change.
-		//In this case we are limiting the string to 5 characters.
+		//In this case we are limiting the string to 5 runes.
 		//The first return parameter is whether or not to accept the text as is.
 		//The second return parameter is what to replace the text with if it is not accepted (optional)
 		widget.TextInputOpts.Validation(func(newInputText string) (bool, *string) {
-			if len(newInputText) > 5 {
+			if utf8.RuneCountInString(newInputText) > 5 {
 				return false, nil
 			}
 			return true, nil
@@ -215,6 +215,7 @@ func main() {
 	)
 
 	rootContainer.AddChild(allCapsTextInput)
+
 	// construct the UI
 	ui := ebitenui.UI{
 		Container: rootContainer,

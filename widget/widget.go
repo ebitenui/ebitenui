@@ -65,6 +65,7 @@ type Widget struct {
 	lastUpdateMouseLeftPressed bool
 	mouseLeftPressedInside     bool
 	inputLayer                 *input.Layer
+	focusable                  Focuser
 
 	ContextMenu          *Container
 	ContextMenuWindow    *Window
@@ -87,6 +88,7 @@ type Renderer interface {
 
 type Focuser interface {
 	Focus(focused bool)
+	TabOrder() int
 }
 
 // RenderFunc is a function that renders a widget onto screen. def may be called to defer
@@ -146,8 +148,9 @@ type WidgetScrolledEventArgs struct { //nolint:golint
 }
 
 type WidgetFocusEventArgs struct { //nolint:golint
-	Widget  *Widget
-	Focused bool
+	Widget   HasWidget
+	Focused  bool
+	Location image.Point
 }
 
 type WidgetContextMenuEventArgs struct { //nolint:golint
@@ -335,6 +338,12 @@ func (w *Widget) fireEvents() {
 	if inside && input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, layer) {
 		w.mouseLeftPressedInside = inside
 
+		if w.focusable != nil {
+			w.focusable.Focus(true)
+		} else {
+			w.FireFocusEvent(nil, false, p)
+		}
+
 		off := p.Sub(w.Rect.Min)
 		w.MouseButtonPressedEvent.Fire(&WidgetMouseButtonPressedEventArgs{
 			Widget:  w,
@@ -388,10 +397,11 @@ func (w *Widget) Parent() *Widget {
 	return w.parent
 }
 
-func WidgetFireFocusEvent(w *Widget, focused bool) { //nolint:golint
-	w.FocusEvent.Fire(&WidgetFocusEventArgs{
-		Widget:  w,
-		Focused: focused,
+func (widget *Widget) FireFocusEvent(w HasWidget, focused bool, location image.Point) { //nolint:golint
+	widget.FocusEvent.Fire(&WidgetFocusEventArgs{
+		Widget:   w,
+		Focused:  focused,
+		Location: location,
 	})
 }
 

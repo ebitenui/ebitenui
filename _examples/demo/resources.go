@@ -25,6 +25,8 @@ const (
 	listSelectedBackground         = "4b687a"
 	listDisabledSelectedBackground = "2a3944"
 
+	listFocusedBackground = "2a3944"
+
 	headerColor = textIdleColor
 
 	textInputCaretColor         = "e7c34b"
@@ -122,11 +124,9 @@ type panelResources struct {
 }
 
 type tabBookResources struct {
-	idleButton     *widget.ButtonImage
-	selectedButton *widget.ButtonImage
-	buttonFace     font.Face
-	buttonText     *widget.ButtonTextColor
-	buttonPadding  widget.Insets
+	buttonFace    font.Face
+	buttonText    *widget.ButtonTextColor
+	buttonPadding widget.Insets
 }
 
 type headerResources struct {
@@ -268,7 +268,10 @@ func newButtonResources(fonts *fonts) (*buttonResources, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	pressed_hover, err := loadImageNineSlice("graphics/button-selected-hover.png", 12, 0)
+	if err != nil {
+		return nil, err
+	}
 	pressed, err := loadImageNineSlice("graphics/button-pressed.png", 12, 0)
 	if err != nil {
 		return nil, err
@@ -280,10 +283,11 @@ func newButtonResources(fonts *fonts) (*buttonResources, error) {
 	}
 
 	i := &widget.ButtonImage{
-		Idle:     idle,
-		Hover:    hover,
-		Pressed:  pressed,
-		Disabled: disabled,
+		Idle:         idle,
+		Hover:        hover,
+		Pressed:      pressed,
+		PressedHover: pressed_hover,
+		Disabled:     disabled,
 	}
 
 	return &buttonResources{
@@ -487,6 +491,9 @@ func newListResources(fonts *fonts) (*listResources, error) {
 
 			SelectedBackground:         hexToColor(listSelectedBackground),
 			DisabledSelectedBackground: hexToColor(listDisabledSelectedBackground),
+
+			FocusedBackground:         hexToColor(listFocusedBackground),
+			SelectedFocusedBackground: hexToColor(listSelectedBackground),
 		},
 
 		entryPadding: widget.Insets{
@@ -592,64 +599,9 @@ func newPanelResources() (*panelResources, error) {
 }
 
 func newTabBookResources(fonts *fonts) (*tabBookResources, error) {
-	selectedIdle, err := loadImageNineSlice("graphics/button-selected-idle.png", 12, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	selectedHover, err := loadImageNineSlice("graphics/button-selected-hover.png", 12, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	selectedPressed, err := loadImageNineSlice("graphics/button-selected-pressed.png", 12, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	selectedDisabled, err := loadImageNineSlice("graphics/button-selected-disabled.png", 12, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	selected := &widget.ButtonImage{
-		Idle:     selectedIdle,
-		Hover:    selectedHover,
-		Pressed:  selectedPressed,
-		Disabled: selectedDisabled,
-	}
-
-	idle, err := loadImageNineSlice("graphics/button-idle.png", 12, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	hover, err := loadImageNineSlice("graphics/button-hover.png", 12, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	pressed, err := loadImageNineSlice("graphics/button-pressed.png", 12, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	disabled, err := loadImageNineSlice("graphics/button-disabled.png", 12, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	unselected := &widget.ButtonImage{
-		Idle:     idle,
-		Hover:    hover,
-		Pressed:  pressed,
-		Disabled: disabled,
-	}
 
 	return &tabBookResources{
-		selectedButton: selected,
-		idleButton:     unselected,
-		buttonFace:     fonts.face,
+		buttonFace: fonts.face,
 
 		buttonText: &widget.ButtonTextColor{
 			Idle:     hexToColor(buttonIdleColor),

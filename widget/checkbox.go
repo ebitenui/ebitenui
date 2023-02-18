@@ -17,6 +17,8 @@ type Checkbox struct {
 	init   *MultiOnce
 	button *Button
 	state  WidgetState
+
+	tabOrder int
 }
 
 type CheckboxOpt func(c *Checkbox)
@@ -70,6 +72,12 @@ func (o CheckboxOptions) Image(i *CheckboxGraphicImage) CheckboxOpt {
 func (o CheckboxOptions) TriState() CheckboxOpt {
 	return func(c *Checkbox) {
 		c.triState = true
+	}
+}
+
+func (o CheckboxOptions) TabOrder(tabOrder int) CheckboxOpt {
+	return func(c *Checkbox) {
+		c.tabOrder = tabOrder
 	}
 }
 
@@ -130,6 +138,16 @@ func (c *Checkbox) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	c.button.GraphicImage = c.state.graphicImage(c.image)
 
 	c.button.Render(screen, def)
+}
+
+func (c *Checkbox) Focus(focused bool) {
+	c.init.Do()
+	c.GetWidget().FireFocusEvent(c, focused, image.Point{-1, -1})
+	c.button.focused = focused
+}
+
+func (c *Checkbox) TabOrder() int {
+	return c.tabOrder
 }
 
 func (c *Checkbox) createWidget() {

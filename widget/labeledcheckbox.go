@@ -91,7 +91,15 @@ func (l *LabeledCheckbox) Checkbox() *Checkbox {
 func (l *LabeledCheckbox) Label() *Label {
 	return l.label
 }
+func (c *LabeledCheckbox) Focus(focused bool) {
+	c.init.Do()
+	c.GetWidget().FireFocusEvent(c, focused, image.Point{-1, -1})
+	c.checkbox.button.focused = focused
+}
 
+func (c *LabeledCheckbox) TabOrder() int {
+	return c.checkbox.tabOrder
+}
 func (l *LabeledCheckbox) createWidget() {
 	l.container = NewContainer(
 		ContainerOpts.Layout(NewRowLayout(

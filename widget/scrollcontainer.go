@@ -51,6 +51,14 @@ func NewScrollContainer(opts ...ScrollContainerOpt) *ScrollContainer {
 		o(s)
 	}
 
+	s.content.GetWidget().ContextMenuEvent.AddHandler(func(args interface{}) {
+		a := args.(*WidgetContextMenuEventArgs)
+		s.GetWidget().FireContextMenuEvent(a.Widget, a.Location)
+	})
+	s.content.GetWidget().FocusEvent.AddHandler(func(args interface{}) {
+		a := args.(*WidgetFocusEventArgs)
+		s.GetWidget().FireFocusEvent(a.Widget, a.Focused, a.Location)
+	})
 	return s
 }
 
@@ -137,6 +145,28 @@ func (s *ScrollContainer) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	s.draw(screen)
 
 	s.renderContent(screen, def)
+}
+func (s *ScrollContainer) GetFocusers() []Focuser {
+	result := []Focuser{}
+	switch v := s.content.(type) {
+	case Focuser:
+		if v.TabOrder() >= 0 && !v.(HasWidget).GetWidget().Disabled {
+			result = append(result, v)
+		}
+	case *Container:
+		result = append(result, v.GetFocusers()...)
+	case *FlipBook:
+		result = append(result, v.GetFocusers()...)
+	case *TabBook:
+		result = append(result, v.container.GetFocusers()...)
+	case *TabBookTab:
+		result = append(result, v.GetFocusers()...)
+	case *ScrollContainer:
+		result = append(result, v.GetFocusers()...)
+	case *TextArea:
+		result = append(result, v.GetFocusers()...)
+	}
+	return result
 }
 
 func (s *ScrollContainer) draw(screen *ebiten.Image) {

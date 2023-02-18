@@ -21,7 +21,6 @@ type game struct {
 func main() {
 	// load images for button states: idle, hover, and pressed
 	buttonImage, _ := loadButtonImage()
-	selectedImage, _ := loadSelectedImage()
 
 	// load text font
 	face, _ := loadFont(20)
@@ -86,7 +85,7 @@ func main() {
 	)
 	tabBlue.AddChild(blueBtn2)
 	tabBook := widget.NewTabBook(
-		widget.TabBookOpts.TabButtonImage(buttonImage, selectedImage),
+		widget.TabBookOpts.TabButtonImage(buttonImage),
 		widget.TabBookOpts.TabButtonText(face, &widget.ButtonTextColor{Idle: color.White}),
 		widget.TabBookOpts.TabButtonSpacing(0),
 		widget.TabBookOpts.ContainerOpts(
@@ -98,10 +97,10 @@ func main() {
 			}),
 			),
 		),
-		widget.TabBookOpts.TabButtonOpts(widget.StateButtonOpts.ButtonOpts(
+		widget.TabBookOpts.TabButtonOpts(
 			widget.ButtonOpts.TextPadding(widget.NewInsetsSimple(5)),
 			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.MinSize(135, 0)),
-		)),
+		),
 		widget.TabBookOpts.Tabs(tabRed, tabGreen, tabBlue),
 	)
 	// add the tabBook as a child of the container
@@ -152,23 +151,13 @@ func loadButtonImage() (*widget.ButtonImage, error) {
 
 	pressed := image.NewNineSliceColor(color.RGBA{R: 100, G: 100, B: 120, A: 255})
 
-	return &widget.ButtonImage{
-		Idle:    idle,
-		Hover:   hover,
-		Pressed: pressed,
-	}, nil
-}
-func loadSelectedImage() (*widget.ButtonImage, error) {
-	idle := image.NewNineSliceColor(color.RGBA{R: 100, G: 100, B: 120, A: 255})
-
-	hover := image.NewNineSliceColor(color.RGBA{R: 100, G: 100, B: 120, A: 255})
-
-	pressed := image.NewNineSliceColor(color.RGBA{R: 100, G: 100, B: 120, A: 255})
+	pressedHover := image.NewNineSliceColor(color.RGBA{R: 110, G: 110, B: 110, A: 255})
 
 	return &widget.ButtonImage{
-		Idle:    idle,
-		Hover:   hover,
-		Pressed: pressed,
+		Idle:         idle,
+		Hover:        hover,
+		Pressed:      pressed,
+		PressedHover: pressedHover,
 	}, nil
 }
 

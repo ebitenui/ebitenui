@@ -14,8 +14,8 @@ type TabBook struct {
 
 	tabs          []*TabBookTab
 	containerOpts []ContainerOpt
-	buttonOpts    []StateButtonOpt
-	buttonImages  map[interface{}]*ButtonImage
+	buttonOpts    []ButtonOpt
+	buttonImages  *ButtonImage
 	buttonFace    font.Face
 	buttonColor   *ButtonTextColor
 	flipBookOpts  []FlipBookOpt
@@ -24,7 +24,7 @@ type TabBook struct {
 
 	init        *MultiOnce
 	container   *Container
-	tabToButton map[*TabBookTab]*StateButton
+	tabToButton map[*TabBookTab]*Button
 	flipBook    *FlipBook
 	tab         *TabBookTab
 }
@@ -55,7 +55,7 @@ func NewTabBook(opts ...TabBookOpt) *TabBook {
 		TabSelectedEvent: &event.Event{},
 
 		init:        &MultiOnce{},
-		tabToButton: map[*TabBookTab]*StateButton{},
+		tabToButton: map[*TabBookTab]*Button{},
 	}
 
 	t.init.Append(t.createWidget)
@@ -94,7 +94,7 @@ func (o TabBookOptions) ContainerOpts(opts ...ContainerOpt) TabBookOpt {
 	}
 }
 
-func (o TabBookOptions) TabButtonOpts(opts ...StateButtonOpt) TabBookOpt {
+func (o TabBookOptions) TabButtonOpts(opts ...ButtonOpt) TabBookOpt {
 	return func(t *TabBook) {
 		t.buttonOpts = append(t.buttonOpts, opts...)
 	}
@@ -106,12 +106,9 @@ func (o TabBookOptions) FlipBookOpts(opts ...FlipBookOpt) TabBookOpt {
 	}
 }
 
-func (o TabBookOptions) TabButtonImage(idle *ButtonImage, selected *ButtonImage) TabBookOpt {
+func (o TabBookOptions) TabButtonImage(buttonImages *ButtonImage) TabBookOpt {
 	return func(t *TabBook) {
-		t.buttonImages = map[interface{}]*ButtonImage{
-			false: idle,
-			true:  selected,
-		}
+		t.buttonImages = buttonImages
 	}
 }
 
@@ -190,7 +187,6 @@ func (t *TabBook) createWidget() {
 			GridLayoutOpts.Columns(1),
 			GridLayoutOpts.Stretch([]bool{true}, []bool{false, true}),
 			GridLayoutOpts.Spacing(0, t.spacing))),
-		ContainerOpts.AutoDisableChildren(),
 	}...)...)
 	t.containerOpts = nil
 
@@ -198,21 +194,28 @@ func (t *TabBook) createWidget() {
 		ContainerOpts.Layout(NewRowLayout(
 			RowLayoutOpts.Spacing(t.buttonSpacing))))
 	t.container.AddChild(buttonsContainer)
-
+	btnElements := []RadioGroupElement{}
 	for _, tab := range t.tabs {
 		tab := tab
-		b := NewStateButton(append(t.buttonOpts, []StateButtonOpt{
-			StateButtonOpts.StateImages(t.buttonImages),
-			StateButtonOpts.ButtonOpts(
+		btn := NewButton(
+			append(t.buttonOpts,
+				ButtonOpts.Image(t.buttonImages),
 				ButtonOpts.Text(tab.label, t.buttonFace, t.buttonColor),
-				ButtonOpts.ClickedHandler(func(_ *ButtonClickedEventArgs) {
-					t.SetTab(tab)
-				})),
-		}...)...)
-		buttonsContainer.AddChild(b)
-
-		t.tabToButton[tab] = b
+				ButtonOpts.WidgetOpts(WidgetOpts.CustomData(tab)),
+			)...,
+		)
+		btnElements = append(btnElements, btn)
+		buttonsContainer.AddChild(btn)
+		t.tabToButton[tab] = btn
 	}
+
+	NewRadioGroup(
+		RadioGroupOpts.Elements(btnElements...),
+		RadioGroupOpts.ChangedHandler(func(args *RadioGroupChangedEventArgs) {
+			tab := args.Active.(*Button).GetWidget().CustomData.(*TabBookTab)
+			t.SetTab(tab)
+		}))
+
 	t.buttonOpts = nil
 	t.buttonImages = nil
 
@@ -237,7 +240,11 @@ func (t *TabBook) setTab(tab *TabBookTab, fireEvent bool) {
 		t.flipBook.SetPage(tab)
 
 		for bt, b := range t.tabToButton {
-			b.State = bt == tab
+			state := WidgetUnchecked
+			if bt == tab {
+				state = WidgetChecked
+			}
+			b.SetState(state)
 		}
 
 		if fireEvent {

@@ -83,8 +83,6 @@ func newTabBook(t *testing.T, opts ...TabBookOpt) *TabBook {
 	tb := NewTabBook(append(opts, []TabBookOpt{
 		TabBookOpts.TabButtonImage(&ButtonImage{
 			Idle: newNineSliceEmpty(t),
-		}, &ButtonImage{
-			Idle: newNineSliceEmpty(t),
 		}),
 		TabBookOpts.TabButtonText(loadFont(t), &ButtonTextColor{
 			Idle:     color.Transparent,
@@ -97,8 +95,8 @@ func newTabBook(t *testing.T, opts ...TabBookOpt) *TabBook {
 	return tb
 }
 
-func tabBookButtons(t *TabBook) []*StateButton {
-	buttons := []*StateButton{}
+func tabBookButtons(t *TabBook) []*Button {
+	buttons := []*Button{}
 	for _, tab := range t.tabs {
 		buttons = append(buttons, t.tabToButton[tab])
 	}

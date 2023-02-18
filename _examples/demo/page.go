@@ -331,9 +331,9 @@ func tabBookPage(res *uiResources) *page {
 
 	t := widget.NewTabBook(
 		widget.TabBookOpts.Tabs(tabs...),
-		widget.TabBookOpts.TabButtonImage(res.tabBook.idleButton, res.tabBook.selectedButton),
+		widget.TabBookOpts.TabButtonImage(res.button.image),
 		widget.TabBookOpts.TabButtonText(res.tabBook.buttonFace, res.tabBook.buttonText),
-		widget.TabBookOpts.TabButtonOpts(widget.StateButtonOpts.ButtonOpts(widget.ButtonOpts.TextPadding(res.tabBook.buttonPadding))),
+		widget.TabBookOpts.TabButtonOpts(widget.ButtonOpts.TextPadding(res.tabBook.buttonPadding)),
 		widget.TabBookOpts.TabButtonSpacing(10),
 		widget.TabBookOpts.Spacing(15))
 	c.AddChild(t)
@@ -809,8 +809,9 @@ func openWindow(res *uiResources, ui func() *ebitenui.UI) {
 		widget.ButtonOpts.Text("X", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			rw()
-		})),
-	)
+		}),
+		widget.ButtonOpts.TabOrder(99),
+	))
 
 	c := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(res.panel.image),

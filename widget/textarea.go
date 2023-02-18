@@ -203,6 +203,17 @@ func (l *TextArea) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 	l.container.SetupInputLayer(def)
 }
 
+func (l *TextArea) GetFocusers() []Focuser {
+	var result []Focuser
+	if l.hSlider != nil && l.hSlider.tabOrder != -1 {
+		result = append(result, l.hSlider)
+	}
+	if l.vSlider != nil && l.vSlider.tabOrder != -1 {
+		result = append(result, l.vSlider)
+	}
+	return result
+}
+
 func (l *TextArea) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	l.init.Do()
 

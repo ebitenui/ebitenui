@@ -2,6 +2,7 @@ package widget
 
 import (
 	"image"
+	img "image"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
@@ -16,10 +17,11 @@ type ListComboButton struct {
 	buttonOpts []SelectComboButtonOpt
 	listOpts   []ListOpt
 
-	init               *MultiOnce
-	button             *SelectComboButton
-	list               *List
-	lastContentVisible bool
+	init   *MultiOnce
+	button *SelectComboButton
+	list   *List
+
+	tabOrder int
 }
 
 type ListComboButtonOpt func(l *ListComboButton)
@@ -84,6 +86,25 @@ func (o ListComboButtonOptions) EntrySelectedHandler(f ListComboButtonEntrySelec
 	}
 }
 
+func (o ListComboButtonOptions) TabOrder(tabOrder int) ListComboButtonOpt {
+	return func(sl *ListComboButton) {
+		sl.tabOrder = tabOrder
+	}
+}
+
+func (l *ListComboButton) Focus(focused bool) {
+	l.init.Do()
+	l.GetWidget().FireFocusEvent(l, focused, img.Point{-1, -1})
+	l.button.button.button.focused = focused
+	if !focused {
+		l.SetContentVisible(false)
+	}
+}
+
+func (l *ListComboButton) TabOrder() int {
+	return l.tabOrder
+}
+
 func (l *ListComboButton) GetWidget() *Widget {
 	l.init.Do()
 	return l.button.GetWidget()
@@ -106,16 +127,14 @@ func (l *ListComboButton) SetupInputLayer(def input.DeferredSetupInputLayerFunc)
 
 func (l *ListComboButton) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	l.init.Do()
-
-	v := l.ContentVisible()
-	if v && v != l.lastContentVisible {
-		// TODO: scroll list to make current selected entry visible
-		l.list.SetScrollTop(0)
+	if l.button.button.button.focused {
+		if input.KeyPressed(ebiten.KeyDown) || input.KeyPressed(ebiten.KeyUp) {
+			l.SetContentVisible(true)
+		}
 	}
 
 	l.button.Render(screen, def)
 
-	l.lastContentVisible = v
 }
 
 func (l *ListComboButton) createWidget() {
@@ -164,7 +183,11 @@ func (l *ListComboButton) SelectedEntry() interface{} {
 
 func (l *ListComboButton) SetContentVisible(v bool) {
 	l.init.Do()
+	l.list.Focus(v)
 	l.button.SetContentVisible(v)
+	if !v {
+		l.list.resetFocusIndex()
+	}
 }
 
 func (l *ListComboButton) ContentVisible() bool {

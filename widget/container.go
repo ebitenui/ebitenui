@@ -90,7 +90,10 @@ func (c *Container) AddChild(child PreferredSizeLocateableWidget) RemoveChildFun
 		a := args.(*WidgetContextMenuEventArgs)
 		c.GetWidget().FireContextMenuEvent(a.Widget, a.Location)
 	})
-
+	child.GetWidget().FocusEvent.AddHandler(func(args interface{}) {
+		a := args.(*WidgetFocusEventArgs)
+		c.GetWidget().FireFocusEvent(a.Widget, a.Focused, a.Location)
+	})
 	c.RequestRelayout()
 
 	return func() {
@@ -213,6 +216,31 @@ func (c *Container) draw(screen *ebiten.Image) {
 func (c *Container) createWidget() {
 	c.widget = NewWidget(c.widgetOpts...)
 	c.widgetOpts = nil
+}
+
+func (c *Container) GetFocusers() []Focuser {
+	var result []Focuser
+	for _, child := range c.children {
+		switch v := child.(type) {
+		case Focuser:
+			if v.TabOrder() >= 0 && !v.(HasWidget).GetWidget().Disabled {
+				result = append(result, v)
+			}
+		case *Container:
+			result = append(result, v.GetFocusers()...)
+		case *FlipBook:
+			result = append(result, v.GetFocusers()...)
+		case *TabBook:
+			result = append(result, v.container.GetFocusers()...)
+		case *TabBookTab:
+			result = append(result, v.GetFocusers()...)
+		case *ScrollContainer:
+			result = append(result, v.GetFocusers()...)
+		case *TextArea:
+			result = append(result, v.GetFocusers()...)
+		}
+	}
+	return result
 }
 
 // WidgetAt implements WidgetLocator.

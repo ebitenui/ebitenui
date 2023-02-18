@@ -110,6 +110,10 @@ func (f *FlipBook) WidgetAt(x int, y int) HasWidget {
 	return f
 }
 
+func (f *FlipBook) GetFocusers() []Focuser {
+	return f.container.GetFocusers()
+}
+
 func (f *FlipBook) createWidget() {
 	f.container = NewContainer(append(f.containerOpts, ContainerOpts.Layout(NewAnchorLayout(f.anchorLayoutOpts...)))...)
 	f.containerOpts = nil
