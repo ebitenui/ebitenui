@@ -2,26 +2,36 @@ package widget
 
 import (
 	"image"
+	"image/color"
 	"sync/atomic"
 	"time"
 
+	e_image "github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/hajimehoshi/ebiten/v2"
+	"golang.org/x/image/font"
 )
 
 type ToolTipPosition int
 
 const (
+	// The tooltip will follow the cursor around while visible
 	TOOLTIP_POS_CURSOR_FOLLOW ToolTipPosition = iota
+	// The tooltip will stick to where the cursor was when the tooltip was made visible
 	TOOLTIP_POS_CURSOR_STICKY
+	// The tooltip will display based on the Widget and Content anchor settings.
+	// It defaults to opening right aligned and directly under the widget.
 	TOOLTIP_POS_WIDGET
 )
 
 type ToolTipAnchor int
 
 const (
+	// Anchor at the start of the element
 	ANCHOR_START ToolTipAnchor = iota
+	// Anchor in the middle of the element
 	ANCHOR_MIDDLE
+	// Anchor at the end of the element
 	ANCHOR_END
 )
 
@@ -34,13 +44,13 @@ type ToolTip struct {
 	ContentOriginVertical   ToolTipAnchor
 	ContentOriginHorizontal ToolTipAnchor
 	Delay                   time.Duration
+	Offset                  image.Point
 	content                 *Container
-	offset                  image.Point
 	window                  *Window
 	visible                 bool
 
 	state          toolTipState
-	toolTipUpdater ToolTipUpdater
+	ToolTipUpdater ToolTipUpdater
 }
 type ToolTipOpt func(t *ToolTip)
 type ToolTipOptions struct {
@@ -52,9 +62,11 @@ type toolTipState func(*Widget) (toolTipState, bool)
 
 type ToolTipUpdater func(*Container)
 
+// Create a new Tooltip. This method allows you to specify
+// every aspect of the displayed tooltip's content.
 func NewToolTip(opts ...ToolTipOpt) *ToolTip {
 	t := &ToolTip{
-		offset: image.Point{0, 0},
+		Offset: image.Point{0, 0},
 	}
 	t.state = t.idleState()
 	t.WidgetOriginHorizontal = ANCHOR_END
@@ -72,59 +84,96 @@ func NewToolTip(opts ...ToolTipOpt) *ToolTip {
 	return t
 }
 
+// Create a new Text Tooltip with the following defaults:
+//   - ProcessBBCode = true
+//   - Padding = Top/Bottom: 5px Left/Right: 10px
+//   - Delay = 800ms
+//   - Offset = 0, 20
+func NewTextToolTip(label string, face font.Face, color color.Color, background *e_image.NineSlice) *ToolTip {
+	c := NewContainer(
+		ContainerOpts.BackgroundImage(background),
+		ContainerOpts.AutoDisableChildren(),
+		ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(Insets{
+			Top:    5,
+			Bottom: 5,
+			Left:   10,
+			Right:  10,
+		}))),
+	)
+
+	c.AddChild(NewText(TextOpts.ProcessBBCode(true), TextOpts.Text(label, face, color)))
+
+	return NewToolTip(
+		ToolTipOpts.Content(c),
+		ToolTipOpts.Delay(800*time.Millisecond),
+		ToolTipOpts.Offset(image.Point{0, 20}),
+	)
+}
+
+// The container to be displayed
 func (o ToolTipOptions) Content(c *Container) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.content = c
 	}
 }
 
+// The X/Y offsets from the Tooltip anchor point
 func (o ToolTipOptions) Offset(off image.Point) ToolTipOpt {
 	return func(t *ToolTip) {
-		t.offset = off
+		t.Offset = off
 	}
 }
 
+// The vertical position of the anchor on the widget. Only used when Postion = WIDGET
 func (o ToolTipOptions) WidgetOriginVertical(widgetOriginVertical ToolTipAnchor) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.WidgetOriginVertical = widgetOriginVertical
 	}
 }
 
+// The horizontal position of the anchor on the widget. Only used when Postion = WIDGET
 func (o ToolTipOptions) WidgetOriginHorizontal(widgetOriginHorizontal ToolTipAnchor) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.WidgetOriginHorizontal = widgetOriginHorizontal
 	}
 }
 
+// The vertical position of the anchor on the tooltip. Only used when Postion = WIDGET
 func (o ToolTipOptions) ContentOriginVertical(contentOriginVertical ToolTipAnchor) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.ContentOriginVertical = contentOriginVertical
 	}
 }
 
+// The horizontal position of the anchor on the tooltip. Only used when Postion = WIDGET
 func (o ToolTipOptions) ContentOriginHorizontal(contentOriginHorizontal ToolTipAnchor) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.ContentOriginHorizontal = contentOriginHorizontal
 	}
 }
 
+// Where to display the tooltip
 func (o ToolTipOptions) Position(position ToolTipPosition) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.Position = position
 	}
 }
 
+// How long to wait before displaying the tooltip
 func (o ToolTipOptions) Delay(d time.Duration) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.Delay = d
 	}
 }
 
+// A method that is called every draw call that the tooltip is visible.
+// This allows you to hook into the draw loop to update the tooltip if necessary
 func (o ToolTipOptions) ToolTipUpdater(toolTipUpdater ToolTipUpdater) ToolTipOpt {
 	return func(t *ToolTip) {
-		t.toolTipUpdater = toolTipUpdater
+		t.ToolTipUpdater = toolTipUpdater
 	}
 }
+
 func (t *ToolTip) Render(parent *Widget, screen *ebiten.Image, def DeferredRenderFunc) {
 	for {
 		newState, rerun := t.state(parent)
@@ -215,13 +264,13 @@ func (t *ToolTip) showingState(p image.Point) toolTipState {
 			p = t.processContentPosition(p, sx, sy)
 		}
 
-		if t.toolTipUpdater != nil {
-			t.toolTipUpdater(t.content)
+		if t.ToolTipUpdater != nil {
+			t.ToolTipUpdater(t.content)
 		}
 
 		r := image.Rect(0, 0, sx, sy)
 		r = r.Add(p)
-		r = r.Add(t.offset)
+		r = r.Add(t.Offset)
 		t.window.SetLocation(r)
 		t.content.SetLocation(r)
 		t.content.RequestRelayout()

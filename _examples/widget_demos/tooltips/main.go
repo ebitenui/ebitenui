@@ -103,6 +103,15 @@ func main() {
 	// add the button as a child of the container
 	rootContainer.AddChild(button)
 
+	//Use the NewTextToolTip convenience method to create the tooltip
+	btn2ToolTip := widget.NewTextToolTip("Label: 1\nLabel: 2\nLabel: 3\nLabel: 4\nLabel: 5",
+		face, color.White,
+		image.NewNineSliceColor(color.RGBA{R: 170, G: 170, B: 230, A: 255}))
+
+	// The NewTextToolTip defaults to follow the cursor
+	// But every parameter is available to update after it has been created
+	btn2ToolTip.Position = widget.TOOLTIP_POS_CURSOR_STICKY
+
 	// construct a button
 	button2 := widget.NewButton(
 		// set general widget options
@@ -111,19 +120,7 @@ func main() {
 			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Position: widget.RowLayoutPositionCenter,
 			}),
-			widget.WidgetOpts.ToolTip(widget.NewToolTip(
-				//You can reuse content between tooltips if needed
-				widget.ToolTipOpts.Content(tooltipContainer),
-				//widget.WidgetToolTipOpts.Delay(1*time.Second),
-				widget.ToolTipOpts.Offset(img.Point{-5, 5}),
-				widget.ToolTipOpts.Position(widget.TOOLTIP_POS_WIDGET),
-				//When the Position is set to TOOLTIP_POS_WIDGET, you can configure where it opens with the optional parameters below
-				//They will default to what you see below if you do not provide them
-				widget.ToolTipOpts.WidgetOriginHorizontal(widget.ANCHOR_END),
-				widget.ToolTipOpts.WidgetOriginVertical(widget.ANCHOR_END),
-				widget.ToolTipOpts.ContentOriginHorizontal(widget.ANCHOR_END),
-				widget.ToolTipOpts.ContentOriginVertical(widget.ANCHOR_START),
-			)),
+			widget.WidgetOpts.ToolTip(btn2ToolTip),
 		),
 
 		// specify the images to use
@@ -157,7 +154,7 @@ func main() {
 
 	// Ebiten setup
 	ebiten.SetWindowSize(400, 400)
-	ebiten.SetWindowTitle("Ebiten UI - ContextMenu")
+	ebiten.SetWindowTitle("Ebiten UI - Tooltips")
 
 	game := game{
 		ui: &ui,
