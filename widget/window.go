@@ -39,6 +39,7 @@ type Window struct {
 	Resizeable bool
 	MinSize    *image.Point
 	MaxSize    *image.Point
+	DrawLayer  int
 
 	closeMode WindowCloseMode
 	closeFunc RemoveWindowFunc
@@ -225,6 +226,15 @@ func (o WindowOptions) Location(rect image.Rectangle) WindowOpt {
 	}
 }
 
+// This option sets order the window will be drawn
+//   - &lt; 0 will have the window drawn before the container
+//   - &gt;= 0 will have the window drawn after the container
+func (o WindowOptions) DrawLayer(layer int) WindowOpt {
+	return func(w *Window) {
+		w.DrawLayer = layer
+	}
+}
+
 // This method is used to be able to close the window
 func (w *Window) Close() {
 	if w.closeFunc != nil {
@@ -235,25 +245,28 @@ func (w *Window) Close() {
 // This method will set the size and location of this window.
 // This method will account for specified MinSize and MaxSize values.
 func (w *Window) SetLocation(rect image.Rectangle) {
-	if w.MinSize != nil {
-		if rect.Dx() < w.MinSize.X {
-			rect.Max.X = rect.Min.X + w.MinSize.X
+	if rect != w.container.widget.Rect {
+		if w.MinSize != nil {
+			if rect.Dx() < w.MinSize.X {
+				rect.Max.X = rect.Min.X + w.MinSize.X
+			}
+			if rect.Dy() < w.MinSize.Y {
+				rect.Max.Y = rect.Min.Y + w.MinSize.Y
+			}
 		}
-		if rect.Dy() < w.MinSize.Y {
-			rect.Max.Y = rect.Min.Y + w.MinSize.Y
-		}
-	}
 
-	if w.MaxSize != nil {
-		if rect.Dx() > w.MaxSize.X {
-			rect.Max.X = rect.Min.X + w.MaxSize.X
+		if w.MaxSize != nil {
+			if rect.Dx() > w.MaxSize.X {
+				rect.Max.X = rect.Min.X + w.MaxSize.X
+			}
+			if rect.Dy() > w.MaxSize.Y {
+				rect.Max.Y = rect.Min.Y + w.MaxSize.Y
+			}
 		}
-		if rect.Dy() > w.MaxSize.Y {
-			rect.Max.Y = rect.Min.Y + w.MaxSize.Y
-		}
-	}
 
-	w.container.SetLocation(rect)
+		w.container.SetLocation(rect)
+		w.container.RequestRelayout()
+	}
 }
 
 // Typically used internally.
@@ -294,7 +307,6 @@ func (w *Window) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 		if w.startingPoint.X != x || w.startingPoint.Y != y {
 			newRect := w.container.GetWidget().Rect.Add(image.Point{x - w.startingPoint.X, y - w.startingPoint.Y})
 			w.SetLocation(newRect)
-			w.RequestRelayout()
 			w.startingPoint = image.Point{x, y}
 		}
 	}
@@ -304,14 +316,11 @@ func (w *Window) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 				newRect := w.container.GetWidget().Rect
 				newRect.Max.X = w.originalSize.X - (w.startingPoint.X - x)
 				w.SetLocation(newRect)
-				w.RequestRelayout()
 			}
 			if w.resizingHeight {
 				newRect := w.container.GetWidget().Rect
 				newRect.Max.Y = w.originalSize.Y - (w.startingPoint.Y - y)
-
 				w.SetLocation(newRect)
-				w.RequestRelayout()
 			}
 		}
 	}

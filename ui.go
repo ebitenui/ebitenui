@@ -205,11 +205,20 @@ func (u *UI) render(screen *ebiten.Image) {
 	if cap(u.renderers) < num {
 		u.renderers = make([]widget.Renderer, num)
 	}
-
 	u.renderers = u.renderers[:0]
+
+	index := 0
+	for ; index < len(u.windows); index++ {
+		if u.windows[index].DrawLayer < 0 {
+			u.renderers = append(u.renderers, u.windows[index])
+		} else {
+			break
+		}
+	}
 	u.renderers = append(u.renderers, u.Container)
-	for _, w := range u.windows {
-		u.renderers = append(u.renderers, w)
+
+	for ; index < len(u.windows); index++ {
+		u.renderers = append(u.renderers, u.windows[index])
 	}
 
 	if u.DragAndDrop != nil {
@@ -247,6 +256,10 @@ func (u *UI) addWindow(w *widget.Window) bool {
 		}
 	}
 	u.windows = append(u.windows, w)
+
+	sort.SliceStable(u.windows, func(i, j int) bool {
+		return u.windows[i].DrawLayer < u.windows[j].DrawLayer
+	})
 	return true
 }
 
