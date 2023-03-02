@@ -19,15 +19,16 @@ type Slider struct {
 
 	ChangedEvent *event.Event
 
-	widgetOpts      []WidgetOpt
-	handleOpts      []ButtonOpt
-	direction       Direction
-	trackImage      *SliderTrackImage
-	trackPadding    Insets
-	minHandleSize   int
-	fixedHandleSize int
-	trackOffset     int
-	pageSizeFunc    SliderPageSizeFunc
+	widgetOpts         []WidgetOpt
+	handleOpts         []ButtonOpt
+	direction          Direction
+	trackImage         *SliderTrackImage
+	trackPadding       Insets
+	minHandleSize      int
+	fixedHandleSize    int
+	trackOffset        int
+	pageSizeFunc       SliderPageSizeFunc
+	disableDefaultKeys bool
 
 	init                         *MultiOnce
 	widget                       *Widget
@@ -165,6 +166,12 @@ func (o SliderOptions) TabOrder(tabOrder int) SliderOpt {
 	}
 }
 
+func (o SliderOptions) DisableDefaultKeys(val bool) SliderOpt {
+	return func(sl *Slider) {
+		sl.disableDefaultKeys = val
+	}
+}
+
 func (s *Slider) Focus(focused bool) {
 	s.init.Do()
 	s.GetWidget().FireFocusEvent(s, focused, img.Point{-1, -1})
@@ -267,31 +274,33 @@ func (s *Slider) draw(screen *ebiten.Image) {
 }
 
 func (s *Slider) handleDirection() {
-	if s.direction == DirectionHorizontal {
-		if input.KeyPressed(ebiten.KeyLeft) || input.KeyPressed(ebiten.KeyRight) {
-			if !s.justMoved && s.handle.focused {
-				changeDir := 1
-				if input.KeyPressed(ebiten.KeyLeft) {
-					changeDir = -1
+	if !s.disableDefaultKeys {
+		if s.direction == DirectionHorizontal {
+			if input.KeyPressed(ebiten.KeyLeft) || input.KeyPressed(ebiten.KeyRight) {
+				if !s.justMoved && s.handle.focused {
+					changeDir := 1
+					if input.KeyPressed(ebiten.KeyLeft) {
+						changeDir = -1
+					}
+					s.Current = s.Current + (changeDir * s.pageSizeFunc())
+					s.justMoved = true
 				}
-				s.Current = s.Current + (changeDir * s.pageSizeFunc())
-				s.justMoved = true
+			} else {
+				s.justMoved = false
 			}
 		} else {
-			s.justMoved = false
-		}
-	} else {
-		if input.KeyPressed(ebiten.KeyUp) || input.KeyPressed(ebiten.KeyDown) {
-			if !s.justMoved && s.handle.focused {
-				changeDir := 1
-				if input.KeyPressed(ebiten.KeyUp) {
-					changeDir = -1
+			if input.KeyPressed(ebiten.KeyUp) || input.KeyPressed(ebiten.KeyDown) {
+				if !s.justMoved && s.handle.focused {
+					changeDir := 1
+					if input.KeyPressed(ebiten.KeyUp) {
+						changeDir = -1
+					}
+					s.Current = s.Current + (changeDir * s.pageSizeFunc())
+					s.justMoved = true
 				}
-				s.Current = s.Current + (changeDir * s.pageSizeFunc())
-				s.justMoved = true
+			} else {
+				s.justMoved = false
 			}
-		} else {
-			s.justMoved = false
 		}
 	}
 }

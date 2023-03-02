@@ -40,10 +40,11 @@ type List struct {
 	buttons         []*Button
 	selectedEntry   interface{}
 
-	focused    bool
-	tabOrder   int
-	justMoved  bool
-	focusIndex int
+	disableDefaultKeys bool
+	focused            bool
+	tabOrder           int
+	justMoved          bool
+	focusIndex         int
 }
 
 type ListOpt func(l *List)
@@ -143,6 +144,12 @@ func (o ListOptions) EntryLabelFunc(f ListEntryLabelFunc) ListOpt {
 func (o ListOptions) EntryFontFace(f font.Face) ListOpt {
 	return func(l *List) {
 		l.entryFace = f
+	}
+}
+
+func (o ListOptions) DisableDefaultKeys(val bool) ListOpt {
+	return func(l *List) {
+		l.disableDefaultKeys = val
 	}
 }
 
@@ -347,6 +354,7 @@ func (l *List) createWidget() {
 			SliderOpts.Direction(DirectionVertical),
 			SliderOpts.MinMax(0, 1000),
 			SliderOpts.PageSizeFunc(pageSizeFunc),
+			SliderOpts.DisableDefaultKeys(l.disableDefaultKeys),
 			SliderOpts.ChangedHandler(func(args *SliderChangedEventArgs) {
 				l.scrollContainer.ScrollTop = float64(args.Slider.Current) / 1000
 			}),

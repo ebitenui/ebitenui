@@ -20,7 +20,8 @@ type ListComboButton struct {
 	button *SelectComboButton
 	list   *List
 
-	tabOrder int
+	tabOrder           int
+	disableDefaultKeys bool
 }
 
 type ListComboButtonOpt func(l *ListComboButton)
@@ -91,6 +92,11 @@ func (o ListComboButtonOptions) TabOrder(tabOrder int) ListComboButtonOpt {
 	}
 }
 
+func (o ListComboButtonOptions) DisableDefaultKeys(val bool) ListComboButtonOpt {
+	return func(sl *ListComboButton) {
+		sl.disableDefaultKeys = val
+	}
+}
 func (l *ListComboButton) Focus(focused bool) {
 	l.init.Do()
 	l.GetWidget().FireFocusEvent(l, focused, image.Point{-1, -1})
@@ -127,8 +133,10 @@ func (l *ListComboButton) SetupInputLayer(def input.DeferredSetupInputLayerFunc)
 func (l *ListComboButton) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	l.init.Do()
 	if l.button.button.button.focused {
-		if input.KeyPressed(ebiten.KeyDown) || input.KeyPressed(ebiten.KeyUp) {
-			l.SetContentVisible(true)
+		if !l.disableDefaultKeys {
+			if input.KeyPressed(ebiten.KeyDown) || input.KeyPressed(ebiten.KeyUp) {
+				l.SetContentVisible(true)
+			}
 		}
 	}
 
@@ -140,6 +148,7 @@ func (l *ListComboButton) createWidget() {
 	l.list = NewList(append(l.listOpts, []ListOpt{
 		ListOpts.HideHorizontalSlider(),
 		ListOpts.AllowReselect(),
+		ListOpts.DisableDefaultKeys(l.disableDefaultKeys),
 	}...)...)
 	l.listOpts = nil
 
@@ -173,6 +182,7 @@ func (l *ListComboButton) createWidget() {
 func (l *ListComboButton) SetSelectedEntry(e interface{}) {
 	l.init.Do()
 	l.button.SetSelectedEntry(e)
+	l.list.setSelectedEntry(e, false)
 }
 
 func (l *ListComboButton) SelectedEntry() interface{} {

@@ -12,6 +12,7 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/gofont/goregular"
 )
@@ -244,6 +245,13 @@ func (g *game) Layout(outsideWidth int, outsideHeight int) (int, int) {
 // Update implements Game.
 func (g *game) Update() error {
 	// update the UI
+	// Additional keys to manage focus
+	if inpututil.IsKeyJustPressed(ebiten.KeyPageUp) {
+		g.ui.ChangeFocus(ebitenui.FOCUS_PREVIOUS)
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyPageDown) {
+		g.ui.ChangeFocus(ebitenui.FOCUS_NEXT)
+	}
 	g.ui.Update()
 	return nil
 }
