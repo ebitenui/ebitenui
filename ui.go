@@ -47,14 +47,7 @@ func (u *UI) Update() {
 	if u.previousContainer == nil || u.previousContainer != u.Container {
 		u.Container.GetWidget().ContextMenuEvent.AddHandler(u.handleContextMenu)
 		u.Container.GetWidget().FocusEvent.AddHandler(u.handleFocusEvent)
-		u.Container.GetWidget().ToolTipEvent.AddHandler(func(args interface{}) {
-			a := args.(*widget.WidgetToolTipEventArgs)
-			if a.Show {
-				u.addWindow(a.Window)
-			} else {
-				u.removeWindow(a.Window)
-			}
-		})
+		u.Container.GetWidget().ToolTipEvent.AddHandler(u.handleToolTipEvent)
 
 		u.previousContainer = u.Container
 	}
@@ -117,6 +110,16 @@ func (u *UI) handleFocusEvent(args interface{}) {
 				u.focusedWidget = nil
 			}
 		}
+	}
+}
+
+func (u *UI) handleToolTipEvent(args interface{}) {
+	a := args.(*widget.WidgetToolTipEventArgs)
+	a.Window.GetContainer().GetWidget().CustomData = "tooltip"
+	if a.Show {
+		u.addWindow(a.Window)
+	} else {
+		u.removeWindow(a.Window)
 	}
 }
 
@@ -258,6 +261,7 @@ func (u *UI) AddWindow(w *widget.Window) widget.RemoveWindowFunc {
 	if u.addWindow(w) {
 		w.GetContainer().GetWidget().ContextMenuEvent.AddHandler(u.handleContextMenu)
 		w.GetContainer().GetWidget().FocusEvent.AddHandler(u.handleFocusEvent)
+		w.GetContainer().GetWidget().ToolTipEvent.AddHandler(u.handleToolTipEvent)
 
 		if w.Modal && u.focusedWidget != nil {
 			u.focusedWidget.(widget.Focuser).Focus(false)
@@ -282,10 +286,19 @@ func (u *UI) addWindow(w *widget.Window) bool {
 }
 
 func (u *UI) removeWindow(w *widget.Window) {
+	windowIdx := -1
 	for i := range u.windows {
 		if u.windows[i] == w {
 			u.windows = append(u.windows[:i], u.windows[i+1:]...)
+			windowIdx = i
 			break
+		}
+	}
+	if windowIdx != -1 {
+		for i := len(u.windows) - 1; i >= windowIdx; i-- {
+			if u.windows[i].GetContainer().GetWidget().CustomData == "tooltip" {
+				u.windows = append(u.windows[:i], u.windows[i+1:]...)
+			}
 		}
 	}
 }
@@ -300,8 +313,8 @@ func (u *UI) IsWindowOpen(w *widget.Window) bool {
 }
 
 func (u *UI) HasFocus() bool {
-	if len(u.windows) > 0 {
-		if u.windows[len(u.windows)-1].Modal {
+	for i := len(u.windows) - 1; i >= 0; i-- {
+		if u.windows[i].Modal {
 			return true
 		}
 	}

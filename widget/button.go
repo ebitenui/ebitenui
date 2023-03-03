@@ -438,6 +438,7 @@ func (b *Button) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 		w := b.container.GetWidget()
 		w.Rect = b.widget.Rect
 		w.Disabled = b.widget.Disabled
+		b.container.RequestRelayout()
 	}
 
 	b.widget.Render(screen, def)
