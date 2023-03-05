@@ -1,15 +1,13 @@
 package main
 
 import (
-	"os"
-
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
 )
 
 const (
-	fontFaceRegular = "fonts/NotoSans-Regular.ttf"
-	fontFaceBold    = "fonts/NotoSans-Bold.ttf"
+	fontFaceRegular = "assets/fonts/NotoSans-Regular.ttf"
+	fontFaceBold    = "assets/fonts/NotoSans-Bold.ttf"
 )
 
 type fonts struct {
@@ -63,7 +61,7 @@ func (f *fonts) close() {
 }
 
 func loadFont(path string, size float64) (font.Face, error) {
-	fontData, err := os.ReadFile(path)
+	fontData, err := embeddedAssets.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
