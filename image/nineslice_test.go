@@ -31,3 +31,13 @@ func newImageEmptySize(width int, height int, t *testing.T) *ebiten.Image {
 	t.Helper()
 	return ebiten.NewImage(width, height)
 }
+
+func Test_NewNineSliceColor(t *testing.T) {
+	is := is.New(t)
+
+	n := NewNineSliceColor(nil)
+	is.Equal(n.transparent, true)
+
+	n = NewNineSliceColor(color.RGBA{0, 0, 0, 0})
+	is.Equal(n.transparent, true)
+}

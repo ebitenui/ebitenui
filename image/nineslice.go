@@ -51,13 +51,16 @@ func NewNineSliceSimple(image *ebiten.Image, borderWidthHeight int, centerWidthH
 
 // NewNineSliceColor constructs a new NineSlice that when drawn fills with color c.
 func NewNineSliceColor(c color.Color) *NineSlice {
+	if c == nil {
+		return &NineSlice{transparent: true}
+	}
+
 	if n, ok := colorNineSlices[c]; ok {
 		return n
 	}
 
 	var n *NineSlice
-	_, _, _, a := c.RGBA()
-	if a == 0 {
+	if _, _, _, a := c.RGBA(); a == 0 {
 		n = &NineSlice{
 			transparent: true,
 		}
