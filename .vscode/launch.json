@@ -65,6 +65,16 @@
 			"args": []
 		},
 		{
+			"name": "Launch Image Button",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/_examples/widget_demos/imagebutton",
+			"cwd": "${workspaceFolder}/_examples/widget_demos/imagebutton",
+			"env": {},
+			"args": []
+		},
+		{
 			"name": "Launch Stacked Layout",
 			"type": "go",
 			"request": "launch",

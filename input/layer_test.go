@@ -24,7 +24,7 @@ func TestSetupInputLayersWithDeferred_Deferred(t *testing.T) {
 
 	called := false
 	l := newLayererMock(func(def DeferredSetupInputLayerFunc) {
-		def(func(d DeferredSetupInputLayerFunc) {
+		def(func(_ DeferredSetupInputLayerFunc) {
 			called = true
 		})
 	})
