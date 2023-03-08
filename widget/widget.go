@@ -409,7 +409,7 @@ func (w *Widget) fireEvents() {
 	if inside && input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, layer) {
 		w.mouseLeftPressedInside = inside
 
-		if w.focusable != nil {
+		if w.focusable != nil && !w.Disabled {
 			w.focusable.Focus(true)
 		} else {
 			w.FireFocusEvent(nil, false, p)
