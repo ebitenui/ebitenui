@@ -56,10 +56,6 @@ func createUI() (*ebitenui.UI, func(), error) {
 		return nil, nil, err
 	}
 
-	drag := &dragContents{
-		res: res,
-	}
-
 	rootContainer := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
 			widget.GridLayoutOpts.Columns(1),
@@ -71,15 +67,10 @@ func createUI() (*ebitenui.UI, func(), error) {
 			widget.GridLayoutOpts.Spacing(0, 20))),
 		widget.ContainerOpts.BackgroundImage(res.background))
 
-	dnd := widget.NewDragAndDrop(
-		widget.DragAndDropOpts.Container(rootContainer),
-		widget.DragAndDropOpts.ContentsCreater(drag),
-	)
-
 	rootContainer.AddChild(headerContainer(res))
 
 	var ui *ebitenui.UI
-	rootContainer.AddChild(demoContainer(res, dnd, drag, func() *ebitenui.UI {
+	rootContainer.AddChild(demoContainer(res, func() *ebitenui.UI {
 		return ui
 	}))
 
@@ -96,8 +87,6 @@ func createUI() (*ebitenui.UI, func(), error) {
 
 	ui = &ebitenui.UI{
 		Container: rootContainer,
-
-		DragAndDrop: dnd,
 	}
 
 	return ui, func() {
@@ -153,8 +142,7 @@ func header(label string, res *uiResources, opts ...widget.ContainerOpt) widget.
 	return c
 }
 
-func demoContainer(res *uiResources, dnd *widget.DragAndDrop, drag *dragContents,
-	ui func() *ebitenui.UI) widget.PreferredSizeLocateableWidget {
+func demoContainer(res *uiResources, ui func() *ebitenui.UI) widget.PreferredSizeLocateableWidget {
 
 	demoContainer := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
@@ -177,7 +165,7 @@ func demoContainer(res *uiResources, dnd *widget.DragAndDrop, drag *dragContents
 		rowLayoutPage(res),
 		sliderPage(res),
 		toolTipPage(res),
-		dragAndDropPage(res, dnd, drag),
+		dragAndDropPage(res),
 		textInputPage(res),
 		radioGroupPage(res),
 		windowPage(res, ui),
@@ -346,7 +334,7 @@ func newTextArea(text string, res *uiResources, widgetOpts ...widget.WidgetOpt) 
 		widget.TextAreaOpts.VerticalScrollMode(widget.PositionAtEnd),
 		widget.TextAreaOpts.ProcessBBCode(true),
 		widget.TextAreaOpts.FontFace(res.textArea.face),
-		widget.TextAreaOpts.FontColor(color.RGBA{R: 200, G: 100, B: 0, A: 255}),
+		widget.TextAreaOpts.FontColor(color.NRGBA{R: 200, G: 100, B: 0, A: 255}),
 		widget.TextAreaOpts.TextPadding(res.textArea.entryPadding),
 		widget.TextAreaOpts.Text(text),
 	)

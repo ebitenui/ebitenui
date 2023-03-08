@@ -98,6 +98,10 @@ func (c *Container) AddChild(child PreferredSizeLocateableWidget) RemoveChildFun
 		a := args.(*WidgetToolTipEventArgs)
 		c.GetWidget().FireToolTipEvent(a.Window, a.Show)
 	})
+	child.GetWidget().DragAndDropEvent.AddHandler(func(args interface{}) {
+		a := args.(*WidgetDragAndDropEventArgs)
+		c.GetWidget().FireDragAndDropEvent(a.Window, a.Show, a.DnD)
+	})
 	c.RequestRelayout()
 
 	return func() {
@@ -248,6 +252,29 @@ func (c *Container) GetFocusers() []Focuser {
 			result = append(result, v.GetFocusers()...)
 		}
 	}
+	return result
+}
+
+func (c *Container) GetDropTargets() []HasWidget {
+	var result []HasWidget
+	if c.GetWidget().drop != nil {
+		result = append(result, c)
+	}
+	for _, child := range c.children {
+		switch v := child.(type) {
+		case *Container:
+			result = append(result, v.GetDropTargets()...)
+		case *FlipBook:
+			result = append(result, v.GetDropTargets()...)
+		case *TabBook:
+			result = append(result, v.container.GetDropTargets()...)
+		case *TabBookTab:
+			result = append(result, v.GetDropTargets()...)
+		case *ScrollContainer:
+			result = append(result, v.GetDropTargets()...)
+		}
+	}
+
 	return result
 }
 

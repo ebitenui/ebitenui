@@ -28,7 +28,7 @@ func main() {
 	// construct a new container that serves as the root of the UI hierarchy
 	rootContainer := widget.NewContainer(
 		// the container will use a plain color as its background
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.RGBA{0x13, 0x1a, 0x22, 0xff})),
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
 
 		// the container will use an anchor layout to layout its single child widget
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
@@ -37,7 +37,7 @@ func main() {
 	// Create the first tab
 	// A TabBookTab is a labelled container. The text here is what will show up in the tab button
 	tabRed := widget.NewTabBookTab("Red Tab",
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.RGBA{255, 0, 0, 255})),
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{255, 0, 0, 255})),
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 
@@ -51,7 +51,7 @@ func main() {
 	tabRed.AddChild(redBtn)
 
 	tabGreen := widget.NewTabBookTab("Green Tab",
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.RGBA{0, 255, 0, 0xff})),
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0, 255, 0, 0xff})),
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 	greenBtn := widget.NewText(
@@ -64,7 +64,7 @@ func main() {
 	tabGreen.AddChild(greenBtn)
 
 	tabBlue := widget.NewTabBookTab("Blue Tab",
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.RGBA{0, 0, 255, 0xff})),
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0, 0, 255, 0xff})),
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 			widget.RowLayoutOpts.Spacing(5),
@@ -145,13 +145,13 @@ func (g *game) Draw(screen *ebiten.Image) {
 }
 
 func loadButtonImage() (*widget.ButtonImage, error) {
-	idle := image.NewNineSliceColor(color.RGBA{R: 170, G: 170, B: 180, A: 255})
+	idle := image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 180, A: 255})
 
-	hover := image.NewNineSliceColor(color.RGBA{R: 130, G: 130, B: 150, A: 255})
+	hover := image.NewNineSliceColor(color.NRGBA{R: 130, G: 130, B: 150, A: 255})
 
-	pressed := image.NewNineSliceColor(color.RGBA{R: 100, G: 100, B: 120, A: 255})
+	pressed := image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 120, A: 255})
 
-	pressedHover := image.NewNineSliceColor(color.RGBA{R: 110, G: 110, B: 110, A: 255})
+	pressedHover := image.NewNineSliceColor(color.NRGBA{R: 110, G: 110, B: 110, A: 255})
 
 	return &widget.ButtonImage{
 		Idle:         idle,

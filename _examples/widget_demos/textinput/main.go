@@ -30,7 +30,7 @@ func main() {
 	// construct a new container that serves as the root of the UI hierarchy
 	rootContainer := widget.NewContainer(
 		// the container will use a plain color as its background
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.RGBA{0x13, 0x1a, 0x22, 0xff})),
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
 
 		// the container will use a row layout to layout the textinput widgets
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
@@ -53,8 +53,8 @@ func main() {
 		//If the NineSlice image has a minimum size, the widget will use that or
 		// widget.WidgetOpts.MinSize; whichever is greater
 		widget.TextInputOpts.Image(&widget.TextInputImage{
-			Idle:     image.NewNineSliceColor(color.RGBA{R: 100, G: 100, B: 100, A: 255}),
-			Disabled: image.NewNineSliceColor(color.RGBA{R: 100, G: 100, B: 100, A: 255}),
+			Idle:     image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
+			Disabled: image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
 		}),
 
 		//Set the font face and size for the widget
@@ -63,9 +63,9 @@ func main() {
 		//Set the colors for the text and caret
 		widget.TextInputOpts.Color(&widget.TextInputColor{
 			Idle:          color.White,
-			Disabled:      color.RGBA{R: 200, G: 200, B: 200, A: 255},
+			Disabled:      color.NRGBA{R: 200, G: 200, B: 200, A: 255},
 			Caret:         color.White,
-			DisabledCaret: color.RGBA{R: 200, G: 200, B: 200, A: 255},
+			DisabledCaret: color.NRGBA{R: 200, G: 200, B: 200, A: 255},
 		}),
 
 		//Set how much padding there is between the edge of the input and the text
@@ -101,15 +101,15 @@ func main() {
 			}),
 		),
 		widget.TextInputOpts.Image(&widget.TextInputImage{
-			Idle:     image.NewNineSliceColor(color.RGBA{R: 100, G: 100, B: 100, A: 255}),
-			Disabled: image.NewNineSliceColor(color.RGBA{R: 100, G: 100, B: 100, A: 255}),
+			Idle:     image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
+			Disabled: image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
 		}),
 		widget.TextInputOpts.Face(face),
 		widget.TextInputOpts.Color(&widget.TextInputColor{
 			Idle:          color.White,
-			Disabled:      color.RGBA{R: 200, G: 200, B: 200, A: 255},
+			Disabled:      color.NRGBA{R: 200, G: 200, B: 200, A: 255},
 			Caret:         color.White,
-			DisabledCaret: color.RGBA{R: 200, G: 200, B: 200, A: 255},
+			DisabledCaret: color.NRGBA{R: 200, G: 200, B: 200, A: 255},
 		}),
 		widget.TextInputOpts.Padding(widget.NewInsetsSimple(5)),
 		widget.TextInputOpts.CaretOpts(
@@ -137,15 +137,15 @@ func main() {
 			}),
 		),
 		widget.TextInputOpts.Image(&widget.TextInputImage{
-			Idle:     image.NewNineSliceColor(color.RGBA{R: 100, G: 100, B: 100, A: 255}),
-			Disabled: image.NewNineSliceColor(color.RGBA{R: 100, G: 100, B: 100, A: 255}),
+			Idle:     image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
+			Disabled: image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
 		}),
 		widget.TextInputOpts.Face(face),
 		widget.TextInputOpts.Color(&widget.TextInputColor{
 			Idle:          color.White,
-			Disabled:      color.RGBA{R: 200, G: 200, B: 200, A: 255},
+			Disabled:      color.NRGBA{R: 200, G: 200, B: 200, A: 255},
 			Caret:         color.White,
-			DisabledCaret: color.RGBA{R: 200, G: 200, B: 200, A: 255},
+			DisabledCaret: color.NRGBA{R: 200, G: 200, B: 200, A: 255},
 		}),
 		widget.TextInputOpts.Padding(widget.NewInsetsSimple(5)),
 		widget.TextInputOpts.CaretOpts(
@@ -182,15 +182,15 @@ func main() {
 			}),
 		),
 		widget.TextInputOpts.Image(&widget.TextInputImage{
-			Idle:     image.NewNineSliceColor(color.RGBA{R: 100, G: 100, B: 100, A: 255}),
-			Disabled: image.NewNineSliceColor(color.RGBA{R: 100, G: 100, B: 100, A: 255}),
+			Idle:     image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
+			Disabled: image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
 		}),
 		widget.TextInputOpts.Face(face),
 		widget.TextInputOpts.Color(&widget.TextInputColor{
 			Idle:          color.White,
-			Disabled:      color.RGBA{R: 200, G: 200, B: 200, A: 255},
+			Disabled:      color.NRGBA{R: 200, G: 200, B: 200, A: 255},
 			Caret:         color.White,
-			DisabledCaret: color.RGBA{R: 200, G: 200, B: 200, A: 255},
+			DisabledCaret: color.NRGBA{R: 200, G: 200, B: 200, A: 255},
 		}),
 		widget.TextInputOpts.Padding(widget.NewInsetsSimple(5)),
 		widget.TextInputOpts.CaretOpts(

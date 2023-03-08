@@ -30,7 +30,7 @@ func main() {
 	tooltipContainer := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Direction(widget.DirectionVertical))),
 		widget.ContainerOpts.AutoDisableChildren(),
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.RGBA{R: 170, G: 170, B: 230, A: 255})),
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 230, A: 255})),
 	)
 
 	var button *widget.Button
@@ -48,7 +48,7 @@ func main() {
 	// construct a new container that serves as the root of the UI hierarchy
 	rootContainer := widget.NewContainer(
 		// the container will use a plain color as its background
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.RGBA{0x13, 0x1a, 0x22, 0xff})),
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
 
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
@@ -84,7 +84,7 @@ func main() {
 
 		// specify the button's text, the font face, and the color
 		widget.ButtonOpts.Text("Hover for tooltip", face, &widget.ButtonTextColor{
-			Idle: color.RGBA{0xdf, 0xf4, 0xff, 0xff},
+			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
 		// specify that the button's text needs some padding for correct display
@@ -106,7 +106,7 @@ func main() {
 	//Use the NewTextToolTip convenience method to create the tooltip
 	btn2ToolTip := widget.NewTextToolTip("Label: 1\nLabel: 2\nLabel: 3\nLabel: 4\nLabel: 5",
 		face, color.White,
-		image.NewNineSliceColor(color.RGBA{R: 170, G: 170, B: 230, A: 255}))
+		image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 230, A: 255}))
 
 	// The NewTextToolTip defaults to follow the cursor
 	// But every parameter is available to update after it has been created
@@ -128,7 +128,7 @@ func main() {
 
 		// specify the button's text, the font face, and the color
 		widget.ButtonOpts.Text("Hover for tooltip", face, &widget.ButtonTextColor{
-			Idle: color.RGBA{0xdf, 0xf4, 0xff, 0xff},
+			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
 		// specify that the button's text needs some padding for correct display
@@ -186,11 +186,11 @@ func (g *game) Draw(screen *ebiten.Image) {
 }
 
 func loadButtonImage() (*widget.ButtonImage, error) {
-	idle := image.NewNineSliceColor(color.RGBA{R: 170, G: 170, B: 180, A: 255})
+	idle := image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 180, A: 255})
 
-	hover := image.NewNineSliceColor(color.RGBA{R: 130, G: 130, B: 150, A: 255})
+	hover := image.NewNineSliceColor(color.NRGBA{R: 130, G: 130, B: 150, A: 255})
 
-	pressed := image.NewNineSliceColor(color.RGBA{R: 100, G: 100, B: 120, A: 255})
+	pressed := image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 120, A: 255})
 
 	return &widget.ButtonImage{
 		Idle:    idle,

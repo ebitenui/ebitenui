@@ -7,16 +7,10 @@ import (
 type dragContents struct {
 	res *uiResources
 
-	sources []*widget.Widget
-	targets []*widget.Widget
-
 	text *widget.Text
 }
 
-func (d *dragContents) Create(srcWidget widget.HasWidget, srcX int, srcY int) (widget.DragWidget, interface{}) {
-	if !d.isSource(srcWidget.GetWidget()) {
-		return nil, nil
-	}
+func (d *dragContents) Create(ssrcX int, srcY int) (*widget.Container, interface{}) {
 
 	c := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(d.res.toolTip.background),
@@ -34,48 +28,10 @@ func (d *dragContents) Create(srcWidget widget.HasWidget, srcX int, srcY int) (w
 	return c, nil
 }
 
-func (d *dragContents) Update(target widget.HasWidget, _ int, _ int, _ interface{}) {
-	if target != nil && d.isTarget(target.GetWidget()) {
+func (d *dragContents) Update(_ int, _ int, isDroppable bool, _ widget.HasWidget, _ interface{}) {
+	if isDroppable {
 		d.text.Label = "* DROP ME! *"
 	} else {
 		d.text.Label = "Drag Me!"
 	}
-}
-
-func (d *dragContents) addSource(s widget.HasWidget) {
-	d.sources = append(d.sources, s.GetWidget())
-}
-
-func (d *dragContents) addTarget(t widget.HasWidget) {
-	d.targets = append(d.targets, t.GetWidget())
-}
-
-func (d *dragContents) isSource(w *widget.Widget) bool {
-	for _, s := range d.sources {
-		if s == w {
-			return true
-		}
-	}
-
-	p := w.Parent()
-	if p == nil {
-		return false
-	}
-
-	return d.isSource(p)
-}
-
-func (d *dragContents) isTarget(w *widget.Widget) bool {
-	for _, t := range d.targets {
-		if t == w {
-			return true
-		}
-	}
-
-	p := w.Parent()
-	if p == nil {
-		return false
-	}
-
-	return d.isTarget(p)
 }

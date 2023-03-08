@@ -59,8 +59,13 @@ type Widget struct {
 
 	ToolTipEvent *event.Event
 
+	DragAndDropEvent *event.Event
+
 	//Custom Data is a field to allow users to attach data to any widget
 	CustomData interface{}
+
+	canDrop CanDropFunc
+	drop    DropFunc
 
 	parent                     *Widget
 	lastUpdateCursorEntered    bool
@@ -74,6 +79,8 @@ type Widget struct {
 	ContextMenuCloseMode WindowCloseMode
 
 	ToolTip *ToolTip
+
+	DragAndDrop *DragAndDrop
 }
 
 // WidgetOpt is a function that configures w.
@@ -161,10 +168,31 @@ type WidgetContextMenuEventArgs struct { //nolint:golint
 	Widget   *Widget
 	Location image.Point
 }
+
 type WidgetToolTipEventArgs struct { //nolint:golint
 	Window *Window
 	Show   bool
 }
+
+type WidgetDragAndDropEventArgs struct { //nolint:golint
+	Window *Window
+	Show   bool
+	DnD    *DragAndDrop
+}
+
+type DragAndDropDroppedEventArgs struct { //nolint:golint
+	Source  *Widget
+	SourceX int
+	SourceY int
+	TargetX int
+	TargetY int
+	Data    interface{}
+}
+
+type CanDropFunc func(args *DragAndDropDroppedEventArgs) bool
+type DropFunc func(args *DragAndDropDroppedEventArgs)
+
+type DragAndDropDroppedHandlerFunc func(args *DragAndDropDroppedEventArgs)
 
 // WidgetCursorEnterHandlerFunc is a function that handles cursor enter events.
 type WidgetCursorEnterHandlerFunc func(args *WidgetCursorEnterEventArgs) //nolint:golint
@@ -200,6 +228,7 @@ func NewWidget(opts ...WidgetOpt) *Widget {
 		FocusEvent:               &event.Event{},
 		ContextMenuEvent:         &event.Event{},
 		ToolTipEvent:             &event.Event{},
+		DragAndDropEvent:         &event.Event{},
 		ContextMenuCloseMode:     CLICK,
 	}
 
@@ -294,6 +323,29 @@ func (o WidgetOptions) ToolTip(toolTip *ToolTip) WidgetOpt {
 	}
 }
 
+// This sets the source of a Drag and Drop action
+func (o WidgetOptions) EnableDragAndDrop(d *DragAndDrop) WidgetOpt {
+	return func(w *Widget) {
+		w.DragAndDrop = d
+	}
+}
+
+// This sets the widget as a target of a Drag and Drop action
+//
+//	The Drop function must return true if it accepts this drop and false if it does not accept the drop
+func (o WidgetOptions) CanDrop(candropFunc CanDropFunc) WidgetOpt {
+	return func(w *Widget) {
+		w.canDrop = candropFunc
+	}
+}
+
+// This is the function that is run if an item is dropped on this widget
+func (o WidgetOptions) Dropped(dropFunc DropFunc) WidgetOpt {
+	return func(w *Widget) {
+		w.drop = dropFunc
+	}
+}
+
 func (w *Widget) drawImageOptions(opts *ebiten.DrawImageOptions) {
 	opts.GeoM.Translate(float64(w.Rect.Min.X), float64(w.Rect.Min.Y))
 }
@@ -323,6 +375,9 @@ func (w *Widget) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	w.fireEvents()
 	if w.ToolTip != nil {
 		w.ToolTip.Render(w, screen, def)
+	}
+	if w.DragAndDrop != nil {
+		w.DragAndDrop.Render(w, screen, def)
 	}
 }
 
@@ -437,6 +492,14 @@ func (widget *Widget) FireToolTipEvent(w *Window, show bool) { //nolint:golint
 	widget.ToolTipEvent.Fire(&WidgetToolTipEventArgs{
 		Window: w,
 		Show:   show,
+	})
+}
+
+func (widget *Widget) FireDragAndDropEvent(w *Window, show bool, dnd *DragAndDrop) { //nolint:golint
+	widget.DragAndDropEvent.Fire(&WidgetDragAndDropEventArgs{
+		Window: w,
+		Show:   show,
+		DnD:    dnd,
 	})
 }
 

@@ -418,17 +418,6 @@ func (b *Button) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 	if b.container != nil {
 		b.container.SetupInputLayer(def)
 	}
-
-	if b.pressing {
-		def(func(_ input.DeferredSetupInputLayerFunc) {
-			b.widget.ElevateToNewInputLayer(&input.Layer{
-				DebugLabel: "button pressed",
-				EventTypes: input.LayerEventTypeAll,
-				BlockLower: true,
-				FullScreen: true,
-			})
-		})
-	}
 }
 
 func (b *Button) Render(screen *ebiten.Image, def DeferredRenderFunc) {

@@ -29,7 +29,7 @@ func main() {
 	// construct a new container that serves as the root of the UI hierarchy
 	rootContainer := widget.NewContainer(
 		// the container will use a plain color as its background
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.RGBA{0x13, 0x1a, 0x22, 0xff})),
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
 
 		// the container will use an anchor layout to layout its single child widget
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
@@ -39,7 +39,7 @@ func main() {
 	uncheckedImage.Fill(color.White)
 
 	checkedImage := ebiten.NewImage(20, 20)
-	checkedImage.Fill(color.RGBA{255, 255, 0, 255})
+	checkedImage.Fill(color.NRGBA{255, 255, 0, 255})
 
 	checkBox := widget.NewCheckbox(
 		widget.CheckboxOpts.ButtonOpts(
@@ -116,11 +116,11 @@ func (g *game) Draw(screen *ebiten.Image) {
 }
 
 func loadButtonImage() (*widget.ButtonImage, error) {
-	idle := image.NewNineSliceColor(color.RGBA{R: 170, G: 170, B: 180, A: 255})
+	idle := image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 180, A: 255})
 
-	hover := image.NewNineSliceColor(color.RGBA{R: 130, G: 130, B: 150, A: 255})
+	hover := image.NewNineSliceColor(color.NRGBA{R: 130, G: 130, B: 150, A: 255})
 
-	pressed := image.NewNineSliceColor(color.RGBA{R: 100, G: 100, B: 120, A: 255})
+	pressed := image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 120, A: 255})
 
 	return &widget.ButtonImage{
 		Idle:    idle,

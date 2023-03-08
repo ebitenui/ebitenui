@@ -642,8 +642,14 @@ func toolTipPage(res *uiResources) *page {
 	}
 }
 
-func dragAndDropPage(res *uiResources, dnd *widget.DragAndDrop, drag *dragContents) *page {
+func dragAndDropPage(res *uiResources) *page {
 	c := newPageContentContainer()
+
+	dnd := widget.NewDragAndDrop(
+		widget.DragAndDropOpts.ContentsCreater(&dragContents{
+			res: res,
+		}),
+	)
 
 	dndContainer := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
@@ -652,14 +658,17 @@ func dragAndDropPage(res *uiResources, dnd *widget.DragAndDrop, drag *dragConten
 	)
 	c.AddChild(dndContainer)
 
-	sourcePanel := newSizedPanel(200, 200,
+	sourcePanel := widget.NewContainer(
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.MinSize(200, 200),
+			widget.WidgetOpts.EnableDragAndDrop(dnd),
+		),
 		widget.ContainerOpts.BackgroundImage(res.panel.image),
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout(widget.AnchorLayoutOpts.Padding(res.panel.padding))),
 	)
-	drag.addSource(sourcePanel)
 	dndContainer.AddChild(sourcePanel)
 
-	sourcePanel.Container().AddChild(widget.NewText(
+	sourcePanel.AddChild(widget.NewText(
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			HorizontalPosition: widget.AnchorLayoutPositionCenter,
 			VerticalPosition:   widget.AnchorLayoutPositionCenter,
@@ -667,13 +676,6 @@ func dragAndDropPage(res *uiResources, dnd *widget.DragAndDrop, drag *dragConten
 		widget.TextOpts.Text("Drag\nFrom\nHere", res.text.face, res.text.disabledColor),
 		widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter),
 	))
-
-	targetPanel := newSizedPanel(200, 200,
-		widget.ContainerOpts.BackgroundImage(res.panel.image),
-		widget.ContainerOpts.Layout(widget.NewAnchorLayout(widget.AnchorLayoutOpts.Padding(res.panel.padding))),
-	)
-	drag.addTarget(targetPanel)
-	dndContainer.AddChild(targetPanel)
 
 	targetText := widget.NewText(
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
@@ -684,22 +686,28 @@ func dragAndDropPage(res *uiResources, dnd *widget.DragAndDrop, drag *dragConten
 		widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter),
 	)
 
-	targetPanel.Container().AddChild(targetText)
+	targetPanel := widget.NewContainer(
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.MinSize(200, 200),
+			widget.WidgetOpts.CanDrop(func(args *widget.DragAndDropDroppedEventArgs) bool {
+				return true
+			}),
+			widget.WidgetOpts.Dropped(func(args *widget.DragAndDropDroppedEventArgs) {
+				targetText.Label = "Thanks!"
+				targetText.Color = res.text.idleColor
 
-	dnd.DroppedEvent.AddHandler(func(args interface{}) {
-		a := args.(*widget.DragAndDropDroppedEventArgs)
-		if !drag.isTarget(a.Target.GetWidget()) {
-			return
-		}
+				time.AfterFunc(2500*time.Millisecond, func() {
+					targetText.Label = "Drop\nHere"
+					targetText.Color = res.text.disabledColor
+				})
+			}),
+		),
+		widget.ContainerOpts.BackgroundImage(res.panel.image),
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout(widget.AnchorLayoutOpts.Padding(res.panel.padding))),
+	)
+	dndContainer.AddChild(targetPanel)
 
-		targetText.Label = "Thanks!"
-		targetText.Color = res.text.idleColor
-
-		time.AfterFunc(2500*time.Millisecond, func() {
-			targetText.Label = "Drop\nHere"
-			targetText.Color = res.text.disabledColor
-		})
-	})
+	targetPanel.AddChild(targetText)
 
 	return &page{
 		title:   "Drag & Drop",
@@ -976,7 +984,8 @@ func openWindow2(res *uiResources, ui func() *ebitenui.UI) {
 func anchorLayoutPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
-	p := newSizedPanel(300, 220,
+	p := widget.NewContainer(
+		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.MinSize(300, 220)),
 		widget.ContainerOpts.BackgroundImage(res.panel.image),
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout(
 			widget.AnchorLayoutOpts.Padding(res.panel.padding),
@@ -984,11 +993,12 @@ func anchorLayoutPage(res *uiResources) *page {
 	)
 	c.AddChild(p)
 
-	sp := newSizedPanel(50, 50,
+	sp := widget.NewContainer(
+		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.MinSize(50, 50)),
 		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{})),
 		widget.ContainerOpts.BackgroundImage(res.panel.image),
 	)
-	p.Container().AddChild(sp.Container())
+	p.AddChild(sp)
 
 	c.AddChild(newSeparator(res, widget.RowLayoutData{
 		Stretch: true,
@@ -1026,10 +1036,10 @@ func anchorLayoutPage(res *uiResources) *page {
 	widget.NewRadioGroup(
 		widget.RadioGroupOpts.Elements(elements...),
 		widget.RadioGroupOpts.ChangedHandler(func(args *widget.RadioGroupChangedEventArgs) {
-			ald := sp.Container().GetWidget().LayoutData.(widget.AnchorLayoutData)
+			ald := sp.GetWidget().LayoutData.(widget.AnchorLayoutData)
 			ald.HorizontalPosition = widget.AnchorLayoutPosition(indexCheckbox(hCBs, args.Active))
-			sp.Container().GetWidget().LayoutData = ald
-			p.Container().RequestRelayout()
+			sp.GetWidget().LayoutData = ald
+			p.RequestRelayout()
 		}),
 	)
 
@@ -1057,10 +1067,10 @@ func anchorLayoutPage(res *uiResources) *page {
 	widget.NewRadioGroup(
 		widget.RadioGroupOpts.Elements(vElements...),
 		widget.RadioGroupOpts.ChangedHandler(func(args *widget.RadioGroupChangedEventArgs) {
-			ald := sp.Container().GetWidget().LayoutData.(widget.AnchorLayoutData)
+			ald := sp.GetWidget().LayoutData.(widget.AnchorLayoutData)
 			ald.VerticalPosition = widget.AnchorLayoutPosition(indexCheckbox(vCBs, args.Active))
-			sp.Container().GetWidget().LayoutData = ald
-			p.Container().RequestRelayout()
+			sp.GetWidget().LayoutData = ald
+			p.RequestRelayout()
 		}),
 	)
 
@@ -1075,20 +1085,20 @@ func anchorLayoutPage(res *uiResources) *page {
 	stretchC.AddChild(widget.NewText(widget.TextOpts.Text("Stretch", res.text.face, res.text.idleColor)))
 
 	stretchHorizontalCheckbox := newCheckbox("Horizontal", func(args *widget.CheckboxChangedEventArgs) {
-		ald := sp.Container().GetWidget().LayoutData.(widget.AnchorLayoutData)
+		ald := sp.GetWidget().LayoutData.(widget.AnchorLayoutData)
 		ald.StretchHorizontal = args.State == widget.WidgetChecked
-		sp.Container().GetWidget().LayoutData = ald
-		p.Container().RequestRelayout()
+		sp.GetWidget().LayoutData = ald
+		p.RequestRelayout()
 
 		hPosC.GetWidget().Disabled = args.State == widget.WidgetChecked
 	}, res)
 	stretchC.AddChild(stretchHorizontalCheckbox)
 
 	stretchVerticalCheckbox := newCheckbox("Vertical", func(args *widget.CheckboxChangedEventArgs) {
-		ald := sp.Container().GetWidget().LayoutData.(widget.AnchorLayoutData)
+		ald := sp.GetWidget().LayoutData.(widget.AnchorLayoutData)
 		ald.StretchVertical = args.State == widget.WidgetChecked
-		sp.Container().GetWidget().LayoutData = ald
-		p.Container().RequestRelayout()
+		sp.GetWidget().LayoutData = ald
+		p.RequestRelayout()
 
 		vPosC.GetWidget().Disabled = args.State == widget.WidgetChecked
 	}, res)

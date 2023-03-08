@@ -594,7 +594,7 @@ func (t *TextInput) createWidget() {
 
 	t.text = NewText(TextOpts.Text("", t.face, color.White))
 
-	t.mask = image.NewNineSliceColor(color.RGBA{255, 0, 255, 255})
+	t.mask = image.NewNineSliceColor(color.NRGBA{255, 0, 255, 255})
 }
 
 func fontAdvance(s string, f font.Face) int {

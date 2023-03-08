@@ -297,11 +297,7 @@ func (w *Window) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 			return w.container.GetWidget().Rect
 		},
 	})
-	for _, ch := range w.container.children {
-		if il, ok := ch.(input.Layerer); ok {
-			il.SetupInputLayer(def)
-		}
-	}
+	w.container.SetupInputLayer(def)
 }
 
 // Typically used internally

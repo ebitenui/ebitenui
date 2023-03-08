@@ -35,7 +35,7 @@ func main() {
 	// construct a new container that serves as the root of the UI hierarchy
 	rootContainer := widget.NewContainer(
 		// the container will use a plain color as its background
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.RGBA{0x13, 0x1a, 0x22, 0xff})),
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
 
 		// the container will use an anchor layout to layout its single child widget
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
@@ -75,16 +75,16 @@ func main() {
 			widget.ListOpts.ScrollContainerOpts(
 				//Set the background images/color for the dropdown list
 				widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
-					Idle:     image.NewNineSliceColor(color.RGBA{100, 100, 100, 255}),
-					Disabled: image.NewNineSliceColor(color.RGBA{100, 100, 100, 255}),
-					Mask:     image.NewNineSliceColor(color.RGBA{100, 100, 100, 255}),
+					Idle:     image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+					Disabled: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+					Mask:     image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
 				}),
 			),
 			widget.ListOpts.SliderOpts(
 				//Set the background images/color for the background of the slider track
 				widget.SliderOpts.Images(&widget.SliderTrackImage{
-					Idle:  image.NewNineSliceColor(color.RGBA{100, 100, 100, 255}),
-					Hover: image.NewNineSliceColor(color.RGBA{100, 100, 100, 255}),
+					Idle:  image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+					Hover: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
 				}, buttonImage),
 				widget.SliderOpts.MinHandleSize(5),
 				//Set how wide the track should be
@@ -93,14 +93,14 @@ func main() {
 			widget.ListOpts.EntryFontFace(face),
 			//Set the colors for the list
 			widget.ListOpts.EntryColor(&widget.ListEntryColor{
-				Selected:                   color.White,                                //Foreground color for the unfocused selected entry
-				Unselected:                 color.White,                                //Foreground color for the unfocused unselected entry
-				SelectedBackground:         color.RGBA{R: 130, G: 130, B: 200, A: 255}, //Background color for the unfocused selected entry
-				SelectedFocusedBackground:  color.RGBA{R: 130, G: 130, B: 170, A: 255}, //Background color for the focused selected entry
-				FocusedBackground:          color.RGBA{R: 170, G: 170, B: 180, A: 255}, //Background color for the focused unselected entry
-				DisabledUnselected:         color.RGBA{100, 100, 100, 255},             //Foreground color for the disabled unselected entry
-				DisabledSelected:           color.RGBA{100, 100, 100, 255},             //Foreground color for the disabled selected entry
-				DisabledSelectedBackground: color.RGBA{100, 100, 100, 255},             //Background color for the disabled selected entry
+				Selected:                   color.White,                                 //Foreground color for the unfocused selected entry
+				Unselected:                 color.White,                                 //Foreground color for the unfocused unselected entry
+				SelectedBackground:         color.NRGBA{R: 130, G: 130, B: 200, A: 255}, //Background color for the unfocused selected entry
+				SelectedFocusedBackground:  color.NRGBA{R: 130, G: 130, B: 170, A: 255}, //Background color for the focused selected entry
+				FocusedBackground:          color.NRGBA{R: 170, G: 170, B: 180, A: 255}, //Background color for the focused unselected entry
+				DisabledUnselected:         color.NRGBA{100, 100, 100, 255},             //Foreground color for the disabled unselected entry
+				DisabledSelected:           color.NRGBA{100, 100, 100, 255},             //Foreground color for the disabled selected entry
+				DisabledSelectedBackground: color.NRGBA{100, 100, 100, 255},             //Background color for the disabled selected entry
 			}),
 			//Padding for each entry
 			widget.ListOpts.EntryTextPadding(widget.NewInsetsSimple(5)),
@@ -165,11 +165,11 @@ func (g *game) Draw(screen *ebiten.Image) {
 }
 
 func loadButtonImage() (*widget.ButtonImage, error) {
-	idle := image.NewNineSliceColor(color.RGBA{R: 170, G: 170, B: 180, A: 255})
+	idle := image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 180, A: 255})
 
-	hover := image.NewNineSliceColor(color.RGBA{R: 130, G: 130, B: 150, A: 255})
+	hover := image.NewNineSliceColor(color.NRGBA{R: 130, G: 130, B: 150, A: 255})
 
-	pressed := image.NewNineSliceColor(color.RGBA{R: 100, G: 100, B: 120, A: 255})
+	pressed := image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 120, A: 255})
 
 	return &widget.ButtonImage{
 		Idle:    idle,

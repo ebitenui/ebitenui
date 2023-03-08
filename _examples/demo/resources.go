@@ -774,7 +774,7 @@ func hexToColor(h string) color.Color {
 		panic(err)
 	}
 
-	return color.RGBA{
+	return color.NRGBA{
 		R: uint8(u & 0xff0000 >> 16),
 		G: uint8(u & 0xff00 >> 8),
 		B: uint8(u & 0xff),

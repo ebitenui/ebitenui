@@ -114,6 +114,10 @@ func (f *FlipBook) GetFocusers() []Focuser {
 	return f.container.GetFocusers()
 }
 
+func (f *FlipBook) GetDropTargets() []HasWidget {
+	return f.container.GetDropTargets()
+}
+
 func (f *FlipBook) createWidget() {
 	f.container = NewContainer(append(f.containerOpts, ContainerOpts.Layout(NewAnchorLayout(f.anchorLayoutOpts...)))...)
 	f.containerOpts = nil

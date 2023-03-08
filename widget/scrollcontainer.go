@@ -63,6 +63,10 @@ func NewScrollContainer(opts ...ScrollContainerOpt) *ScrollContainer {
 		a := args.(*WidgetToolTipEventArgs)
 		s.GetWidget().FireToolTipEvent(a.Window, a.Show)
 	})
+	s.content.GetWidget().DragAndDropEvent.AddHandler(func(args interface{}) {
+		a := args.(*WidgetDragAndDropEventArgs)
+		s.GetWidget().FireDragAndDropEvent(a.Window, a.Show, a.DnD)
+	})
 	return s
 }
 
@@ -170,6 +174,27 @@ func (s *ScrollContainer) GetFocusers() []Focuser {
 	case *TextArea:
 		result = append(result, v.GetFocusers()...)
 	}
+	return result
+}
+
+func (s *ScrollContainer) GetDropTargets() []HasWidget {
+	result := []HasWidget{}
+	if s.GetWidget().drop != nil {
+		result = append(result, s)
+	}
+	switch v := s.content.(type) {
+	case *Container:
+		result = append(result, v.GetDropTargets()...)
+	case *FlipBook:
+		result = append(result, v.GetDropTargets()...)
+	case *TabBook:
+		result = append(result, v.container.GetDropTargets()...)
+	case *TabBookTab:
+		result = append(result, v.GetDropTargets()...)
+	case *ScrollContainer:
+		result = append(result, v.GetDropTargets()...)
+	}
+
 	return result
 }
 

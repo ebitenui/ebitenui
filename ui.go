@@ -25,9 +25,6 @@ type UI struct {
 	// Container is the root container of the UI hierarchy.
 	Container *widget.Container
 
-	// DragAndDrop is used to render drag widgets while dragging and dropping. It may be nil to disable rendering.
-	DragAndDrop *widget.DragAndDrop
-
 	//If true the default tab/shift-tab to focus will be disabled
 	DisableDefaultFocus bool
 
@@ -48,6 +45,7 @@ func (u *UI) Update() {
 		u.Container.GetWidget().ContextMenuEvent.AddHandler(u.handleContextMenu)
 		u.Container.GetWidget().FocusEvent.AddHandler(u.handleFocusEvent)
 		u.Container.GetWidget().ToolTipEvent.AddHandler(u.handleToolTipEvent)
+		u.Container.GetWidget().DragAndDropEvent.AddHandler(u.handleDragAndDropEvent)
 
 		u.previousContainer = u.Container
 	}
@@ -123,6 +121,31 @@ func (u *UI) handleToolTipEvent(args interface{}) {
 	}
 }
 
+func (u *UI) handleDragAndDropEvent(args interface{}) {
+	a := args.(*widget.WidgetDragAndDropEventArgs)
+	if a.Show {
+		a.DnD.AvailableDropTargets = u.getDropTargets()
+		u.addWindow(a.Window)
+	} else {
+		a.DnD.AvailableDropTargets = nil
+		u.removeWindow(a.Window)
+	}
+}
+
+func (u *UI) getDropTargets() []widget.HasWidget {
+	dropTargets := u.Container.GetDropTargets()
+	//Loop through the windows array in reverse. If we find a modal window, only loop through its droppable widgets
+	for i := len(u.windows) - 1; i >= 0; i-- {
+		if !u.windows[i].Modal {
+			dropTargets = append(dropTargets, u.windows[i].GetContainer().GetDropTargets()...)
+		} else {
+			dropTargets = u.windows[i].GetContainer().GetDropTargets()
+			break
+		}
+	}
+	return dropTargets
+}
+
 func (u *UI) handleFocusChangeRequest() {
 	if !u.DisableDefaultFocus {
 		if input.KeyPressed(ebiten.KeyTab) {
@@ -194,9 +217,6 @@ func (u *UI) setupInputLayers() {
 	if len(u.windows) > 0 {
 		num += len(u.windows)
 	}
-	if u.DragAndDrop != nil {
-		num++
-	}
 
 	if cap(u.inputLayerers) < num {
 		u.inputLayerers = make([]input.Layerer, num)
@@ -207,9 +227,6 @@ func (u *UI) setupInputLayers() {
 	for _, w := range u.windows {
 		u.inputLayerers = append(u.inputLayerers, w)
 	}
-	if u.DragAndDrop != nil {
-		u.inputLayerers = append(u.inputLayerers, u.DragAndDrop)
-	}
 
 	// TODO: SetupInputLayersWithDeferred should reside in "internal" subpackage
 	input.SetupInputLayersWithDeferred(u.inputLayerers)
@@ -219,10 +236,6 @@ func (u *UI) render(screen *ebiten.Image) {
 	num := 1 // u.Container
 	if len(u.windows) > 0 {
 		num += len(u.windows)
-	}
-
-	if u.DragAndDrop != nil {
-		num++
 	}
 
 	if cap(u.renderers) < num {
@@ -244,10 +257,6 @@ func (u *UI) render(screen *ebiten.Image) {
 		u.renderers = append(u.renderers, u.windows[index])
 	}
 
-	if u.DragAndDrop != nil {
-		u.renderers = append(u.renderers, u.DragAndDrop)
-	}
-
 	// TODO: RenderWithDeferred should reside in "internal" subpackage
 	widget.RenderWithDeferred(screen, u.renderers)
 }
@@ -262,6 +271,7 @@ func (u *UI) AddWindow(w *widget.Window) widget.RemoveWindowFunc {
 		w.GetContainer().GetWidget().ContextMenuEvent.AddHandler(u.handleContextMenu)
 		w.GetContainer().GetWidget().FocusEvent.AddHandler(u.handleFocusEvent)
 		w.GetContainer().GetWidget().ToolTipEvent.AddHandler(u.handleToolTipEvent)
+		w.GetContainer().GetWidget().DragAndDropEvent.AddHandler(u.handleDragAndDropEvent)
 
 		if w.Modal && u.focusedWidget != nil {
 			u.focusedWidget.(widget.Focuser).Focus(false)
