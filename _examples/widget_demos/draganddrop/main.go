@@ -21,6 +21,8 @@ type game struct {
 
 // This object satisfies the interface DragContentsCreater
 type dndWidget struct {
+	dndObj *widget.Container
+	text   *widget.Text
 }
 
 // This method is used to create the drag element. It also allows you to provide abitrary drag data.
@@ -29,24 +31,39 @@ type dndWidget struct {
 //
 // Inputs:
 //   - parent - The widget that triggered this Drag and drop event
-//   - cursorX - The X position of the cursor when the Drag and Drop event began
-//   - cursorY - The Y position of the cursor when the Drag and Drop event began
-func (dnd *dndWidget) Create(parent *widget.Widget, cursorX int, cursorY int) (*widget.Container, interface{}) {
-	// load text font
-	face, _ := loadFont(20)
+func (dnd *dndWidget) Create(parent *widget.Widget) (*widget.Container, interface{}) {
 
-	dndObj := widget.NewContainer(
-		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0, 200, 100, 255})),
-	)
+	if dnd.dndObj == nil {
+		// load text font
+		face, _ := loadFont(20)
+		dnd.dndObj = widget.NewContainer(
+			widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+			widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0, 200, 100, 255})),
+		)
 
-	dndObj.AddChild(widget.NewText(widget.TextOpts.Text("Drag FROM Here", face, color.Black), widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
-		HorizontalPosition: widget.AnchorLayoutPositionCenter,
-		VerticalPosition:   widget.AnchorLayoutPositionCenter,
-	}))))
+		dnd.text = widget.NewText(widget.TextOpts.Text("Cannot Drop", face, color.Black), widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+			HorizontalPosition: widget.AnchorLayoutPositionCenter,
+			VerticalPosition:   widget.AnchorLayoutPositionCenter,
+		})))
 
+		dnd.dndObj.AddChild(dnd.text)
+	}
 	// return the container to be dragged and any arbitrary data associated with this operation
-	return dndObj, "Hello World"
+	return dnd.dndObj, "Hello World"
+}
+
+// This method is optional for Drag and Drop
+// It will be called every draw cycle that the Drag and Drop is active.
+// Inputs:
+//   - canDrop - if the cursor is over a widget that allows this object to be dropped
+//   - targetWidget - The widget that will allow this object to be dropped.
+//   - dragData - The drag data provided by the Create method above.
+func (dnd *dndWidget) Update(canDrop bool, targetWidget widget.HasWidget, dragData interface{}) {
+	if canDrop {
+		dnd.text.Label = "Can Drop"
+	} else {
+		dnd.text.Label = "Cannot Drop"
+	}
 }
 
 func main() {
@@ -75,7 +92,7 @@ func main() {
 		),
 	)
 
-	leftSide.AddChild(widget.NewText(widget.TextOpts.Text("Drag FROM Here", face, color.Black), widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+	leftSide.AddChild(widget.NewText(widget.TextOpts.Text("Drag from Here", face, color.Black), widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 		HorizontalPosition: widget.AnchorLayoutPositionCenter,
 		VerticalPosition:   widget.AnchorLayoutPositionCenter,
 	}))))
@@ -102,11 +119,11 @@ func main() {
 			widget.WidgetOpts.Dropped(func(args *widget.DragAndDropDroppedEventArgs) {
 				rightTop.BackgroundImage = image.NewNineSliceColor(color.NRGBA{255, 100, 100, 255})
 				count = count + 1
-				rightTopText.Label = fmt.Sprintf("Drag TO Here\n(allowed)\n%d", count)
+				rightTopText.Label = fmt.Sprintf("Drag to here\n(allowed)\n%d", count)
 			}),
 		),
 	)
-	rightTopText = widget.NewText(widget.TextOpts.Text(fmt.Sprintf("Drag TO Here\n(allowed)\n%d", count), face, color.Black), widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+	rightTopText = widget.NewText(widget.TextOpts.Text(fmt.Sprintf("Drag to here\n(allowed)\n%d", count), face, color.Black), widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 		HorizontalPosition: widget.AnchorLayoutPositionCenter,
 		VerticalPosition:   widget.AnchorLayoutPositionCenter,
 	})))
@@ -132,7 +149,7 @@ func main() {
 		),
 	)
 
-	rightBottom.AddChild(widget.NewText(widget.TextOpts.Text("Drag To Here\n(not allowed)", face, color.Black), widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+	rightBottom.AddChild(widget.NewText(widget.TextOpts.Text("Drag to here\n(not allowed)", face, color.Black), widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 		HorizontalPosition: widget.AnchorLayoutPositionCenter,
 		VerticalPosition:   widget.AnchorLayoutPositionCenter,
 	}))))

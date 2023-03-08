@@ -26,16 +26,14 @@ type DragAndDropOptions struct {
 var DragAndDropOpts DragAndDropOptions
 
 type DragContentsCreater interface {
-	Create(*Widget, int, int) (*Container, interface{})
+	Create(*Widget) (*Container, interface{})
 }
 
 type DragContentsUpdater interface {
-	// arg1 - X
-	// arg2 - Y
-	// arg3 - isDroppable
-	// arg4 - HasWidget if droppable
-	// arg5 - DragData
-	Update(int, int, bool, HasWidget, interface{})
+	// arg1 - isDroppable
+	// arg2 - HasWidget if droppable
+	// arg3 - DragData
+	Update(bool, HasWidget, interface{})
 }
 
 type dragAndDropState func(*Widget) (dragAndDropState, bool)
@@ -131,7 +129,7 @@ func (d *DragAndDrop) draggingState(srcX int, srcY int, dragWidget *Container, d
 		}
 
 		if dragWidget == nil {
-			dragWidget, dragData = d.contentsCreater.Create(parent, srcX, srcY)
+			dragWidget, dragData = d.contentsCreater.Create(parent)
 			if dragWidget == nil {
 				return d.idleState(), false
 			}
@@ -165,7 +163,7 @@ func (d *DragAndDrop) draggingState(srcX int, srcY int, dragWidget *Container, d
 					break
 				}
 			}
-			u.Update(x, y, droppable, element, dragData)
+			u.Update(droppable, element, dragData)
 		}
 
 		sx, sy := dragWidget.PreferredSize()
