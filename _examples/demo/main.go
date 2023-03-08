@@ -56,14 +56,22 @@ func createUI() (*ebitenui.UI, func(), error) {
 		return nil, nil, err
 	}
 
+	//This creates the root container for this UI.
 	rootContainer := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			// It is using a GridLayout with a single column
 			widget.GridLayoutOpts.Columns(1),
+			// It uses the Stretch parameter to define how the rows will be layed out.
+			// - a fixed sized header
+			// - a content row that stretches to fill all remaining space
+			// - a fixed sized footer
 			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false, true, false}),
+			// Padding defines how much space to put around the outside of the grid.
 			widget.GridLayoutOpts.Padding(widget.Insets{
 				Top:    20,
 				Bottom: 20,
 			}),
+			// Spacing defines how much space to put between each column and row
 			widget.GridLayoutOpts.Spacing(0, 20))),
 		widget.ContainerOpts.BackgroundImage(res.background))
 
@@ -74,15 +82,15 @@ func createUI() (*ebitenui.UI, func(), error) {
 		return ui
 	}))
 
-	urlContainer := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewRowLayout(
+	footerContainer := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewRowLayout(
 		widget.RowLayoutOpts.Padding(widget.Insets{
 			Left:  25,
 			Right: 25,
 		}),
 	)))
-	rootContainer.AddChild(urlContainer)
+	rootContainer.AddChild(footerContainer)
 
-	urlContainer.AddChild(widget.NewText(
+	footerContainer.AddChild(widget.NewText(
 		widget.TextOpts.Text("github.com/ebitenui/ebitenui", res.text.smallFace, res.text.disabledColor)))
 
 	ui = &ebitenui.UI{
