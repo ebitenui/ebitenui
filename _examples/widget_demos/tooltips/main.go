@@ -72,10 +72,10 @@ func main() {
 				widget.ToolTipOpts.Position(widget.TOOLTIP_POS_WIDGET),
 				//When the Position is set to TOOLTIP_POS_WIDGET, you can configure where it opens with the optional parameters below
 				//They will default to what you see below if you do not provide them
-				widget.ToolTipOpts.WidgetOriginHorizontal(widget.ANCHOR_END),
-				widget.ToolTipOpts.WidgetOriginVertical(widget.ANCHOR_END),
-				widget.ToolTipOpts.ContentOriginHorizontal(widget.ANCHOR_END),
-				widget.ToolTipOpts.ContentOriginVertical(widget.ANCHOR_START),
+				widget.ToolTipOpts.WidgetOriginHorizontal(widget.TOOLTIP_ANCHOR_END),
+				widget.ToolTipOpts.WidgetOriginVertical(widget.TOOLTIP_ANCHOR_END),
+				widget.ToolTipOpts.ContentOriginHorizontal(widget.TOOLTIP_ANCHOR_END),
+				widget.ToolTipOpts.ContentOriginVertical(widget.TOOLTIP_ANCHOR_START),
 			)),
 		),
 

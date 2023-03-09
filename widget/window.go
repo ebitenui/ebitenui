@@ -82,13 +82,17 @@ func NewWindow(opts ...WindowOpt) *Window {
 		w.TitleBar.GetWidget().LayoutData = GridLayoutData{MaxHeight: w.titleBarHeight}
 		w.TitleBar.GetWidget().MinHeight = w.titleBarHeight
 		if w.Draggable {
-			w.TitleBar.GetWidget().MouseButtonPressedEvent.AddHandler(func(_ interface{}) {
-				x, y := input.CursorPosition()
-				w.startingPoint = image.Point{x, y}
-				w.dragging = true
+			w.TitleBar.GetWidget().MouseButtonPressedEvent.AddHandler(func(a any) {
+				args := a.(*WidgetMouseButtonPressedEventArgs)
+				if args.Button == ebiten.MouseButtonLeft {
+					x, y := input.CursorPosition()
+					w.startingPoint = image.Point{x, y}
+					w.dragging = true
+				}
 			})
-			w.TitleBar.GetWidget().MouseButtonReleasedEvent.AddHandler(func(_ interface{}) {
-				if w.dragging {
+			w.TitleBar.GetWidget().MouseButtonReleasedEvent.AddHandler(func(a any) {
+				args := a.(*WidgetMouseButtonReleasedEventArgs)
+				if w.dragging && args.Button == ebiten.MouseButtonLeft {
 					w.dragging = false
 					w.MoveEvent.Fire(&WindowChangedEventArgs{
 						Window: w,
@@ -109,15 +113,19 @@ func NewWindow(opts ...WindowOpt) *Window {
 	}
 
 	if w.Resizeable {
-		w.Contents.GetWidget().MouseButtonPressedEvent.AddHandler(func(_ interface{}) {
-			x, y := input.CursorPosition()
-			w.startingPoint = image.Point{x, y}
-			w.originalSize.X = w.container.GetWidget().Rect.Max.X
-			w.originalSize.Y = w.container.GetWidget().Rect.Max.Y
-			w.resizing = true
+		w.Contents.GetWidget().MouseButtonPressedEvent.AddHandler(func(a any) {
+			args := a.(*WidgetMouseButtonPressedEventArgs)
+			if args.Button == ebiten.MouseButtonLeft {
+				x, y := input.CursorPosition()
+				w.startingPoint = image.Point{x, y}
+				w.originalSize.X = w.container.GetWidget().Rect.Max.X
+				w.originalSize.Y = w.container.GetWidget().Rect.Max.Y
+				w.resizing = true
+			}
 		})
-		w.Contents.GetWidget().MouseButtonReleasedEvent.AddHandler(func(_ interface{}) {
-			if w.resizing {
+		w.Contents.GetWidget().MouseButtonReleasedEvent.AddHandler(func(a any) {
+			args := a.(*WidgetMouseButtonReleasedEventArgs)
+			if w.resizing && args.Button == ebiten.MouseButtonLeft {
 				w.resizing = false
 				w.ResizeEvent.Fire(&WindowChangedEventArgs{
 					Window: w,
@@ -338,7 +346,7 @@ func (w *Window) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 				ebiten.SetCursorShape(ebiten.CursorShapeNSResize)
 				w.resizingWidth = false
 				w.resizingHeight = true
-			} else {
+			} else if !input.MouseButtonPressed(ebiten.MouseButtonLeft) {
 				ebiten.SetCursorShape(ebiten.CursorShapeDefault)
 				w.resizingWidth = false
 				w.resizingHeight = false

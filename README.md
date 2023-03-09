@@ -34,5 +34,5 @@ Ebiten UI is licensed under the [MIT license](https://opensource.org/licenses/MI
 
 Maintainers
 -------
-* Currently maintained by Mark Carpenter <mark@dmn-dev.com>
+* Currently maintained by Mark Carpenter <mark@bird-mtn.dev>
 * Originally written by Maik Schreiber <blizzy@blizzy.de>

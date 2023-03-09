@@ -67,12 +67,13 @@ type Widget struct {
 	canDrop CanDropFunc
 	drop    DropFunc
 
-	parent                     *Widget
-	lastUpdateCursorEntered    bool
-	lastUpdateMouseLeftPressed bool
-	mouseLeftPressedInside     bool
-	inputLayer                 *input.Layer
-	focusable                  Focuser
+	parent                      *Widget
+	lastUpdateCursorEntered     bool
+	lastUpdateMouseLeftPressed  bool
+	lastUpdateMouseRightPressed bool
+	mouseLeftPressedInside      bool
+	inputLayer                  *input.Layer
+	focusable                   Focuser
 
 	ContextMenu          *Container
 	ContextMenuWindow    *Window
@@ -402,31 +403,53 @@ func (w *Widget) fireEvents() {
 		w.lastUpdateCursorEntered = entered
 	}
 
-	if input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, layer) {
-		w.lastUpdateMouseLeftPressed = true
+	if input.MouseButtonJustPressedLayer(ebiten.MouseButtonRight, layer) {
+		w.lastUpdateMouseRightPressed = true
+		if inside {
+			off := p.Sub(w.Rect.Min)
+			w.MouseButtonPressedEvent.Fire(&WidgetMouseButtonPressedEventArgs{
+				Widget:  w,
+				Button:  ebiten.MouseButtonRight,
+				OffsetX: off.X,
+				OffsetY: off.Y,
+			})
+			if w.ContextMenu != nil {
+				w.FireContextMenuEvent(nil, p)
+			}
+		}
 	}
 
-	if inside && input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, layer) {
-		w.mouseLeftPressedInside = inside
-
-		if w.focusable != nil && !w.Disabled {
-			w.focusable.Focus(true)
-		} else {
-			w.FireFocusEvent(nil, false, p)
-		}
+	if w.lastUpdateMouseRightPressed && !input.MouseButtonPressedLayer(ebiten.MouseButtonRight, layer) {
+		w.lastUpdateMouseRightPressed = false
 
 		off := p.Sub(w.Rect.Min)
-		w.MouseButtonPressedEvent.Fire(&WidgetMouseButtonPressedEventArgs{
+		w.MouseButtonReleasedEvent.Fire(&WidgetMouseButtonReleasedEventArgs{
 			Widget:  w,
-			Button:  ebiten.MouseButtonLeft,
+			Button:  ebiten.MouseButtonRight,
+			Inside:  inside,
 			OffsetX: off.X,
 			OffsetY: off.Y,
 		})
 	}
 
-	if inside && input.MouseButtonJustPressedLayer(ebiten.MouseButtonRight, layer) {
-		if w.ContextMenu != nil {
-			w.FireContextMenuEvent(nil, p)
+	if input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, layer) {
+		w.lastUpdateMouseLeftPressed = true
+		if inside {
+			w.mouseLeftPressedInside = inside
+
+			if w.focusable != nil && !w.Disabled {
+				w.focusable.Focus(true)
+			} else {
+				w.FireFocusEvent(nil, false, p)
+			}
+
+			off := p.Sub(w.Rect.Min)
+			w.MouseButtonPressedEvent.Fire(&WidgetMouseButtonPressedEventArgs{
+				Widget:  w,
+				Button:  ebiten.MouseButtonLeft,
+				OffsetX: off.X,
+				OffsetY: off.Y,
+			})
 		}
 	}
 

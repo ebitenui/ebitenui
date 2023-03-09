@@ -450,8 +450,8 @@ func (s *Slider) createWidget() {
 		}),
 
 		// TODO: keeping the mouse button pressed should move the handle repeatedly (in PageSize steps) until it stops under the cursor
-		WidgetOpts.MouseButtonPressedHandler(func(_ *WidgetMouseButtonPressedEventArgs) {
-			if !s.widget.Disabled {
+		WidgetOpts.MouseButtonPressedHandler(func(args *WidgetMouseButtonPressedEventArgs) {
+			if !s.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
 				x, y := input.CursorPosition()
 				ps := s.pageSizeFunc()
 				rect := s.handle.GetWidget().Rect

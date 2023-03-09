@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	img "image"
 	"image/color"
 	"log"
 
@@ -21,8 +22,9 @@ type game struct {
 
 // This object satisfies the interface DragContentsCreater
 type dndWidget struct {
-	dndObj *widget.Container
-	text   *widget.Text
+	dndObj         *widget.Container
+	text           *widget.Text
+	targetedWidget widget.HasWidget
 }
 
 // This method is used to create the drag element. It also allows you to provide abitrary drag data.
@@ -32,7 +34,7 @@ type dndWidget struct {
 // Inputs:
 //   - parent - The widget that triggered this Drag and drop event
 func (dnd *dndWidget) Create(parent *widget.Widget) (*widget.Container, interface{}) {
-
+	// For this example we do not need to recreate the Dragged element each time. We can re-use it.
 	if dnd.dndObj == nil {
 		// load text font
 		face, _ := loadFont(20)
@@ -60,9 +62,17 @@ func (dnd *dndWidget) Create(parent *widget.Widget) (*widget.Container, interfac
 //   - dragData - The drag data provided by the Create method above.
 func (dnd *dndWidget) Update(canDrop bool, targetWidget widget.HasWidget, dragData interface{}) {
 	if canDrop {
-		dnd.text.Label = "Can Drop"
+		dnd.text.Label = "* Can Drop *"
+		if targetWidget != nil {
+			targetWidget.(*widget.Container).BackgroundImage = image.NewNineSliceColor(color.NRGBA{100, 100, 255, 255})
+			dnd.targetedWidget = targetWidget
+		}
 	} else {
 		dnd.text.Label = "Cannot Drop"
+		if dnd.targetedWidget != nil {
+			dnd.targetedWidget.(*widget.Container).BackgroundImage = image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255})
+			dnd.targetedWidget = nil
+		}
 	}
 }
 
@@ -88,11 +98,36 @@ func main() {
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255})),
 		widget.ContainerOpts.WidgetOpts(
 			//This command indicates this widget is the source of Drag and Drop.
-			widget.WidgetOpts.EnableDragAndDrop(widget.NewDragAndDrop(widget.DragAndDropOpts.ContentsCreater(&dndWidget{}))),
+			widget.WidgetOpts.EnableDragAndDrop(
+				widget.NewDragAndDrop(
+					//The object which will create/update the dragged element. Required.
+					widget.DragAndDropOpts.ContentsCreater(&dndWidget{}),
+					//How many pixels the user must drag their cursor before the drag begins.
+					//This is an optional parameter that defaults to 15 pixels
+					widget.DragAndDropOpts.MinDragStartDistance(15),
+					//This sets where to anchor the widget to the cursor - vertical orientation
+					widget.DragAndDropOpts.ContentsOriginVertical(widget.DND_ANCHOR_END),
+					//This sets where to anchor the widget to the cursor - horizontal orientation
+					widget.DragAndDropOpts.ContentsOriginHorizontal(widget.DND_ANCHOR_END),
+					//This sets of far off the cursor to offset the dragged element
+					widget.DragAndDropOpts.Offset(img.Point{-5, -5}),
+					//This will turn of Drag to initiate drag and drop
+					//Primary use case will be click to drag
+					//widget.DragAndDropOpts.DisableDrag(),
+				),
+			),
+			widget.WidgetOpts.MouseButtonReleasedHandler(func(args *widget.WidgetMouseButtonReleasedEventArgs) {
+				if args.Inside && args.Button == ebiten.MouseButtonLeft && ebiten.IsKeyPressed(ebiten.KeyControl) {
+					args.Widget.DragAndDrop.StartDrag()
+				}
+				if args.Button == ebiten.MouseButtonRight {
+					args.Widget.DragAndDrop.StopDrag()
+				}
+			}),
 		),
 	)
 
-	leftSide.AddChild(widget.NewText(widget.TextOpts.Text("Drag from Here", face, color.Black), widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+	leftSide.AddChild(widget.NewText(widget.TextOpts.Text("Drag from Here\nOr Ctrl-Click", face, color.Black), widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 		HorizontalPosition: widget.AnchorLayoutPositionCenter,
 		VerticalPosition:   widget.AnchorLayoutPositionCenter,
 	}))))

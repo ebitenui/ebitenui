@@ -28,11 +28,11 @@ type ToolTipAnchor int
 
 const (
 	// Anchor at the start of the element
-	ANCHOR_START ToolTipAnchor = iota
+	TOOLTIP_ANCHOR_START ToolTipAnchor = iota
 	// Anchor in the middle of the element
-	ANCHOR_MIDDLE
+	TOOLTIP_ANCHOR_MIDDLE
 	// Anchor at the end of the element
-	ANCHOR_END
+	TOOLTIP_ANCHOR_END
 )
 
 type ToolTipDirection int
@@ -58,7 +58,7 @@ type ToolTipOptions struct {
 
 var ToolTipOpts ToolTipOptions
 
-type toolTipState func(*Widget) (toolTipState, bool)
+type toolTipState func(*Widget) toolTipState
 
 type ToolTipUpdater func(*Container)
 
@@ -66,13 +66,13 @@ type ToolTipUpdater func(*Container)
 // every aspect of the displayed tooltip's content.
 func NewToolTip(opts ...ToolTipOpt) *ToolTip {
 	t := &ToolTip{
-		Offset: image.Point{0, 0},
+		Offset: image.Point{10, 10},
 	}
 	t.state = t.idleState()
-	t.WidgetOriginHorizontal = ANCHOR_END
-	t.WidgetOriginVertical = ANCHOR_END
-	t.ContentOriginHorizontal = ANCHOR_END
-	t.ContentOriginVertical = ANCHOR_START
+	t.WidgetOriginHorizontal = TOOLTIP_ANCHOR_END
+	t.WidgetOriginVertical = TOOLTIP_ANCHOR_END
+	t.ContentOriginHorizontal = TOOLTIP_ANCHOR_END
+	t.ContentOriginVertical = TOOLTIP_ANCHOR_START
 	for _, o := range opts {
 		o(t)
 	}
@@ -175,43 +175,39 @@ func (o ToolTipOptions) ToolTipUpdater(toolTipUpdater ToolTipUpdater) ToolTipOpt
 }
 
 func (t *ToolTip) Render(parent *Widget, screen *ebiten.Image, def DeferredRenderFunc) {
-	for {
-		newState, rerun := t.state(parent)
-		if newState != nil {
-			t.state = newState
-		}
-		if !rerun {
-			break
-		}
+
+	newState := t.state(parent)
+	if newState != nil {
+		t.state = newState
 	}
 }
 
 func (t *ToolTip) idleState() toolTipState {
-	return func(parent *Widget) (toolTipState, bool) {
+	return func(parent *Widget) toolTipState {
 		if input.MouseButtonPressed(ebiten.MouseButtonLeft) ||
 			input.MouseButtonPressed(ebiten.MouseButtonMiddle) ||
 			input.MouseButtonPressed(ebiten.MouseButtonRight) {
 			t.visible = false
 			parent.FireToolTipEvent(t.window, false)
-			return nil, false
+			return nil
 		}
 
 		x, y := input.CursorPosition()
 		p := image.Point{x, y}
 		if !p.In(parent.Rect) {
-			return nil, false
+			return nil
 		}
 
 		if t.Delay <= 0 {
-			return t.showingState(p), true
+			return t.showingState(p)
 		}
 
-		return t.armedState(p, nil, nil), true
+		return t.armedState(p, nil, nil)
 	}
 }
 
 func (t *ToolTip) armedState(p image.Point, timer *time.Timer, expired *atomic.Value) toolTipState {
-	return func(parent *Widget) (toolTipState, bool) {
+	return func(parent *Widget) toolTipState {
 		x, y := input.CursorPosition()
 		cp := image.Point{x, y}
 
@@ -221,11 +217,11 @@ func (t *ToolTip) armedState(p image.Point, timer *time.Timer, expired *atomic.V
 			!cp.In(parent.Rect) {
 			t.visible = false
 			parent.FireToolTipEvent(t.window, false)
-			return t.idleState(), false
+			return t.idleState()
 		}
 
 		if timer != nil && expired.Load().(bool) {
-			return t.showingState(cp), true
+			return t.showingState(cp)
 		}
 
 		if timer == nil {
@@ -236,15 +232,15 @@ func (t *ToolTip) armedState(p image.Point, timer *time.Timer, expired *atomic.V
 				expired.Store(true)
 			})
 
-			return t.armedState(p, timer, expired), false
+			return t.armedState(p, timer, expired)
 		}
 
-		return nil, false
+		return nil
 	}
 }
 
 func (t *ToolTip) showingState(p image.Point) toolTipState {
-	return func(parent *Widget) (toolTipState, bool) {
+	return func(parent *Widget) toolTipState {
 		x, y := input.CursorPosition()
 		cp := image.Point{x, y}
 		if input.MouseButtonPressed(ebiten.MouseButtonLeft) ||
@@ -253,7 +249,7 @@ func (t *ToolTip) showingState(p image.Point) toolTipState {
 			!cp.In(parent.Rect) {
 			t.visible = false
 			parent.FireToolTipEvent(t.window, false)
-			return t.idleState(), false
+			return t.idleState()
 		}
 		sx, sy := t.content.PreferredSize()
 
@@ -278,29 +274,29 @@ func (t *ToolTip) showingState(p image.Point) toolTipState {
 			parent.FireToolTipEvent(t.window, true)
 			t.visible = true
 		}
-		return t.showingState(p), false
+		return t.showingState(p)
 	}
 }
 
 func (t *ToolTip) processWidgetPosition(parent *Widget) image.Point {
 	p := image.Point{}
 	widgetRect := parent.Rect
-	if t.WidgetOriginVertical == ANCHOR_START {
-		if t.WidgetOriginHorizontal == ANCHOR_START {
+	if t.WidgetOriginVertical == TOOLTIP_ANCHOR_START {
+		if t.WidgetOriginHorizontal == TOOLTIP_ANCHOR_START {
 			p.X = widgetRect.Min.X
 			p.Y = widgetRect.Min.Y
-		} else if t.WidgetOriginHorizontal == ANCHOR_MIDDLE {
+		} else if t.WidgetOriginHorizontal == TOOLTIP_ANCHOR_MIDDLE {
 			p.X = widgetRect.Min.X + (widgetRect.Dx() / 2)
 			p.Y = widgetRect.Min.Y
 		} else {
 			p.X = widgetRect.Max.X
 			p.Y = widgetRect.Min.Y
 		}
-	} else if t.WidgetOriginVertical == ANCHOR_MIDDLE {
-		if t.WidgetOriginHorizontal == ANCHOR_START {
+	} else if t.WidgetOriginVertical == TOOLTIP_ANCHOR_MIDDLE {
+		if t.WidgetOriginHorizontal == TOOLTIP_ANCHOR_START {
 			p.X = widgetRect.Min.X
 			p.Y = widgetRect.Min.Y + (widgetRect.Dy() / 2)
-		} else if t.WidgetOriginHorizontal == ANCHOR_MIDDLE {
+		} else if t.WidgetOriginHorizontal == TOOLTIP_ANCHOR_MIDDLE {
 			p.X = widgetRect.Min.X + (widgetRect.Dx() / 2)
 			p.Y = widgetRect.Min.Y + (widgetRect.Dy() / 2)
 		} else {
@@ -308,10 +304,10 @@ func (t *ToolTip) processWidgetPosition(parent *Widget) image.Point {
 			p.Y = widgetRect.Min.Y + (widgetRect.Dy() / 2)
 		}
 	} else {
-		if t.WidgetOriginHorizontal == ANCHOR_START {
+		if t.WidgetOriginHorizontal == TOOLTIP_ANCHOR_START {
 			p.X = widgetRect.Min.X
 			p.Y = widgetRect.Max.Y
-		} else if t.WidgetOriginHorizontal == ANCHOR_MIDDLE {
+		} else if t.WidgetOriginHorizontal == TOOLTIP_ANCHOR_MIDDLE {
 			p.X = widgetRect.Min.X + (widgetRect.Dx() / 2)
 			p.Y = widgetRect.Max.Y
 		} else {
@@ -323,28 +319,28 @@ func (t *ToolTip) processWidgetPosition(parent *Widget) image.Point {
 }
 
 func (t *ToolTip) processContentPosition(p image.Point, sx int, sy int) image.Point {
-	if t.ContentOriginVertical == ANCHOR_START {
-		if t.ContentOriginHorizontal == ANCHOR_START {
+	if t.ContentOriginVertical == TOOLTIP_ANCHOR_START {
+		if t.ContentOriginHorizontal == TOOLTIP_ANCHOR_START {
 			//Do nothing
-		} else if t.ContentOriginHorizontal == ANCHOR_MIDDLE {
+		} else if t.ContentOriginHorizontal == TOOLTIP_ANCHOR_MIDDLE {
 			p.X = p.X - (sx / 2)
 		} else {
 			p.X = p.X - sx
 		}
-	} else if t.ContentOriginVertical == ANCHOR_MIDDLE {
-		if t.ContentOriginHorizontal == ANCHOR_START {
+	} else if t.ContentOriginVertical == TOOLTIP_ANCHOR_MIDDLE {
+		if t.ContentOriginHorizontal == TOOLTIP_ANCHOR_START {
 			p.Y = p.Y - (sy / 2)
-		} else if t.ContentOriginHorizontal == ANCHOR_MIDDLE {
+		} else if t.ContentOriginHorizontal == TOOLTIP_ANCHOR_MIDDLE {
 			p.X = p.X - (sx / 2)
 			p.Y = p.Y - (sy / 2)
 		} else {
 			p.X = p.X - sx
 			p.Y = p.Y - (sy / 2)
 		}
-	} else if t.ContentOriginVertical == ANCHOR_END {
-		if t.ContentOriginHorizontal == ANCHOR_START {
+	} else if t.ContentOriginVertical == TOOLTIP_ANCHOR_END {
+		if t.ContentOriginHorizontal == TOOLTIP_ANCHOR_START {
 			p.Y = p.Y - sy
-		} else if t.ContentOriginHorizontal == ANCHOR_MIDDLE {
+		} else if t.ContentOriginHorizontal == TOOLTIP_ANCHOR_MIDDLE {
 			p.X = p.X - (sx / 2)
 			p.Y = p.Y - sy
 		} else {
