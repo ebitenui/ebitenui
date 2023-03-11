@@ -59,6 +59,11 @@ func (o LabeledCheckboxOptions) Spacing(s int) LabeledCheckboxOpt {
 	}
 }
 
+func (l *LabeledCheckbox) SetState(state WidgetState) {
+	l.init.Do()
+	l.checkbox.SetState(state)
+}
+
 func (l *LabeledCheckbox) GetWidget() *Widget {
 	l.init.Do()
 	return l.container.GetWidget()
