@@ -147,6 +147,9 @@ func main() {
 		//Set the label to be before the checkbox.
 		widget.LabeledCheckboxOpts.LabelFirst(),
 	)
+	//Set this checkbox as Checked by default
+	labeledCheckBox2.SetState(widget.WidgetChecked)
+
 	rootContainer.AddChild(labeledCheckBox2)
 	// construct the UI
 	ui := ebitenui.UI{
