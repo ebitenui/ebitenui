@@ -7,15 +7,24 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+type LabelOrder int
+
+const (
+	CHECKBOX_FIRST LabelOrder = iota
+	LABEL_FIRST
+)
+
 type LabeledCheckbox struct {
 	checkboxOpts []CheckboxOpt
 	labelOpts    []LabelOpt
 	spacing      int
 
-	init      *MultiOnce
-	container *Container
-	checkbox  *Checkbox
-	label     *Label
+	init       *MultiOnce
+	widgetOpts []WidgetOpt
+	container  *Container
+	checkbox   *Checkbox
+	label      *Label
+	order      LabelOrder
 }
 
 type LabeledCheckboxOpt func(l *LabeledCheckbox)
@@ -28,8 +37,8 @@ var LabeledCheckboxOpts LabeledCheckboxOptions
 func NewLabeledCheckbox(opts ...LabeledCheckboxOpt) *LabeledCheckbox {
 	l := &LabeledCheckbox{
 		spacing: 8,
-
-		init: &MultiOnce{},
+		order:   CHECKBOX_FIRST,
+		init:    &MultiOnce{},
 	}
 
 	l.init.Append(l.createWidget)
@@ -39,6 +48,12 @@ func NewLabeledCheckbox(opts ...LabeledCheckboxOpt) *LabeledCheckbox {
 	}
 
 	return l
+}
+
+func (o LabeledCheckboxOptions) WidgetOpts(opts ...WidgetOpt) LabeledCheckboxOpt {
+	return func(l *LabeledCheckbox) {
+		l.widgetOpts = append(l.widgetOpts, opts...)
+	}
 }
 
 func (o LabeledCheckboxOptions) CheckboxOpts(opts ...CheckboxOpt) LabeledCheckboxOpt {
@@ -56,6 +71,12 @@ func (o LabeledCheckboxOptions) LabelOpts(opts ...LabelOpt) LabeledCheckboxOpt {
 func (o LabeledCheckboxOptions) Spacing(s int) LabeledCheckboxOpt {
 	return func(l *LabeledCheckbox) {
 		l.spacing = s
+	}
+}
+
+func (o LabeledCheckboxOptions) LabelFirst() LabeledCheckboxOpt {
+	return func(l *LabeledCheckbox) {
+		l.order = LABEL_FIRST
 	}
 }
 
@@ -90,32 +111,34 @@ func (l *LabeledCheckbox) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 }
 
 func (l *LabeledCheckbox) Checkbox() *Checkbox {
+	l.init.Do()
 	return l.checkbox
 }
 
 func (l *LabeledCheckbox) Label() *Label {
+	l.init.Do()
 	return l.label
 }
-func (c *LabeledCheckbox) Focus(focused bool) {
-	c.init.Do()
-	c.GetWidget().FireFocusEvent(c, focused, image.Point{-1, -1})
-	c.checkbox.button.focused = focused
+func (l *LabeledCheckbox) Focus(focused bool) {
+	l.init.Do()
+	l.GetWidget().FireFocusEvent(l, focused, image.Point{-1, -1})
+	l.checkbox.button.focused = focused
 }
 
-func (c *LabeledCheckbox) TabOrder() int {
-	return c.checkbox.tabOrder
+func (l *LabeledCheckbox) TabOrder() int {
+	l.init.Do()
+	return l.checkbox.tabOrder
 }
 func (l *LabeledCheckbox) createWidget() {
 	l.container = NewContainer(
-		ContainerOpts.Layout(NewRowLayout(
-			RowLayoutOpts.Spacing(l.spacing))),
+		ContainerOpts.Layout(NewRowLayout(RowLayoutOpts.Spacing(l.spacing))),
 		ContainerOpts.AutoDisableChildren(),
+		ContainerOpts.WidgetOpts(l.widgetOpts...),
 	)
 
 	l.checkbox = NewCheckbox(append(l.checkboxOpts, CheckboxOpts.ButtonOpts(ButtonOpts.WidgetOpts(WidgetOpts.LayoutData(RowLayoutData{
 		Position: RowLayoutPositionCenter,
 	}))))...)
-	l.container.AddChild(l.checkbox)
 	l.checkboxOpts = nil
 
 	l.label = NewLabel(append(l.labelOpts, LabelOpts.TextOpts(TextOpts.WidgetOpts(
@@ -129,6 +152,13 @@ func (l *LabeledCheckbox) createWidget() {
 			}
 		}),
 	)))...)
-	l.container.AddChild(l.label)
+
+	if l.order == CHECKBOX_FIRST {
+		l.container.AddChild(l.checkbox)
+		l.container.AddChild(l.label)
+	} else {
+		l.container.AddChild(l.label)
+		l.container.AddChild(l.checkbox)
+	}
 	l.labelOpts = nil
 }
