@@ -13,8 +13,12 @@ func TestLabeledCheckbox_SetState_User(t *testing.T) {
 
 	l := newLabeledCheckbox(t)
 	leftMouseButtonClick(labeledCheckboxLabel(l), t)
-
 	is.Equal(l.Checkbox().State(), WidgetChecked)
+
+	l2 := newLabeledCheckbox(t)
+	l2.SetState(WidgetChecked)
+	leftMouseButtonClick(labeledCheckboxLabel(l2), t)
+	is.Equal(l2.Checkbox().State(), WidgetUnchecked)
 }
 
 func newLabeledCheckbox(t *testing.T, opts ...LabeledCheckboxOpt) *LabeledCheckbox {
