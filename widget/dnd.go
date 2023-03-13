@@ -251,7 +251,6 @@ func (d *DragAndDrop) draggingState(srcX int, srcY int, dragWidget *Container, d
 		r = r.Add(d.Offset)
 		d.window.SetLocation(r)
 		dragWidget.SetLocation(r)
-		dragWidget.RequestRelayout()
 
 		return d.draggingState(srcX, srcY, dragWidget, dragData, mousePressed), false
 	}

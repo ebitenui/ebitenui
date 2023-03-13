@@ -269,7 +269,6 @@ func (t *ToolTip) showingState(p image.Point) toolTipState {
 		r = r.Add(t.Offset)
 		t.window.SetLocation(r)
 		t.content.SetLocation(r)
-		t.content.RequestRelayout()
 		if !t.visible {
 			parent.FireToolTipEvent(t.window, true)
 			t.visible = true

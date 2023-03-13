@@ -28,7 +28,6 @@ type UI struct {
 	//If true the default tab/shift-tab to focus will be disabled
 	DisableDefaultFocus bool
 
-	lastRect      image.Rectangle
 	focusedWidget widget.HasWidget
 	inputLayerers []input.Layerer
 	renderers     []widget.Renderer
@@ -52,8 +51,6 @@ func (u *UI) Update() {
 }
 
 // Draw renders u onto screen. This function should be called in the Ebiten Draw function.
-//
-// If screen's size changes from one frame to the next, u.Container.RequestRelayout is called.
 func (u *UI) Draw(screen *ebiten.Image) {
 	event.ExecuteDeferred()
 
@@ -63,13 +60,6 @@ func (u *UI) Draw(screen *ebiten.Image) {
 	w, h := screen.Size()
 	rect := image.Rect(0, 0, w, h)
 
-	defer func() {
-		u.lastRect = rect
-	}()
-
-	if rect != u.lastRect {
-		u.Container.RequestRelayout()
-	}
 	u.handleFocusChangeRequest()
 	u.setupInputLayers()
 	u.Container.SetLocation(rect)

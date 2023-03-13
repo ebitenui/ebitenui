@@ -273,7 +273,6 @@ func (w *Window) SetLocation(rect image.Rectangle) {
 		}
 
 		w.container.SetLocation(rect)
-		w.container.RequestRelayout()
 	}
 }
 

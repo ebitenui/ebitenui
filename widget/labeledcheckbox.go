@@ -98,7 +98,6 @@ func (l *LabeledCheckbox) PreferredSize() (int, int) {
 func (l *LabeledCheckbox) SetLocation(rect image.Rectangle) {
 	l.init.Do()
 	l.container.SetLocation(rect)
-	l.container.RequestRelayout()
 }
 
 func (l *LabeledCheckbox) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
