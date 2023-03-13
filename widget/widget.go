@@ -419,7 +419,7 @@ func (w *Widget) fireEvents() {
 		}
 	}
 
-	if w.lastUpdateMouseRightPressed && !input.MouseButtonPressedLayer(ebiten.MouseButtonRight, layer) {
+	if w.lastUpdateMouseRightPressed && !input.MouseButtonPressed(ebiten.MouseButtonRight) {
 		w.lastUpdateMouseRightPressed = false
 
 		off := p.Sub(w.Rect.Min)
@@ -453,7 +453,7 @@ func (w *Widget) fireEvents() {
 		}
 	}
 
-	if w.lastUpdateMouseLeftPressed && !input.MouseButtonPressedLayer(ebiten.MouseButtonLeft, layer) {
+	if w.lastUpdateMouseLeftPressed && !input.MouseButtonPressed(ebiten.MouseButtonLeft) {
 		w.lastUpdateMouseLeftPressed = false
 
 		off := p.Sub(w.Rect.Min)
