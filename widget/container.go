@@ -85,6 +85,7 @@ func (c *Container) AddChild(child PreferredSizeLocateableWidget) RemoveChildFun
 	c.children = append(c.children, child)
 
 	child.GetWidget().parent = c.widget
+	child.GetWidget().self = child
 
 	child.GetWidget().ContextMenuEvent.AddHandler(func(args interface{}) {
 		a := args.(*WidgetContextMenuEventArgs)
@@ -262,16 +263,7 @@ func (c *Container) GetDropTargets() []HasWidget {
 		result = append(result, c)
 	}
 	for _, child := range c.children {
-		switch v := child.(type) {
-		case *Container:
-			result = append(result, v.GetDropTargets()...)
-		case *FlipBook:
-			result = append(result, v.GetDropTargets()...)
-		case *TabBook:
-			result = append(result, v.container.GetDropTargets()...)
-		case *TabBookTab:
-			result = append(result, v.GetDropTargets()...)
-		case *ScrollContainer:
+		if v, ok := child.(Dropper); ok {
 			result = append(result, v.GetDropTargets()...)
 		}
 	}

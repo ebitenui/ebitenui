@@ -182,16 +182,8 @@ func (s *ScrollContainer) GetDropTargets() []HasWidget {
 	if s.GetWidget().drop != nil {
 		result = append(result, s)
 	}
-	switch v := s.content.(type) {
-	case *Container:
-		result = append(result, v.GetDropTargets()...)
-	case *FlipBook:
-		result = append(result, v.GetDropTargets()...)
-	case *TabBook:
-		result = append(result, v.container.GetDropTargets()...)
-	case *TabBookTab:
-		result = append(result, v.GetDropTargets()...)
-	case *ScrollContainer:
+
+	if v, ok := s.content.(Dropper); ok {
 		result = append(result, v.GetDropTargets()...)
 	}
 

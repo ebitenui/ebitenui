@@ -43,7 +43,7 @@ type DragAndDropOptions struct {
 var DragAndDropOpts DragAndDropOptions
 
 type DragContentsCreater interface {
-	Create(*Widget) (*Container, interface{})
+	Create(HasWidget) (*Container, interface{})
 }
 
 type DragContentsUpdater interface {
@@ -53,7 +53,14 @@ type DragContentsUpdater interface {
 	Update(bool, HasWidget, interface{})
 }
 
-type dragAndDropState func(*Widget) (dragAndDropState, bool)
+type DragContentsEnder interface {
+	// arg1 - Drop was successful
+	// arg2 - Source Widget
+	// arg3 - DragData
+	EndDrag(bool, HasWidget, interface{})
+}
+
+type dragAndDropState func(HasWidget) (dragAndDropState, bool)
 
 func NewDragAndDrop(opts ...DragAndDropOpt) *DragAndDrop {
 	d := &DragAndDrop{
@@ -142,7 +149,7 @@ func (d *DragAndDrop) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 	}
 }
 
-func (d *DragAndDrop) Render(parent *Widget, screen *ebiten.Image, def DeferredRenderFunc) {
+func (d *DragAndDrop) Render(parent HasWidget, screen *ebiten.Image, def DeferredRenderFunc) {
 	newState, _ := d.state(parent)
 	if newState != nil {
 		d.state = newState
@@ -150,12 +157,12 @@ func (d *DragAndDrop) Render(parent *Widget, screen *ebiten.Image, def DeferredR
 }
 
 func (d *DragAndDrop) idleState() dragAndDropState {
-	return func(parent *Widget) (dragAndDropState, bool) {
+	return func(parent HasWidget) (dragAndDropState, bool) {
 		d.dragWidget = nil
 		if (!input.MouseButtonJustPressed(ebiten.MouseButtonLeft) && !d.dndTriggered) || d.dndStopped {
 			d.dndStopped = false
 			if d.window != nil {
-				parent.FireDragAndDropEvent(d.window, false, d)
+				parent.GetWidget().FireDragAndDropEvent(d.window, false, d)
 				d.window = nil
 			}
 			return nil, false
@@ -163,7 +170,7 @@ func (d *DragAndDrop) idleState() dragAndDropState {
 
 		x, y := input.CursorPosition()
 		p := image.Point{x, y}
-		if !p.In(parent.Rect) {
+		if !p.In(parent.GetWidget().Rect) && !d.dndTriggered {
 			return nil, false
 		}
 
@@ -172,7 +179,7 @@ func (d *DragAndDrop) idleState() dragAndDropState {
 }
 
 func (d *DragAndDrop) dragArmedState(srcX int, srcY int) dragAndDropState {
-	return func(_ *Widget) (dragAndDropState, bool) {
+	return func(_ HasWidget) (dragAndDropState, bool) {
 		if !input.MouseButtonPressed(ebiten.MouseButtonLeft) && !d.dndTriggered {
 			return d.idleState(), false
 		}
@@ -189,7 +196,7 @@ func (d *DragAndDrop) dragArmedState(srcX int, srcY int) dragAndDropState {
 }
 
 func (d *DragAndDrop) draggingState(srcX int, srcY int, dragWidget *Container, dragData interface{}, mousePressed bool) dragAndDropState {
-	return func(parent *Widget) (dragAndDropState, bool) {
+	return func(parent HasWidget) (dragAndDropState, bool) {
 		x, y := input.CursorPosition()
 
 		d.dndTriggered = false
@@ -207,7 +214,7 @@ func (d *DragAndDrop) draggingState(srcX int, srcY int, dragWidget *Container, d
 				WindowOpts.CloseMode(NONE),
 				WindowOpts.Contents(dragWidget),
 			)
-			parent.FireDragAndDropEvent(d.window, true, d)
+			parent.GetWidget().FireDragAndDropEvent(d.window, true, d)
 		}
 
 		defer func() {
@@ -257,7 +264,7 @@ func (d *DragAndDrop) draggingState(srcX int, srcY int, dragWidget *Container, d
 }
 
 func (d *DragAndDrop) droppingState(srcX int, srcY int, x int, y int, dragData interface{}) dragAndDropState {
-	return func(parent *Widget) (dragAndDropState, bool) {
+	return func(parent HasWidget) (dragAndDropState, bool) {
 		args := &DragAndDropDroppedEventArgs{
 			Source:  parent,
 			SourceX: srcX,
@@ -267,13 +274,20 @@ func (d *DragAndDrop) droppingState(srcX int, srcY int, x int, y int, dragData i
 			Data:    dragData,
 		}
 		p := image.Point{x, y}
+		dropSuccessful := false
 		for _, target := range d.AvailableDropTargets {
 			if p.In(target.GetWidget().Rect) && target.GetWidget().canDrop(args) {
 				if target.GetWidget().drop != nil {
+					args.Target = target
 					target.GetWidget().drop(args)
+					dropSuccessful = true
 				}
 				break
 			}
+		}
+
+		if e, ok := d.contentsCreater.(DragContentsEnder); ok {
+			e.EndDrag(dropSuccessful, parent, dragData)
 		}
 
 		return d.idleState(), false

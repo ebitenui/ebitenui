@@ -33,7 +33,7 @@ type dndWidget struct {
 //
 // Inputs:
 //   - parent - The widget that triggered this Drag and drop event
-func (dnd *dndWidget) Create(parent *widget.Widget) (*widget.Container, interface{}) {
+func (dnd *dndWidget) Create(parent widget.HasWidget) (*widget.Container, interface{}) {
 	// For this example we do not need to recreate the Dragged element each time. We can re-use it.
 	if dnd.dndObj == nil {
 		// load text font

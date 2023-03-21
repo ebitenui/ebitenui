@@ -41,6 +41,8 @@ type Window struct {
 	MinSize    *image.Point
 	MaxSize    *image.Point
 	DrawLayer  int
+	//Used to indicate this window should close if other windows close.
+	Ephemeral bool
 
 	closeMode WindowCloseMode
 	closeFunc RemoveWindowFunc

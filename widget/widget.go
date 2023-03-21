@@ -68,6 +68,7 @@ type Widget struct {
 	drop    DropFunc
 
 	parent                      *Widget
+	self                        HasWidget
 	lastUpdateCursorEntered     bool
 	lastUpdateMouseLeftPressed  bool
 	lastUpdateMouseRightPressed bool
@@ -101,6 +102,10 @@ type Renderer interface {
 type Focuser interface {
 	Focus(focused bool)
 	TabOrder() int
+}
+
+type Dropper interface {
+	GetDropTargets() []HasWidget
 }
 
 // RenderFunc is a function that renders a widget onto screen. def may be called to defer
@@ -182,9 +187,10 @@ type WidgetDragAndDropEventArgs struct { //nolint:golint
 }
 
 type DragAndDropDroppedEventArgs struct { //nolint:golint
-	Source  *Widget
+	Source  HasWidget
 	SourceX int
 	SourceY int
+	Target  HasWidget
 	TargetX int
 	TargetY int
 	Data    interface{}
@@ -378,7 +384,7 @@ func (w *Widget) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 		w.ToolTip.Render(w, screen, def)
 	}
 	if w.DragAndDrop != nil {
-		w.DragAndDrop.Render(w, screen, def)
+		w.DragAndDrop.Render(w.self, screen, def)
 	}
 }
 

@@ -103,7 +103,7 @@ func (u *UI) handleFocusEvent(args interface{}) {
 
 func (u *UI) handleToolTipEvent(args interface{}) {
 	a := args.(*widget.WidgetToolTipEventArgs)
-	a.Window.GetContainer().GetWidget().CustomData = "tooltip"
+	a.Window.Ephemeral = true
 	if a.Show {
 		u.addWindow(a.Window)
 	} else {
@@ -114,6 +114,7 @@ func (u *UI) handleToolTipEvent(args interface{}) {
 func (u *UI) handleDragAndDropEvent(args interface{}) {
 	a := args.(*widget.WidgetDragAndDropEventArgs)
 	if a.Show {
+		a.Window.Ephemeral = true
 		a.DnD.AvailableDropTargets = u.getDropTargets()
 		u.addWindow(a.Window)
 	} else {
@@ -296,7 +297,7 @@ func (u *UI) removeWindow(w *widget.Window) {
 	}
 	if windowIdx != -1 {
 		for i := len(u.windows) - 1; i >= windowIdx; i-- {
-			if u.windows[i].GetContainer().GetWidget().CustomData == "tooltip" {
+			if u.windows[i].Ephemeral {
 				u.windows = append(u.windows[:i], u.windows[i+1:]...)
 			}
 		}
@@ -325,4 +326,11 @@ func (u *UI) ClearFocus() {
 	if u.focusedWidget != nil {
 		u.focusedWidget.(widget.Focuser).Focus(false)
 	}
+}
+
+func (u *UI) GetFocusedWidget() widget.Focuser {
+	if u.focusedWidget != nil {
+		return u.focusedWidget.(widget.Focuser)
+	}
+	return nil
 }

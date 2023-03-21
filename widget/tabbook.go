@@ -170,6 +170,10 @@ func (t *TabBook) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 	t.container.SetupInputLayer(def)
 }
 
+func (t *TabBook) GetDropTargets() []HasWidget {
+	return t.container.GetDropTargets()
+}
+
 func (t *TabBook) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	t.init.Do()
 

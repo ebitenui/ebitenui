@@ -19,10 +19,17 @@ import (
 
 // Game object used by ebiten
 type game struct {
-	ui *ebitenui.UI
+	ui                *ebitenui.UI
+	standardTextInput *widget.TextInput
 }
 
 func main() {
+
+	// Ebiten setup
+	ebiten.SetWindowSize(400, 400)
+	ebiten.SetWindowTitle("Ebiten UI - TextInput")
+
+	game := game{}
 
 	// load the font
 	face, _ := loadFont(20)
@@ -40,7 +47,7 @@ func main() {
 	)
 
 	// construct a standard textinput widget
-	standardTextInput := widget.NewTextInput(
+	game.standardTextInput = widget.NewTextInput(
 		widget.TextInputOpts.WidgetOpts(
 			//Set the layout information to center the textbox in the parent
 			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
@@ -91,7 +98,7 @@ func main() {
 		}),
 	)
 
-	rootContainer.AddChild(standardTextInput)
+	rootContainer.AddChild(game.standardTextInput)
 
 	// construct a disabled textinput widget
 	disabledTextInput := widget.NewTextInput(
@@ -270,19 +277,11 @@ func main() {
 	)
 
 	rootContainer.AddChild(allCapsTextInput)
-
 	// construct the UI
 	ui := ebitenui.UI{
 		Container: rootContainer,
 	}
-
-	// Ebiten setup
-	ebiten.SetWindowSize(400, 400)
-	ebiten.SetWindowTitle("Ebiten UI - TextInput")
-
-	game := game{
-		ui: &ui,
-	}
+	game.ui = &ui
 
 	// run Ebiten main loop
 	err := ebiten.RunGame(&game)
@@ -305,6 +304,12 @@ func (g *game) Update() error {
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyPageDown) {
 		g.ui.ChangeFocus(ebitenui.FOCUS_NEXT)
+	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyEnd) {
+		if g.ui.GetFocusedWidget() == g.standardTextInput {
+			fmt.Println("standardTextInput selected")
+		}
 	}
 	g.ui.Update()
 	return nil
