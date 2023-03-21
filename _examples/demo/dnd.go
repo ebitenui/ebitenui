@@ -10,7 +10,7 @@ type dragContents struct {
 	text *widget.Text
 }
 
-func (d *dragContents) Create(sourceWidget *widget.Widget) (*widget.Container, interface{}) {
+func (d *dragContents) Create(sourceWidget widget.HasWidget) (*widget.Container, interface{}) {
 
 	c := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(d.res.toolTip.background),

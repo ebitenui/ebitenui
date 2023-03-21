@@ -43,7 +43,8 @@ func loadImageNineSlice(path string, centerWidth int, centerHeight int) (*image.
 	if err != nil {
 		return nil, err
 	}
-	w, h := i.Size()
+	w := i.Bounds().Dx()
+	h := i.Bounds().Dy()
 	return image.NewNineSlice(i,
 			[3]int{(w - centerWidth) / 2, centerWidth, w - (w-centerWidth)/2 - centerWidth},
 			[3]int{(h - centerHeight) / 2, centerHeight, h - (h-centerHeight)/2 - centerHeight}),

@@ -76,6 +76,20 @@ func (dnd *dndWidget) Update(canDrop bool, targetWidget widget.HasWidget, dragDa
 	}
 }
 
+// This method is optional for Drag and Drop
+// It will be called when the Drag and Drop is completed.
+// Inputs:
+//   - dropped - if drop was completed successfully
+//   - targetWidget - The widget that will allow this object to be dropped.
+//   - dragData - The drag data provided by the Create method above.
+func (dnd *dndWidget) EndDrag(dropped bool, sourceWidget widget.HasWidget, dragData interface{}) {
+	if dropped {
+		fmt.Println("Dropped Successful")
+	} else {
+		fmt.Println("Drop Cancelled")
+	}
+}
+
 func main() {
 	// load text font
 	face, _ := loadFont(20)

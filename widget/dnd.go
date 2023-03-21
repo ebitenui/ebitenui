@@ -249,6 +249,10 @@ func (d *DragAndDrop) draggingState(srcX int, srcY int, dragWidget *Container, d
 		}
 
 		if input.KeyPressed(ebiten.KeyEscape) || d.dndStopped {
+			if e, ok := d.contentsCreater.(DragContentsEnder); ok {
+				e.EndDrag(false, parent, dragData)
+			}
+
 			return d.idleState(), false
 		}
 
