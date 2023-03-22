@@ -294,6 +294,12 @@ func (d *DragAndDrop) droppingState(srcX int, srcY int, x int, y int, dragData i
 			e.EndDrag(dropSuccessful, parent, dragData)
 		}
 
+		d.dndStopped = false
+		if d.window != nil {
+			parent.GetWidget().FireDragAndDropEvent(d.window, false, d)
+			d.window = nil
+		}
+
 		return d.idleState(), false
 	}
 }
