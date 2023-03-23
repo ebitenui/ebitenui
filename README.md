@@ -24,7 +24,7 @@ Social Media
 -------
 * [Discord](https://discord.gg/ujEeeHgptU)
 
-* [Reddit](https://www.reddit.com/r/dmndev/)
+* [Reddit](https://www.reddit.com/r/birdmtndev/)
 
 
 License
