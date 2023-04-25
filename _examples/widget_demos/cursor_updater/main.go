@@ -245,7 +245,7 @@ func loadHoverCursorImage() *ebiten.Image {
 	}
 	defer f.Close()
 	i, _, _ := ebitenutil.NewImageFromReader(f)
-	return ebiten.NewImageFromImage(i.SubImage(image.Rect(16, 16, 32, 32)))
+	return ebiten.NewImageFromImage(i.SubImage(image.Rect(16, 0, 32, 16)))
 }
 
 func loadPressedCursorImage() *ebiten.Image {
@@ -255,5 +255,5 @@ func loadPressedCursorImage() *ebiten.Image {
 	}
 	defer f.Close()
 	i, _, _ := ebitenutil.NewImageFromReader(f)
-	return ebiten.NewImageFromImage(i.SubImage(image.Rect(0, 16, 16, 32)))
+	return ebiten.NewImageFromImage(i.SubImage(image.Rect(32, 0, 48, 16)))
 }

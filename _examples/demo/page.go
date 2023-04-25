@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/ebitenui/ebitenui"
+	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/widget"
-	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type page struct {
@@ -933,9 +933,9 @@ func openWindow(res *uiResources, ui func() *ebitenui.UI) {
 			fmt.Println("Move: ", args.Rect)
 		}),
 	)
-	ww, wh := ebiten.WindowSize()
+	windowSize := input.GetWindowSize()
 	r := image.Rect(0, 0, 550, 250)
-	r = r.Add(image.Point{ww / 4 / 2, wh * 2 / 3 / 2})
+	r = r.Add(image.Point{windowSize.X / 4 / 2, windowSize.Y * 2 / 3 / 2})
 	window.SetLocation(r)
 
 	rw = ui().AddWindow(window)
@@ -973,9 +973,9 @@ func openWindow2(res *uiResources, ui func() *ebitenui.UI) {
 		widget.WindowOpts.CloseMode(widget.CLICK_OUT),
 	)
 
-	ww, wh := ebiten.WindowSize()
-	r := image.Rect(0, 0, ww/2, wh/2)
-	r = r.Add(image.Point{ww * 4 / 10, wh / 2 / 2})
+	windowSize := input.GetWindowSize()
+	r := image.Rect(0, 0, windowSize.X/2, windowSize.Y/2)
+	r = r.Add(image.Point{windowSize.X * 4 / 10, windowSize.Y / 2 / 2})
 	w.SetLocation(r)
 
 	rw = ui().AddWindow(w)

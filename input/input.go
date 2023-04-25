@@ -1,6 +1,7 @@
 package input
 
 import (
+	"fmt"
 	"image"
 
 	internalinput "github.com/ebitenui/ebitenui/internal/input"
@@ -34,6 +35,7 @@ type CursorUpdater interface {
 
 var currentCursorUpdater CursorUpdater = internalinput.InputHandler
 var isDefaultCursorUpdater = true
+var windowSize image.Point
 
 // If this field is updated, it will force the system cursor into Hidden mode.
 // This will require you to provide at least a CURSOR_DEFAULT cursor if you wish a cursor to be drawn.
@@ -142,19 +144,21 @@ func AnyKeyPressed() bool {
 	return internalinput.InputHandler.AnyKeyPressed
 }
 
+// This method returns the drawable screen size whether it is fullscreen or not.
+func GetWindowSize() image.Point {
+	return windowSize
+}
+
 func Update() {
 	SetCursorShape(CURSOR_DEFAULT)
 	currentCursorUpdater.Update()
 }
 
 func Draw(screen *ebiten.Image) {
-
-	winX, winY := ebiten.WindowSize()
-	if ebiten.IsFullscreen() {
-		winX, winY = ebiten.ScreenSizeInFullscreen()
-	}
+	windowSize = screen.Bounds().Max
+	fmt.Println(ebiten.DeviceScaleFactor())
 	posX, posY := currentCursorUpdater.CursorPosition()
-	if posX < 0 || posY < 0 || posX > winX || posY > winY {
+	if posX < 0 || posY < 0 || posX > windowSize.X || posY > windowSize.Y {
 		return
 	}
 	cursorImage := currentCursorUpdater.GetCursorImage(currentCursor)

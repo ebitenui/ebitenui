@@ -53,8 +53,8 @@ func (u *UI) Update() {
 func (u *UI) Draw(screen *ebiten.Image) {
 	event.ExecuteDeferred()
 
-	w, h := screen.Size()
-	rect := image.Rect(0, 0, w, h)
+	x, y := screen.Bounds().Dx(), screen.Bounds().Dy()
+	rect := image.Rect(0, 0, x, y)
 
 	u.handleFocusChangeRequest()
 	u.setupInputLayers()
