@@ -39,3 +39,4 @@ jobs:
           folder: ./wasm # The folder the action should deploy.
           branch: master
           target-folder: docs/wasm
+          repository-name: ebitenui/ebitenui.github.io
