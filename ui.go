@@ -6,7 +6,6 @@ import (
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
-	internalinput "github.com/ebitenui/ebitenui/internal/input"
 	"github.com/ebitenui/ebitenui/widget"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -39,7 +38,7 @@ type UI struct {
 
 // Update updates u. This method should be called in the Ebiten Update function.
 func (u *UI) Update() {
-	internalinput.Update()
+	input.Update()
 	if u.previousContainer == nil || u.previousContainer != u.Container {
 		u.Container.GetWidget().ContextMenuEvent.AddHandler(u.handleContextMenu)
 		u.Container.GetWidget().FocusEvent.AddHandler(u.handleFocusEvent)
@@ -54,9 +53,6 @@ func (u *UI) Update() {
 func (u *UI) Draw(screen *ebiten.Image) {
 	event.ExecuteDeferred()
 
-	internalinput.Draw()
-	defer internalinput.AfterDraw()
-
 	w, h := screen.Size()
 	rect := image.Rect(0, 0, w, h)
 
@@ -64,6 +60,7 @@ func (u *UI) Draw(screen *ebiten.Image) {
 	u.setupInputLayers()
 	u.Container.SetLocation(rect)
 	u.render(screen)
+	input.Draw(screen)
 }
 
 func (u *UI) handleContextMenu(args interface{}) {

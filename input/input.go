@@ -1,37 +1,81 @@
 package input
 
 import (
+	"image"
+
 	internalinput "github.com/ebitenui/ebitenui/internal/input"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+type CursorUpdater interface {
+	//Called every Update call from Ebiten
+	//Note that before this is called the current cursor shape is reset to DEFAULT every cycle
+	Update()
+	// MouseButtonPressed returns whether mouse button b is currently pressed.
+	MouseButtonPressed(b ebiten.MouseButton) bool
+	// MouseButtonJustPressed returns whether mouse button b has just been pressed.
+	// It only returns true during the first frame that the button is pressed.
+	MouseButtonJustPressed(b ebiten.MouseButton) bool
+	// CursorPosition returns the current cursor position.
+	// If you define a CursorPosition that doesn't align with a system cursor you will need to
+	// set the CursorDrawMode to Custom. This is because ebiten doesn't have a way to set the
+	// cursor location manually
+	CursorPosition() (int, int)
+	// Returns the image to use as the cursor
+	// EbitenUI by default will look for the following cursors:
+	//  "EWResize"
+	//  "NSResize"
+	//  "Default"
+	GetCursorImage(name string) *ebiten.Image
+	// Returns how far from the CursorPosition to offset the cursor image.
+	// This is best used with cursors such as resizing.
+	GetCursorOffset(name string) image.Point
+}
+
+var currentCursorUpdater CursorUpdater = internalinput.InputHandler
+var isDefaultCursorUpdater = true
+
+// If this field is updated, it will force the system cursor into Hidden mode.
+// This will require you to provide at least a CURSOR_DEFAULT cursor if you wish a cursor to be drawn.
+//
+// EbitenUI by default will look for the following cursors:
+//
+//	CURSOR_EWRESIZE : "EWResize"
+//	CURSOR_NSRESIZE : "NSResize"
+//	CURSOR_DEFAULT  : "Default"
+func SetCursorUpdater(cursorUpdater CursorUpdater) {
+	isDefaultCursorUpdater = cursorUpdater == internalinput.InputHandler
+	currentCursorUpdater = cursorUpdater
+}
+
+const (
+	CURSOR_DEFAULT  = "Default"
+	CURSOR_EWRESIZE = "EWResize"
+	CURSOR_NSRESIZE = "NSResize"
+)
+
+var currentCursor string = CURSOR_DEFAULT
+
+func SetCursorShape(name string) {
+	currentCursor = name
+}
+func SetCursorImage(name string, cursorImage *ebiten.Image) {
+	internalinput.InputHandler.SetCursorImage(name, cursorImage, image.Point{})
+}
+
+func SetCursorImageWithOffset(name string, cursorImage *ebiten.Image, offset image.Point) {
+	internalinput.InputHandler.SetCursorImage(name, cursorImage, offset)
+}
+
 // MouseButtonPressed returns whether mouse button b is currently pressed.
 func MouseButtonPressed(b ebiten.MouseButton) bool {
-	switch b {
-	case ebiten.MouseButtonLeft:
-		return internalinput.LeftMouseButtonPressed
-	case ebiten.MouseButtonMiddle:
-		return internalinput.MiddleMouseButtonPressed
-	case ebiten.MouseButtonRight:
-		return internalinput.RightMouseButtonPressed
-	default:
-		return false
-	}
+	return currentCursorUpdater.MouseButtonPressed(b)
 }
 
 // MouseButtonJustPressed returns whether mouse button b has just been pressed.
 // It only returns true during the first frame that the button is pressed.
 func MouseButtonJustPressed(b ebiten.MouseButton) bool {
-	switch b {
-	case ebiten.MouseButtonLeft:
-		return internalinput.LeftMouseButtonJustPressed
-	case ebiten.MouseButtonMiddle:
-		return internalinput.MiddleMouseButtonJustPressed
-	case ebiten.MouseButtonRight:
-		return internalinput.RightMouseButtonJustPressed
-	default:
-		return false
-	}
+	return currentCursorUpdater.MouseButtonJustPressed(b)
 }
 
 // MouseButtonPressedLayer returns whether mouse button b is currently pressed if input layer l is
@@ -58,12 +102,12 @@ func MouseButtonJustPressedLayer(b ebiten.MouseButton, l *Layer) bool {
 
 // CursorPosition returns the current cursor position.
 func CursorPosition() (int, int) {
-	return internalinput.CursorX, internalinput.CursorY
+	return currentCursorUpdater.CursorPosition()
 }
 
 // Wheel returns current mouse wheel movement.
 func Wheel() (float64, float64) {
-	return internalinput.WheelX, internalinput.WheelY
+	return internalinput.InputHandler.WheelX, internalinput.InputHandler.WheelY
 }
 
 // WheelLayer returns current mouse wheel movement if input layer l is eligible to handle it.
@@ -84,16 +128,64 @@ func WheelLayer(l *Layer) (float64, float64) {
 
 // InputChars returns user keyboard input.
 func InputChars() []rune { //nolint:golint
-	return internalinput.InputChars
+	return internalinput.InputHandler.InputChars
 }
 
 // KeyPressed returns whether key k is currently pressed.
 func KeyPressed(k ebiten.Key) bool {
-	p, ok := internalinput.KeyPressed[k]
+	p, ok := internalinput.InputHandler.KeyPressed[k]
 	return ok && p
 }
 
 // AnyKeyPressed returns whether any key is currently pressed.
 func AnyKeyPressed() bool {
-	return internalinput.AnyKeyPressed
+	return internalinput.InputHandler.AnyKeyPressed
+}
+
+func Update() {
+	SetCursorShape(CURSOR_DEFAULT)
+	currentCursorUpdater.Update()
+}
+
+func Draw(screen *ebiten.Image) {
+
+	winX, winY := ebiten.WindowSize()
+	if ebiten.IsFullscreen() {
+		winX, winY = ebiten.ScreenSizeInFullscreen()
+	}
+	posX, posY := currentCursorUpdater.CursorPosition()
+	if posX < 0 || posY < 0 || posX > winX || posY > winY {
+		return
+	}
+	cursorImage := currentCursorUpdater.GetCursorImage(currentCursor)
+	cursorOffset := currentCursorUpdater.GetCursorOffset(currentCursor)
+	// If we have a cursor image hide current cursor and use it
+	if cursorImage != nil {
+		if ebiten.CursorMode() != ebiten.CursorModeHidden {
+			ebiten.SetCursorMode(ebiten.CursorModeHidden)
+		}
+
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Translate(float64(posX+cursorOffset.X), float64(posY+cursorOffset.Y))
+		screen.DrawImage(cursorImage, op)
+		// If we don't have an image and this is the default cursor updater
+		// Use the system shapes.
+	} else if isDefaultCursorUpdater {
+		switch currentCursor {
+		case CURSOR_DEFAULT:
+			ebiten.SetCursorShape(ebiten.CursorShapeDefault)
+		case CURSOR_EWRESIZE:
+			ebiten.SetCursorShape(ebiten.CursorShapeEWResize)
+		case CURSOR_NSRESIZE:
+			ebiten.SetCursorShape(ebiten.CursorShapeNSResize)
+		}
+		if ebiten.CursorMode() != ebiten.CursorModeVisible {
+			ebiten.SetCursorMode(ebiten.CursorModeVisible)
+		}
+		// Otherwise hide the cursor
+	} else {
+		if ebiten.CursorMode() != ebiten.CursorModeHidden {
+			ebiten.SetCursorMode(ebiten.CursorModeHidden)
+		}
+	}
 }

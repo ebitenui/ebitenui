@@ -83,6 +83,9 @@ type Widget struct {
 	ToolTip *ToolTip
 
 	DragAndDrop *DragAndDrop
+
+	CursorHovered string
+	CursorPressed string
 }
 
 // WidgetOpt is a function that configures w.
@@ -353,6 +356,18 @@ func (o WidgetOptions) Dropped(dropFunc DropFunc) WidgetOpt {
 	}
 }
 
+func (o WidgetOptions) CursorHovered(cursorHovered string) WidgetOpt {
+	return func(w *Widget) {
+		w.CursorHovered = cursorHovered
+	}
+}
+
+func (o WidgetOptions) CursorPressed(cursorPressed string) WidgetOpt {
+	return func(w *Widget) {
+		w.CursorPressed = cursorPressed
+	}
+}
+
 func (w *Widget) drawImageOptions(opts *ebiten.DrawImageOptions) {
 	opts.GeoM.Translate(float64(w.Rect.Min.X), float64(w.Rect.Min.Y))
 }
@@ -407,6 +422,14 @@ func (w *Widget) fireEvents() {
 		}
 
 		w.lastUpdateCursorEntered = entered
+	}
+
+	if entered && len(w.CursorHovered) > 0 {
+		input.SetCursorShape(w.CursorHovered)
+	}
+
+	if entered && len(w.CursorPressed) > 0 && input.MouseButtonPressedLayer(ebiten.MouseButtonLeft, layer) {
+		input.SetCursorShape(w.CursorPressed)
 	}
 
 	if input.MouseButtonJustPressedLayer(ebiten.MouseButtonRight, layer) {

@@ -1,10 +1,12 @@
 package input
 
 import (
+	"image"
+
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-var (
+type DefaultInternalHandler struct {
 	LeftMouseButtonPressed   bool
 	MiddleMouseButtonPressed bool
 	RightMouseButtonPressed  bool
@@ -22,61 +24,100 @@ var (
 	LastRightMouseButtonPressed  bool
 
 	InputChars    []rune
-	KeyPressed    = map[ebiten.Key]bool{}
+	KeyPressed    map[ebiten.Key]bool
 	AnyKeyPressed bool
 	isTouched     bool
-)
+	cursorImages  map[string]*ebiten.Image
+	cursorOffset  map[string]image.Point
+}
+
+var InputHandler *DefaultInternalHandler = &DefaultInternalHandler{KeyPressed: make(map[ebiten.Key]bool), cursorImages: make(map[string]*ebiten.Image), cursorOffset: make(map[string]image.Point)}
 
 // Update updates the input system. This is called by the UI.
-func Update() {
+func (handler *DefaultInternalHandler) Update() {
+	handler.InputChars = handler.InputChars[:0]
+	handler.WheelX, handler.WheelY = 0, 0
+
 	touches := ebiten.TouchIDs()
 	if len(touches) > 0 {
-		isTouched = true
+		handler.isTouched = true
 	}
-	if isTouched {
+	if handler.isTouched {
 		if len(touches) > 0 {
-			LeftMouseButtonPressed = true
-			CursorX, CursorY = ebiten.TouchPosition(touches[0])
+			handler.LeftMouseButtonPressed = true
+			handler.CursorX, handler.CursorY = ebiten.TouchPosition(touches[0])
 		} else {
-			LeftMouseButtonPressed = false
-			isTouched = false
+			handler.LeftMouseButtonPressed = false
+			handler.isTouched = false
 		}
 	} else {
-		LeftMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft)
-		MiddleMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle)
-		RightMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight)
-		CursorX, CursorY = ebiten.CursorPosition()
+		handler.LeftMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft)
+		handler.MiddleMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle)
+		handler.RightMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight)
+		handler.CursorX, handler.CursorY = ebiten.CursorPosition()
 	}
 
 	wx, wy := ebiten.Wheel()
-	WheelX += wx
-	WheelY += wy
+	handler.WheelX += wx
+	handler.WheelY += wy
 
-	InputChars = ebiten.AppendInputChars(InputChars)
-	AnyKeyPressed = false
+	handler.InputChars = ebiten.AppendInputChars(handler.InputChars)
+	handler.AnyKeyPressed = false
 	for k := ebiten.Key(0); k <= ebiten.KeyMax; k++ {
 		p := ebiten.IsKeyPressed(k)
-		KeyPressed[k] = p
+		handler.KeyPressed[k] = p
 
 		if p {
-			AnyKeyPressed = true
+			handler.AnyKeyPressed = true
 		}
+	}
+
+	handler.LeftMouseButtonJustPressed = handler.LeftMouseButtonPressed && handler.LeftMouseButtonPressed != handler.LastLeftMouseButtonPressed
+	handler.MiddleMouseButtonJustPressed = handler.MiddleMouseButtonPressed && handler.MiddleMouseButtonPressed != handler.LastMiddleMouseButtonPressed
+	handler.RightMouseButtonJustPressed = handler.RightMouseButtonPressed && handler.RightMouseButtonPressed != handler.LastRightMouseButtonPressed
+
+	handler.LastLeftMouseButtonPressed = handler.LeftMouseButtonPressed
+	handler.LastMiddleMouseButtonPressed = handler.MiddleMouseButtonPressed
+	handler.LastRightMouseButtonPressed = handler.RightMouseButtonPressed
+}
+
+func (handler *DefaultInternalHandler) MouseButtonPressed(b ebiten.MouseButton) bool {
+	switch b {
+	case ebiten.MouseButtonLeft:
+		return handler.LeftMouseButtonPressed
+	case ebiten.MouseButtonMiddle:
+		return handler.MiddleMouseButtonPressed
+	case ebiten.MouseButtonRight:
+		return handler.RightMouseButtonPressed
+	default:
+		return false
+	}
+}
+func (handler *DefaultInternalHandler) MouseButtonJustPressed(b ebiten.MouseButton) bool {
+	switch b {
+	case ebiten.MouseButtonLeft:
+		return handler.LeftMouseButtonJustPressed
+	case ebiten.MouseButtonMiddle:
+		return handler.MiddleMouseButtonJustPressed
+	case ebiten.MouseButtonRight:
+		return handler.RightMouseButtonJustPressed
+	default:
+		return false
 	}
 }
 
-// Draw updates the input system. This is called by the UI.
-func Draw() {
-	LeftMouseButtonJustPressed = LeftMouseButtonPressed && LeftMouseButtonPressed != LastLeftMouseButtonPressed
-	MiddleMouseButtonJustPressed = MiddleMouseButtonPressed && MiddleMouseButtonPressed != LastMiddleMouseButtonPressed
-	RightMouseButtonJustPressed = RightMouseButtonPressed && RightMouseButtonPressed != LastRightMouseButtonPressed
-
-	LastLeftMouseButtonPressed = LeftMouseButtonPressed
-	LastMiddleMouseButtonPressed = MiddleMouseButtonPressed
-	LastRightMouseButtonPressed = RightMouseButtonPressed
+func (handler *DefaultInternalHandler) CursorPosition() (int, int) {
+	return handler.CursorX, handler.CursorY
 }
 
-// AfterDraw updates the input system after the Ebiten Draw function has been called. This is called by the UI.
-func AfterDraw() {
-	InputChars = InputChars[:0]
-	WheelX, WheelY = 0, 0
+func (handler *DefaultInternalHandler) GetCursorImage(name string) *ebiten.Image {
+	return handler.cursorImages[name]
+}
+
+func (handler *DefaultInternalHandler) GetCursorOffset(name string) image.Point {
+	return handler.cursorOffset[name]
+}
+func (handler *DefaultInternalHandler) SetCursorImage(name string, cursorImage *ebiten.Image, offset image.Point) {
+	handler.cursorImages[name] = cursorImage
+	handler.cursorOffset[name] = offset
 }

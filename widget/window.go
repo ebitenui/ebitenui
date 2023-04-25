@@ -139,17 +139,6 @@ func NewWindow(opts ...WindowOpt) *Window {
 		})
 	}
 
-	if w.closeMode == CLICK || w.closeMode == CLICK_OUT {
-		w.container.GetWidget().MouseButtonReleasedEvent.AddHandler(func(args interface{}) {
-			a := args.(*WidgetMouseButtonReleasedEventArgs)
-			if w.closeMode == CLICK || (w.closeMode == CLICK_OUT && !a.Inside) {
-				if w.closeFunc != nil {
-					w.closeFunc()
-				}
-			}
-		})
-	}
-
 	w.init.Do()
 	return w
 }
@@ -336,28 +325,38 @@ func (w *Window) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 			}
 		}
 	}
+
 	if w.Resizeable {
 		if w.container.GetWidget().inputLayer.ActiveFor(x, y, input.LayerEventTypeAll) {
 			xRect := image.Rect(w.container.GetWidget().Rect.Max.X-6, w.container.GetWidget().Rect.Min.Y, w.container.GetWidget().Rect.Max.X, w.container.GetWidget().Rect.Max.Y)
 			yRect := image.Rect(w.container.GetWidget().Rect.Min.X, w.container.GetWidget().Rect.Max.Y-6, w.container.GetWidget().Rect.Max.X, w.container.GetWidget().Rect.Max.Y)
 			cursorRect := image.Rect(x, y, x+1, y+1)
 			if cursorRect.Overlaps(xRect) {
-				ebiten.SetCursorShape(ebiten.CursorShapeEWResize)
+				input.SetCursorShape(input.CURSOR_EWRESIZE)
 				w.resizingWidth = true
 				w.resizingHeight = false
 			} else if cursorRect.Overlaps(yRect) {
-				ebiten.SetCursorShape(ebiten.CursorShapeNSResize)
+				input.SetCursorShape(input.CURSOR_NSRESIZE)
 				w.resizingWidth = false
 				w.resizingHeight = true
 			} else if !input.MouseButtonPressed(ebiten.MouseButtonLeft) {
-				ebiten.SetCursorShape(ebiten.CursorShapeDefault)
 				w.resizingWidth = false
 				w.resizingHeight = false
 			}
 		} else if !input.MouseButtonPressed(ebiten.MouseButtonLeft) {
-			ebiten.SetCursorShape(ebiten.CursorShapeDefault)
 			w.resizingWidth = false
 			w.resizingHeight = false
+		}
+	}
+
+	if w.closeMode == CLICK || w.closeMode == CLICK_OUT {
+		if input.MouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			if w.closeMode == CLICK || (w.closeMode == CLICK_OUT && !image.Point{x, y}.In(w.container.GetWidget().Rect)) {
+				if w.closeFunc != nil {
+					input.SetCursorShape(input.CURSOR_DEFAULT)
+					w.closeFunc()
+				}
+			}
 		}
 	}
 	w.container.Render(screen, def)

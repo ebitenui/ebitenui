@@ -45,6 +45,7 @@ type List struct {
 	tabOrder           int
 	justMoved          bool
 	focusIndex         int
+	prevFocusIndex     int
 }
 
 type ListOpt func(l *List)
@@ -79,7 +80,9 @@ func NewList(opts ...ListOpt) *List {
 	l := &List{
 		EntrySelectedEvent: &event.Event{},
 
-		init: &MultiOnce{},
+		init:           &MultiOnce{},
+		focusIndex:     0,
+		prevFocusIndex: -1,
 	}
 
 	l.init.Append(l.createWidget)
@@ -234,16 +237,18 @@ func (l *List) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	l.init.Do()
 
 	d := l.container.GetWidget().Disabled
-
 	if l.vSlider != nil {
 		l.vSlider.DrawTrackDisabled = d
 	}
 	if l.hSlider != nil {
 		l.hSlider.DrawTrackDisabled = d
 	}
-
 	l.scrollContainer.GetWidget().Disabled = d
+
 	l.handleInput()
+	if l.focusIndex != l.prevFocusIndex {
+		l.scrollVisible(l.buttons[l.focusIndex])
+	}
 	l.container.Render(screen, def)
 }
 
@@ -266,6 +271,7 @@ func (l *List) handleInput() {
 					direction = 1
 				}
 				l.buttons[l.focusIndex].focused = false
+				l.prevFocusIndex = l.focusIndex
 				l.focusIndex += direction
 				if l.focusIndex < 0 {
 					l.focusIndex = len(l.buttons) - 1
@@ -280,7 +286,6 @@ func (l *List) handleInput() {
 		}
 
 		l.buttons[l.focusIndex].focused = true
-		l.ScrollVisible(l.buttons[l.focusIndex])
 	} else {
 		l.buttons[l.focusIndex].focused = false
 	}
@@ -288,10 +293,15 @@ func (l *List) handleInput() {
 
 func (l *List) resetFocusIndex() {
 	if len(l.buttons) > 0 {
-		l.buttons[l.focusIndex].focused = false
+		if l.focusIndex != -1 {
+			l.buttons[l.focusIndex].focused = false
+		}
 		for i := 0; i < len(l.entries); i++ {
 			if l.entries[i] == l.selectedEntry {
-				l.focusIndex = i
+				if i != l.focusIndex {
+					l.prevFocusIndex = l.focusIndex
+					l.focusIndex = i
+				}
 				return
 			}
 		}
@@ -384,7 +394,6 @@ func (l *List) createWidget() {
 		}...)...)
 		l.container.AddChild(l.hSlider)
 	}
-
 	l.sliderOpts = nil
 }
 
@@ -421,7 +430,7 @@ func (l *List) SelectedEntry() interface{} {
 	return l.selectedEntry
 }
 
-func (l *List) SetScrollTop(t float64) {
+func (l *List) setScrollTop(t float64) {
 	l.init.Do()
 	if l.vSlider != nil {
 		l.vSlider.Current = int(math.Round(t * 1000))
@@ -429,7 +438,7 @@ func (l *List) SetScrollTop(t float64) {
 	l.scrollContainer.ScrollTop = t
 }
 
-func (l *List) SetScrollLeft(left float64) {
+func (l *List) setScrollLeft(left float64) {
 	l.init.Do()
 	if l.hSlider != nil {
 		l.hSlider.Current = int(math.Round(left * 1000))
@@ -437,25 +446,26 @@ func (l *List) SetScrollLeft(left float64) {
 	l.scrollContainer.ScrollLeft = left
 }
 
-func (l *List) ScrollVisible(w HasWidget) {
+func (l *List) scrollVisible(w HasWidget) {
 	rect := l.scrollContainer.ContentRect()
 	wrect := w.GetWidget().Rect
 	if !wrect.In(rect) {
 		ScrollTop := 0.0
 		ScrollLeft := 0.0
 		if wrect.Max.Y > rect.Max.Y {
-			ScrollTop += .1
+			ScrollTop = float64(wrect.Max.Y - rect.Max.Y)
 		} else if wrect.Min.Y < rect.Min.Y {
-			ScrollTop += -.1
+			ScrollTop = float64(wrect.Min.Y - rect.Min.Y)
 		}
 		if wrect.Max.X > rect.Max.X {
-			ScrollLeft += .1
+			ScrollLeft = float64(wrect.Max.X - rect.Max.X)
 		} else if wrect.Min.X < rect.Min.X {
-			ScrollLeft += -.1
+			ScrollLeft = -float64(wrect.Min.X - rect.Min.X)
 		}
-		l.SetScrollTop(l.scrollContainer.ScrollTop + ScrollTop)
-		l.SetScrollLeft(l.scrollContainer.ScrollLeft + ScrollLeft)
-
+		l.setScrollTop(l.scrollContainer.ScrollTop + ScrollTop)
+		l.setScrollLeft(l.scrollContainer.ScrollLeft + ScrollLeft)
+	} else if wrect != rect {
+		l.prevFocusIndex = l.focusIndex
 	}
 
 }
