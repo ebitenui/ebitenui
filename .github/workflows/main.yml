@@ -40,3 +40,4 @@ jobs:
           branch: master
           target-folder: docs/wasm
           repository-name: ebitenui/ebitenui.github.io
+          token: ${{ secrets.EBITENUI_TOKEN }}
