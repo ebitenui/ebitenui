@@ -5,6 +5,9 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+    
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -30,4 +33,9 @@ jobs:
       run: |
         find ./_examples/widget_demos -maxdepth 1 -mindepth 1 -type d -exec bash -c 'MARK=$(basename "{}") &&  GOOS=js GOARCH=wasm go build -o ./wasm/$MARK.wasm {}' \;
         ls ./wasm
-
+    - name: Deploy Examples
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+          folder: ./wasm # The folder the action should deploy.
+          branch: master
+          target-folder: docs/wasm
