@@ -28,6 +28,6 @@ jobs:
       run: GOOS=js GOARCH=wasm go build -o ./wasm/demo.wasm ./_examples/demo
     - name: Build examples
       run: |
-        find ./_examples/widget_demos -maxdepth 1 -mindepth 1 -type d -exec "MARK=Hello echo $MARK" \;
+        find ./_examples/widget_demos -maxdepth 1 -mindepth 1 -type d -exec sh -c 'MARK=Hello echo $MARK' \;
         ls ./wasm
 
