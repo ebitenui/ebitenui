@@ -11,6 +11,8 @@ type CursorUpdater interface {
 	//Called every Update call from Ebiten
 	//Note that before this is called the current cursor shape is reset to DEFAULT every cycle
 	Update()
+	//Called at the beginning of every Draw call.
+	Draw()
 	// MouseButtonPressed returns whether mouse button b is currently pressed.
 	MouseButtonPressed(b ebiten.MouseButton) bool
 	// MouseButtonJustPressed returns whether mouse button b has just been pressed.
@@ -155,6 +157,10 @@ func Update() {
 
 func Draw(screen *ebiten.Image) {
 	windowSize = screen.Bounds().Max
+	currentCursorUpdater.Draw()
+}
+
+func DrawAfter(screen *ebiten.Image) {
 	posX, posY := currentCursorUpdater.CursorPosition()
 	if posX < 0 || posY < 0 || posX > windowSize.X || posY > windowSize.Y {
 		return

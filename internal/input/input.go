@@ -72,6 +72,9 @@ func (handler *DefaultInternalHandler) Update() {
 		}
 	}
 
+}
+
+func (handler *DefaultInternalHandler) Draw() {
 	handler.LeftMouseButtonJustPressed = handler.LeftMouseButtonPressed && handler.LeftMouseButtonPressed != handler.LastLeftMouseButtonPressed
 	handler.MiddleMouseButtonJustPressed = handler.MiddleMouseButtonPressed && handler.MiddleMouseButtonPressed != handler.LastMiddleMouseButtonPressed
 	handler.RightMouseButtonJustPressed = handler.RightMouseButtonPressed && handler.RightMouseButtonPressed != handler.LastRightMouseButtonPressed

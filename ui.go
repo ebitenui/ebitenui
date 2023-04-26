@@ -52,7 +52,8 @@ func (u *UI) Update() {
 // Draw renders u onto screen. This function should be called in the Ebiten Draw function.
 func (u *UI) Draw(screen *ebiten.Image) {
 	event.ExecuteDeferred()
-
+	input.Draw(screen)
+	defer input.DrawAfter(screen)
 	x, y := screen.Bounds().Dx(), screen.Bounds().Dy()
 	rect := image.Rect(0, 0, x, y)
 
@@ -60,7 +61,7 @@ func (u *UI) Draw(screen *ebiten.Image) {
 	u.setupInputLayers()
 	u.Container.SetLocation(rect)
 	u.render(screen)
-	input.Draw(screen)
+
 }
 
 func (u *UI) handleContextMenu(args interface{}) {

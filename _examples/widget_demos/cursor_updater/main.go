@@ -71,6 +71,8 @@ func (cu *cursor_updater) Update() {
 	cu.systemPosition = image.Point{X, Y}
 
 }
+func (cu *cursor_updater) Draw() {
+}
 
 // MouseButtonPressed returns whether mouse button b is currently pressed.
 func (cu *cursor_updater) MouseButtonPressed(b ebiten.MouseButton) bool {
