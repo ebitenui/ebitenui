@@ -1,7 +1,6 @@
 package input
 
 import (
-	"fmt"
 	"image"
 
 	internalinput "github.com/ebitenui/ebitenui/internal/input"
@@ -156,7 +155,6 @@ func Update() {
 
 func Draw(screen *ebiten.Image) {
 	windowSize = screen.Bounds().Max
-	fmt.Println(ebiten.DeviceScaleFactor())
 	posX, posY := currentCursorUpdater.CursorPosition()
 	if posX < 0 || posY < 0 || posX > windowSize.X || posY > windowSize.Y {
 		return
