@@ -34,7 +34,6 @@ type CursorUpdater interface {
 
 var currentCursorUpdater CursorUpdater = internalinput.InputHandler
 var isDefaultCursorUpdater = true
-var windowSize image.Point
 
 // If this field is updated, it will force the system cursor into Hidden mode.
 // This will require you to provide at least a CURSOR_DEFAULT cursor if you wish a cursor to be drawn.
@@ -145,7 +144,11 @@ func AnyKeyPressed() bool {
 
 // This method returns the drawable screen size whether it is fullscreen or not.
 func GetWindowSize() image.Point {
-	return windowSize
+	winX, winY := ebiten.WindowSize()
+	if ebiten.IsFullscreen() {
+		winX, winY = ebiten.ScreenSizeInFullscreen()
+	}
+	return image.Point{winX, winY}
 }
 
 func Update() {
@@ -154,9 +157,13 @@ func Update() {
 }
 
 func Draw(screen *ebiten.Image) {
-	windowSize = screen.Bounds().Max
+
+	winX, winY := ebiten.WindowSize()
+	if ebiten.IsFullscreen() {
+		winX, winY = ebiten.ScreenSizeInFullscreen()
+	}
 	posX, posY := currentCursorUpdater.CursorPosition()
-	if posX < 0 || posY < 0 || posX > windowSize.X || posY > windowSize.Y {
+	if posX < 0 || posY < 0 || posX > winX || posY > winY {
 		return
 	}
 	cursorImage := currentCursorUpdater.GetCursorImage(currentCursor)
