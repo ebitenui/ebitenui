@@ -446,6 +446,16 @@ func (l *List) setScrollLeft(left float64) {
 	l.scrollContainer.ScrollLeft = left
 }
 
+func scrollClamp(scroll float64) float64 {
+	min, max := -0.1, 0.1
+	if scroll < min {
+		scroll = min
+	} else if scroll > max {
+		scroll = max
+	}
+	return scroll
+}
+
 func (l *List) scrollVisible(w HasWidget) {
 	rect := l.scrollContainer.ContentRect()
 	wrect := w.GetWidget().Rect
@@ -462,10 +472,9 @@ func (l *List) scrollVisible(w HasWidget) {
 		} else if wrect.Min.X < rect.Min.X {
 			ScrollLeft = -float64(wrect.Min.X - rect.Min.X)
 		}
-		l.setScrollTop(l.scrollContainer.ScrollTop + ScrollTop)
-		l.setScrollLeft(l.scrollContainer.ScrollLeft + ScrollLeft)
+		l.setScrollTop(l.scrollContainer.ScrollTop + scrollClamp(ScrollTop/1000))
+		l.setScrollLeft(l.scrollContainer.ScrollLeft + scrollClamp(ScrollLeft/1000))
 	} else if wrect != rect {
 		l.prevFocusIndex = l.focusIndex
 	}
-
 }
