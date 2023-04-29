@@ -41,7 +41,11 @@ func main() {
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 
-	entries := []any{ListEntry{1, "Entry 1"}, ListEntry{2, "Entry 2"}, ListEntry{3, "Entry 3"}, ListEntry{4, "Entry 4"}, ListEntry{5, "Entry 5"}, ListEntry{6, "Entry 6"}}
+	numEntries := 20
+	entries := make([]any, 0, numEntries)
+	for i := 1; i <= numEntries; i++ {
+		entries = append(entries, ListEntry{i, fmt.Sprintf("Entry %d", i)})
+	}
 	// construct a combobox
 	comboBox := widget.NewListComboButton(
 		widget.ListComboButtonOpts.SelectComboButtonOpts(
@@ -120,8 +124,8 @@ func main() {
 			fmt.Println("Selected Entry: ", args.Entry)
 		}),
 	)
-	//Select the 4th entry -- optional
-	comboBox.SetSelectedEntry(entries[5])
+	//Select the middle entry -- optional
+	comboBox.SetSelectedEntry(entries[numEntries/2-1])
 
 	// add the button as a child of the container
 	rootContainer.AddChild(comboBox)
