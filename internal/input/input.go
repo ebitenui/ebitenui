@@ -35,9 +35,6 @@ var InputHandler *DefaultInternalHandler = &DefaultInternalHandler{KeyPressed: m
 
 // Update updates the input system. This is called by the UI.
 func (handler *DefaultInternalHandler) Update() {
-	handler.InputChars = handler.InputChars[:0]
-	handler.WheelX, handler.WheelY = 0, 0
-
 	touches := ebiten.TouchIDs()
 	if len(touches) > 0 {
 		handler.isTouched = true
@@ -74,7 +71,7 @@ func (handler *DefaultInternalHandler) Update() {
 
 }
 
-func (handler *DefaultInternalHandler) Draw() {
+func (handler *DefaultInternalHandler) Draw(screen *ebiten.Image) {
 	handler.LeftMouseButtonJustPressed = handler.LeftMouseButtonPressed && handler.LeftMouseButtonPressed != handler.LastLeftMouseButtonPressed
 	handler.MiddleMouseButtonJustPressed = handler.MiddleMouseButtonPressed && handler.MiddleMouseButtonPressed != handler.LastMiddleMouseButtonPressed
 	handler.RightMouseButtonJustPressed = handler.RightMouseButtonPressed && handler.RightMouseButtonPressed != handler.LastRightMouseButtonPressed
@@ -82,6 +79,12 @@ func (handler *DefaultInternalHandler) Draw() {
 	handler.LastLeftMouseButtonPressed = handler.LeftMouseButtonPressed
 	handler.LastMiddleMouseButtonPressed = handler.MiddleMouseButtonPressed
 	handler.LastRightMouseButtonPressed = handler.RightMouseButtonPressed
+
+}
+
+func (handler *DefaultInternalHandler) AfterDraw(screen *ebiten.Image) {
+	handler.InputChars = handler.InputChars[:0]
+	handler.WheelX, handler.WheelY = 0, 0
 }
 
 func (handler *DefaultInternalHandler) MouseButtonPressed(b ebiten.MouseButton) bool {

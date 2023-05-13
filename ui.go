@@ -53,7 +53,7 @@ func (u *UI) Update() {
 func (u *UI) Draw(screen *ebiten.Image) {
 	event.ExecuteDeferred()
 	input.Draw(screen)
-	defer input.DrawAfter(screen)
+	defer input.AfterDraw(screen)
 	x, y := screen.Bounds().Dx(), screen.Bounds().Dy()
 	rect := image.Rect(0, 0, x, y)
 

@@ -12,7 +12,9 @@ type CursorUpdater interface {
 	//Note that before this is called the current cursor shape is reset to DEFAULT every cycle
 	Update()
 	//Called at the beginning of every Draw call.
-	Draw()
+	Draw(screen *ebiten.Image)
+	//Called at the end of every Draw call
+	AfterDraw(screen *ebiten.Image)
 	// MouseButtonPressed returns whether mouse button b is currently pressed.
 	MouseButtonPressed(b ebiten.MouseButton) bool
 	// MouseButtonJustPressed returns whether mouse button b has just been pressed.
@@ -157,10 +159,10 @@ func Update() {
 
 func Draw(screen *ebiten.Image) {
 	windowSize = screen.Bounds().Max
-	currentCursorUpdater.Draw()
+	currentCursorUpdater.Draw(screen)
 }
 
-func DrawAfter(screen *ebiten.Image) {
+func AfterDraw(screen *ebiten.Image) {
 	posX, posY := currentCursorUpdater.CursorPosition()
 	if posX < 0 || posY < 0 || posX > windowSize.X || posY > windowSize.Y {
 		return
@@ -196,4 +198,5 @@ func DrawAfter(screen *ebiten.Image) {
 			ebiten.SetCursorMode(ebiten.CursorModeHidden)
 		}
 	}
+	currentCursorUpdater.AfterDraw(screen)
 }
