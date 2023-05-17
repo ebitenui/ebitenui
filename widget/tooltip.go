@@ -89,6 +89,8 @@ func NewToolTip(opts ...ToolTipOpt) *ToolTip {
 //   - Padding = Top/Bottom: 5px Left/Right: 10px
 //   - Delay = 800ms
 //   - Offset = 0, 20
+//   - ContentOriginHorizontal = TOOLTIP_ANCHOR_END
+//   - ContentOriginVertical = TOOLTIP_ANCHOR_START
 func NewTextToolTip(label string, face font.Face, color color.Color, background *e_image.NineSlice) *ToolTip {
 	c := NewContainer(
 		ContainerOpts.BackgroundImage(background),
@@ -107,6 +109,8 @@ func NewTextToolTip(label string, face font.Face, color color.Color, background 
 		ToolTipOpts.Content(c),
 		ToolTipOpts.Delay(800*time.Millisecond),
 		ToolTipOpts.Offset(image.Point{0, 20}),
+		ToolTipOpts.ContentOriginHorizontal(TOOLTIP_ANCHOR_START),
+		ToolTipOpts.ContentOriginVertical(TOOLTIP_ANCHOR_START),
 	)
 }
 
@@ -138,14 +142,14 @@ func (o ToolTipOptions) WidgetOriginHorizontal(widgetOriginHorizontal ToolTipAnc
 	}
 }
 
-// The vertical position of the anchor on the tooltip. Only used when Postion = WIDGET
+// The vertical position of the anchor on the tooltip.
 func (o ToolTipOptions) ContentOriginVertical(contentOriginVertical ToolTipAnchor) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.ContentOriginVertical = contentOriginVertical
 	}
 }
 
-// The horizontal position of the anchor on the tooltip. Only used when Postion = WIDGET
+// The horizontal position of the anchor on the tooltip.
 func (o ToolTipOptions) ContentOriginHorizontal(contentOriginHorizontal ToolTipAnchor) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.ContentOriginHorizontal = contentOriginHorizontal
@@ -253,20 +257,21 @@ func (t *ToolTip) showingState(p image.Point) toolTipState {
 		}
 		sx, sy := t.content.PreferredSize()
 
+		position := p
 		if t.Position == TOOLTIP_POS_CURSOR_FOLLOW {
-			p = cp
+			position = cp
 		} else if t.Position == TOOLTIP_POS_WIDGET {
-			p = t.processWidgetPosition(parent)
-			p = t.processContentPosition(p, sx, sy)
+			position = t.processWidgetPosition(parent.Rect)
 		}
+		position = position.Add(t.Offset)
+		position = t.processContentPosition(position, sx, sy, parent.Rect)
 
 		if t.ToolTipUpdater != nil {
 			t.ToolTipUpdater(t.content)
 		}
 
 		r := image.Rect(0, 0, sx, sy)
-		r = r.Add(p)
-		r = r.Add(t.Offset)
+		r = r.Add(position)
 		t.window.SetLocation(r)
 		t.content.SetLocation(r)
 		if !t.visible {
@@ -277,9 +282,8 @@ func (t *ToolTip) showingState(p image.Point) toolTipState {
 	}
 }
 
-func (t *ToolTip) processWidgetPosition(parent *Widget) image.Point {
+func (t *ToolTip) processWidgetPosition(widgetRect image.Rectangle) image.Point {
 	p := image.Point{}
-	widgetRect := parent.Rect
 	if t.WidgetOriginVertical == TOOLTIP_ANCHOR_START {
 		if t.WidgetOriginHorizontal == TOOLTIP_ANCHOR_START {
 			p.X = widgetRect.Min.X
@@ -317,29 +321,60 @@ func (t *ToolTip) processWidgetPosition(parent *Widget) image.Point {
 	return p
 }
 
-func (t *ToolTip) processContentPosition(p image.Point, sx int, sy int) image.Point {
-	if t.ContentOriginVertical == TOOLTIP_ANCHOR_START {
-		if t.ContentOriginHorizontal == TOOLTIP_ANCHOR_START {
+func (t *ToolTip) processContentPosition(p image.Point, sx int, sy int, widgetRect image.Rectangle) image.Point {
+	result := processContentPositionWorker(p, sx, sy, t.ContentOriginHorizontal, t.ContentOriginVertical)
+	windowSize := input.GetWindowSize()
+	horizontalAnchor := t.ContentOriginHorizontal
+	if result.X+sx > windowSize.X {
+		horizontalAnchor = TOOLTIP_ANCHOR_END
+		if t.Position == TOOLTIP_POS_WIDGET {
+			p.X = widgetRect.Min.X
+		}
+		p.X = p.X - 2*t.Offset.X
+		result = processContentPositionWorker(p, sx, sy, horizontalAnchor, t.ContentOriginVertical)
+	} else if result.X < 0 {
+		p.X = p.X - 2*t.Offset.X
+		horizontalAnchor = TOOLTIP_ANCHOR_START
+		result = processContentPositionWorker(p, sx, sy, horizontalAnchor, t.ContentOriginVertical)
+	}
+
+	if result.Y+sy > windowSize.Y {
+		if t.Position == TOOLTIP_POS_WIDGET {
+			p.Y = widgetRect.Min.Y
+		}
+		p.Y = p.Y - 2*t.Offset.Y
+		result = processContentPositionWorker(p, sx, sy, horizontalAnchor, TOOLTIP_ANCHOR_END)
+	} else if result.Y < 0 {
+		p.Y = p.Y - 2*t.Offset.Y
+		result = processContentPositionWorker(p, sx, sy, horizontalAnchor, TOOLTIP_ANCHOR_START)
+	}
+
+	return result
+}
+
+func processContentPositionWorker(p image.Point, sx int, sy int, originHorizontal ToolTipAnchor, originVertical ToolTipAnchor) image.Point {
+	if originVertical == TOOLTIP_ANCHOR_START {
+		if originHorizontal == TOOLTIP_ANCHOR_START {
 			//Do nothing
-		} else if t.ContentOriginHorizontal == TOOLTIP_ANCHOR_MIDDLE {
+		} else if originHorizontal == TOOLTIP_ANCHOR_MIDDLE {
 			p.X = p.X - (sx / 2)
 		} else {
 			p.X = p.X - sx
 		}
-	} else if t.ContentOriginVertical == TOOLTIP_ANCHOR_MIDDLE {
-		if t.ContentOriginHorizontal == TOOLTIP_ANCHOR_START {
+	} else if originVertical == TOOLTIP_ANCHOR_MIDDLE {
+		if originHorizontal == TOOLTIP_ANCHOR_START {
 			p.Y = p.Y - (sy / 2)
-		} else if t.ContentOriginHorizontal == TOOLTIP_ANCHOR_MIDDLE {
+		} else if originHorizontal == TOOLTIP_ANCHOR_MIDDLE {
 			p.X = p.X - (sx / 2)
 			p.Y = p.Y - (sy / 2)
 		} else {
 			p.X = p.X - sx
 			p.Y = p.Y - (sy / 2)
 		}
-	} else if t.ContentOriginVertical == TOOLTIP_ANCHOR_END {
-		if t.ContentOriginHorizontal == TOOLTIP_ANCHOR_START {
+	} else if originVertical == TOOLTIP_ANCHOR_END {
+		if originHorizontal == TOOLTIP_ANCHOR_START {
 			p.Y = p.Y - sy
-		} else if t.ContentOriginHorizontal == TOOLTIP_ANCHOR_MIDDLE {
+		} else if originHorizontal == TOOLTIP_ANCHOR_MIDDLE {
 			p.X = p.X - (sx / 2)
 			p.Y = p.Y - sy
 		} else {

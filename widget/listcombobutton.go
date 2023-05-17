@@ -106,6 +106,10 @@ func (l *ListComboButton) Focus(focused bool) {
 	}
 }
 
+func (l *ListComboButton) IsFocused() bool {
+	return l.button.button.button.focused
+}
+
 func (l *ListComboButton) TabOrder() int {
 	return l.tabOrder
 }

@@ -258,6 +258,10 @@ func (l *List) Focus(focused bool) {
 	l.focused = focused
 }
 
+func (l *List) IsFocused() bool {
+	return l.focused
+}
+
 func (l *List) TabOrder() int {
 	return l.tabOrder
 }

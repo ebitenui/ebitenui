@@ -146,6 +146,10 @@ func (c *Checkbox) Focus(focused bool) {
 	c.button.focused = focused
 }
 
+func (c *Checkbox) IsFocused() bool {
+	return c.button.focused
+}
+
 func (c *Checkbox) TabOrder() int {
 	return c.tabOrder
 }

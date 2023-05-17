@@ -580,6 +580,10 @@ func (t *TextInput) Focus(focused bool) {
 	t.focused = focused
 }
 
+func (t *TextInput) IsFocused() bool {
+	return t.focused
+}
+
 func (t *TextInput) TabOrder() int {
 	return t.tabOrder
 }

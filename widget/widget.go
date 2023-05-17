@@ -104,6 +104,7 @@ type Renderer interface {
 
 type Focuser interface {
 	Focus(focused bool)
+	IsFocused() bool
 	TabOrder() int
 }
 

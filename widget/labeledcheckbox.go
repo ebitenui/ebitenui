@@ -125,6 +125,10 @@ func (l *LabeledCheckbox) Focus(focused bool) {
 	l.checkbox.button.focused = focused
 }
 
+func (l *LabeledCheckbox) IsFocused() bool {
+	return l.checkbox.button.focused
+}
+
 func (l *LabeledCheckbox) TabOrder() int {
 	l.init.Do()
 	return l.checkbox.tabOrder

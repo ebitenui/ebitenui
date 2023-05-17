@@ -363,6 +363,10 @@ func (b *Button) Focus(focused bool) {
 	b.focused = focused
 }
 
+func (b *Button) IsFocused() bool {
+	return b.focused
+}
+
 func (b *Button) TabOrder() int {
 	return b.tabOrder
 }

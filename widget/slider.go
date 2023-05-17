@@ -178,6 +178,10 @@ func (s *Slider) Focus(focused bool) {
 	s.handle.focused = focused
 }
 
+func (s *Slider) IsFocused() bool {
+	return s.handle.focused
+}
+
 func (s *Slider) TabOrder() int {
 	return s.tabOrder
 }
