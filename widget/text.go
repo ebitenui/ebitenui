@@ -119,6 +119,13 @@ func (o TextOptions) ProcessBBCode(processBBCode bool) TextOpt {
 	}
 }
 
+// This sets the max width the text will allow before wrapping to the next line
+func (o TextOptions) MaxWidth(maxWidth float64) TextOpt {
+	return func(t *Text) {
+		t.MaxWidth = maxWidth
+	}
+}
+
 func (t *Text) GetWidget() *Widget {
 	t.init.Do()
 	return t.widget
