@@ -4,9 +4,9 @@
 Ebiten UI
 =========
 
-**A user interface engine and widget library for [Ebiten]**
+**A user interface engine and widget library for [Ebitengine](https://ebitengine.org/)**
 
-Ebiten UI is an extension to Ebiten that provides an engine to render a complete user interface,
+Ebiten UI is an extension to Ebitengine that provides the ability to render a complete user interface,
 with widgets such as buttons, lists, combo boxes, and so on. It uses the [retained mode] model.
 All graphics used by Ebiten UI can be fully customized, so you can really make your UI your own.
 
