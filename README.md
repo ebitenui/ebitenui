@@ -1,8 +1,8 @@
-[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/ebitenui/ebitenui?include_prereleases)](https://github.com/ebitenui/ebitenui/releases)
-[![GitHub](https://img.shields.io/github/license/ebitenui/ebitenui)](https://opensource.org/licenses/MIT)
-[![GoDoc](https://pkg.go.dev/badge/github.com/ebitenui/ebitenui)](https://pkg.go.dev/github.com/ebitenui/ebitenui)
-[![Discord](https://img.shields.io/discord/958140778931175424?label=Discord)](https://discord.gg/ujEeeHgptU)
-[![Subreddit subscribers](https://img.shields.io/reddit/subreddit-subscribers/birdmtndev?label=r%2FBirdMtnDev&style=social)](https://www.reddit.com/r/birdmtndev/)
+[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/ebitenui/ebitenui?include_prereleases&label=Release)](https://github.com/ebitenui/ebitenui/releases)
+[![GitHub](https://img.shields.io/github/license/ebitenui/ebitenui?color=blue&label=License)](https://opensource.org/licenses/MIT)
+[![GoDoc](https://img.shields.io/badge/Go-Reference-blue?style=flat)](https://pkg.go.dev/github.com/ebitenui/ebitenui)
+[![Discord](https://img.shields.io/discord/958140778931175424?color=green&label=Discord&logo=discord&logoColor=white)](https://discord.gg/ujEeeHgptU)
+[![Subreddit subscribers](https://img.shields.io/reddit/subreddit-subscribers/birdmtndev?color=green&label=r%2FBirdMtnDev&logo=reddit&logoColor=white)](https://www.reddit.com/r/birdmtndev/)
 
 Ebiten UI
 =========
