@@ -93,6 +93,26 @@
 			"cwd": "${workspaceFolder}/_examples/widget_demos/imagebutton",
 			"env": {},
 			"args": []
+		},		
+		{
+			"name": "Launch Label",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/_examples/widget_demos/label",
+			"cwd": "${workspaceFolder}/_examples/widget_demos/label",
+			"env": {},
+			"args": []
+		},
+		{
+			"name": "Launch List",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/_examples/widget_demos/list",
+			"cwd": "${workspaceFolder}/_examples/widget_demos/list",
+			"env": {},
+			"args": []
 		},
 		{
 			"name": "Launch Labeled Checkbox",

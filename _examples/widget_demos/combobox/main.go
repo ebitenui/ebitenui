@@ -97,8 +97,8 @@ func main() {
 			widget.ListOpts.EntryFontFace(face),
 			//Set the colors for the list
 			widget.ListOpts.EntryColor(&widget.ListEntryColor{
-				Selected:                   color.White,                                 //Foreground color for the unfocused selected entry
-				Unselected:                 color.White,                                 //Foreground color for the unfocused unselected entry
+				Selected:                   color.NRGBA{254, 255, 255, 255},             //Foreground color for the unfocused selected entry
+				Unselected:                 color.NRGBA{254, 255, 255, 255},             //Foreground color for the unfocused unselected entry
 				SelectedBackground:         color.NRGBA{R: 130, G: 130, B: 200, A: 255}, //Background color for the unfocused selected entry
 				SelectedFocusedBackground:  color.NRGBA{R: 130, G: 130, B: 170, A: 255}, //Background color for the focused selected entry
 				FocusedBackground:          color.NRGBA{R: 170, G: 170, B: 180, A: 255}, //Background color for the focused unselected entry
