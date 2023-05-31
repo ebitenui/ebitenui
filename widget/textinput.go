@@ -124,7 +124,7 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 	t.commandToFunc[textInputGoLeft] = t.doGoLeft
 	t.commandToFunc[textInputGoRight] = t.doGoRight
 	t.commandToFunc[textInputGoStart] = t.doGoStart
-	t.commandToFunc[textInputGoEnd] = t.doGoEnd
+	t.commandToFunc[textInputGoEnd] = t.DoGoEnd
 	t.commandToFunc[textInputBackspace] = t.doBackspace
 	t.commandToFunc[textInputDelete] = t.doDelete
 	t.commandToFunc[textInputEnter] = t.doSubmit
@@ -421,7 +421,7 @@ func (t *TextInput) doGoStart() {
 	t.caret.ResetBlinking()
 }
 
-func (t *TextInput) doGoEnd() {
+func (t *TextInput) DoGoEnd() {
 	t.cursorPosition = len([]rune(t.InputText))
 	t.caret.ResetBlinking()
 }
