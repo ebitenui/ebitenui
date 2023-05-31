@@ -19,18 +19,21 @@ import (
 
 // Game object used by ebiten
 type game struct {
-	ui                *ebitenui.UI
+	ui *ebitenui.UI
+	//This parameter is so you can keep track of the textInput widget to update and retrieve
+	//its values in other parts of your game
 	standardTextInput *widget.TextInput
 }
 
 func main() {
-
 	// Ebiten setup
 	ebiten.SetWindowSize(400, 400)
 	ebiten.SetWindowTitle("Ebiten UI - TextInput")
 
 	game := game{}
 
+	// load images for button states: idle, hover, and pressed
+	buttonImage, _ := loadButtonImage()
 	// load the font
 	face, _ := loadFont(20)
 
@@ -69,9 +72,9 @@ func main() {
 
 		//Set the colors for the text and caret
 		widget.TextInputOpts.Color(&widget.TextInputColor{
-			Idle:          color.White,
+			Idle:          color.NRGBA{254, 255, 255, 255},
 			Disabled:      color.NRGBA{R: 200, G: 200, B: 200, A: 255},
-			Caret:         color.White,
+			Caret:         color.NRGBA{254, 255, 255, 255},
 			DisabledCaret: color.NRGBA{R: 200, G: 200, B: 200, A: 255},
 		}),
 
@@ -122,9 +125,9 @@ func main() {
 
 		//Set the colors for the text and caret
 		widget.TextInputOpts.Color(&widget.TextInputColor{
-			Idle:          color.White,
+			Idle:          color.NRGBA{254, 255, 255, 255},
 			Disabled:      color.NRGBA{R: 255, G: 200, B: 200, A: 255},
-			Caret:         color.White,
+			Caret:         color.NRGBA{254, 255, 255, 255},
 			DisabledCaret: color.NRGBA{R: 255, G: 200, B: 200, A: 255},
 		}),
 
@@ -167,9 +170,9 @@ func main() {
 		}),
 		widget.TextInputOpts.Face(face),
 		widget.TextInputOpts.Color(&widget.TextInputColor{
-			Idle:          color.White,
+			Idle:          color.NRGBA{254, 255, 255, 255},
 			Disabled:      color.NRGBA{R: 200, G: 200, B: 200, A: 255},
-			Caret:         color.White,
+			Caret:         color.NRGBA{254, 255, 255, 255},
 			DisabledCaret: color.NRGBA{R: 200, G: 200, B: 200, A: 255},
 		}),
 		widget.TextInputOpts.Padding(widget.NewInsetsSimple(5)),
@@ -203,9 +206,9 @@ func main() {
 		}),
 		widget.TextInputOpts.Face(face),
 		widget.TextInputOpts.Color(&widget.TextInputColor{
-			Idle:          color.White,
+			Idle:          color.NRGBA{254, 255, 255, 255},
 			Disabled:      color.NRGBA{R: 200, G: 200, B: 200, A: 255},
-			Caret:         color.White,
+			Caret:         color.NRGBA{254, 255, 255, 255},
 			DisabledCaret: color.NRGBA{R: 200, G: 200, B: 200, A: 255},
 		}),
 		widget.TextInputOpts.Padding(widget.NewInsetsSimple(5)),
@@ -232,7 +235,8 @@ func main() {
 			fmt.Println("Text Changed: ", args.InputText)
 		}),
 	)
-
+	//This will do nothing because the validation above prevents this from being set.
+	maxLenTextInput.InputText = "123456"
 	rootContainer.AddChild(maxLenTextInput)
 
 	allCapsTextInput := widget.NewTextInput(
@@ -248,9 +252,9 @@ func main() {
 		}),
 		widget.TextInputOpts.Face(face),
 		widget.TextInputOpts.Color(&widget.TextInputColor{
-			Idle:          color.White,
+			Idle:          color.NRGBA{254, 255, 255, 255},
 			Disabled:      color.NRGBA{R: 200, G: 200, B: 200, A: 255},
-			Caret:         color.White,
+			Caret:         color.NRGBA{254, 255, 255, 255},
 			DisabledCaret: color.NRGBA{R: 200, G: 200, B: 200, A: 255},
 		}),
 		widget.TextInputOpts.Padding(widget.NewInsetsSimple(5)),
@@ -275,8 +279,53 @@ func main() {
 			fmt.Println("Text Changed: ", args.InputText)
 		}),
 	)
-
+	//This will show in all caps due to validation function above
+	allCapsTextInput.InputText = "Hello World"
 	rootContainer.AddChild(allCapsTextInput)
+
+	// construct a button
+	button := widget.NewButton(
+		// set general widget options
+		widget.ButtonOpts.WidgetOpts(
+			// instruct the container's anchor layout to center the button both horizontally and vertically
+			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				HorizontalPosition: widget.AnchorLayoutPositionCenter,
+				VerticalPosition:   widget.AnchorLayoutPositionCenter,
+			}),
+		),
+
+		// specify the images to use
+		widget.ButtonOpts.Image(buttonImage),
+
+		// specify the button's text, the font face, and the color
+		widget.ButtonOpts.Text("Update Text", face, &widget.ButtonTextColor{
+			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
+		}),
+
+		// specify that the button's text needs some padding for correct display
+		widget.ButtonOpts.TextPadding(widget.Insets{
+			Left:   30,
+			Right:  30,
+			Top:    5,
+			Bottom: 5,
+		}),
+
+		// add a handler that reacts to clicking the button
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			//This will replace all text with caps per validation function
+			allCapsTextInput.InputText = "This is a test"
+			//This will do nothing since it fails the validation function
+			maxLenTextInput.InputText = "This is a test"
+			//This will show as secured ***
+			secureTextInput.InputText = "This is a test"
+			//This will show the text as is
+			game.standardTextInput.InputText = "This is a test"
+		}),
+	)
+
+	// add the button as a child of the container
+	rootContainer.AddChild(button)
+
 	// construct the UI
 	ui := ebitenui.UI{
 		Container: rootContainer,
@@ -332,4 +381,18 @@ func loadFont(size float64) (font.Face, error) {
 		DPI:     72,
 		Hinting: font.HintingFull,
 	}), nil
+}
+
+func loadButtonImage() (*widget.ButtonImage, error) {
+	idle := image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 180, A: 255})
+
+	hover := image.NewNineSliceColor(color.NRGBA{R: 130, G: 130, B: 150, A: 255})
+
+	pressed := image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 120, A: 255})
+
+	return &widget.ButtonImage{
+		Idle:    idle,
+		Hover:   hover,
+		Pressed: pressed,
+	}, nil
 }

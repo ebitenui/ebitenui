@@ -42,6 +42,7 @@ func TestTextInput_DoBackspace(t *testing.T) {
 
 	ti := newTextInput(t)
 	ti.InputText = "foo"
+	ti.lastInputText = ti.InputText
 	ti.cursorPosition = 1
 	render(ti, t)
 
@@ -49,7 +50,7 @@ func TestTextInput_DoBackspace(t *testing.T) {
 		is.Equal(args.(*TextInputChangedEventArgs).InputText, "oo")
 	})
 
-	ti.doBackspace()
+	ti.Backspace()
 	render(ti, t)
 }
 
@@ -66,7 +67,7 @@ func TestTextInput_DoBackspace_Disabled(t *testing.T) {
 		is.Fail() // received event even though widget is disabled
 	})
 
-	ti.doBackspace()
+	ti.Backspace()
 	render(ti, t)
 }
 
@@ -81,7 +82,7 @@ func TestTextInput_DoDelete(t *testing.T) {
 		is.Equal(args.(*TextInputChangedEventArgs).InputText, "oo")
 	})
 
-	ti.doDelete()
+	ti.Delete()
 	render(ti, t)
 }
 
@@ -97,7 +98,7 @@ func TestTextInput_DoDelete_Disabled(t *testing.T) {
 		is.Fail() // received event even though widget is disabled
 	})
 
-	ti.doDelete()
+	ti.Delete()
 	render(ti, t)
 }
 
@@ -106,10 +107,11 @@ func TestTextInput_DoInsert(t *testing.T) {
 
 	ti := newTextInput(t)
 	ti.InputText = "foo"
+	ti.lastInputText = ti.InputText
 	ti.cursorPosition = 1
 	render(ti, t)
 
-	ti.doInsert([]rune("ab€c"))
+	ti.Insert([]rune("ab€c"))
 
 	is.Equal(ti.InputText, "fab€coo")
 	is.Equal(ti.cursorPosition, 5)

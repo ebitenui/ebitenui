@@ -121,13 +121,13 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 	}
 	t.state = t.idleState(true)
 
-	t.commandToFunc[textInputGoLeft] = t.doGoLeft
-	t.commandToFunc[textInputGoRight] = t.doGoRight
-	t.commandToFunc[textInputGoStart] = t.doGoStart
-	t.commandToFunc[textInputGoEnd] = t.DoGoEnd
-	t.commandToFunc[textInputBackspace] = t.doBackspace
-	t.commandToFunc[textInputDelete] = t.doDelete
-	t.commandToFunc[textInputEnter] = t.doSubmit
+	t.commandToFunc[textInputGoLeft] = t.CursorMoveLeft
+	t.commandToFunc[textInputGoRight] = t.CursorMoveRight
+	t.commandToFunc[textInputGoStart] = t.CursorMoveStart
+	t.commandToFunc[textInputGoEnd] = t.CursorMoveEnd
+	t.commandToFunc[textInputBackspace] = t.Backspace
+	t.commandToFunc[textInputDelete] = t.Delete
+	t.commandToFunc[textInputEnter] = t.Submit
 
 	t.init.Append(t.createWidget)
 
@@ -267,8 +267,20 @@ func (t *TextInput) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 	t.text.GetWidget().Disabled = t.widget.Disabled
 
-	if t.cursorPosition > len([]rune(t.InputText)) {
-		t.cursorPosition = len([]rune(t.InputText))
+	if t.lastInputText != t.InputText {
+		if t.validationFunc != nil {
+			result, replacement := t.validationFunc(t.InputText)
+			if !result {
+				if replacement != nil {
+					t.InputText = *replacement
+					t.cursorPosition = len([]rune(t.InputText))
+				} else {
+					t.InputText = t.lastInputText
+				}
+			}
+		} else {
+			t.cursorPosition = len([]rune(t.InputText))
+		}
 	}
 
 	for {
@@ -348,7 +360,7 @@ func textInputCheckForCommand(t *TextInput, newKeyOrCommand bool) textInputState
 func (t *TextInput) charsInputState(c []rune) textInputState {
 	return func() (textInputState, bool) {
 		if !t.widget.Disabled {
-			t.doInsert(c)
+			t.Insert(c)
 		}
 
 		t.caret.ResetBlinking()
@@ -384,7 +396,7 @@ func (t *TextInput) commandState(cmd textInputControlCommand, key ebiten.Key, de
 	}
 }
 
-func (t *TextInput) doInsert(c []rune) {
+func (t *TextInput) Insert(c []rune) {
 	s := string(insertChars([]rune(t.InputText), c, t.cursorPosition))
 
 	if t.validationFunc != nil {
@@ -402,26 +414,26 @@ func (t *TextInput) doInsert(c []rune) {
 	t.cursorPosition += len(c)
 }
 
-func (t *TextInput) doGoLeft() {
+func (t *TextInput) CursorMoveLeft() {
 	if t.cursorPosition > 0 {
 		t.cursorPosition--
 	}
 	t.caret.ResetBlinking()
 }
 
-func (t *TextInput) doGoRight() {
+func (t *TextInput) CursorMoveRight() {
 	if t.cursorPosition < len([]rune(t.InputText)) {
 		t.cursorPosition++
 	}
 	t.caret.ResetBlinking()
 }
 
-func (t *TextInput) doGoStart() {
+func (t *TextInput) CursorMoveStart() {
 	t.cursorPosition = 0
 	t.caret.ResetBlinking()
 }
 
-func (t *TextInput) DoGoEnd() {
+func (t *TextInput) CursorMoveEnd() {
 	t.cursorPosition = len([]rune(t.InputText))
 	t.caret.ResetBlinking()
 }
@@ -442,7 +454,7 @@ func (t *TextInput) doGoXY(x int, y int) {
 	}
 }
 
-func (t *TextInput) doBackspace() {
+func (t *TextInput) Backspace() {
 	if !t.widget.Disabled && t.cursorPosition > 0 {
 		t.InputText = string(removeChar([]rune(t.InputText), t.cursorPosition-1))
 		t.cursorPosition--
@@ -450,14 +462,14 @@ func (t *TextInput) doBackspace() {
 	t.caret.ResetBlinking()
 }
 
-func (t *TextInput) doDelete() {
+func (t *TextInput) Delete() {
 	if !t.widget.Disabled && t.cursorPosition < len([]rune(t.InputText)) {
 		t.InputText = string(removeChar([]rune(t.InputText), t.cursorPosition))
 	}
 	t.caret.ResetBlinking()
 }
 
-func (t *TextInput) doSubmit() {
+func (t *TextInput) Submit() {
 	if !t.ignoreEmptySubmit || len(t.InputText) > 0 {
 		if t.allowDuplicateSubmit || t.previousSubmittedText == nil || t.InputText != *t.previousSubmittedText {
 			t.SubmitEvent.Fire(&TextInputChangedEventArgs{
@@ -469,7 +481,7 @@ func (t *TextInput) doSubmit() {
 		}
 	}
 	if t.clearOnSubmit {
-		t.doGoStart()
+		t.CursorMoveStart()
 		t.InputText = ""
 	}
 }

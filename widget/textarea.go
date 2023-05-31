@@ -204,6 +204,7 @@ func (l *TextArea) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 }
 
 func (l *TextArea) GetFocusers() []Focuser {
+	l.init.Do()
 	var result []Focuser
 	if l.hSlider != nil && l.hSlider.tabOrder != -1 {
 		result = append(result, l.hSlider)
@@ -333,7 +334,7 @@ func (l *TextArea) PrependText(value string) {
 }
 
 func (l *TextArea) AppendText(value string) {
-
+	l.init.Do()
 	l.text.Label = l.text.Label + value
 
 	if l.showHorizontalSlider {
@@ -353,6 +354,7 @@ func (l *TextArea) AppendText(value string) {
 }
 
 func (l *TextArea) SetText(value string) {
+	l.init.Do()
 	l.text.Label = value
 
 	if l.showHorizontalSlider {
@@ -372,5 +374,6 @@ func (l *TextArea) SetText(value string) {
 }
 
 func (l *TextArea) GetText() string {
+	l.init.Do()
 	return l.text.Label
 }
