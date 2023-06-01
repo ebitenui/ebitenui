@@ -15,6 +15,26 @@
 			"args": []
 		},
 		{
+			"name": "Launch Basic Container",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/_examples/widget_demos/basic_container",
+			"cwd": "${workspaceFolder}/_examples/widget_demos/basic_container",
+			"env": {},
+			"args": []
+		},
+		{
+			"name": "Launch Anchor Layout",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/_examples/widget_demos/anchorlayout",
+			"cwd": "${workspaceFolder}/_examples/widget_demos/anchorlayout",
+			"env": {},
+			"args": []
+		},
+		{
 			"name": "Launch Button",
 			"type": "go",
 			"request": "launch",
@@ -75,12 +95,22 @@
 			"args": []
 		},
 		{
-			"name": "Launch Drag and Drop",
+			"name": "Launch Drag & Drop",
 			"type": "go",
 			"request": "launch",
 			"mode": "debug",
 			"program": "${workspaceFolder}/_examples/widget_demos/draganddrop",
 			"cwd": "${workspaceFolder}/_examples/widget_demos/draganddrop",
+			"env": {},
+			"args": []
+		},
+		{
+			"name": "Launch Grid Layout",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/_examples/widget_demos/gridlayout",
+			"cwd": "${workspaceFolder}/_examples/widget_demos/gridlayout",
 			"env": {},
 			"args": []
 		},
@@ -131,6 +161,36 @@
 			"mode": "debug",
 			"program": "${workspaceFolder}/_examples/widget_demos/progressbar",
 			"cwd": "${workspaceFolder}/_examples/widget_demos/progressbar",
+			"env": {},
+			"args": []
+		},
+		{
+			"name": "Launch Radio Group",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/_examples/widget_demos/radiogroup",
+			"cwd": "${workspaceFolder}/_examples/widget_demos/radiogroup",
+			"env": {},
+			"args": []
+		},
+		{
+			"name": "Launch Row Layout",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/_examples/widget_demos/rowlayout",
+			"cwd": "${workspaceFolder}/_examples/widget_demos/rowlayout",
+			"env": {},
+			"args": []
+		},
+		{
+			"name": "Launch Scroll Container",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/_examples/widget_demos/scrollcontainer",
+			"cwd": "${workspaceFolder}/_examples/widget_demos/scrollcontainer",
 			"env": {},
 			"args": []
 		},
@@ -191,6 +251,16 @@
 			"mode": "debug",
 			"program": "${workspaceFolder}/_examples/widget_demos/tooltips",
 			"cwd": "${workspaceFolder}/_examples/widget_demos/tooltips",
+			"env": {},
+			"args": []
+		},
+		{
+			"name": "Launch Window",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/_examples/widget_demos/window",
+			"cwd": "${workspaceFolder}/_examples/widget_demos/window",
 			"env": {},
 			"args": []
 		},

@@ -1,7 +1,6 @@
 package widget
 
 import (
-	"fmt"
 	"image"
 
 	"github.com/ebitenui/ebitenui/event"
@@ -128,7 +127,6 @@ func NewWindow(opts ...WindowOpt) *Window {
 		})
 		w.Contents.GetWidget().MouseButtonReleasedEvent.AddHandler(func(a any) {
 			args := a.(*WidgetMouseButtonReleasedEventArgs)
-			fmt.Println("Mouse released")
 			if w.resizing && args.Button == ebiten.MouseButtonLeft {
 				w.resizing = false
 				w.ResizeEvent.Fire(&WindowChangedEventArgs{
