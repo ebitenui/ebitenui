@@ -52,3 +52,7 @@ Maintainers
 -------
 * Currently maintained by Mark Carpenter <mark@bird-mtn.dev>
 * Originally written by Maik Schreiber <blizzy@blizzy.de>
+
+Contributing
+-------
+Want to help develop Ebiten UI? Check out our [current issues](https://github.com/ebitenui/ebitenui/issues). Want to know the steps to contributing, take a look at the [open source guide](https://opensource.guide/).
