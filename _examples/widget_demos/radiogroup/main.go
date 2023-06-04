@@ -157,6 +157,10 @@ func main() {
 		//If you have references to the individual elements you can add them like this since it is a
 		//variadic method.
 		widget.RadioGroupOpts.Elements(button1, button2, button3),
+
+		//This function allows you to select which element should be selected initialially
+		//widget.RadioGroupOpts.InitialElement(button2),
+
 		//This callback method gets called when the Active widget is changed.
 		widget.RadioGroupOpts.ChangedHandler(func(args *widget.RadioGroupChangedEventArgs) {
 			fmt.Println(args.Active.(*widget.Button).Text().Label)

@@ -23,7 +23,7 @@ func main() {
 	buttonImage, _ := loadButtonImage()
 
 	// load text font
-	face, _ := loadFont(20)
+	face, _ := loadFont(16)
 
 	// construct a new container that serves as the root of the UI hierarchy
 	rootContainer := widget.NewContainer(
@@ -55,7 +55,8 @@ func main() {
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 	greenBtn := widget.NewText(
-		widget.TextOpts.Text("Green Tab Button", face, color.Black),
+		widget.TextOpts.Text("Green Tab Button\nThis is configured as the initial tab.", face, color.Black),
+		widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			HorizontalPosition: widget.AnchorLayoutPositionCenter,
 			VerticalPosition:   widget.AnchorLayoutPositionCenter,
@@ -84,9 +85,15 @@ func main() {
 		})),
 	)
 	tabBlue.AddChild(blueBtn2)
+
+	tabDisabled := widget.NewTabBookTab("Disabled Tab",
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{R: 80, G: 80, B: 140, A: 255})),
+	)
+	tabDisabled.Disabled = true
+
 	tabBook := widget.NewTabBook(
 		widget.TabBookOpts.TabButtonImage(buttonImage),
-		widget.TabBookOpts.TabButtonText(face, &widget.ButtonTextColor{Idle: color.White}),
+		widget.TabBookOpts.TabButtonText(face, &widget.ButtonTextColor{Idle: color.White, Disabled: color.White}),
 		widget.TabBookOpts.TabButtonSpacing(0),
 		widget.TabBookOpts.ContainerOpts(
 			widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
@@ -99,9 +106,10 @@ func main() {
 		),
 		widget.TabBookOpts.TabButtonOpts(
 			widget.ButtonOpts.TextPadding(widget.NewInsetsSimple(5)),
-			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.MinSize(135, 0)),
+			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.MinSize(98, 0)),
 		),
-		widget.TabBookOpts.Tabs(tabRed, tabGreen, tabBlue),
+		widget.TabBookOpts.Tabs(tabDisabled, tabRed, tabGreen, tabBlue),
+	//	widget.TabBookOpts.InitialTab(tabGreen),
 	)
 	// add the tabBook as a child of the container
 	rootContainer.AddChild(tabBook)
@@ -153,11 +161,14 @@ func loadButtonImage() (*widget.ButtonImage, error) {
 
 	pressedHover := image.NewNineSliceColor(color.NRGBA{R: 110, G: 110, B: 110, A: 255})
 
+	disabled := image.NewNineSliceColor(color.NRGBA{R: 80, G: 80, B: 140, A: 255})
+
 	return &widget.ButtonImage{
 		Idle:         idle,
 		Hover:        hover,
 		Pressed:      pressed,
 		PressedHover: pressedHover,
+		Disabled:     disabled,
 	}, nil
 }
 

@@ -22,6 +22,7 @@ type RadioGroup struct {
 
 	elements  []RadioGroupElement
 	active    RadioGroupElement
+	initial   RadioGroupElement
 	listen    bool
 	doneEvent *event.Event
 }
@@ -81,6 +82,14 @@ func (o RadioGroupOptions) ChangedHandler(f RadioGroupChangedHandlerFunc) RadioG
 	}
 }
 
+// This function allows you to select which element should be selected initialially.
+// Otherwise it will select the first element in the Elements array.
+func (o RadioGroupOptions) InitialElement(e RadioGroupElement) RadioGroupOpt {
+	return func(r *RadioGroup) {
+		r.initial = e
+	}
+}
+
 func (r *RadioGroup) Active() RadioGroupElement {
 	return r.active
 }
@@ -127,7 +136,9 @@ func (r *RadioGroup) create() {
 		})
 	}
 
-	if r.active == nil && len(r.elements) > 0 {
+	if r.initial != nil {
+		r.SetActive(r.initial)
+	} else if len(r.elements) > 0 {
 		r.SetActive(r.elements[0])
 	}
 }

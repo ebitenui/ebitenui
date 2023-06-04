@@ -791,7 +791,10 @@ func radioGroupPage(res *uiResources) *page {
 	for _, cb := range cbs {
 		elements = append(elements, cb)
 	}
-	widget.NewRadioGroup(widget.RadioGroupOpts.Elements(elements...))
+	widget.NewRadioGroup(
+		widget.RadioGroupOpts.Elements(elements...),
+		widget.RadioGroupOpts.InitialElement(elements[2]),
+	)
 
 	return &page{
 		title:   "Radio Group",

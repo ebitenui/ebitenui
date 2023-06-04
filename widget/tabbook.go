@@ -27,6 +27,7 @@ type TabBook struct {
 	tabToButton map[*TabBookTab]*Button
 	flipBook    *FlipBook
 	tab         *TabBookTab
+	initialTab  *TabBookTab
 }
 
 type TabBookTab struct {
@@ -137,6 +138,12 @@ func (o TabBookOptions) Tabs(tabs ...*TabBookTab) TabBookOpt {
 	}
 }
 
+func (o TabBookOptions) InitialTab(tab *TabBookTab) TabBookOpt {
+	return func(t *TabBook) {
+		t.initialTab = tab
+	}
+}
+
 func (o TabBookOptions) TabSelectedHandler(f TabBookTabSelectedHandlerFunc) TabBookOpt {
 	return func(t *TabBook) {
 		t.TabSelectedEvent.AddHandler(func(args interface{}) {
@@ -198,7 +205,10 @@ func (t *TabBook) createWidget() {
 		ContainerOpts.Layout(NewRowLayout(
 			RowLayoutOpts.Spacing(t.buttonSpacing))))
 	t.container.AddChild(buttonsContainer)
+
 	btnElements := []RadioGroupElement{}
+	var firstTab *TabBookTab
+
 	for _, tab := range t.tabs {
 		tab := tab
 		btn := NewButton(
@@ -211,10 +221,22 @@ func (t *TabBook) createWidget() {
 		btnElements = append(btnElements, btn)
 		buttonsContainer.AddChild(btn)
 		t.tabToButton[tab] = btn
+		if firstTab == nil {
+			if t.initialTab == nil && !tab.Disabled {
+				firstTab = tab
+			} else if t.initialTab == tab && !tab.Disabled {
+				firstTab = t.initialTab
+			}
+		}
+	}
+	//If we cannot find an initial tab default to to the first one
+	if firstTab == nil {
+		firstTab = t.tabs[0]
 	}
 
 	NewRadioGroup(
 		RadioGroupOpts.Elements(btnElements...),
+		RadioGroupOpts.InitialElement(t.tabToButton[firstTab]),
 		RadioGroupOpts.ChangedHandler(func(args *RadioGroupChangedEventArgs) {
 			tab := args.Active.(*Button).GetWidget().CustomData.(*TabBookTab)
 			t.SetTab(tab)
@@ -228,14 +250,19 @@ func (t *TabBook) createWidget() {
 	t.container.AddChild(t.flipBook)
 	t.flipBookOpts = nil
 
-	t.setTab(t.tabs[0], false)
 }
 
+// Set the current tab for the tab book.
+//
+//		Note: This method should only be called after the
+//	 ui is running. To set the initial tab please use the
+//	 TabBookOptions.InitialTab method during tabbook creation.
 func (t *TabBook) SetTab(tab *TabBookTab) {
-	t.setTab(tab, true)
-}
+	if tab.Disabled {
+		return
+	}
+	t.init.Do()
 
-func (t *TabBook) setTab(tab *TabBookTab, fireEvent bool) {
 	if tab != t.tab {
 		previousTab := t.tab
 
@@ -251,16 +278,16 @@ func (t *TabBook) setTab(tab *TabBookTab, fireEvent bool) {
 			b.SetState(state)
 		}
 
-		if fireEvent {
-			t.TabSelectedEvent.Fire(&TabBookTabSelectedEventArgs{
-				TabBook:     t,
-				Tab:         tab,
-				PreviousTab: previousTab,
-			})
-		}
+		t.TabSelectedEvent.Fire(&TabBookTabSelectedEventArgs{
+			TabBook:     t,
+			Tab:         tab,
+			PreviousTab: previousTab,
+		})
 	}
+
 }
 
+// Return the currently selected tab
 func (t *TabBook) Tab() *TabBookTab {
 	return t.tab
 }
