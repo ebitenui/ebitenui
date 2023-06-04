@@ -19,6 +19,15 @@ Documentation on how to use and extend Ebiten UI is available at [ebitenui.githu
 
 ![Screenshots](ebiten-ui.gif)
 
+Quick Start
+------
+Ebiten UI is written in Go 1.19 which is available at [https://go.dev/](https://go.dev/).
+
+There are Ebiten UI examples that can be found in the `_examples/` folder. Here are some example of how to run them locally:
+
+* Ebiten UI complete demo: `go run github.com/ebitenui/ebitenui/_examples/demo`
+* Ebiten UI widget: `go run github.com/ebitenui/ebitenui/_examples/widget_demos/<folder_name>`
+
 
 Used By
 ------
