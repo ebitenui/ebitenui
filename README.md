@@ -55,4 +55,4 @@ Maintainers
 
 Contributing
 -------
-Want to help develop Ebiten UI? Check out our [current issues](https://github.com/ebitenui/ebitenui/issues). Want to know the steps to contributing, take a look at the [open source guide](https://opensource.guide/).
+Want to help develop Ebiten UI? Check out our [current issues](https://github.com/ebitenui/ebitenui/issues). Want to know the steps on how to start contributing, take a look at the [open source guide](https://opensource.guide/).
