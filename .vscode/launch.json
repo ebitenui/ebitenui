@@ -105,6 +105,16 @@
 			"args": []
 		},
 		{
+			"name": "Launch Flipbook",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/_examples/widget_demos/flipbook",
+			"cwd": "${workspaceFolder}/_examples/widget_demos/flipbook",
+			"env": {},
+			"args": []
+		},
+		{
 			"name": "Launch Grid Layout",
 			"type": "go",
 			"request": "launch",
