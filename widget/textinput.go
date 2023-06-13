@@ -4,6 +4,7 @@ import (
 	img "image"
 	"image/color"
 	"math"
+	"runtime"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
+	"github.com/ebitenui/ebitenui/internal/jsUtil"
 	"github.com/hajimehoshi/ebiten/v2"
 	"golang.org/x/image/font"
 )
@@ -590,6 +592,38 @@ func (t *TextInput) Focus(focused bool) {
 	t.GetWidget().FireFocusEvent(t, focused, img.Point{-1, -1})
 	t.caret.resetBlinking()
 	t.focused = focused
+
+	if focused && runtime.GOOS == "js" && runtime.GOARCH == "wasm" && jsUtil.IsMobileBrowser() {
+		result, successful := jsUtil.Prompt("Please enter a value.", t.InputText)
+		if successful {
+			t.setText(result)
+		}
+	}
+}
+
+func (t *TextInput) setText(text string) {
+	t.InputText = text
+	if t.validationFunc != nil {
+		result, replacement := t.validationFunc(t.InputText)
+		if !result {
+			if replacement != nil {
+				t.InputText = *replacement
+			} else {
+				t.InputText = t.lastInputText
+			}
+		}
+	}
+	if t.InputText != t.lastInputText {
+		if t.secure {
+			t.secureInputText = strings.Repeat("*", len([]rune(t.InputText)))
+		}
+		t.ChangedEvent.Fire(&TextInputChangedEventArgs{
+			TextInput: t,
+			InputText: t.InputText,
+		})
+		t.cursorPosition = len([]rune(t.InputText))
+	}
+
 }
 
 func (t *TextInput) IsFocused() bool {
