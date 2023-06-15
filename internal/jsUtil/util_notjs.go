@@ -7,7 +7,7 @@ func IsMobileBrowser() bool {
 	return false
 }
 
-func Prompt(title string, value string, cursorPos int, callback InsertCallBack) (string, bool) {
+func Prompt(title string, value string, cursorPos int, yPos int, callback InsertCallBack) (string, bool) {
 	return "", false
 }
 func SetCursorPosition(posX int) {

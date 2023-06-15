@@ -616,7 +616,7 @@ func (t *TextInput) Focus(focused bool) {
 	t.focused = focused
 
 	if focused && runtime.GOOS == "js" && runtime.GOARCH == "wasm" && jsUtil.IsMobileBrowser() {
-		result, successful := jsUtil.Prompt("Please enter a value.", t.inputText, t.cursorPosition, t.setJSText)
+		result, successful := jsUtil.Prompt("Please enter a value.", t.inputText, t.cursorPosition, t.widget.Rect.Min.Y, t.setJSText)
 		if successful {
 			t.setText(result, true)
 		}
