@@ -1,5 +1,7 @@
 package datastructures
 
+import "fmt"
+
 type Stack[K any] struct {
 	values []*K
 }
@@ -25,4 +27,19 @@ func (stack *Stack[K]) Top() *K {
 
 func (stack *Stack[K]) Size() int {
 	return len(stack.values)
+}
+
+func (stack *Stack[K]) Clear() {
+	stack.values = nil
+}
+
+func (stack *Stack[K]) String() string {
+	result := ""
+	for _, val := range stack.values {
+		if len(result) > 0 {
+			result += ", "
+		}
+		result += fmt.Sprintf("%v", *val)
+	}
+	return result
 }

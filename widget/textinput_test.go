@@ -16,7 +16,7 @@ func TestTextInput_ChangedEvent(t *testing.T) {
 		eventArgs = args
 	}))
 
-	ti.InputText = "foo"
+	ti.SetText("foo")
 	render(ti, t)
 
 	is.Equal(eventArgs.InputText, "foo")
@@ -30,7 +30,7 @@ func TestTextInput_ChangedEvent_OnlyOnce(t *testing.T) {
 		numEvents++
 	}))
 
-	ti.InputText = "foo"
+	ti.SetText("foo")
 	render(ti, t)
 	render(ti, t)
 
@@ -41,8 +41,8 @@ func TestTextInput_DoBackspace(t *testing.T) {
 	is := is.New(t)
 
 	ti := newTextInput(t)
-	ti.InputText = "foo"
-	ti.lastInputText = ti.InputText
+	ti.SetText("foo")
+	ti.lastInputText = ti.GetText()
 	ti.cursorPosition = 1
 	render(ti, t)
 
@@ -59,7 +59,7 @@ func TestTextInput_DoBackspace_Disabled(t *testing.T) {
 
 	ti := newTextInput(t)
 	ti.GetWidget().Disabled = true
-	ti.InputText = "foo"
+	ti.SetText("foo")
 	ti.cursorPosition = 1
 	render(ti, t)
 
@@ -75,7 +75,7 @@ func TestTextInput_DoDelete(t *testing.T) {
 	is := is.New(t)
 
 	ti := newTextInput(t)
-	ti.InputText = "foo"
+	ti.SetText("foo")
 	render(ti, t)
 
 	ti.ChangedEvent.AddHandler(func(args interface{}) {
@@ -91,7 +91,7 @@ func TestTextInput_DoDelete_Disabled(t *testing.T) {
 
 	ti := newTextInput(t)
 	ti.GetWidget().Disabled = true
-	ti.InputText = "foo"
+	ti.SetText("foo")
 	render(ti, t)
 
 	ti.ChangedEvent.AddHandler(func(_ interface{}) {
@@ -106,14 +106,14 @@ func TestTextInput_DoInsert(t *testing.T) {
 	is := is.New(t)
 
 	ti := newTextInput(t)
-	ti.InputText = "foo"
-	ti.lastInputText = ti.InputText
+	ti.SetText("foo")
+	ti.lastInputText = ti.GetText()
 	ti.cursorPosition = 1
 	render(ti, t)
 
 	ti.Insert([]rune("ab€c"))
 
-	is.Equal(ti.InputText, "fab€coo")
+	is.Equal(ti.GetText(), "fab€coo")
 	is.Equal(ti.cursorPosition, 5)
 }
 

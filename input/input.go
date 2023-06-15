@@ -169,6 +169,9 @@ func Draw(screen *ebiten.Image) {
 }
 
 func AfterDraw(screen *ebiten.Image) {
+	currentCursorUpdater.AfterDraw(screen)
+
+	//Process Cursor
 	posX, posY := currentCursorUpdater.CursorPosition()
 	if posX < 0 || posY < 0 || posX > windowSize.X || posY > windowSize.Y {
 		return
@@ -204,5 +207,4 @@ func AfterDraw(screen *ebiten.Image) {
 			ebiten.SetCursorMode(ebiten.CursorModeHidden)
 		}
 	}
-	currentCursorUpdater.AfterDraw(screen)
 }

@@ -21,7 +21,7 @@ type TextInput struct {
 	ChangedEvent *event.Event
 	SubmitEvent  *event.Event
 
-	InputText string
+	inputText string
 
 	widgetOpts      []WidgetOpt
 	caretOpts       []CaretOpt
@@ -268,20 +268,16 @@ func (t *TextInput) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	t.init.Do()
 
 	t.text.GetWidget().Disabled = t.widget.Disabled
-
-	if t.lastInputText != t.InputText {
+	if t.lastInputText != t.inputText {
 		if t.validationFunc != nil {
-			result, replacement := t.validationFunc(t.InputText)
+			result, replacement := t.validationFunc(t.inputText)
 			if !result {
 				if replacement != nil {
-					t.InputText = *replacement
-					t.cursorPosition = len([]rune(t.InputText))
+					t.inputText = *replacement
 				} else {
-					t.InputText = t.lastInputText
+					t.inputText = t.lastInputText
 				}
 			}
-		} else {
-			t.cursorPosition = len([]rune(t.InputText))
 		}
 	}
 
@@ -296,17 +292,17 @@ func (t *TextInput) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	}
 
 	defer func() {
-		t.lastInputText = t.InputText
+		t.lastInputText = t.inputText
 	}()
 
-	if t.InputText != t.lastInputText {
+	if t.inputText != t.lastInputText {
 		t.ChangedEvent.Fire(&TextInputChangedEventArgs{
 			TextInput: t,
-			InputText: t.InputText,
+			InputText: t.inputText,
 		})
 
 		if t.secure {
-			t.secureInputText = strings.Repeat("*", len([]rune(t.InputText)))
+			t.secureInputText = strings.Repeat("*", len([]rune(t.inputText)))
 		}
 	}
 
@@ -398,8 +394,30 @@ func (t *TextInput) commandState(cmd textInputControlCommand, key ebiten.Key, de
 	}
 }
 
+func (t *TextInput) insert(c rune) {
+	t.lastInputText = t.inputText
+	switch c {
+	case 8:
+		t.Backspace()
+	case 13:
+		t.Submit()
+	case 35:
+		t.CursorMoveEnd()
+	case 36:
+		t.CursorMoveStart()
+	case 37:
+		t.CursorMoveLeft()
+	case 39:
+		t.CursorMoveRight()
+	case 46:
+		t.Delete()
+	default:
+		t.Insert([]rune{c})
+	}
+}
+
 func (t *TextInput) Insert(c []rune) {
-	s := string(insertChars([]rune(t.InputText), c, t.cursorPosition))
+	s := string(insertChars([]rune(t.inputText), c, t.cursorPosition))
 
 	if t.validationFunc != nil {
 		result, replacement := t.validationFunc(s)
@@ -412,7 +430,7 @@ func (t *TextInput) Insert(c []rune) {
 		}
 	}
 
-	t.InputText = s
+	t.inputText = s
 	t.cursorPosition += len(c)
 }
 
@@ -424,7 +442,7 @@ func (t *TextInput) CursorMoveLeft() {
 }
 
 func (t *TextInput) CursorMoveRight() {
-	if t.cursorPosition < len([]rune(t.InputText)) {
+	if t.cursorPosition < len([]rune(t.inputText)) {
 		t.cursorPosition++
 	}
 	t.caret.ResetBlinking()
@@ -436,7 +454,7 @@ func (t *TextInput) CursorMoveStart() {
 }
 
 func (t *TextInput) CursorMoveEnd() {
-	t.cursorPosition = len([]rune(t.InputText))
+	t.cursorPosition = len([]rune(t.inputText))
 	t.caret.ResetBlinking()
 }
 
@@ -451,40 +469,44 @@ func (t *TextInput) doGoXY(x int, y int) {
 			x = tr.Max.X
 		}
 
-		t.cursorPosition = fontStringIndex([]rune(t.InputText), t.face, x-t.scrollOffset-tr.Min.X)
+		t.cursorPosition = fontStringIndex([]rune(t.inputText), t.face, x-t.scrollOffset-tr.Min.X)
+		if runtime.GOOS == "js" && runtime.GOARCH == "wasm" && jsUtil.IsMobileBrowser() {
+			jsUtil.SetCursorPosition(t.cursorPosition)
+		}
+
 		t.caret.ResetBlinking()
 	}
 }
 
 func (t *TextInput) Backspace() {
 	if !t.widget.Disabled && t.cursorPosition > 0 {
-		t.InputText = string(removeChar([]rune(t.InputText), t.cursorPosition-1))
+		t.inputText = string(removeChar([]rune(t.inputText), t.cursorPosition-1))
 		t.cursorPosition--
 	}
 	t.caret.ResetBlinking()
 }
 
 func (t *TextInput) Delete() {
-	if !t.widget.Disabled && t.cursorPosition < len([]rune(t.InputText)) {
-		t.InputText = string(removeChar([]rune(t.InputText), t.cursorPosition))
+	if !t.widget.Disabled && t.cursorPosition < len([]rune(t.inputText)) {
+		t.inputText = string(removeChar([]rune(t.inputText), t.cursorPosition))
 	}
 	t.caret.ResetBlinking()
 }
 
 func (t *TextInput) Submit() {
-	if !t.ignoreEmptySubmit || len(t.InputText) > 0 {
-		if t.allowDuplicateSubmit || t.previousSubmittedText == nil || t.InputText != *t.previousSubmittedText {
+	if !t.ignoreEmptySubmit || len(t.inputText) > 0 {
+		if t.allowDuplicateSubmit || t.previousSubmittedText == nil || t.inputText != *t.previousSubmittedText {
 			t.SubmitEvent.Fire(&TextInputChangedEventArgs{
 				TextInput: t,
-				InputText: t.InputText,
+				InputText: t.inputText,
 			})
-			previousText := t.InputText
+			previousText := t.inputText
 			t.previousSubmittedText = &previousText
 		}
 	}
 	if t.clearOnSubmit {
 		t.CursorMoveStart()
-		t.InputText = ""
+		t.inputText = ""
 	}
 }
 
@@ -537,7 +559,7 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFun
 	tr := rect
 	tr = tr.Add(img.Point{t.padding.Left, t.padding.Top})
 
-	inputStr := t.InputText
+	inputStr := t.inputText
 	if t.secure {
 		inputStr = t.secureInputText
 	}
@@ -561,12 +583,12 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFun
 	tr = tr.Add(img.Point{t.scrollOffset, 0})
 
 	t.text.SetLocation(tr)
-	if len([]rune(t.InputText)) > 0 {
+	if len([]rune(t.inputText)) > 0 {
 		t.text.Label = inputStr
 	} else {
 		t.text.Label = t.placeholderText
 	}
-	if t.widget.Disabled || len([]rune(t.InputText)) == 0 {
+	if t.widget.Disabled || len([]rune(t.inputText)) == 0 {
 		t.text.Color = t.color.Disabled
 	} else {
 		t.text.Color = t.color.Idle
@@ -594,36 +616,54 @@ func (t *TextInput) Focus(focused bool) {
 	t.focused = focused
 
 	if focused && runtime.GOOS == "js" && runtime.GOARCH == "wasm" && jsUtil.IsMobileBrowser() {
-		result, successful := jsUtil.Prompt("Please enter a value.", t.InputText)
+		result, successful := jsUtil.Prompt("Please enter a value.", t.inputText, t.cursorPosition, t.setJSText)
 		if successful {
-			t.setText(result)
+			t.setText(result, true)
 		}
 	}
 }
 
-func (t *TextInput) setText(text string) {
-	t.InputText = text
+func (t *TextInput) GetText() string {
+	return t.inputText
+}
+
+func (t *TextInput) SetText(text string) {
+	t.setText(text, false)
+}
+
+func (t *TextInput) setJSText(text string) {
+	t.setText(text, true)
+}
+
+func (t *TextInput) setText(text string, isJS bool) {
+	t.init.Do()
+	t.inputText = text
 	if t.validationFunc != nil {
-		result, replacement := t.validationFunc(t.InputText)
+		result, replacement := t.validationFunc(t.inputText)
 		if !result {
 			if replacement != nil {
-				t.InputText = *replacement
+				t.inputText = *replacement
 			} else {
-				t.InputText = t.lastInputText
+				t.inputText = t.lastInputText
 			}
 		}
 	}
-	if t.InputText != t.lastInputText {
+	if t.inputText != t.lastInputText {
 		if t.secure {
-			t.secureInputText = strings.Repeat("*", len([]rune(t.InputText)))
+			t.secureInputText = strings.Repeat("*", len([]rune(t.inputText)))
 		}
 		t.ChangedEvent.Fire(&TextInputChangedEventArgs{
 			TextInput: t,
-			InputText: t.InputText,
+			InputText: t.inputText,
 		})
-		t.cursorPosition = len([]rune(t.InputText))
-	}
+		t.lastInputText = t.inputText
 
+		if isJS {
+			t.cursorPosition = jsUtil.GetCursorPosition()
+		} else {
+			t.CursorMoveEnd()
+		}
+	}
 }
 
 func (t *TextInput) IsFocused() bool {

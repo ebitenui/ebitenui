@@ -236,7 +236,7 @@ func main() {
 		}),
 	)
 	//This will do nothing because the validation above prevents this from being set.
-	maxLenTextInput.InputText = "123456"
+	maxLenTextInput.SetText("123456")
 	rootContainer.AddChild(maxLenTextInput)
 
 	allCapsTextInput := widget.NewTextInput(
@@ -280,7 +280,7 @@ func main() {
 		}),
 	)
 	//This will show in all caps due to validation function above
-	allCapsTextInput.InputText = "Hello World"
+	allCapsTextInput.SetText("Hello World")
 	rootContainer.AddChild(allCapsTextInput)
 
 	// construct a button
@@ -313,13 +313,13 @@ func main() {
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			//This will replace all text with caps per validation function
-			allCapsTextInput.InputText = "This is a test"
+			allCapsTextInput.SetText("This is a test")
 			//This will do nothing since it fails the validation function
-			maxLenTextInput.InputText = "This is a test"
+			maxLenTextInput.SetText("This is a test")
 			//This will show as secured ***
-			secureTextInput.InputText = "This is a test"
+			secureTextInput.SetText("This is a test")
 			//This will show the text as is
-			game.standardTextInput.InputText = "This is a test"
+			game.standardTextInput.SetText("This is a test")
 		}),
 	)
 

@@ -237,7 +237,7 @@ func textAreaPage(res *uiResources) *page {
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.Text("Prepend", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			textArea.PrependText(t.InputText)
+			textArea.PrependText(t.GetText())
 		}),
 	)
 	row.AddChild(b)
@@ -246,7 +246,7 @@ func textAreaPage(res *uiResources) *page {
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.Text("Append", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			textArea.AppendText(t.InputText)
+			textArea.AppendText(t.GetText())
 		}),
 	)
 	row.AddChild(b)
@@ -255,7 +255,7 @@ func textAreaPage(res *uiResources) *page {
 		widget.ButtonOpts.TextPadding(res.button.padding),
 		widget.ButtonOpts.Text("Set", res.button.face, res.button.text),
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			textArea.SetText(t.InputText)
+			textArea.SetText(t.GetText())
 		}),
 	)
 	row.AddChild(b)
