@@ -46,25 +46,28 @@ func main() {
 
 		// the container will use an anchor layout to layout its single child widget
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout(
-			widget.AnchorLayoutOpts.Padding(widget.NewInsetsSimple(20)),
+			widget.AnchorLayoutOpts.Padding(widget.NewInsetsSimple(50)),
 		)),
 	)
 
 	// Construct a list. This is one of the more complicated widgets to use since
 	// it is composed of multiple widget types
-
+	var selectedEntry *ListEntry
 	list := widget.NewList(
 		//Set how wide the list should be
 		widget.ListOpts.ContainerOpts(widget.ContainerOpts.WidgetOpts(
 			widget.WidgetOpts.MinSize(150, 0),
 			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 				HorizontalPosition: widget.AnchorLayoutPositionCenter,
-				VerticalPosition:   widget.AnchorLayoutPositionCenter,
+				VerticalPosition:   widget.AnchorLayoutPositionEnd,
 				StretchVertical:    true,
 			}),
 		)),
 		//Set the entries in the list
 		widget.ListOpts.Entries(entries),
+		widget.ListOpts.Identifier(func(i interface{}) string {
+			return fmt.Sprintf("%d", i.(ListEntry).id)
+		}),
 		widget.ListOpts.ScrollContainerOpts(
 			//Set the background images/color for the list
 			widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
@@ -105,12 +108,127 @@ func main() {
 		widget.ListOpts.EntryTextPadding(widget.NewInsetsSimple(5)),
 		//This handler defines what function to run when a list item is selected.
 		widget.ListOpts.EntrySelectedHandler(func(args *widget.ListEntrySelectedEventArgs) {
-			fmt.Println("Is: ", args.Entry, " Was: ", args.PreviousEntry)
+			entry := args.Entry.(ListEntry)
+			selectedEntry = &entry
 		}),
 	)
 
 	//Add list to the root container
 	rootContainer.AddChild(list)
+
+	buttonsContainer := widget.NewContainer(
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				HorizontalPosition: widget.AnchorLayoutPositionCenter,
+				VerticalPosition:   widget.AnchorLayoutPositionEnd,
+			}),
+		),
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			widget.GridLayoutOpts.Columns(3),
+			widget.GridLayoutOpts.Spacing(10, 3),
+		)),
+	)
+
+	// construct a button
+	buttonAdd := widget.NewButton(
+
+		// specify the images to use
+		widget.ButtonOpts.Image(buttonImage),
+
+		// specify the button's text, the font face, and the color
+		widget.ButtonOpts.Text("Add Entry", face, &widget.ButtonTextColor{
+			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
+		}),
+
+		// specify that the button's text needs some padding for correct display
+		widget.ButtonOpts.TextPadding(widget.Insets{
+			Left:   10,
+			Right:  10,
+			Top:    5,
+			Bottom: 5,
+		}),
+
+		// add a handler that reacts to clicking the button
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			numEntries++
+			lastEntry := entries[len(entries)-1].(ListEntry)
+			entryToAdd := ListEntry{lastEntry.id + 1, fmt.Sprintf("Entry %d", numEntries)}
+			entries = append(entries, entryToAdd)
+			list.AddEntry(entries[len(entries)-1])
+			list.SetSelectedEntry(entryToAdd)
+			selectedEntry = &entryToAdd
+		}),
+	)
+	buttonsContainer.AddChild(buttonAdd)
+
+	// construct a button
+	buttonRemove := widget.NewButton(
+
+		// specify the images to use
+		widget.ButtonOpts.Image(buttonImage),
+
+		// specify the button's text, the font face, and the color
+		widget.ButtonOpts.Text("Remove Entry", face, &widget.ButtonTextColor{
+			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
+		}),
+
+		// specify that the button's text needs some padding for correct display
+		widget.ButtonOpts.TextPadding(widget.Insets{
+			Left:   10,
+			Right:  10,
+			Top:    5,
+			Bottom: 5,
+		}),
+
+		// add a handler that reacts to clicking the button
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			if selectedEntry != nil {
+				numEntries--
+				if len(entries) > 1 {
+					if selectedEntry.id-2 >= 0 {
+						entries = append(entries[:selectedEntry.id-2], entries[selectedEntry.id-1:]...)
+					} else {
+						entries = entries[selectedEntry.id-1:]
+					}
+				} else {
+					entries = make([]any, 0, numEntries)
+				}
+				list.RemoveEntry(*selectedEntry)
+				selectedEntry = nil
+			}
+		}),
+	)
+	buttonsContainer.AddChild(buttonRemove)
+
+	// construct a button
+	buttonClean := widget.NewButton(
+
+		// specify the images to use
+		widget.ButtonOpts.Image(buttonImage),
+
+		// specify the button's text, the font face, and the color
+		widget.ButtonOpts.Text("Clear", face, &widget.ButtonTextColor{
+			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
+		}),
+
+		// specify that the button's text needs some padding for correct display
+		widget.ButtonOpts.TextPadding(widget.Insets{
+			Left:   10,
+			Right:  10,
+			Top:    5,
+			Bottom: 5,
+		}),
+
+		// add a handler that reacts to clicking the button
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			numEntries = 0
+			entries = make([]any, 0, numEntries)
+			list.SetEntries(entries)
+		}),
+	)
+	buttonsContainer.AddChild(buttonClean)
+
+	rootContainer.AddChild(buttonsContainer)
 
 	// construct the UI
 	ui := ebitenui.UI{

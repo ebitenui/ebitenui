@@ -3,6 +3,7 @@ package widget
 import (
 	img "image"
 	"image/color"
+	"log"
 	"math"
 
 	"github.com/ebitenui/ebitenui/event"
@@ -20,6 +21,9 @@ type List struct {
 	scrollContainerOpts      []ScrollContainerOpt
 	sliderOpts               []SliderOpt
 	entries                  []interface{}
+	entryIdentifier          *func(interface{}) string
+	idEntryTable             map[string]interface{}
+	entriesButtonTable       map[interface{}]*Button
 	entryLabelFunc           ListEntryLabelFunc
 	entryFace                font.Face
 	entryUnselectedColor     *ButtonImage
@@ -34,6 +38,7 @@ type List struct {
 
 	init            *MultiOnce
 	container       *Container
+	listContent     *Container
 	scrollContainer *ScrollContainer
 	vSlider         *Slider
 	hSlider         *Slider
@@ -80,9 +85,11 @@ func NewList(opts ...ListOpt) *List {
 	l := &List{
 		EntrySelectedEvent: &event.Event{},
 
-		init:           &MultiOnce{},
-		focusIndex:     0,
-		prevFocusIndex: -1,
+		init:               &MultiOnce{},
+		entriesButtonTable: make(map[interface{}]*Button),
+		idEntryTable:       make(map[string]interface{}),
+		focusIndex:         0,
+		prevFocusIndex:     -1,
 	}
 
 	l.init.Append(l.createWidget)
@@ -135,6 +142,12 @@ func (o ListOptions) HideVerticalSlider() ListOpt {
 func (o ListOptions) Entries(e []interface{}) ListOpt {
 	return func(l *List) {
 		l.entries = e
+	}
+}
+
+func (o ListOptions) Identifier(f func(interface{}) string) ListOpt {
+	return func(l *List) {
+		l.entryIdentifier = &f
 	}
 }
 
@@ -246,7 +259,7 @@ func (l *List) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	l.scrollContainer.GetWidget().Disabled = d
 
 	l.handleInput()
-	if l.focusIndex != l.prevFocusIndex {
+	if l.focusIndex != l.prevFocusIndex && l.focusIndex <= len(l.buttons) {
 		l.scrollVisible(l.buttons[l.focusIndex])
 	}
 	l.container.Render(screen, def)
@@ -290,7 +303,7 @@ func (l *List) handleInput() {
 		}
 
 		l.buttons[l.focusIndex].focused = true
-	} else {
+	} else if len(l.buttons) > 0 && l.focusIndex <= len(l.buttons) {
 		l.buttons[l.focusIndex].focused = false
 	}
 }
@@ -327,9 +340,8 @@ func (l *List) createWidget() {
 				GridLayoutOpts.Columns(cols),
 				GridLayoutOpts.Stretch([]bool{true, false}, []bool{true, false}),
 				GridLayoutOpts.Spacing(l.controlWidgetSpacing, l.controlWidgetSpacing))))...)
-	l.containerOpts = nil
 
-	content := NewContainer(
+	l.listContent = NewContainer(
 		ContainerOpts.Layout(NewRowLayout(
 			RowLayoutOpts.Direction(DirectionVertical))),
 	)
@@ -337,31 +349,26 @@ func (l *List) createWidget() {
 	l.buttons = make([]*Button, 0, len(l.entries))
 	for _, e := range l.entries {
 		e := e
-		but := NewButton(
-			ButtonOpts.WidgetOpts(WidgetOpts.LayoutData(RowLayoutData{
-				Stretch: true,
-			})),
-			ButtonOpts.Image(l.entryUnselectedColor),
-			ButtonOpts.TextSimpleLeft(l.entryLabelFunc(e), l.entryFace, l.entryUnselectedTextColor, l.entryTextPadding),
-			ButtonOpts.ClickedHandler(func(_ *ButtonClickedEventArgs) {
-				l.setSelectedEntry(e, true)
-			}))
+		but := l.createEntry(e)
 
 		l.buttons = append(l.buttons, but)
-
-		content.AddChild(but)
+		l.entriesButtonTable[e] = but
+		if l.entryIdentifier != nil {
+			l.idEntryTable[(*l.entryIdentifier)(e)] = e
+		}
+		l.listContent.AddChild(but)
 	}
 
 	l.scrollContainer = NewScrollContainer(append(l.scrollContainerOpts, []ScrollContainerOpt{
-		ScrollContainerOpts.Content(content),
+		ScrollContainerOpts.Content(l.listContent),
 		ScrollContainerOpts.StretchContentWidth(),
 	}...)...)
-	l.scrollContainerOpts = nil
+
 	l.container.AddChild(l.scrollContainer)
 
 	if !l.hideVerticalSlider {
 		pageSizeFunc := func() int {
-			return int(math.Round(float64(l.scrollContainer.ContentRect().Dy()) / float64(content.GetWidget().Rect.Dy()) * 1000))
+			return int(math.Round(float64(l.scrollContainer.ContentRect().Dy()) / float64(l.listContent.GetWidget().Rect.Dy()) * 1000))
 		}
 
 		l.vSlider = NewSlider(append(l.sliderOpts, []SliderOpt{
@@ -390,7 +397,7 @@ func (l *List) createWidget() {
 			SliderOpts.Direction(DirectionHorizontal),
 			SliderOpts.MinMax(0, 1000),
 			SliderOpts.PageSizeFunc(func() int {
-				return int(math.Round(float64(l.scrollContainer.ContentRect().Dx()) / float64(content.GetWidget().Rect.Dx()) * 1000))
+				return int(math.Round(float64(l.scrollContainer.ContentRect().Dx()) / float64(l.listContent.GetWidget().Rect.Dx()) * 1000))
 			}),
 			SliderOpts.ChangedHandler(func(args *SliderChangedEventArgs) {
 				l.scrollContainer.ScrollLeft = float64(args.Slider.Current) / 1000
@@ -398,7 +405,81 @@ func (l *List) createWidget() {
 		}...)...)
 		l.container.AddChild(l.hSlider)
 	}
-	l.sliderOpts = nil
+
+}
+
+func (l *List) SetEntries(entries []interface{}) {
+	l.entries = entries
+	l.entriesButtonTable = make(map[interface{}]*Button, len(entries))
+	l.idEntryTable = make(map[string]interface{}, len(entries))
+	l.container.RemoveChildren()
+	l.createWidget()
+	l.resetFocusIndex()
+}
+
+func (l *List) RemoveEntry(entry interface{}) {
+	if l.entryIdentifier == nil {
+		log.Println("cannot add entry without identifier function")
+		return
+	}
+	l.init.Do()
+
+	identifier := (*l.entryIdentifier)(entry)
+	targetEntry := l.idEntryTable[identifier]
+	if len(l.entries) > 1 {
+		for i, e := range l.entries {
+			if e == targetEntry {
+				l.entries = append(l.entries[:i], l.entries[i+1:]...)
+				but := l.buttons[i]
+				l.listContent.RemoveChild(but)
+				l.focusIndex = i - 1
+				delete(l.entriesButtonTable, e)
+				delete(l.idEntryTable, identifier)
+				l.buttons = append(l.buttons[:i], l.buttons[i+1:]...)
+				break
+			}
+		}
+	} else {
+		l.entries = make([]interface{}, 0)
+		l.buttons = make([]*Button, 0)
+		l.focusIndex = -1
+		l.listContent.RemoveChild(l.buttons[0])
+		delete(l.entriesButtonTable, targetEntry)
+		delete(l.idEntryTable, identifier)
+	}
+
+	l.resetFocusIndex()
+}
+
+func (l *List) AddEntry(entry interface{}) {
+	if l.entryIdentifier == nil {
+		log.Println("cannot add entry without identifier function")
+		return
+	}
+	l.init.Do()
+
+	l.entries = append(l.entries, entry)
+	but := l.createEntry(entry)
+	l.buttons = append(l.buttons, but)
+	l.entriesButtonTable[entry] = but
+	l.idEntryTable[(*l.entryIdentifier)(entry)] = entry
+	l.listContent.AddChild(but)
+
+	l.resetFocusIndex()
+}
+
+func (l *List) createEntry(entry interface{}) *Button {
+	but := NewButton(
+		ButtonOpts.WidgetOpts(WidgetOpts.LayoutData(RowLayoutData{
+			Stretch: true,
+		})),
+		ButtonOpts.Image(l.entryUnselectedColor),
+		ButtonOpts.TextSimpleLeft(l.entryLabelFunc(entry), l.entryFace, l.entryUnselectedTextColor, l.entryTextPadding),
+		ButtonOpts.ClickedHandler(func(_ *ButtonClickedEventArgs) {
+			l.setSelectedEntry(entry, true)
+		}))
+
+	return but
 }
 
 func (l *List) SetSelectedEntry(e interface{}) {
