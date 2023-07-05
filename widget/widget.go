@@ -35,6 +35,10 @@ type Widget struct {
 	// the user's perspective, scrolling does not change state, but only the display of that state.
 	Disabled bool
 
+	// Hidden specififies whether the widget is visible. Hidden widgets should
+	// usually not render anything or react to user input.
+	Hidden bool
+
 	// CursorEnterEvent fires an event with *WidgetCursorEnterEventArgs when the cursor enters the widget's Rect.
 	CursorEnterEvent *event.Event
 
