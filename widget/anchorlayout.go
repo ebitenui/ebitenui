@@ -87,7 +87,7 @@ func (a *AnchorLayout) Layout(widgets []PreferredSizeLocateableWidget, rect imag
 	}
 
 	widget := widgets[0]
-	if widget.GetWidget().Hidden {
+	if widget.GetWidget().Visibility == Visibility_None {
 		return
 	}
 

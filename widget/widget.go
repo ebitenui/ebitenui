@@ -37,7 +37,7 @@ type Widget struct {
 
 	// Hidden specifies whether the widget is visible. Hidden widgets should
 	// not render anything or react to user input.
-	Hidden bool
+	Visibility Visibility
 
 	// CursorEnterEvent fires an event with *WidgetCursorEnterEventArgs when the cursor enters the widget's Rect.
 	CursorEnterEvent *event.Event
@@ -115,6 +115,14 @@ type Focuser interface {
 type Dropper interface {
 	GetDropTargets() []HasWidget
 }
+
+type Visibility int
+
+const (
+	Visibility_Show Visibility = iota
+	Visibility_Hide            // Hide widget, but take up space
+	Visibility_None            // Hide widget, but don't take up space
+)
 
 // RenderFunc is a function that renders a widget onto screen. def may be called to defer
 // additional rendering.
