@@ -8,13 +8,13 @@ require (
 	github.com/hajimehoshi/ebiten/v2 v2.5.4
 	github.com/matryer/is v1.4.1
 	github.com/stretchr/testify v1.8.4
-	golang.org/x/image v0.7.0
-	golang.org/x/mobile v0.0.0-20230427221453-e8d11dd0ba41 // indirect
-	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/image v0.8.0
+	golang.org/x/mobile v0.0.0-20230531173138-3c911d8e3eda // indirect
+	golang.org/x/sys v0.9.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
 
-require golang.org/x/text v0.9.0
+require golang.org/x/text v0.10.0
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -24,6 +24,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	golang.org/x/exp/shiny v0.0.0-20230522175609-2e198f4a06a1 // indirect
-	golang.org/x/sync v0.2.0 // indirect
+	golang.org/x/sync v0.3.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

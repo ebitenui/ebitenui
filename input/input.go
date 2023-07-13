@@ -54,9 +54,12 @@ func SetCursorUpdater(cursorUpdater CursorUpdater) {
 }
 
 const (
-	CURSOR_DEFAULT  = "Default"
-	CURSOR_EWRESIZE = "EWResize"
-	CURSOR_NSRESIZE = "NSResize"
+	CURSOR_DEFAULT   = "Cursor_Default"
+	CURSOR_EWRESIZE  = "Cursor_EWResize"
+	CURSOR_NSRESIZE  = "Cursor_NSResize"
+	CURSOR_POINTER   = "Cursor_Pointer"
+	CURSOR_TEXT      = "Cursor_Text"
+	CURSOR_CROSSHAIR = "Cursor_Crosshair"
 )
 
 var currentCursor string = CURSOR_DEFAULT
@@ -197,6 +200,12 @@ func AfterDraw(screen *ebiten.Image) {
 			ebiten.SetCursorShape(ebiten.CursorShapeEWResize)
 		case CURSOR_NSRESIZE:
 			ebiten.SetCursorShape(ebiten.CursorShapeNSResize)
+		case CURSOR_TEXT:
+			ebiten.SetCursorShape(ebiten.CursorShapeText)
+		case CURSOR_CROSSHAIR:
+			ebiten.SetCursorShape(ebiten.CursorShapeCrosshair)
+		case CURSOR_POINTER:
+			ebiten.SetCursorShape(ebiten.CursorShapePointer)
 		}
 		if ebiten.CursorMode() != ebiten.CursorModeVisible {
 			ebiten.SetCursorMode(ebiten.CursorModeVisible)
