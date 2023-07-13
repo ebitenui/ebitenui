@@ -22,9 +22,10 @@ Documentation on how to use and extend Ebiten UI is available at [ebitenui.githu
 
 Used By
 ------
-* [Roboden by Iskander](https://quasilyte.itch.io/roboden)
+* [Roboden by quasilyte](https://quasilyte.itch.io/roboden)
 * [BANKWAVE: Neon Networth by Frabjous Studios](https://bankwave.frabjousstudios.com/)
 * [Networked Game by Nmorenor](https://nmorenor.com/)
+* [Sinecord by quasilyte](https://quasilyte.itch.io/sinecord)
 
 
 Social Media
