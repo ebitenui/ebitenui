@@ -19,6 +19,19 @@ Documentation on how to use and extend Ebiten UI is available at [ebitenui.githu
 
 ![Screenshots](ebiten-ui.gif)
 
+Quick Start
+------
+Ebiten UI is written in Go 1.19 which is available at [https://go.dev/](https://go.dev/).
+
+There are Ebiten UI examples that can be found in the `_examples/` folder. 
+
+They can be run from the root directory of the project with the following commands:
+* Ebiten UI complete demo: `go run github.com/ebitenui/ebitenui/_examples/demo`
+* Ebiten UI widget: `go run github.com/ebitenui/ebitenui/_examples/widget_demos/<folder_name>`
+
+The examples can also be tested as WASM by running the following commands and opening your browser to [http://localhost:6262](http://localhost:6262):
+* Ebiten UI complete demo: `go run github.com/hajimehoshi/wasmserve@latest -http=:6262 ./_examples/demo`
+* Ebiten UI widget: `go run github.com/hajimehoshi/wasmserve@latest -http=:6262 ./_examples/widget_demos/<folder_name>`
 
 Used By
 ------
@@ -44,3 +57,8 @@ Maintainers
 -------
 * Currently maintained by Mark Carpenter <mark@bird-mtn.dev>
 * Originally written by Maik Schreiber <blizzy@blizzy.de>
+
+
+Contributing
+-------
+Want to help develop Ebiten UI? Check out our [current issues](https://github.com/ebitenui/ebitenui/issues). Want to know the steps on how to start contributing, take a look at the [open source guide](https://opensource.guide/how-to-contribute/).
