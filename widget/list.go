@@ -332,6 +332,7 @@ func (l *List) createWidget() {
 	content := NewContainer(
 		ContainerOpts.Layout(NewRowLayout(
 			RowLayoutOpts.Direction(DirectionVertical))),
+		ContainerOpts.AutoDisableChildren(),
 	)
 
 	l.buttons = make([]*Button, 0, len(l.entries))
