@@ -21,9 +21,8 @@ type ProgressBar struct {
 
 	trackPadding Insets
 
-	init        *MultiOnce
-	widget      *Widget
-	lastCurrent int
+	init   *MultiOnce
+	widget *Widget
 }
 
 type ProgressBarImage struct {
@@ -47,8 +46,6 @@ func NewProgressBar(opts ...ProgressBarOpt) *ProgressBar {
 
 		trackImage: &ProgressBarImage{},
 		fillImage:  &ProgressBarImage{},
-
-		lastCurrent: 1,
 
 		init: &MultiOnce{},
 	}
