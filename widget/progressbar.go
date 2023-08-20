@@ -14,6 +14,7 @@ type ProgressBar struct {
 	current int
 
 	widgetOpts []WidgetOpt
+	direction  Direction
 	trackImage *ProgressBarImage
 	fillImage  *ProgressBarImage
 
@@ -63,6 +64,12 @@ func NewProgressBar(opts ...ProgressBarOpt) *ProgressBar {
 func (o ProgressBarOptions) WidgetOpts(opts ...WidgetOpt) ProgressBarOpt {
 	return func(s *ProgressBar) {
 		s.widgetOpts = append(s.widgetOpts, opts...)
+	}
+}
+
+func (o ProgressBarOptions) Direction(d Direction) ProgressBarOpt {
+	return func(s *ProgressBar) {
+		s.direction = d
 	}
 }
 
@@ -139,9 +146,12 @@ func (s *ProgressBar) draw(screen *ebiten.Image) {
 	}
 	if fill != nil && s.currentPercentage() > 0 {
 		fillX := s.widget.Rect.Dx() - s.trackPadding.Left - s.trackPadding.Right
-		fillX = int(float64(fillX) * s.currentPercentage())
-
 		fillY := s.widget.Rect.Dy() - s.trackPadding.Top - s.trackPadding.Bottom
+		if s.direction == DirectionHorizontal {
+			fillX = int(float64(fillX) * s.currentPercentage())
+		} else {
+			fillY = int(float64(fillY) * s.currentPercentage())
+		}
 		fill.Draw(screen, fillX, fillY, s.drawFillOptions)
 	}
 }
