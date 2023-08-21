@@ -563,9 +563,7 @@ func (b *Button) createWidget() {
 		}),
 
 		WidgetOpts.MouseButtonReleasedHandler(func(args *WidgetMouseButtonReleasedEventArgs) {
-			b.pressing = false
-
-			if !b.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
+			if b.pressing && !b.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
 				b.ReleasedEvent.Fire(&ButtonReleasedEventArgs{
 					Button:  b,
 					Inside:  args.Inside,
@@ -590,6 +588,8 @@ func (b *Button) createWidget() {
 					}
 				}
 			}
+
+			b.pressing = false
 		}),
 	}...)...)
 	b.widgetOpts = nil
