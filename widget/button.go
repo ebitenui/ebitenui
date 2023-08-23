@@ -332,23 +332,23 @@ func (o ButtonOptions) TabOrder(tabOrder int) ButtonOpt {
 	}
 }
 
-func (tw *Button) State() WidgetState {
-	return tw.state
+func (b *Button) State() WidgetState {
+	return b.state
 }
 
-func (tw *Button) SetState(state WidgetState) {
-	if state != tw.state {
-		tw.state = state
+func (b *Button) SetState(state WidgetState) {
+	if state != b.state {
+		b.state = state
 
-		tw.StateChangedEvent.Fire(&ButtonChangedEventArgs{
-			Button: tw,
-			State:  tw.state,
+		b.StateChangedEvent.Fire(&ButtonChangedEventArgs{
+			Button: b,
+			State:  b.state,
 		})
 	}
 }
 
-func (tw *Button) getStateChangedEvent() *event.Event {
-	return tw.StateChangedEvent
+func (b *Button) getStateChangedEvent() *event.Event {
+	return b.StateChangedEvent
 }
 
 func (b *Button) Configure(opts ...ButtonOpt) {
@@ -563,9 +563,7 @@ func (b *Button) createWidget() {
 		}),
 
 		WidgetOpts.MouseButtonReleasedHandler(func(args *WidgetMouseButtonReleasedEventArgs) {
-			b.pressing = false
-
-			if !b.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
+			if b.pressing && !b.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
 				b.ReleasedEvent.Fire(&ButtonReleasedEventArgs{
 					Button:  b,
 					Inside:  args.Inside,
@@ -590,6 +588,8 @@ func (b *Button) createWidget() {
 					}
 				}
 			}
+
+			b.pressing = false
 		}),
 	}...)...)
 	b.widgetOpts = nil
