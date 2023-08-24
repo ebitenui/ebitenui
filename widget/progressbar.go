@@ -65,12 +65,16 @@ func (o ProgressBarOptions) WidgetOpts(opts ...WidgetOpt) ProgressBarOpt {
 	}
 }
 
+// Direction sets the direction of the progress bar.
+// The default is horizontal.
 func (o ProgressBarOptions) Direction(d Direction) ProgressBarOpt {
 	return func(s *ProgressBar) {
 		s.direction = d
 	}
 }
 
+// Inverted sets whether the progress bar is inverted.
+// The default is false, which means from left to right or top to bottom.
 func (o ProgressBarOptions) Inverted(inverted bool) ProgressBarOpt {
 	return func(s *ProgressBar) {
 		s.inverted = inverted
