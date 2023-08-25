@@ -85,6 +85,11 @@ func main() {
 			// the provided track image. In this example since we are using NineSliceColor
 			// which is 1px x 1px we must set a minimum size.
 			widget.WidgetOpts.MinSize(20, 200),
+
+			// Set the progress bar in the middle of the row container cell
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Position: widget.RowLayoutPositionCenter,
+			}),
 		),
 		widget.ProgressBarOpts.Images(
 			// Set the track images (Idle, Hover, Disabled).
