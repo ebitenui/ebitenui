@@ -14,14 +14,15 @@ type ProgressBar struct {
 	current int
 
 	widgetOpts []WidgetOpt
+	direction  Direction
+	inverted   bool
 	trackImage *ProgressBarImage
 	fillImage  *ProgressBarImage
 
 	trackPadding Insets
 
-	init        *MultiOnce
-	widget      *Widget
-	lastCurrent int
+	init   *MultiOnce
+	widget *Widget
 }
 
 type ProgressBarImage struct {
@@ -46,8 +47,6 @@ func NewProgressBar(opts ...ProgressBarOpt) *ProgressBar {
 		trackImage: &ProgressBarImage{},
 		fillImage:  &ProgressBarImage{},
 
-		lastCurrent: 1,
-
 		init: &MultiOnce{},
 	}
 
@@ -63,6 +62,22 @@ func NewProgressBar(opts ...ProgressBarOpt) *ProgressBar {
 func (o ProgressBarOptions) WidgetOpts(opts ...WidgetOpt) ProgressBarOpt {
 	return func(s *ProgressBar) {
 		s.widgetOpts = append(s.widgetOpts, opts...)
+	}
+}
+
+// Direction sets the direction of the progress bar.
+// The default is horizontal.
+func (o ProgressBarOptions) Direction(d Direction) ProgressBarOpt {
+	return func(s *ProgressBar) {
+		s.direction = d
+	}
+}
+
+// Inverted sets whether the progress bar is inverted.
+// The default is false, which means from left to right or top to bottom.
+func (o ProgressBarOptions) Inverted(inverted bool) ProgressBarOpt {
+	return func(s *ProgressBar) {
+		s.inverted = inverted
 	}
 }
 
@@ -139,15 +154,25 @@ func (s *ProgressBar) draw(screen *ebiten.Image) {
 	}
 	if fill != nil && s.currentPercentage() > 0 {
 		fillX := s.widget.Rect.Dx() - s.trackPadding.Left - s.trackPadding.Right
-		fillX = int(float64(fillX) * s.currentPercentage())
-
 		fillY := s.widget.Rect.Dy() - s.trackPadding.Top - s.trackPadding.Bottom
-		fill.Draw(screen, fillX, fillY, s.drawFillOptions)
+		if s.direction == DirectionHorizontal {
+			fillX = int(float64(fillX) * s.currentPercentage())
+		} else {
+			fillY = int(float64(fillY) * s.currentPercentage())
+		}
+		fill.Draw(screen, fillX, fillY, func(opts *ebiten.DrawImageOptions) {
+			tx := s.widget.Rect.Min.X + s.trackPadding.Left
+			ty := s.widget.Rect.Min.Y + s.trackPadding.Top
+			if s.inverted {
+				if s.direction == DirectionHorizontal {
+					tx = s.widget.Rect.Max.X - s.trackPadding.Right - fillX
+				} else {
+					ty = s.widget.Rect.Max.Y - s.trackPadding.Bottom - fillY
+				}
+			}
+			opts.GeoM.Translate(float64(tx), float64(ty))
+		})
 	}
-}
-
-func (s *ProgressBar) drawFillOptions(opts *ebiten.DrawImageOptions) {
-	opts.GeoM.Translate(float64(s.GetWidget().Rect.Min.X+s.trackPadding.Left), float64(s.GetWidget().Rect.Min.Y+s.trackPadding.Top))
 }
 
 func (s *ProgressBar) currentPercentage() float64 {

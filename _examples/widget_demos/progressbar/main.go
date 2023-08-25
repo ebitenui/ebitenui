@@ -16,61 +16,108 @@ type game struct {
 }
 
 func main() {
-	// construct a new container that serves as the root of the UI hierarchy
+	// Construct a new container that serves as the root of the UI hierarchy.
 	rootContainer := widget.NewContainer(
-		// the container will use a plain color as its background
+		// The container will use a plain color as its background.
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
 
-		// the container will use an anchor layout to layout its single child widget
+		// The container will use an anchor layout to lay out its single child.
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 
-	// construct a progressbar
-	progressbar := widget.NewProgressBar(
-		widget.ProgressBarOpts.WidgetOpts(
-			//Set the required anchor layout data to determine where in
-			//the container to place the progressbar
+	// Construct a container to hold the progress bars.
+	progressBarsContainer := widget.NewContainer(
+		// The container will use a vertical row layout to lay out the progress
+		// bars in a vertical row.
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+			widget.RowLayoutOpts.Spacing(20),
+		)),
+		// Set the required anchor layout data to determine where in the root
+		// container to place the progress bars.
+		widget.ContainerOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 				HorizontalPosition: widget.AnchorLayoutPositionCenter,
 				VerticalPosition:   widget.AnchorLayoutPositionCenter,
 			}),
-			//Set the minimum size for the progressbar.
-			//This is necessary if you wish to have the progressbar be larger than
-			//the provided track image. In this exampe since we are using NineSliceColor
-			//which is 1px x 1px we must set a minimum size.
+		),
+	)
+
+	// Construct a horizontal progress bar.
+	hProgressbar := widget.NewProgressBar(
+		widget.ProgressBarOpts.WidgetOpts(
+			// Set the minimum size for the progress bar.
+			// This is necessary if you wish to have the progress bar be larger than
+			// the provided track image. In this exampe since we are using NineSliceColor
+			// which is 1px x 1px we must set a minimum size.
 			widget.WidgetOpts.MinSize(200, 20),
 		),
 		widget.ProgressBarOpts.Images(
-			//Set the track images (Idle, Hover, Disabled)
+			// Set the track images (Idle, Hover, Disabled).
 			&widget.ProgressBarImage{
 				Idle:  image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
 				Hover: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
 			},
-			//Set the progress images (Idle, Hover, Disabled)
+			// Set the progress images (Idle, Hover, Disabled).
 			&widget.ProgressBarImage{
 				Idle:  image.NewNineSliceColor(color.NRGBA{0, 0, 255, 255}),
 				Hover: image.NewNineSliceColor(color.NRGBA{0, 0, 255, 255}),
 			},
 		),
-		//Set the min, max, and current values
+		// Set the min, max, and current values.
 		widget.ProgressBarOpts.Values(0, 10, 7),
-		//Set how much of the track is displayed when the bar is overlayed.
+		// Set how much of the track is displayed when the bar is overlayed.
 		widget.ProgressBarOpts.TrackPadding(widget.Insets{
 			Top:    2,
 			Bottom: 2,
-			Left:   0,
-			Right:  0,
+		}),
+	)
+	// Construct a vertical inverted progress bar.
+	vProgressbar := widget.NewProgressBar(
+		// Set the direction of the progress bar to vertical.
+		widget.ProgressBarOpts.Direction(widget.DirectionVertical),
+		// Invert the progress bar, meaning here it will fill from the bottom to the top
+		// since it’s vertical.
+		widget.ProgressBarOpts.Inverted(true),
+		widget.ProgressBarOpts.WidgetOpts(
+			// Set the minimum size for the progress bar.
+			// This is necessary if you wish to have the progress bar be larger than
+			// the provided track image. In this example since we are using NineSliceColor
+			// which is 1px x 1px we must set a minimum size.
+			widget.WidgetOpts.MinSize(20, 200),
+		),
+		widget.ProgressBarOpts.Images(
+			// Set the track images (Idle, Hover, Disabled).
+			&widget.ProgressBarImage{
+				Idle:  image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+				Hover: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+			},
+			// Set the progress images (Idle, Hover, Disabled).
+			&widget.ProgressBarImage{
+				Idle:  image.NewNineSliceColor(color.NRGBA{0, 255, 0, 255}),
+				Hover: image.NewNineSliceColor(color.NRGBA{0, 255, 0, 255}),
+			},
+		),
+		// Set the min, max, and current values.
+		widget.ProgressBarOpts.Values(0, 10, 4),
+		// Set how much of the track is displayed when the bar is overlayed.
+		widget.ProgressBarOpts.TrackPadding(widget.Insets{
+			Left:  2,
+			Right: 2,
 		}),
 	)
 	/*
-		To update the progressbar programmatically you can use
-		progressbar.SetCurrent(value)
-		progressbar.GetCurrent()
-		progressbar.Min = 5
-		progressbar.Max = 10
+		To update a progress bar programmatically you can use
+		hProgressbar.SetCurrent(value)
+		hProgressbar.GetCurrent()
+		hProgressbar.Min = 5
+		hProgressbar.Max = 10
 	*/
-	// add the progressbar as a child of the container
-	rootContainer.AddChild(progressbar)
+	// Add the progress bars as a child of their container.
+	progressBarsContainer.AddChild(hProgressbar)
+	progressBarsContainer.AddChild(vProgressbar)
+	// Add the progress bars container as a child of the root container.
+	rootContainer.AddChild(progressBarsContainer)
 
 	// construct the UI
 	ui := ebitenui.UI{
@@ -79,7 +126,7 @@ func main() {
 
 	// Ebiten setup
 	ebiten.SetWindowSize(400, 400)
-	ebiten.SetWindowTitle("Ebiten UI - Progressbar")
+	ebiten.SetWindowTitle("Ebiten UI - ProgressBar")
 
 	game := game{
 		ui: &ui,
