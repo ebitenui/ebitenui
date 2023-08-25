@@ -34,9 +34,10 @@ func main() {
 
 	// Create array of list entries
 	numEntries := 20
+	id := 1
 	entries := make([]any, 0, numEntries)
-	for i := 1; i <= numEntries; i++ {
-		entries = append(entries, ListEntry{i, fmt.Sprintf("Entry %d", i)})
+	for id = 1; id <= numEntries; id++ {
+		entries = append(entries, ListEntry{id, fmt.Sprintf("Entry %d", id)})
 	}
 
 	// construct a new container that serves as the root of the UI hierarchy
@@ -52,7 +53,6 @@ func main() {
 
 	// Construct a list. This is one of the more complicated widgets to use since
 	// it is composed of multiple widget types
-	var selectedEntry *ListEntry
 	list := widget.NewList(
 		//Set how wide the list should be
 		widget.ListOpts.ContainerOpts(widget.ContainerOpts.WidgetOpts(
@@ -65,9 +65,6 @@ func main() {
 		)),
 		//Set the entries in the list
 		widget.ListOpts.Entries(entries),
-		widget.ListOpts.Identifier(func(i interface{}) string {
-			return fmt.Sprintf("%d", i.(ListEntry).id)
-		}),
 		widget.ListOpts.ScrollContainerOpts(
 			//Set the background images/color for the list
 			widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
@@ -109,7 +106,7 @@ func main() {
 		//This handler defines what function to run when a list item is selected.
 		widget.ListOpts.EntrySelectedHandler(func(args *widget.ListEntrySelectedEventArgs) {
 			entry := args.Entry.(ListEntry)
-			selectedEntry = &entry
+			fmt.Println("Entry Selected: ", entry)
 		}),
 	)
 
@@ -150,13 +147,11 @@ func main() {
 
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			numEntries++
-			lastEntry := entries[len(entries)-1].(ListEntry)
-			entryToAdd := ListEntry{lastEntry.id + 1, fmt.Sprintf("Entry %d", numEntries)}
-			entries = append(entries, entryToAdd)
-			list.AddEntry(entries[len(entries)-1])
+			entryToAdd := ListEntry{id, fmt.Sprintf("Entry %d", id)}
+			id++
+
+			list.AddEntry(entryToAdd)
 			list.SetSelectedEntry(entryToAdd)
-			selectedEntry = &entryToAdd
 		}),
 	)
 	buttonsContainer.AddChild(buttonAdd)
@@ -182,20 +177,7 @@ func main() {
 
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			if selectedEntry != nil {
-				numEntries--
-				if len(entries) > 1 {
-					if selectedEntry.id-2 >= 0 {
-						entries = append(entries[:selectedEntry.id-2], entries[selectedEntry.id-1:]...)
-					} else {
-						entries = entries[selectedEntry.id-1:]
-					}
-				} else {
-					entries = make([]any, 0, numEntries)
-				}
-				list.RemoveEntry(*selectedEntry)
-				selectedEntry = nil
-			}
+			list.RemoveEntry(list.SelectedEntry())
 		}),
 	)
 	buttonsContainer.AddChild(buttonRemove)
@@ -221,8 +203,7 @@ func main() {
 
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			numEntries = 0
-			entries = make([]any, 0, numEntries)
+			entries := make([]any, 0)
 			list.SetEntries(entries)
 		}),
 	)

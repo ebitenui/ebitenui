@@ -3,7 +3,6 @@ package widget
 import (
 	img "image"
 	"image/color"
-	"log"
 	"math"
 
 	"github.com/ebitenui/ebitenui/event"
@@ -11,6 +10,7 @@ import (
 	"github.com/ebitenui/ebitenui/input"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"golang.org/x/exp/slices"
 	"golang.org/x/image/font"
 )
 
@@ -20,10 +20,7 @@ type List struct {
 	containerOpts            []ContainerOpt
 	scrollContainerOpts      []ScrollContainerOpt
 	sliderOpts               []SliderOpt
-	entries                  []interface{}
-	entryIdentifier          *func(interface{}) string
-	idEntryTable             map[string]interface{}
-	entriesButtonTable       map[interface{}]*Button
+	entries                  []any
 	entryLabelFunc           ListEntryLabelFunc
 	entryFace                font.Face
 	entryUnselectedColor     *ButtonImage
@@ -43,7 +40,7 @@ type List struct {
 	vSlider         *Slider
 	hSlider         *Slider
 	buttons         []*Button
-	selectedEntry   interface{}
+	selectedEntry   any
 
 	disableDefaultKeys bool
 	focused            bool
@@ -55,7 +52,7 @@ type List struct {
 
 type ListOpt func(l *List)
 
-type ListEntryLabelFunc func(e interface{}) string
+type ListEntryLabelFunc func(e any) string
 
 type ListEntryColor struct {
 	Unselected                 color.Color
@@ -70,8 +67,8 @@ type ListEntryColor struct {
 
 type ListEntrySelectedEventArgs struct {
 	List          *List
-	Entry         interface{}
-	PreviousEntry interface{}
+	Entry         any
+	PreviousEntry any
 }
 
 type ListEntrySelectedHandlerFunc func(args *ListEntrySelectedEventArgs)
@@ -85,11 +82,9 @@ func NewList(opts ...ListOpt) *List {
 	l := &List{
 		EntrySelectedEvent: &event.Event{},
 
-		init:               &MultiOnce{},
-		entriesButtonTable: make(map[interface{}]*Button),
-		idEntryTable:       make(map[string]interface{}),
-		focusIndex:         0,
-		prevFocusIndex:     -1,
+		init:           &MultiOnce{},
+		focusIndex:     0,
+		prevFocusIndex: -1,
 	}
 
 	l.init.Append(l.createWidget)
@@ -139,15 +134,9 @@ func (o ListOptions) HideVerticalSlider() ListOpt {
 	}
 }
 
-func (o ListOptions) Entries(e []interface{}) ListOpt {
+func (o ListOptions) Entries(e []any) ListOpt {
 	return func(l *List) {
-		l.entries = e
-	}
-}
-
-func (o ListOptions) Identifier(f func(interface{}) string) ListOpt {
-	return func(l *List) {
-		l.entryIdentifier = &f
+		l.entries = slices.CompactFunc(e, func(a any, b any) bool { return a == b })
 	}
 }
 
@@ -203,7 +192,7 @@ func (o ListOptions) EntryTextPadding(i Insets) ListOpt {
 
 func (o ListOptions) EntrySelectedHandler(f ListEntrySelectedHandlerFunc) ListOpt {
 	return func(l *List) {
-		l.EntrySelectedEvent.AddHandler(func(args interface{}) {
+		l.EntrySelectedEvent.AddHandler(func(args any) {
 			f(args.(*ListEntrySelectedEventArgs))
 		})
 	}
@@ -259,7 +248,7 @@ func (l *List) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	l.scrollContainer.GetWidget().Disabled = d
 
 	l.handleInput()
-	if l.focusIndex != l.prevFocusIndex && l.focusIndex <= len(l.buttons) {
+	if l.focusIndex != l.prevFocusIndex && l.focusIndex >= 0 && l.focusIndex < len(l.buttons) {
 		l.scrollVisible(l.buttons[l.focusIndex])
 	}
 	l.container.Render(screen, def)
@@ -310,7 +299,7 @@ func (l *List) handleInput() {
 
 func (l *List) resetFocusIndex() {
 	if len(l.buttons) > 0 {
-		if l.focusIndex != -1 {
+		if l.focusIndex != -1 && l.focusIndex < len(l.buttons) {
 			l.buttons[l.focusIndex].focused = false
 		}
 		for i := 0; i < len(l.entries); i++ {
@@ -353,10 +342,6 @@ func (l *List) createWidget() {
 		but := l.createEntry(e)
 
 		l.buttons = append(l.buttons, but)
-		l.entriesButtonTable[e] = but
-		if l.entryIdentifier != nil {
-			l.idEntryTable[(*l.entryIdentifier)(e)] = e
-		}
 		l.listContent.AddChild(but)
 	}
 
@@ -383,7 +368,7 @@ func (l *List) createWidget() {
 		}...)...)
 		l.container.AddChild(l.vSlider)
 
-		l.scrollContainer.widget.ScrolledEvent.AddHandler(func(args interface{}) {
+		l.scrollContainer.widget.ScrolledEvent.AddHandler(func(args any) {
 			a := args.(*WidgetScrolledEventArgs)
 			p := pageSizeFunc() / 3
 			if p < 1 {
@@ -409,85 +394,74 @@ func (l *List) createWidget() {
 
 }
 
-func (l *List) SetEntries(entries []interface{}) {
-	l.entries = entries
-	l.entriesButtonTable = make(map[interface{}]*Button, len(entries))
-	l.idEntryTable = make(map[string]interface{}, len(entries))
+// Updates the entries in the list.
+// Note: Duplicates will be removed.
+func (l *List) SetEntries(entries []any) {
+	l.entries = slices.CompactFunc(entries, func(a any, b any) bool { return a == b })
+	l.selectedEntry = nil
 	l.container.RemoveChildren()
 	l.createWidget()
 	l.resetFocusIndex()
 }
 
-func (l *List) RemoveEntry(entry interface{}) {
-	if l.entryIdentifier == nil {
-		log.Println("cannot add entry without identifier function")
-		return
-	}
+// Remove the passed in entry from the list if it exists
+func (l *List) RemoveEntry(entry any) {
 	l.init.Do()
 
-	identifier := (*l.entryIdentifier)(entry)
-	targetEntry := l.idEntryTable[identifier]
-	if len(l.entries) > 1 {
+	if len(l.entries) > 0 && entry != nil {
 		for i, e := range l.entries {
-			if e == targetEntry {
-				l.entries = append(l.entries[:i], l.entries[i+1:]...)
+			if e == entry {
 				but := l.buttons[i]
-				l.listContent.RemoveChild(but)
-				l.focusIndex = i - 1
-				delete(l.entriesButtonTable, e)
-				delete(l.idEntryTable, identifier)
+				l.entries = append(l.entries[:i], l.entries[i+1:]...)
 				l.buttons = append(l.buttons[:i], l.buttons[i+1:]...)
+				l.listContent.RemoveChild(but)
+
+				entryLen := len(l.entries)
+				if l.focusIndex >= entryLen {
+					l.focusIndex = i - 1
+				}
+
+				if l.focusIndex >= 0 && l.focusIndex < entryLen {
+					l.setSelectedEntry(l.entries[l.focusIndex], false)
+				}
 				break
 			}
 		}
-	} else {
-		l.entries = make([]interface{}, 0)
-		l.buttons = make([]*Button, 0)
-		l.focusIndex = -1
-		l.listContent.RemoveChild(l.buttons[0])
-		delete(l.entriesButtonTable, targetEntry)
-		delete(l.idEntryTable, identifier)
+		l.resetFocusIndex()
 	}
-
-	l.resetFocusIndex()
 }
 
-func (l *List) AddEntry(entry interface{}) {
-	if l.entryIdentifier == nil {
-		log.Println("cannot add entry without identifier function")
-		return
-	}
+// Add a new entry to the end of the list
+// Note: Duplicates will not be added
+func (l *List) AddEntry(entry any) {
 	l.init.Do()
-
-	l.entries = append(l.entries, entry)
-	but := l.createEntry(entry)
-	l.buttons = append(l.buttons, but)
-	l.entriesButtonTable[entry] = but
-	l.idEntryTable[(*l.entryIdentifier)(entry)] = entry
-	l.listContent.AddChild(but)
-
+	if !l.checkForDuplicates(append(l.entries, entry)) {
+		l.entries = append(l.entries, entry)
+		but := l.createEntry(entry)
+		l.buttons = append(l.buttons, but)
+		l.listContent.AddChild(but)
+	}
 	l.resetFocusIndex()
 }
 
-func (l *List) createEntry(entry interface{}) *Button {
-	but := NewButton(
-		ButtonOpts.WidgetOpts(WidgetOpts.LayoutData(RowLayoutData{
-			Stretch: true,
-		})),
-		ButtonOpts.Image(l.entryUnselectedColor),
-		ButtonOpts.TextSimpleLeft(l.entryLabelFunc(entry), l.entryFace, l.entryUnselectedTextColor, l.entryTextPadding),
-		ButtonOpts.ClickedHandler(func(_ *ButtonClickedEventArgs) {
-			l.setSelectedEntry(entry, true)
-		}))
-
-	return but
+// Return the current entries in the list
+func (l *List) Entries() any {
+	l.init.Do()
+	return l.entries
 }
 
-func (l *List) SetSelectedEntry(e interface{}) {
-	l.setSelectedEntry(e, false)
+// Return the currently selected entry in the list
+func (l *List) SelectedEntry() any {
+	l.init.Do()
+	return l.selectedEntry
 }
 
-func (l *List) setSelectedEntry(e interface{}, user bool) {
+// Set the Selected Entry to e if it is found.
+func (l *List) SetSelectedEntry(entry any) {
+	l.setSelectedEntry(entry, false)
+}
+
+func (l *List) setSelectedEntry(e any, user bool) {
 	if e != l.selectedEntry || (user && l.allowReselect) {
 		l.init.Do()
 
@@ -511,9 +485,25 @@ func (l *List) setSelectedEntry(e interface{}, user bool) {
 	}
 }
 
-func (l *List) SelectedEntry() interface{} {
-	l.init.Do()
-	return l.selectedEntry
+func (l *List) checkForDuplicates(entries []any) bool {
+	entryLen := len(entries)
+	entries = slices.CompactFunc(entries, func(a any, b any) bool { return a == b })
+	return entryLen != len(entries)
+}
+
+func (l *List) createEntry(entry any) *Button {
+	but := NewButton(
+		ButtonOpts.WidgetOpts(WidgetOpts.LayoutData(RowLayoutData{
+			Stretch: true,
+		})),
+		ButtonOpts.Image(l.entryUnselectedColor),
+		ButtonOpts.Text(l.entryLabelFunc(entry), l.entryFace, l.entryUnselectedTextColor),
+		ButtonOpts.TextPadding(l.entryTextPadding),
+		ButtonOpts.ClickedHandler(func(_ *ButtonClickedEventArgs) {
+			l.setSelectedEntry(entry, true)
+		}))
+
+	return but
 }
 
 func (l *List) setScrollTop(t float64) {
