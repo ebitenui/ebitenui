@@ -17,21 +17,23 @@ import (
 type List struct {
 	EntrySelectedEvent *event.Event
 
-	containerOpts            []ContainerOpt
-	scrollContainerOpts      []ScrollContainerOpt
-	sliderOpts               []SliderOpt
-	entries                  []any
-	entryLabelFunc           ListEntryLabelFunc
-	entryFace                font.Face
-	entryUnselectedColor     *ButtonImage
-	entrySelectedColor       *ButtonImage
-	entryUnselectedTextColor *ButtonTextColor
-	entryTextColor           *ButtonTextColor
-	entryTextPadding         Insets
-	controlWidgetSpacing     int
-	hideHorizontalSlider     bool
-	hideVerticalSlider       bool
-	allowReselect            bool
+	containerOpts               []ContainerOpt
+	scrollContainerOpts         []ScrollContainerOpt
+	sliderOpts                  []SliderOpt
+	entries                     []any
+	entryLabelFunc              ListEntryLabelFunc
+	entryFace                   font.Face
+	entryUnselectedColor        *ButtonImage
+	entrySelectedColor          *ButtonImage
+	entryUnselectedTextColor    *ButtonTextColor
+	entryTextColor              *ButtonTextColor
+	entryTextPadding            Insets
+	entryTextHorizontalPosition TextPosition
+	entryTextVerticalPosition   TextPosition
+	controlWidgetSpacing        int
+	hideHorizontalSlider        bool
+	hideVerticalSlider          bool
+	allowReselect               bool
 
 	init            *MultiOnce
 	container       *Container
@@ -81,6 +83,9 @@ var ListOpts ListOptions
 func NewList(opts ...ListOpt) *List {
 	l := &List{
 		EntrySelectedEvent: &event.Event{},
+
+		entryTextHorizontalPosition: TextPositionCenter,
+		entryTextVerticalPosition:   TextPositionCenter,
 
 		init:           &MultiOnce{},
 		focusIndex:     0,
@@ -187,6 +192,15 @@ func (o ListOptions) EntryColor(c *ListEntryColor) ListOpt {
 func (o ListOptions) EntryTextPadding(i Insets) ListOpt {
 	return func(l *List) {
 		l.entryTextPadding = i
+	}
+}
+
+// EntryTextPosition sets the position of the text for entries.
+// Defaults to both TextPositionCenter.
+func (o ListOptions) EntryTextPosition(h TextPosition, v TextPosition) ListOpt {
+	return func(l *List) {
+		l.entryTextHorizontalPosition = h
+		l.entryTextVerticalPosition = v
 	}
 }
 
@@ -499,6 +513,7 @@ func (l *List) createEntry(entry any) *Button {
 		ButtonOpts.Image(l.entryUnselectedColor),
 		ButtonOpts.Text(l.entryLabelFunc(entry), l.entryFace, l.entryUnselectedTextColor),
 		ButtonOpts.TextPadding(l.entryTextPadding),
+		ButtonOpts.TextPosition(l.entryTextHorizontalPosition, l.entryTextVerticalPosition),
 		ButtonOpts.ClickedHandler(func(_ *ButtonClickedEventArgs) {
 			l.setSelectedEntry(entry, true)
 		}))

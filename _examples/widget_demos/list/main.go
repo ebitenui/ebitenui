@@ -54,7 +54,7 @@ func main() {
 	// Construct a list. This is one of the more complicated widgets to use since
 	// it is composed of multiple widget types
 	list := widget.NewList(
-		//Set how wide the list should be
+		// Set how wide the list should be
 		widget.ListOpts.ContainerOpts(widget.ContainerOpts.WidgetOpts(
 			widget.WidgetOpts.MinSize(150, 0),
 			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
@@ -63,10 +63,10 @@ func main() {
 				StretchVertical:    true,
 			}),
 		)),
-		//Set the entries in the list
+		// Set the entries in the list
 		widget.ListOpts.Entries(entries),
 		widget.ListOpts.ScrollContainerOpts(
-			//Set the background images/color for the list
+			// Set the background images/color for the list
 			widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
 				Idle:     image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
 				Disabled: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
@@ -74,43 +74,45 @@ func main() {
 			}),
 		),
 		widget.ListOpts.SliderOpts(
-			//Set the background images/color for the background of the slider track
+			// Set the background images/color for the background of the slider track
 			widget.SliderOpts.Images(&widget.SliderTrackImage{
 				Idle:  image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
 				Hover: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
 			}, buttonImage),
 			widget.SliderOpts.MinHandleSize(5),
-			//Set how wide the track should be
+			// Set how wide the track should be
 			widget.SliderOpts.TrackPadding(widget.NewInsetsSimple(2))),
-		//Hide the horizontal slider
+		// Hide the horizontal slider
 		widget.ListOpts.HideHorizontalSlider(),
-		//Set the font for the list options
+		// Set the font for the list options
 		widget.ListOpts.EntryFontFace(face),
-		//Set the colors for the list
+		// Set the colors for the list
 		widget.ListOpts.EntryColor(&widget.ListEntryColor{
-			Selected:                   color.NRGBA{0, 255, 0, 255},                 //Foreground color for the unfocused selected entry
-			Unselected:                 color.NRGBA{254, 255, 255, 255},             //Foreground color for the unfocused unselected entry
-			SelectedBackground:         color.NRGBA{R: 130, G: 130, B: 200, A: 255}, //Background color for the unfocused selected entry
-			SelectedFocusedBackground:  color.NRGBA{R: 130, G: 130, B: 170, A: 255}, //Background color for the focused selected entry
-			FocusedBackground:          color.NRGBA{R: 170, G: 170, B: 180, A: 255}, //Background color for the focused unselected entry
-			DisabledUnselected:         color.NRGBA{100, 100, 100, 255},             //Foreground color for the disabled unselected entry
-			DisabledSelected:           color.NRGBA{100, 100, 100, 255},             //Foreground color for the disabled selected entry
-			DisabledSelectedBackground: color.NRGBA{100, 100, 100, 255},             //Background color for the disabled selected entry
+			Selected:                   color.NRGBA{0, 255, 0, 255},                 // Foreground color for the unfocused selected entry
+			Unselected:                 color.NRGBA{254, 255, 255, 255},             // Foreground color for the unfocused unselected entry
+			SelectedBackground:         color.NRGBA{R: 130, G: 130, B: 200, A: 255}, // Background color for the unfocused selected entry
+			SelectedFocusedBackground:  color.NRGBA{R: 130, G: 130, B: 170, A: 255}, // Background color for the focused selected entry
+			FocusedBackground:          color.NRGBA{R: 170, G: 170, B: 180, A: 255}, // Background color for the focused unselected entry
+			DisabledUnselected:         color.NRGBA{100, 100, 100, 255},             // Foreground color for the disabled unselected entry
+			DisabledSelected:           color.NRGBA{100, 100, 100, 255},             // Foreground color for the disabled selected entry
+			DisabledSelectedBackground: color.NRGBA{100, 100, 100, 255},             // Background color for the disabled selected entry
 		}),
-		//This required function returns the string displayed in the list
+		// This required function returns the string displayed in the list
 		widget.ListOpts.EntryLabelFunc(func(e interface{}) string {
 			return e.(ListEntry).Name
 		}),
-		//Padding for each entry
+		// Padding for each entry
 		widget.ListOpts.EntryTextPadding(widget.NewInsetsSimple(5)),
-		//This handler defines what function to run when a list item is selected.
+		// Text position for each entry
+		widget.ListOpts.EntryTextPosition(widget.TextPositionStart, widget.TextPositionCenter),
+		// This handler defines what function to run when a list item is selected.
 		widget.ListOpts.EntrySelectedHandler(func(args *widget.ListEntrySelectedEventArgs) {
 			entry := args.Entry.(ListEntry)
 			fmt.Println("Entry Selected: ", entry)
 		}),
 	)
 
-	//Add list to the root container
+	// Add list to the root container
 	rootContainer.AddChild(list)
 
 	buttonsContainer := widget.NewContainer(

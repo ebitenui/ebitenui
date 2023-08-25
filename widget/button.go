@@ -28,6 +28,8 @@ type Button struct {
 
 	widgetOpts               []WidgetOpt
 	autoUpdateTextAndGraphic bool
+	vTextPosition            TextPosition
+	hTextPosition            TextPosition
 	textPadding              Insets
 	graphicPadding           Insets
 
@@ -106,6 +108,9 @@ var ButtonOpts ButtonOptions
 
 func NewButton(opts ...ButtonOpt) *Button {
 	b := &Button{
+		hTextPosition: TextPositionCenter,
+		vTextPosition: TextPositionCenter,
+
 		PressedEvent:       &event.Event{},
 		ReleasedEvent:      &event.Event{},
 		ClickedEvent:       &event.Event{},
@@ -137,30 +142,6 @@ func (o ButtonOptions) Image(i *ButtonImage) ButtonOpt {
 	}
 }
 
-func (o ButtonOptions) TextSimpleLeft(label string, face font.Face, color *ButtonTextColor, padding Insets) ButtonOpt {
-	return func(b *Button) {
-		b.init.Append(func() {
-			b.container = NewContainer(
-				ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(padding))),
-				ContainerOpts.AutoDisableChildren(),
-			)
-
-			b.text = NewText(
-				TextOpts.WidgetOpts(WidgetOpts.LayoutData(AnchorLayoutData{
-					HorizontalPosition: AnchorLayoutPositionStart,
-					VerticalPosition:   AnchorLayoutPositionCenter,
-				})),
-				TextOpts.Text(label, face, color.Idle),
-				TextOpts.Position(TextPositionStart, TextPositionCenter),
-			)
-			b.container.AddChild(b.text)
-
-			b.autoUpdateTextAndGraphic = true
-			b.TextColor = color
-		})
-	}
-}
-
 func (o ButtonOptions) Text(label string, face font.Face, color *ButtonTextColor) ButtonOpt {
 	return func(b *Button) {
 		b.init.Append(func() {
@@ -171,11 +152,10 @@ func (o ButtonOptions) Text(label string, face font.Face, color *ButtonTextColor
 
 			b.text = NewText(
 				TextOpts.WidgetOpts(WidgetOpts.LayoutData(AnchorLayoutData{
-					HorizontalPosition: AnchorLayoutPositionCenter,
-					VerticalPosition:   AnchorLayoutPositionCenter,
+					HorizontalPosition: AnchorLayoutPosition(b.hTextPosition),
+					VerticalPosition:   AnchorLayoutPosition(b.vTextPosition),
 				})),
 				TextOpts.Text(label, face, color.Idle),
-				TextOpts.Position(TextPositionCenter, TextPositionCenter),
 			)
 			b.container.AddChild(b.text)
 
@@ -222,6 +202,15 @@ func (o ButtonOptions) TextAndImage(label string, face font.Face, image *ButtonI
 			b.GraphicImage = image
 			b.TextColor = color
 		})
+	}
+}
+
+// TextPosition sets the horizontal and vertical position of the text within the button.
+// Default is TextPositionCenter for both.
+func (o ButtonOptions) TextPosition(h TextPosition, v TextPosition) ButtonOpt {
+	return func(b *Button) {
+		b.hTextPosition = h
+		b.vTextPosition = v
 	}
 }
 
