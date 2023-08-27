@@ -293,7 +293,7 @@ func (u *UI) removeWindow(w *widget.Window) {
 			break
 		}
 	}
-	if windowIdx != -1 {
+	if windowIdx != -1 && !w.Ephemeral {
 		for i := len(u.windows) - 1; i >= windowIdx; i-- {
 			if u.windows[i].Ephemeral {
 				u.windows = append(u.windows[:i], u.windows[i+1:]...)
