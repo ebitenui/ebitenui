@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20221017161538-93cebf72946b // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
-	github.com/hajimehoshi/ebiten/v2 v2.5.7
+	github.com/hajimehoshi/ebiten/v2 v2.5.0
 	github.com/matryer/is v1.4.1
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/image v0.10.0
