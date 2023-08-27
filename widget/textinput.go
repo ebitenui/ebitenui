@@ -34,6 +34,8 @@ type TextInput struct {
 	validationFunc  TextInputValidationFunc
 	placeholderText string
 
+	mobileInputMode jsUtil.MobileInputMode
+
 	init                  *MultiOnce
 	commandToFunc         map[textInputControlCommand]textInputCommandFunc
 	widget                *Widget
@@ -120,6 +122,8 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 		init:          &MultiOnce{},
 		commandToFunc: map[textInputControlCommand]textInputCommandFunc{},
 		renderBuf:     image.NewMaskedRenderBuffer(),
+
+		mobileInputMode: jsUtil.TEXT,
 	}
 	t.state = t.idleState(true)
 
@@ -233,11 +237,23 @@ func (o TextInputOptions) Secure(b bool) TextInputOpt {
 		t.secure = b
 	}
 }
+
 func (o TextInputOptions) TabOrder(to int) TextInputOpt {
 	return func(t *TextInput) {
 		t.tabOrder = to
 	}
 }
+
+// Sets the keyboard type to use when viewed on a mobile browser.
+//
+// https://css-tricks.com/everything-you-ever-wanted-to-know-about-inputmode
+func (o TextInputOptions) MobileInputMode(mobileInputMode jsUtil.MobileInputMode) TextInputOpt {
+	return func(t *TextInput) {
+		t.mobileInputMode = mobileInputMode
+	}
+}
+
+/*********** End of Configuration *****************/
 func (t *TextInput) GetWidget() *Widget {
 	t.init.Do()
 	return t.widget
@@ -391,28 +407,6 @@ func (t *TextInput) commandState(cmd textInputControlCommand, key ebiten.Key, de
 		}
 
 		return nil, false
-	}
-}
-
-func (t *TextInput) insert(c rune) {
-	t.lastInputText = t.inputText
-	switch c {
-	case 8:
-		t.Backspace()
-	case 13:
-		t.Submit()
-	case 35:
-		t.CursorMoveEnd()
-	case 36:
-		t.CursorMoveStart()
-	case 37:
-		t.CursorMoveLeft()
-	case 39:
-		t.CursorMoveRight()
-	case 46:
-		t.Delete()
-	default:
-		t.Insert([]rune{c})
 	}
 }
 
@@ -616,10 +610,7 @@ func (t *TextInput) Focus(focused bool) {
 	t.focused = focused
 
 	if focused && runtime.GOOS == "js" && runtime.GOARCH == "wasm" && jsUtil.IsMobileBrowser() {
-		result, successful := jsUtil.Prompt("Please enter a value.", t.inputText, t.cursorPosition, t.widget.Rect.Min.Y, t.setJSText)
-		if successful {
-			t.setText(result, true)
-		}
+		jsUtil.Prompt(t.mobileInputMode, "Please enter a value.", t.inputText, t.cursorPosition, t.widget.Rect.Min.Y, t.setJSText)
 	}
 }
 
@@ -631,8 +622,9 @@ func (t *TextInput) SetText(text string) {
 	t.setText(text, false)
 }
 
-func (t *TextInput) setJSText(text string) {
+func (t *TextInput) setJSText(text string) string {
 	t.setText(text, true)
+	return t.inputText
 }
 
 func (t *TextInput) setText(text string, isJS bool) {

@@ -4,7 +4,6 @@
 package jsUtil
 
 import (
-	"fmt"
 	"regexp"
 	"strconv"
 	"syscall/js"
@@ -19,19 +18,22 @@ var cb InsertCallBack
 var started bool
 
 var offsetTop int
-var offsetLeft int
 
 func init() {
 	document = js.Global().Get("document")
+
+	//Create a hidden html input element that will capture keystrokes
 	p := document.Call("createElement", "input")
 	p.Set("id", "tempInput")
 	p.Set("style", "height:0px; width:1px; margin:0px; position: fixed; overflow:hidden; top:-10px; border:0px; padding:0px")
 	document.Get("body").Call("appendChild", p)
 
+	//Add a listener on the hidden html input for keystrokes
 	p.Call("addEventListener", "input", js.FuncOf(handleInput), false)
+
+	//Get the canvas and attach an event listener for screen touches
 	canvas := document.Get("body").Call("getElementsByTagName", "canvas").Index(0)
 	offsetTop = canvas.Get("offsetTop").Int()
-	offsetLeft = canvas.Get("offsetLeft").Int()
 	canvas.Call("addEventListener", "touchstart", js.FuncOf(handleClick), false)
 	canvas.Call("addEventListener", "touchend", js.FuncOf(handleClick), false)
 }
@@ -42,27 +44,18 @@ func IsMobileBrowser() bool {
 	return MOBILE_BROWSER_REGEX.Match([]byte(userAgent.String()))
 }
 
-func Prompt(title string, value string, cursorPos int, yPos int, callback InsertCallBack) (string, bool) {
-	fmt.Println("Prompt")
-	/*	prompt := js.Global().Get("prompt")
-		result := prompt.Invoke(title, value)
-		if !result.IsNull() && !result.IsUndefined() {
-			return result.String(), true
-		} else {
-			return "", false
-		}
-	*/
+func Prompt(mode MobileInputMode, title string, value string, cursorPos int, yPos int, callback InsertCallBack) {
 	cb = callback
 	p := document.Call("getElementById", "tempInput")
-	p.Call("setAttribute", "inputmode", "text")
+
+	//Configure the hidden html input element based on what our library has for the input
+	p.Call("setAttribute", "inputmode", string(mode))
 	p.Set("value", value)
 	p.Call("setSelectionRange", cursorPos, cursorPos)
-
-	started = true
-	fmt.Println(offsetTop + yPos)
 	p.Get("style").Call("setProperty", "top", strconv.Itoa(offsetTop+yPos)+"px")
 
-	return "", false
+	//Indicate we've started capturing input
+	started = true
 }
 
 func SetCursorPosition(cursorPos int) {
@@ -76,6 +69,7 @@ func GetCursorPosition() int {
 }
 
 func handleClick(this js.Value, args []js.Value) any {
+	//If we have clicked on one of the inputs, shift focus to the input to open the keyboard
 	if started {
 		p := document.Call("getElementById", "tempInput")
 		p.Call("focus")
@@ -84,11 +78,24 @@ func handleClick(this js.Value, args []js.Value) any {
 	return nil
 }
 
+var previousValue = ""
+var previousPosition = 0
+
+// Process changes on the hidden html text input
 func handleInput(this js.Value, args []js.Value) any {
-	lastTypedChar := args[0].Get("target").Get("value").String()
-	fmt.Println(lastTypedChar)
+	newTextString := args[0].Get("target").Get("value").String()
 	if cb != nil {
-		cb(lastTypedChar)
+		result := cb(newTextString)
+		if result != newTextString {
+			p := document.Call("getElementById", "tempInput")
+			p.Set("value", result)
+		}
+		if result == previousValue {
+			SetCursorPosition(previousPosition)
+		} else {
+			previousPosition = GetCursorPosition()
+			previousValue = result
+		}
 	}
 	return nil
 }

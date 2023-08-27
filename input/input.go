@@ -45,9 +45,12 @@ var windowSize image.Point
 //
 // EbitenUI by default will look for the following cursors:
 //
-//	CURSOR_EWRESIZE : "EWResize"
-//	CURSOR_NSRESIZE : "NSResize"
-//	CURSOR_DEFAULT  : "Default"
+//	CURSOR_EWRESIZE  : "EWResize"
+//	CURSOR_NSRESIZE  : "NSResize"
+//	CURSOR_DEFAULT   : "Default"
+//	CURSOR_POINTER   : "Pointer"
+//	CURSOR_TEXT      : "Text"
+//	CURSOR_CROSSHAIR : "Crosshair"
 func SetCursorUpdater(cursorUpdater CursorUpdater) {
 	isDefaultCursorUpdater = cursorUpdater == internalinput.InputHandler
 	currentCursorUpdater = cursorUpdater
