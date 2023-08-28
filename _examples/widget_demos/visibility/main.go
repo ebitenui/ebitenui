@@ -49,6 +49,11 @@ func main() {
 			// Padding between elements
 			widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(5)),
 		)),
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Stretch: true,
+			}),
+		),
 	)
 
 	// construct a new container for middle right of window
@@ -63,21 +68,21 @@ func main() {
 			// Padding between elements
 			widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(30)),
 		)),
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Stretch: true,
+			}),
+			widget.WidgetOpts.MinSize(100, 100),
+		),
 	)
 
 	// construct a new container for middle of window
 	middleContainer := widget.NewContainer(
 		// the container will use a plain green color as its background
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x00, 0xff, 0x00, 0xff})),
-
-		widget.ContainerOpts.Layout(widget.NewGridLayout(
-			// Define number of columns in the grid
-			widget.GridLayoutOpts.Columns(2),
-			// Define how to stretch the rows and columns. Note it is required to
-			// specify the Stretch for each row and column.
-			widget.GridLayoutOpts.Stretch([]bool{true, false}, []bool{true, true}),
-			// Padding between elements
-			widget.GridLayoutOpts.Padding(widget.NewInsetsSimple(5)),
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			// Which direction to layout children
+			widget.RowLayoutOpts.Direction(widget.DirectionHorizontal),
 		)),
 	)
 	middleContainer.AddChild(middleLeftContainer)
@@ -103,7 +108,7 @@ func main() {
 
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			topContainer.GetWidget().Visibility = widget.Visibility_Hide
+			topContainer.GetWidget().Visibility = widget.Visibility_Hide_Blocking
 		}),
 	)
 	topContainer.AddChild(topButton)
@@ -150,7 +155,7 @@ func main() {
 
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			middleRightContainer.GetWidget().Visibility = widget.Visibility_None
+			middleRightContainer.GetWidget().Visibility = widget.Visibility_Hide
 		}),
 	)
 	middleLeftContainer.AddChild(middleShowButton)
@@ -190,7 +195,7 @@ func main() {
 			widget.GridLayoutOpts.Columns(1),
 			// Define how to stretch the rows and columns. Note it is required to
 			// specify the Stretch for each row and column.
-			widget.GridLayoutOpts.Stretch([]bool{true, false, true}, []bool{false, true, false}),
+			widget.GridLayoutOpts.Stretch([]bool{true, true}, []bool{false, true}),
 			// Padding between elements
 			widget.GridLayoutOpts.Padding(widget.Insets{
 				Top:    10,
