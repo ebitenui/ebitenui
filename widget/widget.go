@@ -119,9 +119,9 @@ type Dropper interface {
 type Visibility int
 
 const (
-	Visibility_Show Visibility = iota
-	Visibility_Hide            // Hide widget, but take up space
-	Visibility_None            // Hide widget, but don't take up space
+	Visibility_Show          Visibility = iota
+	Visibility_Hide_Blocking            // Hide widget, but take up space
+	Visibility_Hide                     // Hide widget, but don't take up space
 )
 
 // RenderFunc is a function that renders a widget onto screen. def may be called to defer

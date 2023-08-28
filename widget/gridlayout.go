@@ -116,7 +116,7 @@ func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.
 	x, y := 0, 0
 	firstStretchedCol, firstStretchedRow := true, true
 	for _, w := range widgets {
-		if w.GetWidget().Visibility == Visibility_None {
+		if w.GetWidget().Visibility == Visibility_Hide {
 			continue
 		}
 

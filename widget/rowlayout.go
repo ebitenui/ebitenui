@@ -108,7 +108,7 @@ func (r *RowLayout) layout(widgets []PreferredSizeLocateableWidget, rect image.R
 	x, y := 0, 0
 
 	for _, widget := range widgets {
-		if widget.GetWidget().Visibility == Visibility_None {
+		if widget.GetWidget().Visibility == Visibility_Hide {
 			continue
 		}
 
