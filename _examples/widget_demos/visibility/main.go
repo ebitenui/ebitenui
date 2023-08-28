@@ -56,6 +56,25 @@ func main() {
 		),
 	)
 
+	// construct a new container for middle middle of window
+	middleMiddleContainer := widget.NewContainer(
+		// the container will use a plain red/green color as its background
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0xff, 0xff, 0xff, 0xff})),
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			// Which direction to layout children
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+			// Set how far apart to space the children
+			widget.RowLayoutOpts.Spacing(15),
+			// Padding between elements
+			widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(5)),
+		)),
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Stretch: true,
+			}),
+		),
+	)
+
 	// construct a new container for middle right of window
 	middleRightContainer := widget.NewContainer(
 		// the container will use a plain green/blue color as its background
@@ -86,6 +105,7 @@ func main() {
 		)),
 	)
 	middleContainer.AddChild(middleLeftContainer)
+	middleContainer.AddChild(middleMiddleContainer)
 	middleContainer.AddChild(middleRightContainer)
 
 	// construct top button
