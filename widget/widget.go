@@ -462,8 +462,11 @@ func (w *Widget) fireEvents() {
 		})
 	}
 
-	if input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, layer) {
+	if input.MouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		w.lastUpdateMouseLeftPressed = true
+	}
+
+	if inside && input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, layer) {
 		if inside {
 			w.mouseLeftPressedInside = inside
 

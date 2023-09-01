@@ -137,6 +137,18 @@ func NewWindow(opts ...WindowOpt) *Window {
 		})
 	}
 
+	if w.closeMode == CLICK || w.closeMode == CLICK_OUT {
+		w.container.GetWidget().CustomData = "Window"
+		w.container.GetWidget().MouseButtonReleasedEvent.AddHandler(func(args interface{}) {
+			a := args.(*WidgetMouseButtonReleasedEventArgs)
+			if w.closeMode == CLICK || (w.closeMode == CLICK_OUT && !a.Inside) {
+				if w.closeFunc != nil {
+					w.closeFunc()
+				}
+			}
+		})
+	}
+
 	w.init.Do()
 	return w
 }
@@ -344,17 +356,6 @@ func (w *Window) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 		} else if !input.MouseButtonPressed(ebiten.MouseButtonLeft) {
 			w.resizingWidth = false
 			w.resizingHeight = false
-		}
-	}
-
-	if w.closeMode == CLICK || w.closeMode == CLICK_OUT {
-		if input.MouseButtonJustPressed(ebiten.MouseButtonLeft) {
-			if w.closeMode == CLICK || (w.closeMode == CLICK_OUT && !image.Point{x, y}.In(w.container.GetWidget().Rect)) {
-				if w.closeFunc != nil {
-					input.SetCursorShape(input.CURSOR_DEFAULT)
-					w.closeFunc()
-				}
-			}
 		}
 	}
 	w.container.Render(screen, def)

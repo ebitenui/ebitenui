@@ -96,7 +96,7 @@ func main() {
 
 	// Ebiten setup
 	ebiten.SetWindowSize(400, 400)
-	ebiten.SetWindowTitle("Ebiten UI - Anchor Layout")
+	ebiten.SetWindowTitle("Ebiten UI - Row Layout")
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
 	game := game{
