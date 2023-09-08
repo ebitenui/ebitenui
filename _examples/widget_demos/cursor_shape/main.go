@@ -116,6 +116,9 @@ func main() {
 	//Set the NS resize cursor with an offset so that it shows up a little above the cursor point
 	input.SetCursorImageWithOffset(input.CURSOR_NSRESIZE, loadNSCursorImage(), image.Point{0, -6})
 
+	//Disable cursor management by ebitenui
+	//input.CursorManagementEnabled = false
+
 	// run Ebiten main loop
 	err := ebiten.RunGame(&game)
 	if err != nil {
