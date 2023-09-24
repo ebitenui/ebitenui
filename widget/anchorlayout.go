@@ -87,6 +87,10 @@ func (a *AnchorLayout) Layout(widgets []PreferredSizeLocateableWidget, rect imag
 	}
 
 	widget := widgets[0]
+	if widget.GetWidget().Visibility == Visibility_Hide {
+		return
+	}
+
 	ww, wh := widget.PreferredSize()
 	rect = a.padding.Apply(rect)
 	wx := 0

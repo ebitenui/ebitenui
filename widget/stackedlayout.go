@@ -53,7 +53,11 @@ func (a *StackedLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (
 		return px, py
 	}
 	var w, h int
-	for idx := range widgets {
+	for idx, widget := range widgets {
+		if widget.GetWidget().Visibility == Visibility_Hide {
+			continue
+		}
+
 		w1, h1 := widgets[idx].PreferredSize()
 		if w1 > w {
 			w = w1

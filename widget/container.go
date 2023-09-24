@@ -185,6 +185,10 @@ func (c *Container) SetLocation(rect img.Rectangle) {
 func (c *Container) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	c.init.Do()
 
+	if c.widget.Visibility == Visibility_Hide_Blocking || c.widget.Visibility == Visibility_Hide {
+		return
+	}
+
 	if c.AutoDisableChildren {
 		for _, ch := range c.children {
 			ch.GetWidget().Disabled = c.widget.Disabled
@@ -199,6 +203,9 @@ func (c *Container) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 	for _, ch := range c.children {
 		if cr, ok := ch.(Renderer); ok {
+			if ch.GetWidget().Visibility == Visibility_Hide_Blocking || ch.GetWidget().Visibility == Visibility_Hide {
+				continue
+			}
 			cr.Render(screen, def)
 		}
 	}
