@@ -119,7 +119,7 @@ func (o TextOptions) ProcessBBCode(processBBCode bool) TextOpt {
 	}
 }
 
-// This sets the max width the text will allow before wrapping to the next line
+// MaxWidth sets the max width the text will allow before wrapping to the next line
 func (o TextOptions) MaxWidth(maxWidth float64) TextOpt {
 	return func(t *Text) {
 		t.MaxWidth = maxWidth
@@ -168,7 +168,7 @@ func (t *Text) draw(screen *ebiten.Image) {
 	case TextPositionCenter:
 		p = p.Add(image.Point{0, int((float64(r.Dy()) - t.measurements.boundingBoxHeight) / 2)})
 	case TextPositionEnd:
-		p = p.Add(image.Point{0, int((float64(r.Dy()) - t.measurements.boundingBoxHeight))})
+		p = p.Add(image.Point{0, int(float64(r.Dy()) - t.measurements.boundingBoxHeight)})
 	}
 
 	t.colorList = &datastructures.Stack[color.Color]{}
@@ -190,10 +190,10 @@ func (t *Text) draw(screen *ebiten.Image) {
 		if t.processBBCode {
 			spaceWidth := font.MeasureString(t.Face, " ").Round()
 			for _, word := range line {
-				peices, updatedColor := t.handleBBCodeColor(word)
-				for _, peice := range peices {
-					text.Draw(screen, peice.text, t.Face, lx, ly, peice.color)
-					wordWidth := font.MeasureString(t.Face, peice.text)
+				pieces, updatedColor := t.handleBBCodeColor(word)
+				for _, piece := range pieces {
+					text.Draw(screen, piece.text, t.Face, lx, ly, piece.color)
+					wordWidth := font.MeasureString(t.Face, piece.text)
 					lx += wordWidth.Round()
 				}
 				text.Draw(screen, " ", t.Face, lx, ly, updatedColor)
@@ -292,12 +292,12 @@ func (t *Text) measure() {
 	for s.Scan() {
 		if t.MaxWidth > 0 {
 			var newLine []string
-			var newLineWidth float64 = float64(t.Inset.Left + t.Inset.Right)
+			newLineWidth := float64(t.Inset.Left + t.Inset.Right)
 			words := strings.Split(s.Text(), " ")
 			for _, word := range words {
 				wordWidth := fixedInt26_6ToFloat64(font.MeasureString(t.Face, word+" "))
 
-				//Strip out any bbcodes from size calculation
+				// Strip out any bbcodes from size calculation
 				if t.processBBCode {
 					if t.bbcodeRegex.MatchString(word) {
 						cleaned := t.bbcodeRegex.ReplaceAllString(word, "")
@@ -305,12 +305,12 @@ func (t *Text) measure() {
 					}
 				}
 
-				//If the new word doesnt push this past the max width continue adding to the current line
+				// If the new word doesn't push this past the max width continue adding to the current line
 				if newLineWidth+wordWidth < t.MaxWidth {
 					newLine = append(newLine, word)
 					newLineWidth += wordWidth
 				} else {
-					//If the new word would push this past the max width save off the current line and start a new one
+					// If the new word would push this past the max width save off the current line and start a new one
 					if len(newLine) != 0 {
 						t.measurements.lines = append(t.measurements.lines, newLine)
 						t.measurements.lineWidths = append(t.measurements.lineWidths, newLineWidth)
@@ -323,7 +323,7 @@ func (t *Text) measure() {
 					newLineWidth = wordWidth + float64(t.Inset.Left+t.Inset.Right)
 				}
 			}
-			//Save the final line
+			// Save the final line
 			if len(newLine) != 0 {
 				t.measurements.lines = append(t.measurements.lines, newLine)
 				t.measurements.lineWidths = append(t.measurements.lineWidths, newLineWidth)
