@@ -175,6 +175,14 @@ func (t *Text) draw(screen *ebiten.Image) {
 	t.colorList.Push(&t.Color)
 
 	for i, line := range t.measurements.lines {
+		ly := int(math.Round(float64(p.Y) + t.measurements.lineHeight*float64(i) + t.measurements.ascent))
+		if ly > screen.Bounds().Max.Y+int(math.Round(t.measurements.ascent)) {
+			return
+		}
+		if ly < - int(math.Round(t.measurements.lineHeight-t.measurements.ascent)) {
+			continue
+		}
+
 		lx := p.X
 		switch t.horizontalPosition {
 		case TextPositionCenter:
@@ -184,8 +192,6 @@ func (t *Text) draw(screen *ebiten.Image) {
 		default:
 			lx += t.Inset.Left
 		}
-
-		ly := int(math.Round(float64(p.Y) + t.measurements.lineHeight*float64(i) + t.measurements.ascent))
 
 		if t.processBBCode {
 			spaceWidth := font.MeasureString(t.Face, " ").Round()
