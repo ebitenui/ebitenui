@@ -388,16 +388,13 @@ func (s *Slider) handleLengthAndTrackLength() (float64, float64) {
 		trackLength = float64(s.widget.Rect.Dy()) - float64(s.trackPadding.Top) - float64(s.trackPadding.Bottom)
 	}
 
-	length := float64(s.Max - s.Min + 1)
-
-	ps := s.pageSizeFunc()
-
 	handleLength := 0.0
-
 	if s.fixedHandleSize != 0 {
 		handleLength = float64(s.fixedHandleSize)
 	} else {
-		handleLength = float64(ps) / length * trackLength
+		ps := float64(s.pageSizeFunc())
+		length := float64(s.Max - s.Min + 1)
+		handleLength = ps / length * trackLength
 		if handleLength < float64(s.minHandleSize) {
 			handleLength = float64(s.minHandleSize)
 		}
