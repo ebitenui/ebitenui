@@ -276,7 +276,14 @@ func (l *TextArea) createWidget() {
 			SliderOpts.MinMax(0, 1000),
 			SliderOpts.PageSizeFunc(pageSizeFunc),
 			SliderOpts.ChangedHandler(func(args *SliderChangedEventArgs) {
-				l.scrollContainer.ScrollTop = float64(args.Slider.Current) / 1000
+				current := args.Slider.Current
+				if pageSizeFunc() >= 1000 {
+					current = 0
+					if l.verticalScrollMode == ScrollEnd || l.verticalScrollMode == PositionAtEnd {
+						current = 1000
+					}
+				}
+				l.scrollContainer.ScrollTop = float64(current) / 1000
 			}),
 		}...)...)
 		if l.verticalScrollMode == ScrollEnd || l.verticalScrollMode == PositionAtEnd {
@@ -295,14 +302,23 @@ func (l *TextArea) createWidget() {
 	}
 
 	if l.showHorizontalSlider {
+		pageSizeFunc := func() int {
+			return int(math.Round(float64(l.scrollContainer.ContentRect().Dx()) / float64(content.GetWidget().Rect.Dx()) * 1000))
+		}
+
 		l.hSlider = NewSlider(append(l.sliderOpts, []SliderOpt{
 			SliderOpts.Direction(DirectionHorizontal),
 			SliderOpts.MinMax(0, 1000),
-			SliderOpts.PageSizeFunc(func() int {
-				return int(math.Round(float64(l.scrollContainer.ContentRect().Dx()) / float64(content.GetWidget().Rect.Dx()) * 1000))
-			}),
+			SliderOpts.PageSizeFunc(pageSizeFunc),
 			SliderOpts.ChangedHandler(func(args *SliderChangedEventArgs) {
-				l.scrollContainer.ScrollLeft = float64(args.Slider.Current) / 1000
+				current := args.Slider.Current
+				if pageSizeFunc() >= 1000 {
+					current = 0
+					if l.horizontalScrollMode == ScrollEnd || l.horizontalScrollMode == PositionAtEnd {
+						current = 1000
+					}
+				}
+				l.scrollContainer.ScrollLeft = float64(current) / 1000
 			}),
 		}...)...)
 		if l.horizontalScrollMode == ScrollEnd || l.horizontalScrollMode == PositionAtEnd {
