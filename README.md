@@ -39,6 +39,7 @@ Used By
 * [BANKWAVE: Neon Networth by Frabjous Studios](https://bankwave.frabjousstudios.com/)
 * [Networked Game by Nmorenor](https://nmorenor.com/)
 * [Sinecord by quasilyte](https://quasilyte.itch.io/sinecord)
+* [Cavebots by quasilyte](https://quasilyte.itch.io/cavebots)
 
 
 Social Media
