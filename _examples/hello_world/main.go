@@ -32,6 +32,9 @@ func main() {
 
 	// This loads a font and creates a font face.
 	ttfFont, err := truetype.Parse(goregular.TTF)
+	if err != nil {
+		log.Fatal("Error Parsing Font", err)
+	}
 	fontFace := truetype.NewFace(ttfFont, &truetype.Options{
 		Size: 32,
 	})
