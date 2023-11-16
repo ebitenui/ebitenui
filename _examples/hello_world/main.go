@@ -64,7 +64,8 @@ func (g *game) Update() error {
 }
 
 func (g *game) Draw(screen *ebiten.Image) {
-	// ui.Draw() should be called in the ebiten Draw function, to draw the UI onto the screen
+	// ui.Draw() should be called in the ebiten Draw function, to draw the UI onto the screen.
+	// It should also be called after all other rendering for your game so that it shows up on top of your game world.
 	g.ui.Draw(screen)
 }
 
