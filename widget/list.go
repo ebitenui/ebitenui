@@ -377,7 +377,11 @@ func (l *List) createWidget() {
 			SliderOpts.PageSizeFunc(pageSizeFunc),
 			SliderOpts.DisableDefaultKeys(l.disableDefaultKeys),
 			SliderOpts.ChangedHandler(func(args *SliderChangedEventArgs) {
-				l.scrollContainer.ScrollTop = float64(args.Slider.Current) / 1000
+				current := args.Slider.Current
+				if pageSizeFunc() >= 1000 {
+					current = 0
+				}
+				l.scrollContainer.ScrollTop = float64(current) / 1000
 			}),
 		}...)...)
 		l.container.AddChild(l.vSlider)
