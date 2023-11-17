@@ -5,6 +5,16 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"name": "Launch Hello World",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/_examples/hello_world",
+			"cwd": "${workspaceFolder}/_examples/hello_world",
+			"env": {},
+			"args": []
+		},
+		{
 			"name": "Launch Demo",
 			"type": "go",
 			"request": "launch",

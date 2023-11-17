@@ -1,2 +1,3 @@
 _examples/demo/demo.exe
 __debug_bin*.exe
+.idea
