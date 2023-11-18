@@ -34,6 +34,7 @@ type List struct {
 	hideHorizontalSlider        bool
 	hideVerticalSlider          bool
 	allowReselect               bool
+	selectFocus               bool
 
 	init            *MultiOnce
 	container       *Container
@@ -218,6 +219,13 @@ func (o ListOptions) AllowReselect() ListOpt {
 	}
 }
 
+// SelectFocus automatically selects each focused entry.
+func (o ListOptions) SelectFocus() ListOpt {
+	return func(l *List) {
+		l.selectFocus = true
+	}
+}
+
 func (o ListOptions) TabOrder(tabOrder int) ListOpt {
 	return func(l *List) {
 		l.tabOrder = tabOrder
@@ -264,6 +272,9 @@ func (l *List) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	l.handleInput()
 	if l.focusIndex != l.prevFocusIndex && l.focusIndex >= 0 && l.focusIndex < len(l.buttons) {
 		l.scrollVisible(l.buttons[l.focusIndex])
+		if l.selectFocus {
+			l.setSelectedEntry(l.entries[l.focusIndex], false)
+		}
 	}
 	l.container.Render(screen, def)
 }
