@@ -173,6 +173,9 @@ func (d *DragAndDrop) idleState() dragAndDropState {
 		if !p.In(parent.GetWidget().Rect) && !d.dndTriggered {
 			return nil, false
 		}
+		if !parent.GetWidget().EffectiveInputLayer().ActiveFor(x, y, input.LayerEventTypeAny) {
+			return nil, false
+		}
 
 		return d.dragArmedState(x, y), true
 	}
