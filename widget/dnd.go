@@ -228,7 +228,6 @@ func (d *DragAndDrop) draggingState(srcX int, srcY int, dragWidget *Container, d
 			droppable := false
 			var element HasWidget
 
-			u.Update(droppable, element, dragData)
 			args := &DragAndDropDroppedEventArgs{
 				Source:  parent,
 				SourceX: srcX,
