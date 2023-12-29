@@ -228,7 +228,6 @@ func (d *DragAndDrop) draggingState(srcX int, srcY int, dragWidget *Container, d
 			droppable := false
 			var element HasWidget
 
-
 			if !input.KeyPressed(ebiten.KeyEscape) && !d.dndStopped {
 				p := image.Point{x, y}
 				args := &DragAndDropDroppedEventArgs{
@@ -243,7 +242,13 @@ func (d *DragAndDrop) draggingState(srcX int, srcY int, dragWidget *Container, d
 					if target.GetWidget().Visibility == Visibility_Hide {
 						continue
 					}
-					if p.In(target.GetWidget().Rect) && target.GetWidget().canDrop(args) {
+					if !p.In(target.GetWidget().Rect) {
+						continue
+					}
+					if !target.GetWidget().EffectiveInputLayer().ActiveFor(x, y, input.LayerEventTypeAny) {
+						continue
+					}
+					if target.GetWidget().canDrop(args) {
 						droppable = true
 						element = target
 						break
@@ -288,7 +293,13 @@ func (d *DragAndDrop) droppingState(srcX int, srcY int, x int, y int, dragData i
 			if target.GetWidget().Visibility == Visibility_Hide {
 				continue
 			}
-			if p.In(target.GetWidget().Rect) && target.GetWidget().canDrop(args) {
+			if !p.In(target.GetWidget().Rect) {
+				continue
+			}
+			if !target.GetWidget().EffectiveInputLayer().ActiveFor(x, y, input.LayerEventTypeAny) {
+				continue
+			}
+			if target.GetWidget().canDrop(args) {
 				if target.GetWidget().drop != nil {
 					args.Target = target
 					target.GetWidget().drop(args)
