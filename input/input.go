@@ -157,12 +157,6 @@ func AnyKeyPressed() bool {
 	return internalinput.InputHandler.AnyKeyPressed
 }
 
-// AnyKeyPressed returns whether key k has just been pressed.
-func KeyJustPressed(k ebiten.Key) bool {
-	p, ok := internalinput.InputHandler.KeyJustPressed[k]
-	return ok && p
-}
-
 // This method returns the drawable screen size whether it is fullscreen or not.
 func GetWindowSize() image.Point {
 	return windowSize
