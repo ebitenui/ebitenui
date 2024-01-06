@@ -566,20 +566,20 @@ func (l *List) scrollVisible(w HasWidget) {
 	rect := l.scrollContainer.ContentRect()
 	wrect := w.GetWidget().Rect
 	if !wrect.In(rect) {
-		ScrollTop := 0.0
-		ScrollLeft := 0.0
+		scrollTop := 0.0
+		scrollLeft := 0.0
 		if wrect.Max.Y > rect.Max.Y {
-			ScrollTop = float64(wrect.Max.Y - rect.Max.Y)
+			scrollTop = float64(wrect.Max.Y - rect.Max.Y)
 		} else if wrect.Min.Y < rect.Min.Y {
-			ScrollTop = float64(wrect.Min.Y - rect.Min.Y)
+			scrollTop = float64(wrect.Min.Y - rect.Min.Y)
 		}
 		if wrect.Max.X > rect.Max.X {
-			ScrollLeft = float64(wrect.Max.X - rect.Max.X)
+			scrollLeft = float64(wrect.Max.X - rect.Max.X)
 		} else if wrect.Min.X < rect.Min.X {
-			ScrollLeft = -float64(wrect.Min.X - rect.Min.X)
+			scrollLeft = -float64(wrect.Min.X - rect.Min.X)
 		}
-		l.setScrollTop(l.scrollContainer.ScrollTop + scrollClamp(ScrollTop/1000))
-		l.setScrollLeft(l.scrollContainer.ScrollLeft + scrollClamp(ScrollLeft/1000))
+		l.setScrollTop(l.scrollContainer.ScrollTop + scrollClamp(scrollTop/1000))
+		l.setScrollLeft(l.scrollContainer.ScrollLeft + scrollClamp(scrollLeft/1000))
 	} else if wrect != rect {
 		l.prevFocusIndex = l.focusIndex
 	}
