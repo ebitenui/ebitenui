@@ -265,6 +265,10 @@ func (s *ScrollContainer) ViewRect() img.Rectangle {
 	return s.padding.Apply(s.widget.Rect)
 }
 
+func (s *ScrollContainer) ContentRect() img.Rectangle {
+	return s.content.GetWidget().Rect
+}
+
 func (s *ScrollContainer) clampScroll() {
 	if s.ScrollTop < 0 {
 		s.ScrollTop = 0
