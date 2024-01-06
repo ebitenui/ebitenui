@@ -553,7 +553,7 @@ func (l *List) setScrollLeft(left float64) {
 }
 
 func scrollClamp(scroll float64) float64 {
-	min, max := -0.1, 0.1
+	const min, max = -0.1, 0.1
 	if scroll < min {
 		scroll = min
 	} else if scroll > max {
