@@ -268,7 +268,7 @@ func (l *TextArea) createWidget() {
 
 	if l.showVerticalSlider {
 		pageSizeFunc := func() int {
-			return int(math.Round(float64(l.scrollContainer.ContentRect().Dy()) / float64(content.GetWidget().Rect.Dy()) * 1000))
+			return int(math.Round(float64(l.scrollContainer.ViewRect().Dy()) / float64(content.GetWidget().Rect.Dy()) * 1000))
 		}
 
 		l.vSlider = NewSlider(append(l.sliderOpts, []SliderOpt{
@@ -303,7 +303,7 @@ func (l *TextArea) createWidget() {
 
 	if l.showHorizontalSlider {
 		pageSizeFunc := func() int {
-			return int(math.Round(float64(l.scrollContainer.ContentRect().Dx()) / float64(content.GetWidget().Rect.Dx()) * 1000))
+			return int(math.Round(float64(l.scrollContainer.ViewRect().Dx()) / float64(content.GetWidget().Rect.Dx()) * 1000))
 		}
 
 		l.hSlider = NewSlider(append(l.sliderOpts, []SliderOpt{

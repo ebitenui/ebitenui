@@ -134,7 +134,7 @@ func (s *ScrollContainer) SetupInputLayer(def input.DeferredSetupInputLayerFunc)
 		EventTypes: input.LayerEventTypeAll ^ input.LayerEventTypeWheel,
 		BlockLower: true,
 		FullScreen: false,
-		RectFunc:   s.ContentRect,
+		RectFunc:   s.ViewRect,
 	})
 
 	if il, ok := s.content.(input.Layerer); ok {
@@ -228,16 +228,16 @@ func (s *ScrollContainer) renderContent(screen *ebiten.Image, def DeferredRender
 			cw, ch = p.PreferredSize()
 		}
 
-		crect := s.ContentRect()
-		if s.stretchContentWidth && cw < crect.Dx() {
-			cw = crect.Dx()
+		vrect := s.ViewRect()
+		if s.stretchContentWidth && cw < vrect.Dx() {
+			cw = vrect.Dx()
 		}
 
 		rect := img.Rect(0, 0, cw, ch)
 		rect = rect.Add(s.widget.Rect.Min)
 		rect = rect.Add(img.Point{s.padding.Left, s.padding.Top})
 
-		rect = rect.Sub(img.Point{int(math.Round(float64(cw-crect.Dx()) * s.ScrollLeft)), int(math.Round(float64(ch-crect.Dy()) * s.ScrollTop))})
+		rect = rect.Sub(img.Point{int(math.Round(float64(cw-vrect.Dx()) * s.ScrollLeft)), int(math.Round(float64(ch-vrect.Dy()) * s.ScrollTop))})
 
 		if rect != s.content.GetWidget().Rect {
 			l.SetLocation(rect)
@@ -260,7 +260,7 @@ func (s *ScrollContainer) renderContent(screen *ebiten.Image, def DeferredRender
 		})
 }
 
-func (s *ScrollContainer) ContentRect() img.Rectangle {
+func (s *ScrollContainer) ViewRect() img.Rectangle {
 	s.init.Do()
 	return s.padding.Apply(s.widget.Rect)
 }

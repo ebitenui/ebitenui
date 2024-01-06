@@ -379,7 +379,7 @@ func (l *List) createWidget() {
 
 	if !l.hideVerticalSlider {
 		pageSizeFunc := func() int {
-			return int(math.Round(float64(l.scrollContainer.ContentRect().Dy()) / float64(l.listContent.GetWidget().Rect.Dy()) * 1000))
+			return int(math.Round(float64(l.scrollContainer.ViewRect().Dy()) / float64(l.listContent.GetWidget().Rect.Dy()) * 1000))
 		}
 
 		l.vSlider = NewSlider(append(l.sliderOpts, []SliderOpt{
@@ -412,7 +412,7 @@ func (l *List) createWidget() {
 			SliderOpts.Direction(DirectionHorizontal),
 			SliderOpts.MinMax(0, 1000),
 			SliderOpts.PageSizeFunc(func() int {
-				return int(math.Round(float64(l.scrollContainer.ContentRect().Dx()) / float64(l.listContent.GetWidget().Rect.Dx()) * 1000))
+				return int(math.Round(float64(l.scrollContainer.ViewRect().Dx()) / float64(l.listContent.GetWidget().Rect.Dx()) * 1000))
 			}),
 			SliderOpts.ChangedHandler(func(args *SliderChangedEventArgs) {
 				l.scrollContainer.ScrollLeft = float64(args.Slider.Current) / 1000
@@ -563,7 +563,7 @@ func scrollClamp(scroll float64) float64 {
 }
 
 func (l *List) scrollVisible(w HasWidget) {
-	rect := l.scrollContainer.ContentRect()
+	rect := l.scrollContainer.ViewRect()
 	wrect := w.GetWidget().Rect
 	if !wrect.In(rect) {
 		scrollTop := 0.0
