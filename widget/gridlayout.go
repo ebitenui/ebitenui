@@ -198,11 +198,11 @@ func (g *GridLayout) stretchedCellSizes(colWidths []int, rowHeights []int, rect 
 }
 
 func (g *GridLayout) columnStretched(c int) bool {
-	return g.columnStretch != nil && g.columnStretch[c]
+	return g.columnStretch != nil && c < len(g.columnStretch) && g.columnStretch[c]
 }
 
 func (g *GridLayout) rowStretched(r int) bool {
-	return g.rowStretch != nil && g.rowStretch[r]
+	return g.rowStretch != nil && r < len(g.rowStretch) && g.rowStretch[r]
 }
 
 func (g *GridLayout) preferredColumnWidthsAndRowHeights(widgets []PreferredSizeLocateableWidget) ([]int, []int) {
