@@ -32,10 +32,14 @@ func init() {
 	p.Call("addEventListener", "input", js.FuncOf(handleInput), false)
 
 	//Get the canvas and attach an event listener for screen touches
-	canvas := document.Get("body").Call("getElementsByTagName", "canvas").Index(0)
-	offsetTop = canvas.Get("offsetTop").Int()
-	canvas.Call("addEventListener", "touchstart", js.FuncOf(handleClick), false)
-	canvas.Call("addEventListener", "touchend", js.FuncOf(handleClick), false)
+	requestAnimationFrame := js.Global().Get("requestAnimationFrame")
+	requestAnimationFrame.Invoke(js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		canvas := document.Get("body").Call("getElementsByTagName", "canvas").Index(0)
+		offsetTop = canvas.Get("offsetTop").Int()
+		canvas.Call("addEventListener", "touchstart", js.FuncOf(handleClick), false)
+		canvas.Call("addEventListener", "touchend", js.FuncOf(handleClick), false)
+		return nil
+	}))
 }
 
 func IsMobileBrowser() bool {
