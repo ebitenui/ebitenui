@@ -62,8 +62,10 @@ type ListEntryColor struct {
 	Selected                   color.Color
 	DisabledUnselected         color.Color
 	DisabledSelected           color.Color
+	SelectingBackground        color.Color
 	SelectedBackground         color.Color
 	FocusedBackground          color.Color
+	SelectingFocusedBackground color.Color
 	SelectedFocusedBackground  color.Color
 	DisabledSelectedBackground color.Color
 }
@@ -170,12 +172,14 @@ func (o ListOptions) EntryColor(c *ListEntryColor) ListOpt {
 			Idle:     image.NewNineSliceColor(color.Transparent),
 			Disabled: image.NewNineSliceColor(color.Transparent),
 			Hover:    image.NewNineSliceColor(c.FocusedBackground),
+			Pressed:  image.NewNineSliceColor(c.SelectingBackground),
 		}
 
 		l.entrySelectedColor = &ButtonImage{
 			Idle:     image.NewNineSliceColor(c.SelectedBackground),
 			Disabled: image.NewNineSliceColor(c.DisabledSelectedBackground),
 			Hover:    image.NewNineSliceColor(c.SelectedFocusedBackground),
+			Pressed:  image.NewNineSliceColor(c.SelectingFocusedBackground),
 		}
 
 		l.entryUnselectedTextColor = &ButtonTextColor{
