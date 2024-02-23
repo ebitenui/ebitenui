@@ -383,7 +383,7 @@ func (l *List) createWidget() {
 
 	if !l.hideVerticalSlider {
 		pageSizeFunc := func() int {
-			return int(math.Round(float64(l.scrollContainer.ContentRect().Dy()) / float64(l.listContent.GetWidget().Rect.Dy()) * 1000))
+			return int(math.Round(float64(l.scrollContainer.ViewRect().Dy()) / float64(l.listContent.GetWidget().Rect.Dy()) * 1000))
 		}
 
 		l.vSlider = NewSlider(append(l.sliderOpts, []SliderOpt{
@@ -416,7 +416,7 @@ func (l *List) createWidget() {
 			SliderOpts.Direction(DirectionHorizontal),
 			SliderOpts.MinMax(0, 1000),
 			SliderOpts.PageSizeFunc(func() int {
-				return int(math.Round(float64(l.scrollContainer.ContentRect().Dx()) / float64(l.listContent.GetWidget().Rect.Dx()) * 1000))
+				return int(math.Round(float64(l.scrollContainer.ViewRect().Dx()) / float64(l.listContent.GetWidget().Rect.Dx()) * 1000))
 			}),
 			SliderOpts.ChangedHandler(func(args *SliderChangedEventArgs) {
 				l.scrollContainer.ScrollLeft = float64(args.Slider.Current) / 1000
@@ -556,35 +556,35 @@ func (l *List) setScrollLeft(left float64) {
 	l.scrollContainer.ScrollLeft = left
 }
 
-func scrollClamp(scroll float64) float64 {
-	min, max := -0.1, 0.1
-	if scroll < min {
-		scroll = min
-	} else if scroll > max {
-		scroll = max
-	}
-	return scroll
-}
-
 func (l *List) scrollVisible(w HasWidget) {
-	rect := l.scrollContainer.ContentRect()
+	vrect := l.scrollContainer.ViewRect()
 	wrect := w.GetWidget().Rect
-	if !wrect.In(rect) {
-		ScrollTop := 0.0
-		ScrollLeft := 0.0
-		if wrect.Max.Y > rect.Max.Y {
-			ScrollTop = float64(wrect.Max.Y - rect.Max.Y)
-		} else if wrect.Min.Y < rect.Min.Y {
-			ScrollTop = float64(wrect.Min.Y - rect.Min.Y)
+	if !wrect.In(vrect) {
+		crect := l.scrollContainer.ContentRect()
+		scrollTop := l.scrollContainer.ScrollTop
+		scrollHeight := crect.Dy() - vrect.Dy()
+		if wrect.Max.Y > vrect.Max.Y {
+			scrollTop = float64(wrect.Max.Y-vrect.Dy() - crect.Min.Y) / float64(scrollHeight)
+		} else if wrect.Min.Y < vrect.Min.Y {
+			scrollTop = float64(wrect.Min.Y - crect.Min.Y) / float64(scrollHeight)
 		}
-		if wrect.Max.X > rect.Max.X {
-			ScrollLeft = float64(wrect.Max.X - rect.Max.X)
-		} else if wrect.Min.X < rect.Min.X {
-			ScrollLeft = -float64(wrect.Min.X - rect.Min.X)
+		scrollLeft := l.scrollContainer.ScrollLeft
+		scrollWidth := crect.Dx() - vrect.Dx()
+		if wrect.Max.X > vrect.Max.X {
+			scrollLeft = float64(wrect.Max.X-vrect.Dx() - crect.Min.X) / float64(scrollWidth)
+		} else if wrect.Min.X < vrect.Min.X {
+			scrollLeft = float64(wrect.Min.X - crect.Min.X) / float64(scrollWidth)
 		}
-		l.setScrollTop(l.scrollContainer.ScrollTop + scrollClamp(ScrollTop/1000))
-		l.setScrollLeft(l.scrollContainer.ScrollLeft + scrollClamp(ScrollLeft/1000))
-	} else if wrect != rect {
+		l.setScrollTop(scrollClamp(scrollTop, l.scrollContainer.ScrollTop))
+		l.setScrollLeft(scrollClamp(scrollLeft, l.scrollContainer.ScrollLeft))
+	} else if wrect != vrect {
 		l.prevFocusIndex = l.focusIndex
 	}
+}
+
+func scrollClamp(targetScroll, currentScroll float64) float64 {
+	const maxScrollStep = 0.1
+	minScroll := currentScroll - maxScrollStep
+	maxScroll := currentScroll + maxScrollStep
+	return math.Max(minScroll, math.Min(targetScroll, maxScroll))
 }

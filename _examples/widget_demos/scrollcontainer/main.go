@@ -103,7 +103,7 @@ func main() {
 
 	//Create a function to return the page size used by the slider
 	pageSizeFunc := func() int {
-		return int(math.Round(float64(scrollContainer.ContentRect().Dy()) / float64(content.GetWidget().Rect.Dy()) * 1000))
+		return int(math.Round(float64(scrollContainer.ViewRect().Dy()) / float64(content.GetWidget().Rect.Dy()) * 1000))
 	}
 	//Create a vertical Slider bar to control the ScrollableContainer
 	vSlider := widget.NewSlider(
