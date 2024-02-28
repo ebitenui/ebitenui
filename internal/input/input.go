@@ -4,7 +4,6 @@ import (
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 type DefaultInternalHandler struct {
@@ -26,7 +25,6 @@ type DefaultInternalHandler struct {
 
 	InputChars     []rune
 	KeyPressed     map[ebiten.Key]bool
-	KeyJustPressed map[ebiten.Key]bool
 	AnyKeyPressed  bool
 	isTouched      bool
 	cursorImages   map[string]*ebiten.Image
@@ -35,7 +33,6 @@ type DefaultInternalHandler struct {
 
 var InputHandler *DefaultInternalHandler = &DefaultInternalHandler{
 	KeyPressed:     make(map[ebiten.Key]bool),
-	KeyJustPressed: make(map[ebiten.Key]bool),
 	cursorImages:   make(map[string]*ebiten.Image),
 	cursorOffset:   make(map[string]image.Point)}
 
@@ -69,7 +66,6 @@ func (handler *DefaultInternalHandler) Update() {
 	for k := ebiten.Key(0); k <= ebiten.KeyMax; k++ {
 		p := ebiten.IsKeyPressed(k)
 		handler.KeyPressed[k] = p
-		handler.KeyJustPressed[k] = inpututil.IsKeyJustPressed(k)
 		if p {
 			handler.AnyKeyPressed = true
 		}
