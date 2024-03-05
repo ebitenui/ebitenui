@@ -250,12 +250,8 @@ func (u *UI) render(screen *ebiten.Image) {
 	widget.RenderWithDeferred(screen, u.renderers)
 }
 
-// AddWindow adds window w to u for rendering. It returns a function to remove w from u.
+// AddWindow adds window w to ui for rendering. It returns a function to remove w from ui.
 func (u *UI) AddWindow(w *widget.Window) widget.RemoveWindowFunc {
-	closeFunc := func() {
-		u.removeWindow(w)
-	}
-
 	if u.addWindow(w) {
 		w.GetContainer().GetWidget().ContextMenuEvent.AddHandler(u.handleContextMenu)
 		w.GetContainer().GetWidget().FocusEvent.AddHandler(u.handleFocusEvent)
@@ -265,22 +261,27 @@ func (u *UI) AddWindow(w *widget.Window) widget.RemoveWindowFunc {
 		if w.Modal && u.focusedWidget != nil {
 			u.focusedWidget.(widget.Focuser).Focus(false)
 		}
-
-		w.SetCloseFunction(closeFunc)
 	}
 
-	return closeFunc
+	return w.GetCloseFunction()
 }
 
 func (u *UI) addWindow(w *widget.Window) bool {
 	if u.IsWindowOpen(w) {
 		return false
 	}
+
+	closeFunc := func() {
+		u.removeWindow(w)
+	}
+	w.SetCloseFunction(closeFunc)
+
 	u.windows = append(u.windows, w)
 
 	sort.SliceStable(u.windows, func(i, j int) bool {
 		return u.windows[i].DrawLayer < u.windows[j].DrawLayer
 	})
+
 	return true
 }
 

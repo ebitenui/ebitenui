@@ -291,6 +291,11 @@ func (w *Window) SetCloseFunction(close RemoveWindowFunc) {
 	w.closeFunc = close
 }
 
+// Typically used internally.
+func (w *Window) GetCloseFunction() RemoveWindowFunc {
+	return w.closeFunc
+}
+
 // Typically used internally
 func (w *Window) RequestRelayout() {
 	w.container.RequestRelayout()
