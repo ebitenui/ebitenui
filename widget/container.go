@@ -127,12 +127,36 @@ func (c *Container) RemoveChild(child PreferredSizeLocateableWidget) {
 
 	child.GetWidget().parent = nil
 
+	if child.GetWidget().ToolTip != nil && child.GetWidget().ToolTip.window != nil {
+		child.GetWidget().ToolTip.window.Close()
+	}
+
+	if child.GetWidget().DragAndDrop != nil && child.GetWidget().DragAndDrop.window != nil {
+		child.GetWidget().DragAndDrop.window.Close()
+	}
+
+	if child.GetWidget().ContextMenuWindow != nil {
+		child.GetWidget().ContextMenuWindow.Close()
+	}
 	c.RequestRelayout()
 }
 
 func (c *Container) RemoveChildren() {
 	for i := range c.children {
-		c.children[i].GetWidget().parent = nil
+		childWidget := c.children[i].GetWidget()
+		childWidget.parent = nil
+
+		if childWidget.ToolTip != nil && childWidget.ToolTip.window != nil {
+			childWidget.ToolTip.window.Close()
+		}
+
+		if childWidget.DragAndDrop != nil && childWidget.DragAndDrop.window != nil {
+			childWidget.DragAndDrop.window.Close()
+		}
+
+		if childWidget.ContextMenuWindow != nil {
+			childWidget.ContextMenuWindow.Close()
+		}
 	}
 	c.children = nil
 
