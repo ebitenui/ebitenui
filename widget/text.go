@@ -92,10 +92,31 @@ func (o TextOptions) WidgetOpts(opts ...WidgetOpt) TextOpt {
 	}
 }
 
+// Text combines three options: TextLabel, TextFace and TextColor.
+// It can be used for the inline configurations of Text object while
+// separate functions are useful for a multi-step configuration.
 func (o TextOptions) Text(label string, face font.Face, color color.Color) TextOpt {
 	return func(t *Text) {
 		t.Label = label
 		t.Face = face
+		t.Color = color
+	}
+}
+
+func (o TextOptions) TextLabel(label string) TextOpt {
+	return func(t *Text) {
+		t.Label = label
+	}
+}
+
+func (o TextOptions) TextFace(face font.Face) TextOpt {
+	return func(t *Text) {
+		t.Face = face
+	}
+}
+
+func (o TextOptions) TextColor(color color.Color) TextOpt {
+	return func(t *Text) {
 		t.Color = color
 	}
 }
