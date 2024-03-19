@@ -2,7 +2,9 @@ package input
 
 import (
 	"image"
+	"runtime"
 
+	"github.com/ebitenui/ebitenui/internal/jsUtil"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -29,12 +31,26 @@ type DefaultInternalHandler struct {
 	isTouched      bool
 	cursorImages   map[string]*ebiten.Image
 	cursorOffset   map[string]image.Point
+
+	touchscreenPlatform bool
 }
 
 var InputHandler *DefaultInternalHandler = &DefaultInternalHandler{
+	// A touchscreenPlatform is defined as a device that doesn't have a mouse pointer,
+	// but has a touchscreen input instead.
+	// For native builds, there are Android and IOS; Ebitengine defines a mobile platform
+	// as these two build tags (they will always return {0,0} from ebiten.CursorPosition).
+	// Then we add web builds that are running on a mobile browser.
+	//
+	// TODO: maybe move this platform-detection code to somewhere else?
+	// There should be a context-like object that would infer the preferred platform
+	// input options.
+	touchscreenPlatform: jsUtil.IsMobileBrowser() || runtime.GOOS == "android" || runtime.GOOS == "ios",
+
 	KeyPressed:     make(map[ebiten.Key]bool),
 	cursorImages:   make(map[string]*ebiten.Image),
-	cursorOffset:   make(map[string]image.Point)}
+	cursorOffset:   make(map[string]image.Point),
+}
 
 // Update updates the input system. This is called by the UI.
 func (handler *DefaultInternalHandler) Update() {
@@ -50,7 +66,14 @@ func (handler *DefaultInternalHandler) Update() {
 			handler.LeftMouseButtonPressed = false
 			handler.isTouched = false
 		}
-	} else {
+	} else if !handler.touchscreenPlatform {
+		// Only execute this branch on non-mobile platforms.
+		// This is a workaround to keep the touch position intact,
+		// as ebiten.CursorPosition() would set it to (0, 0).
+		//
+		// TODO: maybe get rid of this special condition when fireEvents are
+		// moved to the Update() tree.
+		// See issue #100.
 		handler.LeftMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft)
 		handler.MiddleMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonMiddle)
 		handler.RightMouseButtonPressed = ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight)
