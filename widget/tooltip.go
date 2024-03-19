@@ -179,7 +179,6 @@ func (o ToolTipOptions) ToolTipUpdater(toolTipUpdater ToolTipUpdater) ToolTipOpt
 }
 
 func (t *ToolTip) Render(parent *Widget, screen *ebiten.Image, def DeferredRenderFunc) {
-
 	newState := t.state(parent)
 	if newState != nil {
 		t.state = newState
@@ -199,6 +198,9 @@ func (t *ToolTip) idleState() toolTipState {
 		x, y := input.CursorPosition()
 		p := image.Point{x, y}
 		if !p.In(parent.Rect) {
+			return nil
+		}
+		if !parent.EffectiveInputLayer().ActiveFor(x, y, input.LayerEventTypeAny) {
 			return nil
 		}
 

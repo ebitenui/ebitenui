@@ -306,7 +306,7 @@ func (w *Window) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 	w.container.GetWidget().ElevateToNewInputLayer(&input.Layer{
 		DebugLabel: "window",
 		EventTypes: input.LayerEventTypeAll,
-		BlockLower: true,
+		BlockLower: !w.Ephemeral,
 		FullScreen: w.Modal,
 		RectFunc: func() image.Rectangle {
 			return w.container.GetWidget().Rect
