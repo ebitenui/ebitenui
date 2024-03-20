@@ -200,8 +200,16 @@ func (t *Text) draw(screen *ebiten.Image) {
 		if ly > screen.Bounds().Max.Y+int(math.Round(t.measurements.ascent)) {
 			return
 		}
-		if ly < - int(math.Round(t.measurements.lineHeight-t.measurements.ascent)) {
+		if ly < -int(math.Round(t.measurements.lineHeight-t.measurements.ascent)) {
 			continue
+		}
+		if t.widget.parent != nil {
+			if ly < t.widget.parent.Rect.Min.Y {
+				continue
+			}
+			if ly-int(math.Round(t.measurements.lineHeight)) > t.widget.parent.Rect.Max.Y {
+				return
+			}
 		}
 
 		lx := p.X

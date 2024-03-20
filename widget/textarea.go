@@ -258,6 +258,7 @@ func (l *TextArea) createWidget() {
 		TextOpts.ProcessBBCode(l.processBBCode),
 	)
 	content.AddChild(l.text)
+	l.text.widget.parent = l.container.GetWidget()
 
 	l.scrollContainer = NewScrollContainer(append(l.scrollContainerOpts, []ScrollContainerOpt{
 		ScrollContainerOpts.Content(content),
