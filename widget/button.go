@@ -38,6 +38,8 @@ type Button struct {
 	container *Container
 	graphic   *Graphic
 	text      *Text
+	textLabel string
+	textFace  font.Face
 	hovering  bool
 	pressing  bool
 	state     WidgetState
@@ -142,26 +144,32 @@ func (o ButtonOptions) Image(i *ButtonImage) ButtonOpt {
 	}
 }
 
+// Text combines three options: TextLabel, TextFace and TextColor.
+// It can be used for the inline configurations of Text object while
+// separate functions are useful for a multi-step configuration.
 func (o ButtonOptions) Text(label string, face font.Face, color *ButtonTextColor) ButtonOpt {
 	return func(b *Button) {
-		b.init.Append(func() {
-			b.container = NewContainer(
-				ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(b.textPadding))),
-				ContainerOpts.AutoDisableChildren(),
-			)
+		b.textLabel = label
+		b.textFace = face
+		b.TextColor = color
+	}
+}
 
-			b.text = NewText(
-				TextOpts.WidgetOpts(WidgetOpts.LayoutData(AnchorLayoutData{
-					HorizontalPosition: AnchorLayoutPosition(b.hTextPosition),
-					VerticalPosition:   AnchorLayoutPosition(b.vTextPosition),
-				})),
-				TextOpts.Text(label, face, color.Idle),
-			)
-			b.container.AddChild(b.text)
+func (o ButtonOptions) TextLabel(label string) ButtonOpt {
+	return func(b *Button) {
+		b.textLabel = label
+	}
+}
 
-			b.autoUpdateTextAndGraphic = true
-			b.TextColor = color
-		})
+func (o ButtonOptions) TextFace(face font.Face) ButtonOpt {
+	return func(b *Button) {
+		b.textFace = face
+	}
+}
+
+func (o ButtonOptions) TextColor(color *ButtonTextColor) ButtonOpt {
+	return func(b *Button) {
+		b.TextColor = color
 	}
 }
 
@@ -519,6 +527,32 @@ func (b *Button) Text() *Text {
 	return b.text
 }
 
+func (b *Button) initText() {
+	if b.TextColor == nil {
+		return // Nothing to do
+	}
+
+	// We're expecting all 3 options to be present: label, font face and color.
+	// TODO: add some sort of the error checking/reporting here.
+	// Even if users use a Text() 3-in-one API, they can pass nil or something.
+
+	b.container = NewContainer(
+		ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(b.textPadding))),
+		ContainerOpts.AutoDisableChildren(),
+	)
+
+	b.text = NewText(
+		TextOpts.WidgetOpts(WidgetOpts.LayoutData(AnchorLayoutData{
+			HorizontalPosition: AnchorLayoutPosition(b.hTextPosition),
+			VerticalPosition:   AnchorLayoutPosition(b.vTextPosition),
+		})),
+		TextOpts.Text(b.textLabel, b.textFace, b.TextColor.Idle),
+	)
+	b.container.AddChild(b.text)
+
+	b.autoUpdateTextAndGraphic = true
+}
+
 func (b *Button) createWidget() {
 	b.widget = NewWidget(append(b.widgetOpts, []WidgetOpt{
 		WidgetOpts.CursorEnterHandler(func(_ *WidgetCursorEnterEventArgs) {
@@ -582,4 +616,6 @@ func (b *Button) createWidget() {
 		}),
 	}...)...)
 	b.widgetOpts = nil
+
+	b.initText()
 }
