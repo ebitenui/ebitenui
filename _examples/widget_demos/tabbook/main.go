@@ -9,16 +9,23 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/gofont/goregular"
 )
 
 // Game object used by ebiten
 type game struct {
-	ui *ebitenui.UI
+	UI       ebitenui.UI
+	TabRed   *widget.TabBookTab
+	TabGreen *widget.TabBookTab
+	TabBlue  *widget.TabBookTab
+	TabBook  *widget.TabBook
 }
 
 func main() {
+	game := game{}
+
 	// load images for button states: idle, hover, and pressed
 	buttonImage, _ := loadButtonImage()
 
@@ -36,35 +43,35 @@ func main() {
 
 	// Create the first tab
 	// A TabBookTab is a labelled container. The text here is what will show up in the tab button
-	tabRed := widget.NewTabBookTab("Red Tab",
+	game.TabRed = widget.NewTabBookTab("Red Tab",
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{255, 0, 0, 255})),
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 
 	redBtn := widget.NewText(
-		widget.TextOpts.Text("Red Tab Button", face, color.White),
+		widget.TextOpts.Text("Red Tab Button\nPress 'R' to select this tab.", face, color.White),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			HorizontalPosition: widget.AnchorLayoutPositionCenter,
 			VerticalPosition:   widget.AnchorLayoutPositionCenter,
 		})),
 	)
-	tabRed.AddChild(redBtn)
+	game.TabRed.AddChild(redBtn)
 
-	tabGreen := widget.NewTabBookTab("Green Tab",
+	game.TabGreen = widget.NewTabBookTab("Green Tab",
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0, 255, 0, 0xff})),
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 	greenBtn := widget.NewText(
-		widget.TextOpts.Text("Green Tab Button\nThis is configured as the initial tab.", face, color.Black),
+		widget.TextOpts.Text("Green Tab Button\nThis is configured as the initial tab.\nPress 'G' to select this tab.", face, color.Black),
 		widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			HorizontalPosition: widget.AnchorLayoutPositionCenter,
 			VerticalPosition:   widget.AnchorLayoutPositionCenter,
 		})),
 	)
-	tabGreen.AddChild(greenBtn)
+	game.TabGreen.AddChild(greenBtn)
 
-	tabBlue := widget.NewTabBookTab("Blue Tab",
+	game.TabBlue = widget.NewTabBookTab("Blue Tab",
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0, 0, 255, 0xff})),
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
@@ -77,21 +84,21 @@ func main() {
 			Position: widget.RowLayoutPositionCenter,
 		})),
 	)
-	tabBlue.AddChild(blueBtn1)
+	game.TabBlue.AddChild(blueBtn1)
 	blueBtn2 := widget.NewText(
-		widget.TextOpts.Text("Blue Tab Button 2", face, color.White),
+		widget.TextOpts.Text("Press 'B' to select this tab.", face, color.White),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Position: widget.RowLayoutPositionCenter,
 		})),
 	)
-	tabBlue.AddChild(blueBtn2)
+	game.TabBlue.AddChild(blueBtn2)
 
 	tabDisabled := widget.NewTabBookTab("Disabled Tab",
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{R: 80, G: 80, B: 140, A: 255})),
 	)
 	tabDisabled.Disabled = true
 
-	tabBook := widget.NewTabBook(
+	game.TabBook = widget.NewTabBook(
 		widget.TabBookOpts.TabButtonImage(buttonImage),
 		widget.TabBookOpts.TabButtonText(face, &widget.ButtonTextColor{Idle: color.White, Disabled: color.White}),
 		widget.TabBookOpts.TabButtonSpacing(0),
@@ -108,24 +115,20 @@ func main() {
 			widget.ButtonOpts.TextPadding(widget.NewInsetsSimple(5)),
 			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.MinSize(98, 0)),
 		),
-		widget.TabBookOpts.Tabs(tabDisabled, tabRed, tabGreen, tabBlue),
+		widget.TabBookOpts.Tabs(tabDisabled, game.TabRed, game.TabGreen, game.TabBlue),
 	//	widget.TabBookOpts.InitialTab(tabGreen),
 	)
 	// add the tabBook as a child of the container
-	rootContainer.AddChild(tabBook)
+	rootContainer.AddChild(game.TabBook)
 
 	// construct the UI
-	ui := ebitenui.UI{
+	game.UI = ebitenui.UI{
 		Container: rootContainer,
 	}
 
 	// Ebiten setup
 	ebiten.SetWindowSize(400, 400)
 	ebiten.SetWindowTitle("Ebiten UI - Tabbook")
-
-	game := game{
-		ui: &ui,
-	}
 
 	// run Ebiten main loop
 	err := ebiten.RunGame(&game)
@@ -142,14 +145,23 @@ func (g *game) Layout(outsideWidth int, outsideHeight int) (int, int) {
 // Update implements Game.
 func (g *game) Update() error {
 	// update the UI
-	g.ui.Update()
+	g.UI.Update()
+	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
+		g.TabBook.SetTab(g.TabRed)
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyG) {
+		g.TabBook.SetTab(g.TabGreen)
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyB) {
+		g.TabBook.SetTab(g.TabBlue)
+	}
 	return nil
 }
 
 // Draw implements Ebiten's Draw method.
 func (g *game) Draw(screen *ebiten.Image) {
 	// draw the UI onto the screen
-	g.ui.Draw(screen)
+	g.UI.Draw(screen)
 }
 
 func loadButtonImage() (*widget.ButtonImage, error) {
