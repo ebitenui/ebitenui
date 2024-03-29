@@ -9,13 +9,15 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/gofont/goregular"
 )
 
 // Game object used by ebiten
 type game struct {
-	ui *ebitenui.UI
+	ui  *ebitenui.UI
+	btn *widget.Button
 }
 
 func main() {
@@ -65,6 +67,9 @@ func main() {
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			println("button clicked")
 		}),
+
+		// Indicate that this button should not be submitted when enter or space are pressed
+		// widget.ButtonOpts.DisableDefaultKeys(),
 	)
 
 	// add the button as a child of the container
@@ -80,7 +85,8 @@ func main() {
 	ebiten.SetWindowTitle("Ebiten UI - Buttons")
 
 	game := game{
-		ui: &ui,
+		ui:  &ui,
+		btn: button,
 	}
 
 	// run Ebiten main loop
@@ -99,6 +105,17 @@ func (g *game) Layout(outsideWidth int, outsideHeight int) (int, int) {
 func (g *game) Update() error {
 	// update the UI
 	g.ui.Update()
+	if inpututil.IsKeyJustPressed(ebiten.KeyB) {
+		g.btn.Submit()
+	}
+
+	//Test that you can call Submit on the focused widget.
+	if inpututil.IsKeyJustPressed(ebiten.KeyF) {
+		if btn, ok := g.ui.GetFocusedWidget().(*widget.Button); ok {
+			btn.Submit()
+		}
+	}
+
 	return nil
 }
 

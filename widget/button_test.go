@@ -52,6 +52,22 @@ func TestButton_ClickedEvent_User(t *testing.T) {
 	is.True(eventArgs != nil)
 }
 
+func TestButton_Submit(t *testing.T) {
+	is := is.New(t)
+
+	var eventArgs *ButtonClickedEventArgs
+
+	b := newButton(t,
+		ButtonOpts.ClickedHandler(func(args *ButtonClickedEventArgs) {
+			eventArgs = args
+		}))
+
+	b.Submit()
+	event.ExecuteDeferred()
+
+	is.True(eventArgs != nil)
+}
+
 func newButton(t *testing.T, opts ...ButtonOpt) *Button {
 	t.Helper()
 
