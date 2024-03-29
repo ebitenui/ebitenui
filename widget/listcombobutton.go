@@ -22,6 +22,7 @@ type ListComboButton struct {
 
 	tabOrder           int
 	disableDefaultKeys bool
+	focusMap           map[FocusDirection]Focuser
 }
 
 type ListComboButtonOpt func(l *ListComboButton)
@@ -43,7 +44,8 @@ func NewListComboButton(opts ...ListComboButtonOpt) *ListComboButton {
 	l := &ListComboButton{
 		EntrySelectedEvent: &event.Event{},
 
-		init: &MultiOnce{},
+		init:     &MultiOnce{},
+		focusMap: make(map[FocusDirection]Focuser),
 	}
 
 	l.init.Append(l.createWidget)
@@ -97,6 +99,9 @@ func (o ListComboButtonOptions) DisableDefaultKeys(val bool) ListComboButtonOpt 
 		sl.disableDefaultKeys = val
 	}
 }
+
+/** Focuser Interface - Start **/
+
 func (l *ListComboButton) Focus(focused bool) {
 	l.init.Do()
 	l.GetWidget().FireFocusEvent(l, focused, image.Point{-1, -1})
@@ -113,6 +118,16 @@ func (l *ListComboButton) IsFocused() bool {
 func (l *ListComboButton) TabOrder() int {
 	return l.tabOrder
 }
+
+func (l *ListComboButton) GetFocus(direction FocusDirection) Focuser {
+	return l.focusMap[direction]
+}
+
+func (l *ListComboButton) AddFocus(direction FocusDirection, focus Focuser) {
+	l.focusMap[direction] = focus
+}
+
+/** Focuser Interface - End **/
 
 func (l *ListComboButton) FocusNext() {
 	l.SetContentVisible(true)

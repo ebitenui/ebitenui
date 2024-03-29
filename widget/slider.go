@@ -44,6 +44,7 @@ type Slider struct {
 
 	tabOrder  int
 	justMoved bool
+	focusMap  map[FocusDirection]Focuser
 }
 
 type SliderTrackImage struct {
@@ -85,7 +86,8 @@ func NewSlider(opts ...SliderOpt) *Slider {
 
 		lastCurrent: 1,
 
-		init: &MultiOnce{},
+		init:     &MultiOnce{},
+		focusMap: make(map[FocusDirection]Focuser),
 	}
 
 	s.init.Append(s.createWidget)
@@ -172,6 +174,8 @@ func (o SliderOptions) DisableDefaultKeys(val bool) SliderOpt {
 	}
 }
 
+/** Focuser Interface - Start **/
+
 func (s *Slider) Focus(focused bool) {
 	s.init.Do()
 	s.GetWidget().FireFocusEvent(s, focused, img.Point{-1, -1})
@@ -185,6 +189,16 @@ func (s *Slider) IsFocused() bool {
 func (s *Slider) TabOrder() int {
 	return s.tabOrder
 }
+
+func (s *Slider) GetFocus(direction FocusDirection) Focuser {
+	return s.focusMap[direction]
+}
+
+func (s *Slider) AddFocus(direction FocusDirection, focus Focuser) {
+	s.focusMap[direction] = focus
+}
+
+/** Focuser Interface - End **/
 
 func (s *Slider) GetWidget() *Widget {
 	s.init.Do()
