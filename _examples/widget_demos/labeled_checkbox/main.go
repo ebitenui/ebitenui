@@ -10,16 +10,19 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/gofont/goregular"
 )
 
 // Game object used by ebiten
 type game struct {
-	ui *ebitenui.UI
+	ui               *ebitenui.UI
+	labeledCheckBox1 *widget.LabeledCheckbox
 }
 
 func main() {
+	g := game{}
 	// load images for button states: idle, hover, and pressed
 	buttonImage, _ := loadButtonImage()
 
@@ -47,37 +50,40 @@ func main() {
 	checkedImage := ebiten.NewImage(20, 20)
 	checkedImage.Fill(color.NRGBA{255, 255, 0, 255})
 
-	labeledCheckBox1 := widget.NewLabeledCheckbox(
-		//Set the labeled checkbox's position
+	g.labeledCheckBox1 = widget.NewLabeledCheckbox(
+		// Set the labeled checkbox's position
 		widget.LabeledCheckboxOpts.WidgetOpts(
-			//Set the location of the checkbox
+			// Set the location of the checkbox
 			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Position: widget.RowLayoutPositionCenter,
 				Stretch:  false,
 			}),
 		),
-		//Set the checkbox Opts
+		// Set the checkbox Opts
 		widget.LabeledCheckboxOpts.CheckboxOpts(
 			widget.CheckboxOpts.ButtonOpts(
 				widget.ButtonOpts.WidgetOpts(
 					//Set the minimum size of the checkbox
 					widget.WidgetOpts.MinSize(30, 30),
 				),
-				//Set the background images - idle, hover, pressed
+				// Set the background images - idle, hover, pressed
 				widget.ButtonOpts.Image(buttonImage),
+
+				// This disables space and enter triggering the checkbox
+				// widget.ButtonOpts.DisableDefaultKeys(),
 			),
-			//Set the check object images
+			// Set the check object images
 			widget.CheckboxOpts.Image(&widget.CheckboxGraphicImage{
-				//When the checkbox is unchecked
+				// When the checkbox is unchecked
 				Unchecked: &widget.ButtonImageImage{
 					Idle: uncheckedImage,
 				},
-				//When the checkbox is checked
+				// When the checkbox is checked
 				Checked: &widget.ButtonImageImage{
 					Idle: checkedImage,
 				},
 			}),
-			//Set the state change handler
+			// Set the state change handler
 			widget.CheckboxOpts.StateChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
 				if args.State == widget.WidgetChecked {
 					fmt.Println("Checkbox1 is Checked")
@@ -86,49 +92,49 @@ func main() {
 				}
 			}),
 		),
-		//Set the label
+		// Set the label
 		widget.LabeledCheckboxOpts.LabelOpts(widget.LabelOpts.Text("Labeled Checkbox1", face, &widget.LabelColor{
 			Idle:     color.White,
 			Disabled: color.White,
 		})),
-		//Set the spacing between the label and the checkbox
+		// Set the spacing between the label and the checkbox
 		widget.LabeledCheckboxOpts.Spacing(15),
-		//Set the label to be before the checkbox.
-		//widget.LabeledCheckboxOpts.LabelFirst(),
+		// Set the label to be before the checkbox.
+		// widget.LabeledCheckboxOpts.LabelFirst(),
 	)
-	rootContainer.AddChild(labeledCheckBox1)
+	rootContainer.AddChild(g.labeledCheckBox1)
 
 	labeledCheckBox2 := widget.NewLabeledCheckbox(
-		//Set the labeled checkbox's position
+		// Set the labeled checkbox's position
 		widget.LabeledCheckboxOpts.WidgetOpts(
-			//Set the location of the checkbox
+			// Set the location of the checkbox
 			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Position: widget.RowLayoutPositionCenter,
 				Stretch:  false,
 			}),
 		),
-		//Set the checkbox Opts
+		// Set the checkbox Opts
 		widget.LabeledCheckboxOpts.CheckboxOpts(
 			widget.CheckboxOpts.ButtonOpts(
 				widget.ButtonOpts.WidgetOpts(
-					//Set the minimum size of the checkbox
+					// Set the minimum size of the checkbox
 					widget.WidgetOpts.MinSize(30, 30),
 				),
-				//Set the background images - idle, hover, pressed
+				// Set the background images - idle, hover, pressed
 				widget.ButtonOpts.Image(buttonImage),
 			),
-			//Set the check object images
+			// Set the check object images
 			widget.CheckboxOpts.Image(&widget.CheckboxGraphicImage{
-				//When the checkbox is unchecked
+				// When the checkbox is unchecked
 				Unchecked: &widget.ButtonImageImage{
 					Idle: uncheckedImage,
 				},
-				//When the checkbox is checked
+				// When the checkbox is checked
 				Checked: &widget.ButtonImageImage{
 					Idle: checkedImage,
 				},
 			}),
-			//Set the state change handler
+			// Set the state change handler
 			widget.CheckboxOpts.StateChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
 				if args.State == widget.WidgetChecked {
 					fmt.Println("Checkbox2 is Checked")
@@ -137,17 +143,17 @@ func main() {
 				}
 			}),
 		),
-		//Set the label
+		// Set the label
 		widget.LabeledCheckboxOpts.LabelOpts(widget.LabelOpts.Text("Labeled Checkbox2", face, &widget.LabelColor{
 			Idle:     color.White,
 			Disabled: color.White,
 		})),
-		//Set the spacing between the label and the checkbox
+		// Set the spacing between the label and the checkbox
 		widget.LabeledCheckboxOpts.Spacing(15),
-		//Set the label to be before the checkbox.
+		// Set the label to be before the checkbox.
 		widget.LabeledCheckboxOpts.LabelFirst(),
 	)
-	//Set this checkbox as Checked by default
+	// Set this checkbox as Checked by default
 	labeledCheckBox2.SetState(widget.WidgetChecked)
 
 	rootContainer.AddChild(labeledCheckBox2)
@@ -160,12 +166,10 @@ func main() {
 	ebiten.SetWindowSize(400, 400)
 	ebiten.SetWindowTitle("Ebiten UI - Labeled  Checkbox")
 
-	game := game{
-		ui: &ui,
-	}
+	g.ui = &ui
 
 	// run Ebiten main loop
-	err := ebiten.RunGame(&game)
+	err := ebiten.RunGame(&g)
 	if err != nil {
 		log.Println(err)
 	}
@@ -180,6 +184,11 @@ func (g *game) Layout(outsideWidth int, outsideHeight int) (int, int) {
 func (g *game) Update() error {
 	// update the UI
 	g.ui.Update()
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyC) {
+		g.labeledCheckBox1.Click()
+	}
+
 	return nil
 }
 

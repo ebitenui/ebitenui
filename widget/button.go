@@ -508,7 +508,9 @@ func (b *Button) draw(screen *ebiten.Image) {
 	}
 }
 
-func (b *Button) Submit() {
+func (b *Button) Click() {
+	b.init.Do()
+
 	b.justSubmitted = true
 	b.ClickedEvent.Fire(&ButtonClickedEventArgs{
 		Button: b,
@@ -529,7 +531,7 @@ func (b *Button) Submit() {
 func (b *Button) handleSubmit() {
 	if input.KeyPressed(ebiten.KeyEnter) || input.KeyPressed(ebiten.KeySpace) {
 		if !b.justSubmitted && b.focused {
-			b.Submit()
+			b.Click()
 		}
 	} else {
 		b.justSubmitted = false

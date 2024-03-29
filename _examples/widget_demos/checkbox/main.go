@@ -8,23 +8,23 @@ import (
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
-	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
-	"golang.org/x/image/font"
-	"golang.org/x/image/font/gofont/goregular"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 // Game object used by ebiten
 type game struct {
-	ui *ebitenui.UI
+	ui       *ebitenui.UI
+	checkBox *widget.Checkbox
 }
 
 func main() {
+	game := game{}
 	// load images for button states: idle, hover, and pressed
 	buttonImage, _ := loadButtonImage()
 
 	// load button text font
-	//face, _ := loadFont(20)
+	// face, _ := loadFont(20)
 
 	// construct a new container that serves as the root of the UI hierarchy
 	rootContainer := widget.NewContainer(
@@ -41,32 +41,35 @@ func main() {
 	checkedImage := ebiten.NewImage(20, 20)
 	checkedImage.Fill(color.NRGBA{255, 255, 0, 255})
 
-	checkBox := widget.NewCheckbox(
+	game.checkBox = widget.NewCheckbox(
 		widget.CheckboxOpts.ButtonOpts(
 			widget.ButtonOpts.WidgetOpts(
-				//Set the location of the checkbox
+				// Set the location of the checkbox
 				widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 					HorizontalPosition: widget.AnchorLayoutPositionCenter,
 					VerticalPosition:   widget.AnchorLayoutPositionCenter,
 				}),
-				//Set the minimum size of the checkbox
+				// Set the minimum size of the checkbox
 				widget.WidgetOpts.MinSize(30, 30),
 			),
-			//Set the background images - idle, hover, pressed
+			// Set the background images - idle, hover, pressed
 			widget.ButtonOpts.Image(buttonImage),
+
+			// This disables space and enter triggering the checkbox
+			// widget.ButtonOpts.DisableDefaultKeys(),
 		),
-		//Set the check object images
+		// Set the check object images
 		widget.CheckboxOpts.Image(&widget.CheckboxGraphicImage{
-			//When the checkbox is unchecked
+			// When the checkbox is unchecked
 			Unchecked: &widget.ButtonImageImage{
 				Idle: uncheckedImage,
 			},
-			//When the checkbox is checked
+			// When the checkbox is checked
 			Checked: &widget.ButtonImageImage{
 				Idle: checkedImage,
 			},
 		}),
-		//Set the state change handler
+		// Set the state change handler
 		widget.CheckboxOpts.StateChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
 			if args.State == widget.WidgetChecked {
 				fmt.Println("Checkbox is Checked")
@@ -75,20 +78,17 @@ func main() {
 			}
 		}),
 	)
-	rootContainer.AddChild(checkBox)
+
+	rootContainer.AddChild(game.checkBox)
 
 	// construct the UI
-	ui := ebitenui.UI{
+	game.ui = &ebitenui.UI{
 		Container: rootContainer,
 	}
 
 	// Ebiten setup
 	ebiten.SetWindowSize(400, 400)
 	ebiten.SetWindowTitle("Ebiten UI - Checkbox")
-
-	game := game{
-		ui: &ui,
-	}
 
 	// run Ebiten main loop
 	err := ebiten.RunGame(&game)
@@ -106,6 +106,10 @@ func (g *game) Layout(outsideWidth int, outsideHeight int) (int, int) {
 func (g *game) Update() error {
 	// update the UI
 	g.ui.Update()
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyC) {
+		g.checkBox.Click()
+	}
 	return nil
 }
 
@@ -127,17 +131,4 @@ func loadButtonImage() (*widget.ButtonImage, error) {
 		Hover:   hover,
 		Pressed: pressed,
 	}, nil
-}
-
-func loadFont(size float64) (font.Face, error) {
-	ttfFont, err := truetype.Parse(goregular.TTF)
-	if err != nil {
-		return nil, err
-	}
-
-	return truetype.NewFace(ttfFont, &truetype.Options{
-		Size:    size,
-		DPI:     72,
-		Hinting: font.HintingFull,
-	}), nil
 }

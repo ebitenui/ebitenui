@@ -34,7 +34,7 @@ type List struct {
 	hideHorizontalSlider        bool
 	hideVerticalSlider          bool
 	allowReselect               bool
-	selectFocus               bool
+	selectFocus                 bool
 
 	init            *MultiOnce
 	container       *Container
@@ -273,13 +273,16 @@ func (l *List) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	}
 	l.scrollContainer.GetWidget().Disabled = d
 
-	l.handleInput()
 	if l.focusIndex != l.prevFocusIndex && l.focusIndex >= 0 && l.focusIndex < len(l.buttons) {
 		l.scrollVisible(l.buttons[l.focusIndex])
-		if l.selectFocus {
-			l.setSelectedEntry(l.entries[l.focusIndex], false)
-		}
 	}
+
+	l.handleInput()
+
+	if l.selectFocus {
+		l.SelectFocused()
+	}
+
 	l.container.Render(screen, def)
 }
 
@@ -299,30 +302,61 @@ func (l *List) TabOrder() int {
 
 func (l *List) handleInput() {
 	if l.focused && !l.GetWidget().Disabled && len(l.buttons) > 0 {
-		if input.KeyPressed(ebiten.KeyUp) || input.KeyPressed(ebiten.KeyDown) {
+		if !l.disableDefaultKeys && (input.KeyPressed(ebiten.KeyUp) || input.KeyPressed(ebiten.KeyDown)) {
 			if !l.justMoved {
-				direction := -1
 				if input.KeyPressed(ebiten.KeyDown) {
-					direction = 1
+					l.FocusNext()
+				} else {
+					l.FocusPrevious()
 				}
-				l.buttons[l.focusIndex].focused = false
-				l.prevFocusIndex = l.focusIndex
-				l.focusIndex += direction
-				if l.focusIndex < 0 {
-					l.focusIndex = len(l.buttons) - 1
-				}
-				if l.focusIndex >= len(l.buttons) {
-					l.focusIndex = 0
-				}
-				l.justMoved = true
 			}
 		} else {
 			l.justMoved = false
 		}
-
 		l.buttons[l.focusIndex].focused = true
 	} else if len(l.buttons) > 0 && l.focusIndex <= len(l.buttons) {
 		l.buttons[l.focusIndex].focused = false
+	}
+}
+
+func (l *List) FocusNext() {
+	if len(l.buttons) > 0 {
+		direction := 1
+		l.buttons[l.focusIndex].focused = false
+		l.prevFocusIndex = l.focusIndex
+		l.focusIndex += direction
+		if l.focusIndex < 0 {
+			l.focusIndex = len(l.buttons) - 1
+		}
+		if l.focusIndex >= len(l.buttons) {
+			l.focusIndex = 0
+		}
+		l.justMoved = true
+		l.buttons[l.focusIndex].focused = true
+	}
+}
+
+func (l *List) FocusPrevious() {
+	if len(l.buttons) > 0 {
+		direction := -1
+		l.buttons[l.focusIndex].focused = false
+		l.prevFocusIndex = l.focusIndex
+		l.focusIndex += direction
+		if l.focusIndex < 0 {
+			l.focusIndex = len(l.buttons) - 1
+		}
+		if l.focusIndex >= len(l.buttons) {
+			l.focusIndex = 0
+		}
+		l.justMoved = true
+		l.buttons[l.focusIndex].focused = true
+	}
+}
+
+func (l *List) SelectFocused() {
+	if l.focusIndex >= 0 && l.focusIndex < len(l.buttons) {
+		l.scrollVisible(l.buttons[l.focusIndex])
+		l.setSelectedEntry(l.entries[l.focusIndex], false)
 	}
 }
 
@@ -564,16 +598,16 @@ func (l *List) scrollVisible(w HasWidget) {
 		scrollTop := l.scrollContainer.ScrollTop
 		scrollHeight := crect.Dy() - vrect.Dy()
 		if wrect.Max.Y > vrect.Max.Y {
-			scrollTop = float64(wrect.Max.Y-vrect.Dy() - crect.Min.Y) / float64(scrollHeight)
+			scrollTop = float64(wrect.Max.Y-vrect.Dy()-crect.Min.Y) / float64(scrollHeight)
 		} else if wrect.Min.Y < vrect.Min.Y {
-			scrollTop = float64(wrect.Min.Y - crect.Min.Y) / float64(scrollHeight)
+			scrollTop = float64(wrect.Min.Y-crect.Min.Y) / float64(scrollHeight)
 		}
 		scrollLeft := l.scrollContainer.ScrollLeft
 		scrollWidth := crect.Dx() - vrect.Dx()
 		if wrect.Max.X > vrect.Max.X {
-			scrollLeft = float64(wrect.Max.X-vrect.Dx() - crect.Min.X) / float64(scrollWidth)
+			scrollLeft = float64(wrect.Max.X-vrect.Dx()-crect.Min.X) / float64(scrollWidth)
 		} else if wrect.Min.X < vrect.Min.X {
-			scrollLeft = float64(wrect.Min.X - crect.Min.X) / float64(scrollWidth)
+			scrollLeft = float64(wrect.Min.X-crect.Min.X) / float64(scrollWidth)
 		}
 		l.setScrollTop(scrollClamp(scrollTop, l.scrollContainer.ScrollTop))
 		l.setScrollLeft(scrollClamp(scrollLeft, l.scrollContainer.ScrollLeft))

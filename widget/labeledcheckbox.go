@@ -133,6 +133,12 @@ func (l *LabeledCheckbox) TabOrder() int {
 	l.init.Do()
 	return l.checkbox.tabOrder
 }
+
+func (l *LabeledCheckbox) Click() {
+	l.init.Do()
+	l.checkbox.Click()
+}
+
 func (l *LabeledCheckbox) createWidget() {
 	l.container = NewContainer(
 		ContainerOpts.Layout(NewRowLayout(RowLayoutOpts.Spacing(l.spacing))),

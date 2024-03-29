@@ -114,6 +114,24 @@ func (l *ListComboButton) TabOrder() int {
 	return l.tabOrder
 }
 
+func (l *ListComboButton) FocusNext() {
+	l.SetContentVisible(true)
+	l.list.FocusNext()
+
+}
+
+func (l *ListComboButton) FocusPrevious() {
+	l.SetContentVisible(true)
+	l.list.FocusPrevious()
+
+}
+
+func (l *ListComboButton) SelectFocused() {
+	l.SetContentVisible(true)
+	l.list.SelectFocused()
+
+}
+
 func (l *ListComboButton) GetWidget() *Widget {
 	l.init.Do()
 	return l.button.GetWidget()
