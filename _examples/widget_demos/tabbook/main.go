@@ -155,6 +155,13 @@ func (g *game) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyB) {
 		g.TabBook.SetTab(g.TabBlue)
 	}
+
+	//Test that you can call Click on the focused widget.
+	if inpututil.IsKeyJustPressed(ebiten.KeyC) {
+		if btn, ok := g.UI.GetFocusedWidget().(*widget.Button); ok {
+			btn.Click()
+		}
+	}
 	return nil
 }
 

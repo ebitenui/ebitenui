@@ -106,13 +106,13 @@ func (g *game) Update() error {
 	// update the UI
 	g.ui.Update()
 	if inpututil.IsKeyJustPressed(ebiten.KeyB) {
-		g.btn.Submit()
+		g.btn.Click()
 	}
 
-	//Test that you can call Submit on the focused widget.
+	//Test that you can call Click on the focused widget.
 	if inpututil.IsKeyJustPressed(ebiten.KeyF) {
 		if btn, ok := g.ui.GetFocusedWidget().(*widget.Button); ok {
-			btn.Submit()
+			btn.Click()
 		}
 	}
 

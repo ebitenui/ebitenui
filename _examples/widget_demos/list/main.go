@@ -10,6 +10,7 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/gofont/goregular"
 )
@@ -22,10 +23,12 @@ type ListEntry struct {
 
 // Game object used by ebiten
 type game struct {
-	ui *ebitenui.UI
+	ui   *ebitenui.UI
+	list *widget.List
 }
 
 func main() {
+	game := game{}
 	// load images for button states: idle, hover, and pressed
 	buttonImage, _ := loadButtonImage()
 
@@ -53,7 +56,7 @@ func main() {
 
 	// Construct a list. This is one of the more complicated widgets to use since
 	// it is composed of multiple widget types
-	list := widget.NewList(
+	game.list = widget.NewList(
 		// Set how wide the list should be
 		widget.ListOpts.ContainerOpts(widget.ContainerOpts.WidgetOpts(
 			widget.WidgetOpts.MinSize(150, 0),
@@ -112,10 +115,15 @@ func main() {
 			entry := args.Entry.(ListEntry)
 			fmt.Println("Entry Selected: ", entry)
 		}),
+		// This option will select the entry as it is focused
+		// widget.ListOpts.SelectFocus(),
+
+		// This option will disable default keys (up and down)
+		//widget.ListOpts.DisableDefaultKeys(true),
 	)
 
 	// Add list to the root container
-	rootContainer.AddChild(list)
+	rootContainer.AddChild(game.list)
 
 	buttonsContainer := widget.NewContainer(
 		widget.ContainerOpts.WidgetOpts(
@@ -154,8 +162,8 @@ func main() {
 			entryToAdd := ListEntry{id, fmt.Sprintf("Entry %d", id)}
 			id++
 
-			list.AddEntry(entryToAdd)
-			list.SetSelectedEntry(entryToAdd)
+			game.list.AddEntry(entryToAdd)
+			game.list.SetSelectedEntry(entryToAdd)
 		}),
 	)
 	buttonsContainer.AddChild(buttonAdd)
@@ -181,7 +189,7 @@ func main() {
 
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			list.RemoveEntry(list.SelectedEntry())
+			game.list.RemoveEntry(game.list.SelectedEntry())
 		}),
 	)
 	buttonsContainer.AddChild(buttonRemove)
@@ -208,7 +216,7 @@ func main() {
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			entries := make([]any, 0)
-			list.SetEntries(entries)
+			game.list.SetEntries(entries)
 		}),
 	)
 	buttonsContainer.AddChild(buttonClean)
@@ -224,9 +232,7 @@ func main() {
 	ebiten.SetWindowSize(400, 400)
 	ebiten.SetWindowTitle("Ebiten UI - List")
 
-	game := game{
-		ui: &ui,
-	}
+	game.ui = &ui
 
 	// run Ebiten main loop
 	err := ebiten.RunGame(&game)
@@ -244,6 +250,18 @@ func (g *game) Layout(outsideWidth int, outsideHeight int) (int, int) {
 func (g *game) Update() error {
 	// update the UI
 	g.ui.Update()
+
+	if list, ok := g.ui.GetFocusedWidget().(*widget.List); ok {
+		//Test that you can call Click on the focused widget.
+		if inpututil.IsKeyJustPressed(ebiten.KeyW) {
+			list.FocusPrevious()
+		} else if inpututil.IsKeyJustPressed(ebiten.KeyS) {
+			list.FocusNext()
+		} else if inpututil.IsKeyJustPressed(ebiten.KeyB) {
+			list.SelectFocused()
+		}
+	}
+
 	return nil
 }
 

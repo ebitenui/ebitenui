@@ -154,6 +154,11 @@ func (c *Checkbox) TabOrder() int {
 	return c.tabOrder
 }
 
+func (c *Checkbox) Click() {
+	c.init.Do()
+	c.button.Click()
+}
+
 func (c *Checkbox) createWidget() {
 	c.button = NewButton(append(c.buttonOpts, []ButtonOpt{
 		ButtonOpts.Graphic(c.image.Unchecked.Idle),

@@ -34,6 +34,23 @@ func TestCheckbox_ChangedEvent_User(t *testing.T) {
 	is.Equal(c.State(), WidgetChecked)
 }
 
+func TestCheckbox_Click(t *testing.T) {
+	is := is.New(t)
+
+	var eventArgs *CheckboxChangedEventArgs
+
+	c := newCheckbox(t,
+		CheckboxOpts.StateChangedHandler(func(args *CheckboxChangedEventArgs) {
+			eventArgs = args
+		}))
+
+	c.Click()
+	event.ExecuteDeferred()
+
+	is.Equal(eventArgs.State, WidgetChecked)
+	is.Equal(c.State(), WidgetChecked)
+}
+
 func TestCheckbox_SetState(t *testing.T) {
 	is := is.New(t)
 

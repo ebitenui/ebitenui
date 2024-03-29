@@ -10,6 +10,7 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/gofont/goregular"
 )
@@ -159,6 +160,17 @@ func (g *game) Layout(outsideWidth int, outsideHeight int) (int, int) {
 func (g *game) Update() error {
 	// update the UI
 	g.ui.Update()
+
+	if list, ok := g.ui.GetFocusedWidget().(*widget.ListComboButton); ok {
+		//Test that you can call Click on the focused widget.
+		if inpututil.IsKeyJustPressed(ebiten.KeyW) {
+			list.FocusPrevious()
+		} else if inpututil.IsKeyJustPressed(ebiten.KeyS) {
+			list.FocusNext()
+		} else if inpututil.IsKeyJustPressed(ebiten.KeyB) {
+			list.SelectFocused()
+		}
+	}
 	return nil
 }
 
@@ -166,6 +178,7 @@ func (g *game) Update() error {
 func (g *game) Draw(screen *ebiten.Image) {
 	// draw the UI onto the screen
 	g.ui.Draw(screen)
+
 }
 
 func loadButtonImage() (*widget.ButtonImage, error) {
