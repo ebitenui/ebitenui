@@ -19,6 +19,8 @@ type Checkbox struct {
 	state  WidgetState
 
 	tabOrder int
+
+	focusMap map[FocusDirection]Focuser
 }
 
 type CheckboxOpt func(c *Checkbox)
@@ -46,6 +48,8 @@ func NewCheckbox(opts ...CheckboxOpt) *Checkbox {
 		StateChangedEvent: &event.Event{},
 
 		init: &MultiOnce{},
+
+		focusMap: make(map[FocusDirection]Focuser),
 	}
 
 	c.init.Append(c.createWidget)
@@ -140,6 +144,8 @@ func (c *Checkbox) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	c.button.Render(screen, def)
 }
 
+/** Focuser Interface - Start **/
+
 func (c *Checkbox) Focus(focused bool) {
 	c.init.Do()
 	c.GetWidget().FireFocusEvent(c, focused, image.Point{-1, -1})
@@ -153,6 +159,16 @@ func (c *Checkbox) IsFocused() bool {
 func (c *Checkbox) TabOrder() int {
 	return c.tabOrder
 }
+
+func (c *Checkbox) GetFocus(direction FocusDirection) Focuser {
+	return c.focusMap[direction]
+}
+
+func (c *Checkbox) AddFocus(direction FocusDirection, focus Focuser) {
+	c.focusMap[direction] = focus
+}
+
+/** Focuser Interface - End **/
 
 func (c *Checkbox) Click() {
 	c.init.Do()

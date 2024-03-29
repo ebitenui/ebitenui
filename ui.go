@@ -11,13 +11,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type FocusDirection int
-
-const (
-	FOCUS_NEXT FocusDirection = iota
-	FOCUS_PREVIOUS
-)
-
 // UI encapsulates a complete user interface that can be rendered onto the screen.
 // There should only be exactly one UI per application.
 type UI struct {
@@ -141,9 +134,9 @@ func (u *UI) handleFocusChangeRequest() {
 			if !u.tabWasPressed {
 				u.tabWasPressed = true
 				if input.KeyPressed(ebiten.KeyShift) {
-					u.ChangeFocus(FOCUS_PREVIOUS)
+					u.ChangeFocus(widget.FOCUS_PREVIOUS)
 				} else {
-					u.ChangeFocus(FOCUS_NEXT)
+					u.ChangeFocus(widget.FOCUS_NEXT)
 				}
 			}
 		} else {
@@ -152,52 +145,61 @@ func (u *UI) handleFocusChangeRequest() {
 	}
 }
 
-func (u *UI) ChangeFocus(direction FocusDirection) {
-	focusableWidgets := u.Container.GetFocusers()
-	//Loop through the windows array in reverse. If we find a modal window, only loop through its focusable widgets
-	for i := len(u.windows) - 1; i >= 0; i-- {
-		if !u.windows[i].Modal {
-			focusableWidgets = append(focusableWidgets, u.windows[i].GetContainer().GetFocusers()...)
-		} else {
-			focusableWidgets = u.windows[i].GetContainer().GetFocusers()
-			break
+func (u *UI) ChangeFocus(direction widget.FocusDirection) {
+	if u.focusedWidget != nil {
+		if next := u.focusedWidget.(widget.Focuser).GetFocus(direction); next != nil {
+			
+			next.Focus(true)
 		}
 	}
-	len := len(focusableWidgets)
-	if len == 1 {
-		if u.focusedWidget != nil && u.focusedWidget.(widget.Focuser) != focusableWidgets[0] {
-			u.focusedWidget.(widget.Focuser).Focus(false)
-		}
-		focusableWidgets[0].Focus(true)
-	} else if len > 0 {
-		sort.SliceStable(focusableWidgets, func(i, j int) bool {
-			return focusableWidgets[i].TabOrder() < focusableWidgets[j].TabOrder()
-		})
-		if u.focusedWidget != nil {
-			if direction == FOCUS_PREVIOUS {
-				for i := 0; i < len; i++ {
-					if focusableWidgets[i] == u.focusedWidget.(widget.Focuser) {
-						u.focusedWidget.(widget.Focuser).Focus(false)
-						if i == 0 {
-							focusableWidgets[len-1].Focus(true)
-						} else {
-							focusableWidgets[i-1].Focus(true)
-						}
-						return
-					}
-				}
+
+	if direction == widget.FOCUS_NEXT || direction == widget.FOCUS_PREVIOUS {
+		focusableWidgets := u.Container.GetFocusers()
+		//Loop through the windows array in reverse. If we find a modal window, only loop through its focusable widgets
+		for i := len(u.windows) - 1; i >= 0; i-- {
+			if !u.windows[i].Modal {
+				focusableWidgets = append(focusableWidgets, u.windows[i].GetContainer().GetFocusers()...)
 			} else {
-				for i := 0; i < len-1; i++ {
-					if focusableWidgets[i] == u.focusedWidget.(widget.Focuser) {
-						u.focusedWidget.(widget.Focuser).Focus(false)
-						focusableWidgets[i+1].Focus(true)
-						return
+				focusableWidgets = u.windows[i].GetContainer().GetFocusers()
+				break
+			}
+		}
+		len := len(focusableWidgets)
+		if len == 1 {
+			if u.focusedWidget != nil && u.focusedWidget.(widget.Focuser) != focusableWidgets[0] {
+				u.focusedWidget.(widget.Focuser).Focus(false)
+			}
+			focusableWidgets[0].Focus(true)
+		} else if len > 0 {
+			sort.SliceStable(focusableWidgets, func(i, j int) bool {
+				return focusableWidgets[i].TabOrder() < focusableWidgets[j].TabOrder()
+			})
+			if u.focusedWidget != nil {
+				if direction == widget.FOCUS_PREVIOUS {
+					for i := 0; i < len; i++ {
+						if focusableWidgets[i] == u.focusedWidget.(widget.Focuser) {
+							u.focusedWidget.(widget.Focuser).Focus(false)
+							if i == 0 {
+								focusableWidgets[len-1].Focus(true)
+							} else {
+								focusableWidgets[i-1].Focus(true)
+							}
+							return
+						}
+					}
+				} else {
+					for i := 0; i < len-1; i++ {
+						if focusableWidgets[i] == u.focusedWidget.(widget.Focuser) {
+							u.focusedWidget.(widget.Focuser).Focus(false)
+							focusableWidgets[i+1].Focus(true)
+							return
+						}
 					}
 				}
+				u.focusedWidget.(widget.Focuser).Focus(false)
 			}
-			u.focusedWidget.(widget.Focuser).Focus(false)
+			focusableWidgets[0].Focus(true)
 		}
-		focusableWidgets[0].Focus(true)
 	}
 }
 

@@ -51,6 +51,8 @@ type List struct {
 	justMoved          bool
 	focusIndex         int
 	prevFocusIndex     int
+
+	focusMap map[FocusDirection]Focuser
 }
 
 type ListOpt func(l *List)
@@ -93,6 +95,7 @@ func NewList(opts ...ListOpt) *List {
 		init:           &MultiOnce{},
 		focusIndex:     0,
 		prevFocusIndex: -1,
+		focusMap:       make(map[FocusDirection]Focuser),
 	}
 
 	l.init.Append(l.createWidget)
@@ -286,6 +289,8 @@ func (l *List) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	l.container.Render(screen, def)
 }
 
+/** Focuser Interface - Start **/
+
 func (l *List) Focus(focused bool) {
 	l.init.Do()
 	l.GetWidget().FireFocusEvent(l, focused, img.Point{-1, -1})
@@ -299,6 +304,16 @@ func (l *List) IsFocused() bool {
 func (l *List) TabOrder() int {
 	return l.tabOrder
 }
+
+func (l *List) GetFocus(direction FocusDirection) Focuser {
+	return l.focusMap[direction]
+}
+
+func (l *List) AddFocus(direction FocusDirection, focus Focuser) {
+	l.focusMap[direction] = focus
+}
+
+/** Focuser Interface - End **/
 
 func (l *List) handleInput() {
 	if l.focused && !l.GetWidget().Disabled && len(l.buttons) > 0 {

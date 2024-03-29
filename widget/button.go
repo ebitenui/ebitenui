@@ -50,6 +50,8 @@ type Button struct {
 	tabOrder      int
 	focused       bool
 	justSubmitted bool
+
+	focusMap map[FocusDirection]Focuser
 }
 
 type ButtonOpt func(b *Button)
@@ -124,6 +126,8 @@ func NewButton(opts ...ButtonOpt) *Button {
 		StateChangedEvent:  &event.Event{},
 
 		init: &MultiOnce{},
+
+		focusMap: make(map[FocusDirection]Focuser),
 	}
 
 	b.init.Append(b.createWidget)
@@ -364,6 +368,8 @@ func (b *Button) Configure(opts ...ButtonOpt) {
 	}
 }
 
+/** Focuser Interface - Start **/
+
 func (b *Button) Focus(focused bool) {
 	b.init.Do()
 	b.GetWidget().FireFocusEvent(b, focused, img.Point{-1, -1})
@@ -377,6 +383,16 @@ func (b *Button) IsFocused() bool {
 func (b *Button) TabOrder() int {
 	return b.tabOrder
 }
+
+func (b *Button) GetFocus(direction FocusDirection) Focuser {
+	return b.focusMap[direction]
+}
+
+func (b *Button) AddFocus(direction FocusDirection, focus Focuser) {
+	b.focusMap[direction] = focus
+}
+
+/** Focuser Interface - End **/
 
 func (b *Button) GetWidget() *Widget {
 	b.init.Do()

@@ -25,6 +25,7 @@ type LabeledCheckbox struct {
 	checkbox   *Checkbox
 	label      *Label
 	order      LabelOrder
+	focusMap   map[FocusDirection]Focuser
 }
 
 type LabeledCheckboxOpt func(l *LabeledCheckbox)
@@ -36,9 +37,10 @@ var LabeledCheckboxOpts LabeledCheckboxOptions
 
 func NewLabeledCheckbox(opts ...LabeledCheckboxOpt) *LabeledCheckbox {
 	l := &LabeledCheckbox{
-		spacing: 8,
-		order:   CHECKBOX_FIRST,
-		init:    &MultiOnce{},
+		spacing:  8,
+		order:    CHECKBOX_FIRST,
+		init:     &MultiOnce{},
+		focusMap: make(map[FocusDirection]Focuser),
 	}
 
 	l.init.Append(l.createWidget)
@@ -119,6 +121,9 @@ func (l *LabeledCheckbox) Label() *Label {
 	l.init.Do()
 	return l.label
 }
+
+/** Focuser Interface - Start **/
+
 func (l *LabeledCheckbox) Focus(focused bool) {
 	l.init.Do()
 	l.GetWidget().FireFocusEvent(l, focused, image.Point{-1, -1})
@@ -133,6 +138,16 @@ func (l *LabeledCheckbox) TabOrder() int {
 	l.init.Do()
 	return l.checkbox.tabOrder
 }
+
+func (l *LabeledCheckbox) GetFocus(direction FocusDirection) Focuser {
+	return l.focusMap[direction]
+}
+
+func (l *LabeledCheckbox) AddFocus(direction FocusDirection, focus Focuser) {
+	l.focusMap[direction] = focus
+}
+
+/** Focuser Interface - End **/
 
 func (l *LabeledCheckbox) Click() {
 	l.init.Do()

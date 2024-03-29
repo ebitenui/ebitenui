@@ -353,10 +353,10 @@ func (g *game) Update() error {
 	// update the UI
 	// Additional keys to manage focus
 	if inpututil.IsKeyJustPressed(ebiten.KeyPageUp) {
-		g.ui.ChangeFocus(ebitenui.FOCUS_PREVIOUS)
+		g.ui.ChangeFocus(widget.FOCUS_PREVIOUS)
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyPageDown) {
-		g.ui.ChangeFocus(ebitenui.FOCUS_NEXT)
+		g.ui.ChangeFocus(widget.FOCUS_NEXT)
 	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyEnd) {
