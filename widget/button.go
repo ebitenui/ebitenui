@@ -19,6 +19,9 @@ type Button struct {
 	GraphicImage      *ButtonImageImage
 	TextColor         *ButtonTextColor
 
+	//Allows the user to disable space bar and enter automatically triggering a focused button.
+	DisableDefaultKeys bool
+
 	PressedEvent       *event.Event
 	ReleasedEvent      *event.Event
 	ClickedEvent       *event.Event
@@ -275,6 +278,13 @@ func (o ButtonOptions) ToggleMode() ButtonOpt {
 	}
 }
 
+// This option will disable enter and space from submitting a focused button.
+func (o ButtonOptions) DisableDefaultKeys() ButtonOpt {
+	return func(b *Button) {
+		b.DisableDefaultKeys = true
+	}
+}
+
 func (o ButtonOptions) PressedHandler(f ButtonPressedHandlerFunc) ButtonOpt {
 	return func(b *Button) {
 		b.PressedEvent.AddHandler(func(args interface{}) {
@@ -432,8 +442,13 @@ func (b *Button) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	}
 
 	b.widget.Render(screen, def)
-	b.handleSubmit()
 	b.draw(screen)
+
+	if !b.DisableDefaultKeys {
+		b.handleSubmit()
+	} else {
+		b.justSubmitted = false
+	}
 
 	if b.autoUpdateTextAndGraphic {
 		if b.graphic != nil {
@@ -465,6 +480,12 @@ func (b *Button) draw(screen *ebiten.Image) {
 		if b.Image.Disabled != nil {
 			i = b.Image.Disabled
 		}
+
+	case b.pressing && (b.hovering || b.KeepPressedOnExit) || (b.ToggleMode && b.state == WidgetChecked) || b.justSubmitted:
+		if b.Image.Pressed != nil {
+			i = b.Image.Pressed
+		}
+
 	case b.focused, b.hovering:
 		if b.ToggleMode && b.state == WidgetChecked || b.pressing && (b.hovering || b.KeepPressedOnExit) {
 			if b.Image.PressedHover != nil {
@@ -477,11 +498,6 @@ func (b *Button) draw(screen *ebiten.Image) {
 				i = b.Image.Hover
 			}
 		}
-	case b.pressing && (b.hovering || b.KeepPressedOnExit) || (b.ToggleMode && b.state == WidgetChecked):
-		if b.Image.Pressed != nil {
-			i = b.Image.Pressed
-		}
-
 	}
 
 	if i != nil {
@@ -492,24 +508,28 @@ func (b *Button) draw(screen *ebiten.Image) {
 	}
 }
 
+func (b *Button) Submit() {
+	b.justSubmitted = true
+	b.ClickedEvent.Fire(&ButtonClickedEventArgs{
+		Button: b,
+	})
+	if b.ToggleMode {
+		if b.state == WidgetUnchecked {
+			b.state = WidgetChecked
+		} else {
+			b.state = WidgetUnchecked
+		}
+		b.StateChangedEvent.Fire(&ButtonChangedEventArgs{
+			Button: b,
+			State:  b.state,
+		})
+	}
+}
+
 func (b *Button) handleSubmit() {
 	if input.KeyPressed(ebiten.KeyEnter) || input.KeyPressed(ebiten.KeySpace) {
 		if !b.justSubmitted && b.focused {
-			b.ClickedEvent.Fire(&ButtonClickedEventArgs{
-				Button: b,
-			})
-			if b.ToggleMode {
-				if b.state == WidgetUnchecked {
-					b.state = WidgetChecked
-				} else {
-					b.state = WidgetUnchecked
-				}
-				b.StateChangedEvent.Fire(&ButtonChangedEventArgs{
-					Button: b,
-					State:  b.state,
-				})
-			}
-			b.justSubmitted = true
+			b.Submit()
 		}
 	} else {
 		b.justSubmitted = false
