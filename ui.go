@@ -148,8 +148,9 @@ func (u *UI) handleFocusChangeRequest() {
 func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 	if u.focusedWidget != nil {
 		if next := u.focusedWidget.(widget.Focuser).GetFocus(direction); next != nil {
-			
-			next.Focus(true)
+			if !next.GetWidget().Disabled {
+				next.Focus(true)
+			}
 		}
 	}
 

@@ -37,9 +37,19 @@ func NewComboButton(opts ...ComboButtonOpt) *ComboButton {
 		o(c)
 	}
 
+	c.validate()
+
 	return c
 }
 
+func (c *ComboButton) validate() {
+	if c.content == nil {
+		panic("ComboButton: Content is required.")
+	}
+	if len(c.buttonOpts) == 0 {
+		panic("ComboButton: ButtonOpts are required.")
+	}
+}
 func (o ComboButtonOptions) ButtonOpts(opts ...ButtonOpt) ComboButtonOpt {
 	return func(c *ComboButton) {
 		c.buttonOpts = append(c.buttonOpts, opts...)

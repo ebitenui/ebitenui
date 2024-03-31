@@ -53,15 +53,13 @@ func main() {
 			widget.WidgetOpts.MinSize(200, 20),
 		),
 		widget.ProgressBarOpts.Images(
-			// Set the track images (Idle, Hover, Disabled).
+			// Set the track images (Idle, Disabled).
 			&widget.ProgressBarImage{
-				Idle:  image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
-				Hover: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+				Idle: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
 			},
-			// Set the progress images (Idle, Hover, Disabled).
+			// Set the progress images (Idle, Disabled).
 			&widget.ProgressBarImage{
-				Idle:  image.NewNineSliceColor(color.NRGBA{0, 0, 255, 255}),
-				Hover: image.NewNineSliceColor(color.NRGBA{0, 0, 255, 255}),
+				Idle: image.NewNineSliceColor(color.NRGBA{0, 0, 255, 255}),
 			},
 		),
 		// Set the min, max, and current values.

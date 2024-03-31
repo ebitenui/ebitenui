@@ -76,7 +76,24 @@ func NewTextArea(opts ...TextAreaOpt) *TextArea {
 		o(l)
 	}
 
+	l.validate()
+
 	return l
+}
+
+func (t *TextArea) validate() {
+	if t.foregroundColor == nil {
+		panic("TextArea: FontColor is required.")
+	}
+	if t.face == nil {
+		panic("TextArea: FontFace is required.")
+	}
+	if len(t.scrollContainerOpts) == 0 {
+		panic("TextArea: ScrollContainerOpts are required.")
+	}
+	if len(t.sliderOpts) == 0 {
+		panic("TextArea: SliderOpts are required.")
+	}
 }
 
 // Specify the Container options for the text area

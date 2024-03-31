@@ -51,6 +51,8 @@ func NewScrollContainer(opts ...ScrollContainerOpt) *ScrollContainer {
 		o(s)
 	}
 
+	s.validate()
+
 	s.content.GetWidget().ContextMenuEvent.AddHandler(func(args interface{}) {
 		a := args.(*WidgetContextMenuEventArgs)
 		s.GetWidget().FireContextMenuEvent(a.Widget, a.Location)
@@ -68,6 +70,18 @@ func NewScrollContainer(opts ...ScrollContainerOpt) *ScrollContainer {
 		s.GetWidget().FireDragAndDropEvent(a.Window, a.Show, a.DnD)
 	})
 	return s
+}
+
+func (s *ScrollContainer) validate() {
+	if s.image == nil {
+		panic("ScrollContainer: Image is required.")
+	}
+	if s.image.Idle == nil {
+		panic("ScrollContainer: Image.Idle is required.")
+	}
+	if s.image.Mask == nil {
+		panic("ScrollContainer: Image.Mask is required.")
+	}
 }
 
 func (o ScrollContainerOptions) WidgetOpts(opts ...WidgetOpt) ScrollContainerOpt {

@@ -76,12 +76,21 @@ func NewToolTip(opts ...ToolTipOpt) *ToolTip {
 	for _, o := range opts {
 		o(t)
 	}
+
+	t.validate()
+
 	t.window = NewWindow(
 		WindowOpts.CloseMode(NONE),
 		WindowOpts.Contents(t.content),
 	)
 
 	return t
+}
+
+func (t *ToolTip) validate() {
+	if t.content == nil {
+		panic("ToolTip: Contents is required.")
+	}
 }
 
 // Create a new Text Tooltip with the following defaults:
@@ -92,6 +101,13 @@ func NewToolTip(opts ...ToolTipOpt) *ToolTip {
 //   - ContentOriginHorizontal = TOOLTIP_ANCHOR_END
 //   - ContentOriginVertical = TOOLTIP_ANCHOR_START
 func NewTextToolTip(label string, face font.Face, color color.Color, background *e_image.NineSlice) *ToolTip {
+	if color == nil {
+		panic("TextToolTip: color is required.")
+	}
+	if face == nil {
+		panic("TextToolTip: face is required.")
+	}
+
 	c := NewContainer(
 		ContainerOpts.BackgroundImage(background),
 		ContainerOpts.AutoDisableChildren(),

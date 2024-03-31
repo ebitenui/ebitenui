@@ -143,7 +143,27 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 		o(t)
 	}
 
+	t.validate()
+
 	return t
+}
+
+func (t *TextInput) validate() {
+	if len(t.caretOpts) == 0 {
+		panic("TextInput: CaretOpts are required.")
+	}
+	if t.face == nil {
+		panic("TextInput: Font Face is required.")
+	}
+	if t.color == nil {
+		panic("TextInput: Color is required.")
+	}
+	if t.color.Caret == nil {
+		panic("TextInput: Color.Caret is required.")
+	}
+	if t.color.Idle == nil {
+		panic("TextInput: Color.Idle is required.")
+	}
 }
 
 func (o TextInputOptions) WidgetOpts(opts ...WidgetOpt) TextInputOpt {
@@ -523,7 +543,7 @@ func removeChar(r []rune, pos int) []rune {
 }
 
 func (t *TextInput) renderImage(screen *ebiten.Image) {
-	if t.image != nil {
+	if t.image != nil && t.image.Idle != nil {
 		i := t.image.Idle
 		if t.widget.Disabled && t.image.Disabled != nil {
 			i = t.image.Disabled
@@ -585,7 +605,7 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFun
 	} else {
 		t.text.Label = t.placeholderText
 	}
-	if t.widget.Disabled || len([]rune(t.inputText)) == 0 {
+	if (t.widget.Disabled || len([]rune(t.inputText)) == 0) && t.color.Disabled != nil {
 		t.text.Color = t.color.Disabled
 	} else {
 		t.text.Color = t.color.Idle
@@ -593,7 +613,7 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFun
 	t.text.Render(screen, def)
 
 	if t.focused {
-		if t.widget.Disabled {
+		if t.widget.Disabled && t.color.DisabledCaret != nil {
 			t.caret.Color = t.color.DisabledCaret
 		} else {
 			t.caret.Color = t.color.Caret

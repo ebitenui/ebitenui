@@ -54,7 +54,18 @@ func NewListComboButton(opts ...ListComboButtonOpt) *ListComboButton {
 		o(l)
 	}
 
+	l.validate()
+
 	return l
+}
+
+func (l *ListComboButton) validate() {
+	if len(l.buttonOpts) == 0 {
+		panic("ListComboButton: ButtonOpts are required.")
+	}
+	if len(l.listOpts) == 0 {
+		panic("ListComboButton: ListOpts are required.")
+	}
 }
 
 func (o ListComboButtonOptions) SelectComboButtonOpts(opts ...SelectComboButtonOpt) ListComboButtonOpt {

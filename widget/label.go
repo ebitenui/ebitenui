@@ -42,7 +42,21 @@ func NewLabel(opts ...LabelOpt) *Label {
 		o(l)
 	}
 
+	l.validate()
+
 	return l
+}
+
+func (l *Label) validate() {
+	if l.color == nil {
+		panic("Label: LabelColor is required.")
+	}
+	if l.color.Idle == nil {
+		panic("Label: LabelColor.Idle is required.")
+	}
+	if l.face == nil {
+		panic("Label: Font Face is required.")
+	}
 }
 
 func (o LabelOptions) TextOpts(opts ...TextOpt) LabelOpt {
@@ -79,7 +93,7 @@ func (l *Label) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 	l.text.Label = l.Label
 
-	if l.text.GetWidget().Disabled {
+	if l.text.GetWidget().Disabled && l.color.Disabled != nil {
 		l.text.Color = l.color.Disabled
 	} else {
 		l.text.Color = l.color.Idle

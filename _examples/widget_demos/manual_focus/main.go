@@ -121,6 +121,7 @@ func main() {
 	btn9.AddFocus(widget.FOCUS_WEST, btn8)
 	btn9.AddFocus(widget.FOCUS_NORTHWEST, btn5)
 	btn9.AddFocus(widget.FOCUS_NORTH, btn6)
+
 	// construct the UI
 	ui := ebitenui.UI{
 		Container: rootContainer,
@@ -158,7 +159,7 @@ func createButton(label string) *widget.Button {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Hello, World!", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text(label, face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 

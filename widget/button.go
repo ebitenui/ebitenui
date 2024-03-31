@@ -136,7 +136,33 @@ func NewButton(opts ...ButtonOpt) *Button {
 		o(b)
 	}
 
+	b.validate()
+
 	return b
+}
+
+func (b *Button) validate() {
+	if b.Image == nil {
+		panic("Button: Image is required.")
+	}
+	if b.Image.Idle == nil {
+		panic("Button: Image.Idle is required.")
+	}
+	if b.Image.Pressed == nil {
+		panic("Button: Image.Pressed is required.")
+	}
+
+	if len(b.textLabel) > 0 {
+		if b.textFace == nil {
+			panic("Button: TextFace is required if TextLabel is set.")
+		}
+		if b.TextColor == nil {
+			panic("Button: TextColor is required if TextLabel is set.")
+		}
+		if b.TextColor.Idle == nil {
+			panic("Button: TextColor.Idle is required if TextLabel is set.")
+		}
+	}
 }
 
 func (o ButtonOptions) WidgetOpts(opts ...WidgetOpt) ButtonOpt {
@@ -468,7 +494,7 @@ func (b *Button) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 	if b.autoUpdateTextAndGraphic {
 		if b.graphic != nil {
-			if b.widget.Disabled {
+			if b.widget.Disabled && b.GraphicImage.Disabled != nil {
 				b.graphic.Image = b.GraphicImage.Disabled
 			} else {
 				b.graphic.Image = b.GraphicImage.Idle
@@ -476,7 +502,7 @@ func (b *Button) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 		}
 
 		if b.text != nil {
-			if b.widget.Disabled {
+			if b.widget.Disabled && b.TextColor.Disabled != nil {
 				b.text.Color = b.TextColor.Disabled
 			} else {
 				b.text.Color = b.TextColor.Idle
@@ -589,6 +615,7 @@ func (b *Button) initText() {
 	b.container.AddChild(b.text)
 
 	b.autoUpdateTextAndGraphic = true
+
 }
 
 func (b *Button) createWidget() {

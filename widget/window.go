@@ -71,86 +71,21 @@ func NewWindow(opts ...WindowOpt) *Window {
 		ResizeEvent: &event.Event{},
 		init:        &MultiOnce{},
 	}
-
+	w.init.Append(w.createWidget)
 	for _, o := range opts {
 		o(w)
 	}
 
-	if w.TitleBar != nil {
-		w.container = NewContainer(ContainerOpts.Layout(NewGridLayout(
-			GridLayoutOpts.Columns(1),
-			GridLayoutOpts.Stretch([]bool{true}, []bool{false, true}),
-		)))
-		w.TitleBar.GetWidget().LayoutData = GridLayoutData{MaxHeight: w.titleBarHeight}
-		w.TitleBar.GetWidget().MinHeight = w.titleBarHeight
-		if w.Draggable {
-			w.TitleBar.GetWidget().MouseButtonPressedEvent.AddHandler(func(a any) {
-				args := a.(*WidgetMouseButtonPressedEventArgs)
-				if args.Button == ebiten.MouseButtonLeft {
-					x, y := input.CursorPosition()
-					w.startingPoint = image.Point{x, y}
-					w.dragging = true
-				}
-			})
-			w.TitleBar.GetWidget().MouseButtonReleasedEvent.AddHandler(func(a any) {
-				args := a.(*WidgetMouseButtonReleasedEventArgs)
-				if w.dragging && args.Button == ebiten.MouseButtonLeft {
-					w.dragging = false
-					w.MoveEvent.Fire(&WindowChangedEventArgs{
-						Window: w,
-						Rect:   w.container.GetWidget().Rect,
-					})
-				}
-			})
-		}
-		w.container.AddChild(w.TitleBar)
-		w.container.AddChild(w.Contents)
-	} else {
-		w.container = NewContainer(ContainerOpts.Layout(NewGridLayout(
-			GridLayoutOpts.Columns(1),
-			GridLayoutOpts.Stretch([]bool{true}, []bool{true}),
-		)))
-
-		w.container.AddChild(w.Contents)
-	}
-
-	if w.Resizeable {
-		w.Contents.GetWidget().MouseButtonPressedEvent.AddHandler(func(a any) {
-			args := a.(*WidgetMouseButtonPressedEventArgs)
-			if args.Button == ebiten.MouseButtonLeft {
-				x, y := input.CursorPosition()
-				w.startingPoint = image.Point{x, y}
-				w.originalSize.X = w.container.GetWidget().Rect.Max.X
-				w.originalSize.Y = w.container.GetWidget().Rect.Max.Y
-				w.resizing = true
-			}
-		})
-		w.Contents.GetWidget().MouseButtonReleasedEvent.AddHandler(func(a any) {
-			args := a.(*WidgetMouseButtonReleasedEventArgs)
-			if w.resizing && args.Button == ebiten.MouseButtonLeft {
-				w.resizing = false
-				w.ResizeEvent.Fire(&WindowChangedEventArgs{
-					Window: w,
-					Rect:   w.container.GetWidget().Rect,
-				})
-			}
-		})
-	}
-
-	if w.closeMode == CLICK || w.closeMode == CLICK_OUT {
-		w.container.GetWidget().CustomData = "Window"
-		w.container.GetWidget().MouseButtonReleasedEvent.AddHandler(func(args interface{}) {
-			a := args.(*WidgetMouseButtonReleasedEventArgs)
-			if w.closeMode == CLICK || (w.closeMode == CLICK_OUT && !a.Inside) {
-				if w.closeFunc != nil {
-					w.closeFunc()
-				}
-			}
-		})
-	}
+	w.validate()
 
 	w.init.Do()
 	return w
+}
+
+func (w *Window) validate() {
+	if w.Contents == nil {
+		panic("Window: Contents is required.")
+	}
 }
 
 // This is the container with the body of this window
@@ -364,4 +299,79 @@ func (w *Window) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 		}
 	}
 	w.container.Render(screen, def)
+}
+
+func (w *Window) createWidget() {
+	if w.TitleBar != nil {
+		w.container = NewContainer(ContainerOpts.Layout(NewGridLayout(
+			GridLayoutOpts.Columns(1),
+			GridLayoutOpts.Stretch([]bool{true}, []bool{false, true}),
+		)))
+		w.TitleBar.GetWidget().LayoutData = GridLayoutData{MaxHeight: w.titleBarHeight}
+		w.TitleBar.GetWidget().MinHeight = w.titleBarHeight
+		if w.Draggable {
+			w.TitleBar.GetWidget().MouseButtonPressedEvent.AddHandler(func(a any) {
+				args := a.(*WidgetMouseButtonPressedEventArgs)
+				if args.Button == ebiten.MouseButtonLeft {
+					x, y := input.CursorPosition()
+					w.startingPoint = image.Point{x, y}
+					w.dragging = true
+				}
+			})
+			w.TitleBar.GetWidget().MouseButtonReleasedEvent.AddHandler(func(a any) {
+				args := a.(*WidgetMouseButtonReleasedEventArgs)
+				if w.dragging && args.Button == ebiten.MouseButtonLeft {
+					w.dragging = false
+					w.MoveEvent.Fire(&WindowChangedEventArgs{
+						Window: w,
+						Rect:   w.container.GetWidget().Rect,
+					})
+				}
+			})
+		}
+		w.container.AddChild(w.TitleBar)
+		w.container.AddChild(w.Contents)
+	} else {
+		w.container = NewContainer(ContainerOpts.Layout(NewGridLayout(
+			GridLayoutOpts.Columns(1),
+			GridLayoutOpts.Stretch([]bool{true}, []bool{true}),
+		)))
+
+		w.container.AddChild(w.Contents)
+	}
+
+	if w.Resizeable {
+		w.Contents.GetWidget().MouseButtonPressedEvent.AddHandler(func(a any) {
+			args := a.(*WidgetMouseButtonPressedEventArgs)
+			if args.Button == ebiten.MouseButtonLeft {
+				x, y := input.CursorPosition()
+				w.startingPoint = image.Point{x, y}
+				w.originalSize.X = w.container.GetWidget().Rect.Max.X
+				w.originalSize.Y = w.container.GetWidget().Rect.Max.Y
+				w.resizing = true
+			}
+		})
+		w.Contents.GetWidget().MouseButtonReleasedEvent.AddHandler(func(a any) {
+			args := a.(*WidgetMouseButtonReleasedEventArgs)
+			if w.resizing && args.Button == ebiten.MouseButtonLeft {
+				w.resizing = false
+				w.ResizeEvent.Fire(&WindowChangedEventArgs{
+					Window: w,
+					Rect:   w.container.GetWidget().Rect,
+				})
+			}
+		})
+	}
+
+	if w.closeMode == CLICK || w.closeMode == CLICK_OUT {
+		w.container.GetWidget().CustomData = "Window"
+		w.container.GetWidget().MouseButtonReleasedEvent.AddHandler(func(args interface{}) {
+			a := args.(*WidgetMouseButtonReleasedEventArgs)
+			if w.closeMode == CLICK || (w.closeMode == CLICK_OUT && !a.Inside) {
+				if w.closeFunc != nil {
+					w.closeFunc()
+				}
+			}
+		})
+	}
 }

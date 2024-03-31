@@ -58,7 +58,31 @@ func NewCheckbox(opts ...CheckboxOpt) *Checkbox {
 		o(c)
 	}
 
+	c.validate()
+
 	return c
+}
+
+func (c *Checkbox) validate() {
+	if len(c.buttonOpts) == 0 {
+		panic("Checkbox: ButtonOpts are required.")
+	}
+	if c.image == nil {
+		panic("Checkbox: Image is required.")
+	}
+	if c.image.Checked == nil {
+		panic("Checkbox: Image.Checked is required.")
+	}
+	if c.image.Checked.Idle == nil {
+		panic("Checkbox: Image.Checked.Idle is required.")
+	}
+
+	if c.image.Unchecked == nil {
+		panic("Checkbox: Image.Unchecked is required.")
+	}
+	if c.image.Unchecked.Idle == nil {
+		panic("Checkbox: Image.Unchecked.Idle is required.")
+	}
 }
 
 func (o CheckboxOptions) ButtonOpts(opts ...ButtonOpt) CheckboxOpt {
