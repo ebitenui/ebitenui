@@ -65,7 +65,33 @@ func NewTabBook(opts ...TabBookOpt) *TabBook {
 		o(t)
 	}
 
+	t.validate()
+
 	return t
+}
+
+func (t *TabBook) validate() {
+	if len(t.tabs) == 0 {
+		panic("TabBook: At least one tab is required.")
+	}
+	if t.buttonColor == nil {
+		panic("TabBook: TabButtonText Color is required.")
+	}
+	if t.buttonColor.Idle == nil {
+		panic("TabBook: TabButtonText Color.Idle is required.")
+	}
+	if t.buttonFace == nil {
+		panic("TabBook: TabButtonText Font Face is required.")
+	}
+	if t.buttonImages == nil {
+		panic("TabBook: TabButtonImage is required.")
+	}
+	if t.buttonImages.Idle == nil {
+		panic("TabBook: TabButtonImage.Idle is required.")
+	}
+	if t.buttonImages.Pressed == nil {
+		panic("TabBook: TabButtonImage.Pressed is required.")
+	}
 }
 
 func NewTabBookTab(label string, opts ...ContainerOpt) *TabBookTab {

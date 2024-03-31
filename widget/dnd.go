@@ -75,7 +75,15 @@ func NewDragAndDrop(opts ...DragAndDropOpt) *DragAndDrop {
 		o(d)
 	}
 
+	d.validate()
+
 	return d
+}
+
+func (d *DragAndDrop) validate() {
+	if d.contentsCreater == nil {
+		panic("DragAndDrop: ContentsCreater is required.")
+	}
 }
 
 func (o DragAndDropOptions) ContentsCreater(c DragContentsCreater) DragAndDropOpt {

@@ -83,7 +83,18 @@ func NewText(opts ...TextOpt) *Text {
 		o(t)
 	}
 
+	t.validate()
+
 	return t
+}
+
+func (t *Text) validate() {
+	if t.Color == nil {
+		panic("Text: Color is required.")
+	}
+	if t.Face == nil {
+		panic("Text: Face is required.")
+	}
 }
 
 func (o TextOptions) WidgetOpts(opts ...WidgetOpt) TextOpt {

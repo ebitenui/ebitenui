@@ -56,7 +56,19 @@ func NewProgressBar(opts ...ProgressBarOpt) *ProgressBar {
 		o(pb)
 	}
 
+	pb.validate()
+
 	return pb
+}
+
+func (pb *ProgressBar) validate() {
+	if pb.trackImage == nil {
+		panic("ProgressBar: TrackImage is required.")
+	}
+	if pb.trackImage.Idle == nil {
+		panic("ProgressBar: TrackImage.Idle is required")
+	}
+
 }
 
 func (o ProgressBarOptions) WidgetOpts(opts ...WidgetOpt) ProgressBarOpt {
@@ -139,7 +151,10 @@ func (s *ProgressBar) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 func (s *ProgressBar) draw(screen *ebiten.Image) {
 	i := s.trackImage.Idle
-	fill := s.fillImage.Idle
+	var fill *image.NineSlice
+	if s.fillImage != nil {
+		fill = s.fillImage.Idle
+	}
 	if s.widget.Disabled {
 		if s.trackImage.Disabled != nil {
 			i = s.trackImage.Disabled

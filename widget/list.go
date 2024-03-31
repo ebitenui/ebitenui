@@ -106,7 +106,30 @@ func NewList(opts ...ListOpt) *List {
 
 	l.resetFocusIndex()
 
+	l.validate()
+
 	return l
+}
+
+func (l *List) validate() {
+	if len(l.scrollContainerOpts) == 0 {
+		panic("List: ScrollContainerOpts are required.")
+	}
+	if len(l.sliderOpts) == 0 {
+		panic("List: SliderOpts are required.")
+	}
+	if l.entryFace == nil {
+		panic("List: EntryFontFace is required.")
+	}
+	if l.entryLabelFunc == nil {
+		panic("List: EntryLabelFunc is required.")
+	}
+	if l.entryTextColor == nil || l.entryTextColor.Idle == nil {
+		panic("List: ListEntryColor.Selected is required.")
+	}
+	if l.entryUnselectedTextColor == nil || l.entryUnselectedTextColor.Idle == nil {
+		panic("List: ListEntryColor.Unselected is required.")
+	}
 }
 
 func (o ListOptions) ContainerOpts(opts ...ContainerOpt) ListOpt {

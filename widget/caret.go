@@ -50,7 +50,15 @@ func NewCaret(opts ...CaretOpt) *Caret {
 		o(c)
 	}
 
+	c.validate()
+
 	return c
+}
+
+func (c *Caret) validate() {
+	if c.face == nil {
+		panic("Caret: Font Face is required.")
+	}
 }
 
 func (o CaretOptions) Color(c color.Color) CaretOpt {

@@ -116,7 +116,9 @@ func main() {
 			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.MinSize(98, 0)),
 		),
 		widget.TabBookOpts.Tabs(tabDisabled, game.TabRed, game.TabGreen, game.TabBlue),
-	//	widget.TabBookOpts.InitialTab(tabGreen),
+
+		// Set the Initial Tab
+		// widget.TabBookOpts.InitialTab(game.TabGreen),
 	)
 	// add the tabBook as a child of the container
 	rootContainer.AddChild(game.TabBook)

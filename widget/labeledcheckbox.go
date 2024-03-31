@@ -49,7 +49,18 @@ func NewLabeledCheckbox(opts ...LabeledCheckboxOpt) *LabeledCheckbox {
 		o(l)
 	}
 
+	l.validate()
+
 	return l
+}
+
+func (l *LabeledCheckbox) validate() {
+	if len(l.checkboxOpts) == 0 {
+		panic("LabeledCheckbox: CheckboxOpts are required.")
+	}
+	if len(l.labelOpts) == 0 {
+		panic("LabeledCheckbox: LabelOpts are required.")
+	}
 }
 
 func (o LabeledCheckboxOptions) WidgetOpts(opts ...WidgetOpt) LabeledCheckboxOpt {

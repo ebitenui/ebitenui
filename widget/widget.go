@@ -122,6 +122,7 @@ const (
 )
 
 type Focuser interface {
+	HasWidget
 	Focus(focused bool)
 	IsFocused() bool
 	TabOrder() int
