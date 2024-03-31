@@ -88,16 +88,23 @@ type ButtonReleasedEventArgs struct {
 }
 
 type ButtonClickedEventArgs struct {
-	Button *Button
+	Button  *Button
+	OffsetX int
+	OffsetY int
 }
+
 type ButtonHoverEventArgs struct {
 	Button  *Button
 	Entered bool
 }
+
 type ButtonChangedEventArgs struct {
-	Button *Button
-	State  WidgetState
+	Button  *Button
+	State   WidgetState
+	OffsetX int
+	OffsetY int
 }
+
 type ButtonPressedHandlerFunc func(args *ButtonPressedEventArgs)
 
 type ButtonReleasedHandlerFunc func(args *ButtonReleasedEventArgs)
@@ -378,8 +385,10 @@ func (b *Button) SetState(state WidgetState) {
 		b.state = state
 
 		b.StateChangedEvent.Fire(&ButtonChangedEventArgs{
-			Button: b,
-			State:  b.state,
+			Button:  b,
+			State:   b.state,
+			OffsetX: -1,
+			OffsetY: -1,
 		})
 	}
 }
@@ -555,7 +564,9 @@ func (b *Button) Click() {
 
 	b.justSubmitted = true
 	b.ClickedEvent.Fire(&ButtonClickedEventArgs{
-		Button: b,
+		Button:  b,
+		OffsetX: -1,
+		OffsetY: -1,
 	})
 	if b.ToggleMode {
 		if b.state == WidgetUnchecked {
@@ -564,8 +575,10 @@ func (b *Button) Click() {
 			b.state = WidgetUnchecked
 		}
 		b.StateChangedEvent.Fire(&ButtonChangedEventArgs{
-			Button: b,
-			State:  b.state,
+			Button:  b,
+			State:   b.state,
+			OffsetX: -1,
+			OffsetY: -1,
 		})
 	}
 }
@@ -661,7 +674,9 @@ func (b *Button) createWidget() {
 
 				if args.Inside {
 					b.ClickedEvent.Fire(&ButtonClickedEventArgs{
-						Button: b,
+						Button:  b,
+						OffsetX: args.OffsetX,
+						OffsetY: args.OffsetY,
 					})
 					if b.ToggleMode {
 						if b.state == WidgetUnchecked {
@@ -670,8 +685,10 @@ func (b *Button) createWidget() {
 							b.state = WidgetUnchecked
 						}
 						b.StateChangedEvent.Fire(&ButtonChangedEventArgs{
-							Button: b,
-							State:  b.state,
+							Button:  b,
+							State:   b.state,
+							OffsetX: args.OffsetX,
+							OffsetY: args.OffsetY,
 						})
 					}
 				}
