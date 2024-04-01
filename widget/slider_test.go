@@ -25,7 +25,8 @@ func newSlider(t *testing.T, opts ...SliderOpt) *Slider {
 	s := NewSlider(append(opts, SliderOpts.Images(&SliderTrackImage{
 		Idle: newNineSliceEmpty(t),
 	}, &ButtonImage{
-		Idle: newNineSliceEmpty(t),
+		Idle:    newNineSliceEmpty(t),
+		Pressed: newNineSliceEmpty(t),
 	}))...)
 	event.ExecuteDeferred()
 	render(s, t)

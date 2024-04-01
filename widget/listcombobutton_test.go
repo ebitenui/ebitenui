@@ -157,7 +157,8 @@ func newListComboButton(t *testing.T, opts ...ListComboButtonOpt) *ListComboButt
 
 	l := NewListComboButton(append(opts, []ListComboButtonOpt{
 		ListComboButtonOpts.SelectComboButtonOpts(SelectComboButtonOpts.ComboButtonOpts(ComboButtonOpts.ButtonOpts(ButtonOpts.Image(&ButtonImage{
-			Idle: newNineSliceEmpty(t),
+			Idle:    newNineSliceEmpty(t),
+			Pressed: newNineSliceEmpty(t),
 		})))),
 		ListComboButtonOpts.ListOpts(
 			ListOpts.ScrollContainerOpts(ScrollContainerOpts.Image(&ScrollContainerImage{
@@ -166,7 +167,8 @@ func newListComboButton(t *testing.T, opts ...ListComboButtonOpt) *ListComboButt
 				Mask:     newNineSliceEmpty(t),
 			})),
 			ListOpts.SliderOpts(SliderOpts.Images(&SliderTrackImage{}, &ButtonImage{
-				Idle: newNineSliceEmpty(t),
+				Idle:    newNineSliceEmpty(t),
+				Pressed: newNineSliceEmpty(t),
 			})),
 			ListOpts.EntryColor(&ListEntryColor{
 				Unselected:                 color.Transparent,

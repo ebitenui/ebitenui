@@ -40,11 +40,10 @@ type CursorUpdater interface {
 var CursorManagementEnabled = true
 
 var currentCursorUpdater CursorUpdater = internalinput.InputHandler
-var isDefaultCursorUpdater = true
 var windowSize image.Point
 
-// If this field is updated, it will force the system cursor into Hidden mode.
-// This will require you to provide at least a CURSOR_DEFAULT cursor if you wish a cursor to be drawn.
+// If the system cannot find a cursor image, it will revert to the system defaults.
+// If cursorUpdater is nil the system will revert to the standard InputHandler system
 //
 // EbitenUI by default will look for the following cursors:
 //
@@ -55,7 +54,9 @@ var windowSize image.Point
 //	CURSOR_TEXT      : "Cursor_Text"
 //	CURSOR_CROSSHAIR : "Cursor_Crosshair"
 func SetCursorUpdater(cursorUpdater CursorUpdater) {
-	isDefaultCursorUpdater = cursorUpdater == internalinput.InputHandler
+	if cursorUpdater == nil {
+		cursorUpdater = internalinput.InputHandler
+	}
 	currentCursorUpdater = cursorUpdater
 }
 
@@ -66,6 +67,7 @@ const (
 	CURSOR_POINTER   = "Cursor_Pointer"
 	CURSOR_TEXT      = "Cursor_Text"
 	CURSOR_CROSSHAIR = "Cursor_Crosshair"
+	CURSOR_NONE      = "Cursor_None"
 )
 
 var currentCursor string = CURSOR_DEFAULT
@@ -177,23 +179,23 @@ func AfterDraw(screen *ebiten.Image) {
 	if CursorManagementEnabled {
 		// Process Cursor
 		posX, posY := currentCursorUpdater.CursorPosition()
+		//If cursor outside the window do nothing
 		if posX < 0 || posY < 0 || posX > windowSize.X || posY > windowSize.Y {
 			return
 		}
 		cursorImage := currentCursorUpdater.GetCursorImage(currentCursor)
-		cursorOffset := currentCursorUpdater.GetCursorOffset(currentCursor)
 		// If we have a cursor image hide current cursor and use it
 		if cursorImage != nil {
 			if ebiten.CursorMode() != ebiten.CursorModeHidden {
 				ebiten.SetCursorMode(ebiten.CursorModeHidden)
 			}
-
+			cursorOffset := currentCursorUpdater.GetCursorOffset(currentCursor)
 			op := &ebiten.DrawImageOptions{}
 			op.GeoM.Translate(float64(posX+cursorOffset.X), float64(posY+cursorOffset.Y))
 			screen.DrawImage(cursorImage, op)
-			// If we don't have an image and this is the default cursor updater
-			// Use the system shapes.
-		} else if isDefaultCursorUpdater {
+			// If we don't have an image use the system shapes.
+		} else {
+			cursorMode := ebiten.CursorModeVisible
 			switch currentCursor {
 			case CURSOR_DEFAULT:
 				ebiten.SetCursorShape(ebiten.CursorShapeDefault)
@@ -207,15 +209,15 @@ func AfterDraw(screen *ebiten.Image) {
 				ebiten.SetCursorShape(ebiten.CursorShapeCrosshair)
 			case CURSOR_POINTER:
 				ebiten.SetCursorShape(ebiten.CursorShapePointer)
+			case CURSOR_NONE:
+				cursorMode = ebiten.CursorModeHidden
+			default:
+				ebiten.SetCursorShape(ebiten.CursorShapeDefault)
 			}
-			if ebiten.CursorMode() != ebiten.CursorModeVisible {
-				ebiten.SetCursorMode(ebiten.CursorModeVisible)
+			if ebiten.CursorMode() != cursorMode {
+				ebiten.SetCursorMode(cursorMode)
 			}
-			// Otherwise hide the cursor
-		} else {
-			if ebiten.CursorMode() != ebiten.CursorModeHidden {
-				ebiten.SetCursorMode(ebiten.CursorModeHidden)
-			}
+
 		}
 	}
 }

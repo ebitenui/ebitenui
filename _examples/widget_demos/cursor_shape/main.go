@@ -105,19 +105,19 @@ func main() {
 		ui: &ui,
 	}
 
-	//Set the main cursor used within the application
+	// Set the main cursor used within the application
 	input.SetCursorImage(input.CURSOR_DEFAULT, loadNormalCursorImage())
 
-	//Set the custom hover image
+	// Set the custom hover image
 	input.SetCursorImage("buttonHover", loadHoverCursorImage())
 
 	input.SetCursorImage("buttonPressed", loadPressedCursorImage())
 
-	//Set the NS resize cursor with an offset so that it shows up a little above the cursor point
+	// Set the NS resize cursor with an offset so that it shows up a little above the cursor point
 	input.SetCursorImageWithOffset(input.CURSOR_NSRESIZE, loadNSCursorImage(), image.Point{0, -6})
 
-	//Disable cursor management by ebitenui
-	//input.CursorManagementEnabled = false
+	// Disable cursor management by ebitenui
+	// input.CursorManagementEnabled = false
 
 	// run Ebiten main loop
 	err := ebiten.RunGame(&game)

@@ -72,7 +72,8 @@ func newButton(t *testing.T, opts ...ButtonOpt) *Button {
 	t.Helper()
 
 	b := NewButton(append(opts, ButtonOpts.Image(&ButtonImage{
-		Idle: newNineSliceEmpty(t),
+		Idle:    newNineSliceEmpty(t),
+		Pressed: newNineSliceEmpty(t),
 	}))...)
 	event.ExecuteDeferred()
 	render(b, t)
