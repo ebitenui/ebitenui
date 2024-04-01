@@ -24,7 +24,8 @@ func newComboButton(t *testing.T, opts ...ComboButtonOpt) *ComboButton {
 
 	b := NewComboButton(append(opts, []ComboButtonOpt{
 		ComboButtonOpts.ButtonOpts(ButtonOpts.Image(&ButtonImage{
-			Idle: newNineSliceEmpty(t),
+			Idle:    newNineSliceEmpty(t),
+			Pressed: newNineSliceEmpty(t),
 		})),
 		ComboButtonOpts.Content(newButton(t)),
 	}...)...)

@@ -102,7 +102,8 @@ func newCheckbox(t *testing.T, opts ...CheckboxOpt) *Checkbox {
 
 	c := NewCheckbox(append(opts, []CheckboxOpt{
 		CheckboxOpts.ButtonOpts(ButtonOpts.Image(&ButtonImage{
-			Idle: newNineSliceEmpty(t),
+			Idle:    newNineSliceEmpty(t),
+			Pressed: newNineSliceEmpty(t),
 		})),
 
 		CheckboxOpts.Image(&CheckboxGraphicImage{

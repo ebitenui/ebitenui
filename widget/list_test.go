@@ -136,7 +136,8 @@ func newList(t *testing.T, opts ...ListOpt) *List {
 		})),
 
 		ListOpts.SliderOpts(SliderOpts.Images(&SliderTrackImage{}, &ButtonImage{
-			Idle: newNineSliceEmpty(t),
+			Idle:    newNineSliceEmpty(t),
+			Pressed: newNineSliceEmpty(t),
 		})),
 
 		ListOpts.EntryFontFace(loadFont(t)),

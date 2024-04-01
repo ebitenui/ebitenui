@@ -15,10 +15,6 @@ func TestSelectComboButton_SetSelectedEntry(t *testing.T) {
 	numEvents := 0
 
 	b := newSelectComboButton(t,
-		SelectComboButtonOpts.EntryLabelFunc(func(e interface{}) string {
-			return "label " + e.(string)
-		}),
-
 		SelectComboButtonOpts.EntrySelectedHandler(func(args *SelectComboButtonEntrySelectedEventArgs) {
 			eventArgs = args
 			numEvents++
@@ -79,7 +75,8 @@ func newSelectComboButton(t *testing.T, opts ...SelectComboButtonOpt) *SelectCom
 		SelectComboButtonOpts.ComboButtonOpts(
 			ComboButtonOpts.ButtonOpts(
 				ButtonOpts.Image(&ButtonImage{
-					Idle: newNineSliceEmpty(t),
+					Idle:    newNineSliceEmpty(t),
+					Pressed: newNineSliceEmpty(t),
 				}),
 				ButtonOpts.TextAndImage("", loadFont(t), &ButtonImageImage{
 					Idle:     newImageEmpty(t),
@@ -89,7 +86,11 @@ func newSelectComboButton(t *testing.T, opts ...SelectComboButtonOpt) *SelectCom
 					Disabled: color.Transparent,
 				}),
 			),
-			ComboButtonOpts.Content(newButton(t))),
+			ComboButtonOpts.Content(newButton(t)),
+		),
+		SelectComboButtonOpts.EntryLabelFunc(func(e interface{}) string {
+			return "label " + e.(string)
+		}),
 	)...)
 
 	event.ExecuteDeferred()

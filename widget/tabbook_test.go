@@ -110,7 +110,8 @@ func newTabBook(t *testing.T, opts ...TabBookOpt) *TabBook {
 
 	tb := NewTabBook(append(opts, []TabBookOpt{
 		TabBookOpts.TabButtonImage(&ButtonImage{
-			Idle: newNineSliceEmpty(t),
+			Idle:    newNineSliceEmpty(t),
+			Pressed: newNineSliceEmpty(t),
 		}),
 		TabBookOpts.TabButtonText(loadFont(t), &ButtonTextColor{
 			Idle:     color.Transparent,
