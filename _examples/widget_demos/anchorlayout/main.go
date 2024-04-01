@@ -16,8 +16,8 @@ type game struct {
 }
 
 /*
-The Anchor layout is used to specify where to draw the single element within the container.
-It will only layout a single element ignoring the rest.
+The Anchor layout is used to specify where to draw the elements within the container.
+This layout does not account for overlap as seen in this example where we have two widgets set to be centered in the parent.
 This is often used to align a widget or another container to the center of the parent container.
 */
 func main() {
@@ -46,6 +46,20 @@ func main() {
 		),
 	)
 	rootContainer.AddChild(innerContainer)
+
+	innerContainer2 := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0, 200, 255, 255})),
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				HorizontalPosition: widget.AnchorLayoutPositionCenter,
+				VerticalPosition:   widget.AnchorLayoutPositionCenter,
+				StretchHorizontal:  false,
+				StretchVertical:    true,
+			}),
+			widget.WidgetOpts.MinSize(100, 100),
+		),
+	)
+	rootContainer.AddChild(innerContainer2)
 	// construct the UI
 	ui := ebitenui.UI{
 		Container: rootContainer,
