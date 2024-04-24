@@ -49,9 +49,7 @@ func main() {
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
 
 		// the container will use an anchor layout to layout its single child widget
-		widget.ContainerOpts.Layout(widget.NewAnchorLayout(
-			widget.AnchorLayoutOpts.Padding(widget.NewInsetsSimple(50)),
-		)),
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 
 	// Construct a list. This is one of the more complicated widgets to use since
@@ -64,6 +62,7 @@ func main() {
 				HorizontalPosition: widget.AnchorLayoutPositionCenter,
 				VerticalPosition:   widget.AnchorLayoutPositionEnd,
 				StretchVertical:    true,
+				Padding:            widget.NewInsetsSimple(50),
 			}),
 		)),
 		// Set the entries in the list
@@ -129,7 +128,8 @@ func main() {
 		widget.ContainerOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 				HorizontalPosition: widget.AnchorLayoutPositionCenter,
-				VerticalPosition:   widget.AnchorLayoutPositionEnd,
+				VerticalPosition:   widget.AnchorLayoutPositionStart,
+				Padding:            widget.NewInsetsSimple(5),
 			}),
 		),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(

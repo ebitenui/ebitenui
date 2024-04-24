@@ -35,6 +35,9 @@ type AnchorLayoutData struct {
 
 	// StretchVertical specifies whether to stretch in the vertical direction.
 	StretchVertical bool
+
+	// Sets the padding for the child.
+	Padding Insets
 }
 
 const (
@@ -62,7 +65,7 @@ func NewAnchorLayout(opts ...AnchorLayoutOpt) *AnchorLayout {
 	return a
 }
 
-// Padding configures an anchor layout to use padding i.
+// Padding configures an anchor layout to use padding i. This affects all children.
 func (o AnchorLayoutOptions) Padding(i Insets) AnchorLayoutOpt {
 	return func(a *AnchorLayout) {
 		a.padding = i
@@ -93,23 +96,25 @@ func (a *AnchorLayout) Layout(widgets []PreferredSizeLocateableWidget, rect imag
 		}
 
 		ww, wh := widget.PreferredSize()
-		rect = a.padding.Apply(rect)
+		wrect := a.padding.Apply(rect)
 		wx := 0
 		wy := 0
 
 		if ald, ok := widget.GetWidget().LayoutData.(AnchorLayoutData); ok {
-			wx, wy, ww, wh = a.applyLayoutData(ald, wx, wy, ww, wh, rect)
+			wrect = ald.Padding.Apply(wrect)
+			wx, wy, ww, wh = a.applyLayoutData(ald, wx, wy, ww, wh, wrect)
 		}
 
 		r := image.Rect(0, 0, ww, wh)
 		r = r.Add(image.Point{wx, wy})
-		r = r.Add(rect.Min)
+		r = r.Add(wrect.Min)
 
 		widget.SetLocation(r)
 	}
 }
 
 func (a *AnchorLayout) applyLayoutData(ld AnchorLayoutData, wx int, wy int, ww int, wh int, rect image.Rectangle) (int, int, int, int) {
+
 	if ld.StretchHorizontal {
 		ww = rect.Dx()
 	}
