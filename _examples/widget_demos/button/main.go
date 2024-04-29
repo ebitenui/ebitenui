@@ -52,7 +52,8 @@ func main() {
 
 		// specify the button's text, the font face, and the color
 		widget.ButtonOpts.Text("Hello, World!", face, &widget.ButtonTextColor{
-			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
+			Idle:  color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
+			Hover: color.NRGBA{0, 255, 128, 255},
 		}),
 
 		// specify that the button's text needs some padding for correct display
