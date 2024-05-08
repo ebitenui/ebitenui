@@ -52,9 +52,10 @@ type TextOptions struct {
 }
 
 type textMeasurements struct {
-	label    string
-	face     font.Face
-	maxWidth float64
+	label         string
+	face          font.Face
+	maxWidth      float64
+	processBBCode bool
 
 	lines             [][]string
 	lineWidths        []float64
@@ -318,16 +319,17 @@ func (t *Text) handleBBCodeColor(word string) ([]bbCodeText, color.Color) {
 }
 
 func (t *Text) measure() {
-	if t.Label == t.measurements.label && t.Face == t.measurements.face && t.MaxWidth == t.measurements.maxWidth {
+	if t.Label == t.measurements.label && t.Face == t.measurements.face && t.MaxWidth == t.measurements.maxWidth && t.processBBCode == t.measurements.processBBCode {
 		return
 	}
 	m := t.Face.Metrics()
 
 	t.measurements = textMeasurements{
-		label:    t.Label,
-		face:     t.Face,
-		ascent:   fixedInt26_6ToFloat64(m.Ascent),
-		maxWidth: t.MaxWidth,
+		label:         t.Label,
+		face:          t.Face,
+		processBBCode: t.processBBCode,
+		ascent:        fixedInt26_6ToFloat64(m.Ascent),
+		maxWidth:      t.MaxWidth,
 	}
 
 	fh := fixedInt26_6ToFloat64(m.Ascent + m.Descent)
@@ -336,7 +338,7 @@ func (t *Text) measure() {
 
 	s := bufio.NewScanner(strings.NewReader(t.Label))
 	for s.Scan() {
-		if t.MaxWidth > 0 {
+		if t.MaxWidth > 0 || t.processBBCode {
 			var newLine []string
 			newLineWidth := float64(t.Inset.Left + t.Inset.Right)
 			words := strings.Split(s.Text(), " ")
@@ -352,7 +354,7 @@ func (t *Text) measure() {
 				}
 
 				// If the new word doesn't push this past the max width continue adding to the current line
-				if newLineWidth+wordWidth < t.MaxWidth {
+				if t.MaxWidth == 0 || newLineWidth+wordWidth < t.MaxWidth {
 					newLine = append(newLine, word)
 					newLineWidth += wordWidth
 				} else {
