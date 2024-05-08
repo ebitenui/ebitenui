@@ -36,16 +36,17 @@ type Button struct {
 	textPadding              Insets
 	graphicPadding           Insets
 
-	init      *MultiOnce
-	widget    *Widget
-	container *Container
-	graphic   *Graphic
-	text      *Text
-	textLabel string
-	textFace  font.Face
-	hovering  bool
-	pressing  bool
-	state     WidgetState
+	init              *MultiOnce
+	widget            *Widget
+	container         *Container
+	graphic           *Graphic
+	text              *Text
+	textLabel         string
+	textFace          font.Face
+	textProcessBBCode bool
+	hovering          bool
+	pressing          bool
+	state             WidgetState
 
 	tabOrder      int
 	focused       bool
@@ -214,6 +215,12 @@ func (o ButtonOptions) TextColor(color *ButtonTextColor) ButtonOpt {
 	}
 }
 
+func (o ButtonOptions) TextProcessBBCode(enabled bool) ButtonOpt {
+	return func(b *Button) {
+		b.textProcessBBCode = enabled
+	}
+}
+
 // TODO: add parameter for image position (start/end)
 func (o ButtonOptions) TextAndImage(label string, face font.Face, image *ButtonImageImage, color *ButtonTextColor) ButtonOpt {
 	return func(b *Button) {
@@ -237,7 +244,9 @@ func (o ButtonOptions) TextAndImage(label string, face font.Face, image *ButtonI
 				TextOpts.WidgetOpts(WidgetOpts.LayoutData(RowLayoutData{
 					Stretch: true,
 				})),
-				TextOpts.Text(label, face, color.Idle))
+				TextOpts.Text(label, face, color.Idle),
+				TextOpts.ProcessBBCode(b.textProcessBBCode),
+			)
 			c.AddChild(b.text)
 
 			b.graphic = NewGraphic(
@@ -627,6 +636,7 @@ func (b *Button) initText() {
 			VerticalPosition:   AnchorLayoutPosition(b.vTextPosition),
 		})),
 		TextOpts.Text(b.textLabel, b.textFace, b.TextColor.Idle),
+		TextOpts.ProcessBBCode(b.textProcessBBCode),
 	)
 	b.container.AddChild(b.text)
 
