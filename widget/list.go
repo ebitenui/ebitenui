@@ -501,8 +501,15 @@ func (l *List) createWidget() {
 
 // Updates the entries in the list.
 // Note: Duplicates will be removed.
-func (l *List) SetEntries(entries []any) {
-	l.entries = slices.CompactFunc(entries, func(a any, b any) bool { return a == b })
+func (l *List) SetEntries(newEntries []any) {
+	l.entries = nil
+	for idx := range newEntries {
+		if !slices.ContainsFunc(l.entries, func(cmp any) bool {
+			return cmp == newEntries[idx]
+		}) {
+			l.entries = append(l.entries, newEntries[idx])
+		}
+	}
 	l.selectedEntry = nil
 	l.container.RemoveChildren()
 	l.createWidget()
@@ -540,7 +547,7 @@ func (l *List) RemoveEntry(entry any) {
 // Note: Duplicates will not be added
 func (l *List) AddEntry(entry any) {
 	l.init.Do()
-	if !l.checkForDuplicates(append(l.entries, entry)) {
+	if !l.checkForDuplicates(l.entries, entry) {
 		l.entries = append(l.entries, entry)
 		but := l.createEntry(entry)
 		l.buttons = append(l.buttons, but)
@@ -590,10 +597,10 @@ func (l *List) setSelectedEntry(e any, user bool) {
 	}
 }
 
-func (l *List) checkForDuplicates(entries []any) bool {
-	entryLen := len(entries)
-	entries = slices.CompactFunc(entries, func(a any, b any) bool { return a == b })
-	return entryLen != len(entries)
+func (l *List) checkForDuplicates(entries []any, entry any) bool {
+	return slices.ContainsFunc(entries, func(cmp any) bool {
+		return cmp == entry
+	})
 }
 
 func (l *List) createEntry(entry any) *Button {
