@@ -449,6 +449,9 @@ func (t *TextInput) Insert(c []rune) {
 
 	t.inputText = s
 	t.cursorPosition += len(c)
+	if t.cursorPosition > len(t.inputText) {
+		t.CursorMoveEnd()
+	}
 }
 
 func (t *TextInput) CursorMoveLeft() {
