@@ -446,12 +446,13 @@ func (t *TextInput) Insert(c []rune) {
 			}
 		}
 	}
-
 	t.inputText = s
+
 	t.cursorPosition += len(c)
-	if t.cursorPosition > len(t.inputText) {
-		t.CursorMoveEnd()
+	if t.cursorPosition > len([]rune(t.inputText)) {
+		t.cursorPosition = len([]rune(t.inputText))
 	}
+	t.caret.ResetBlinking()
 }
 
 func (t *TextInput) CursorMoveLeft() {
