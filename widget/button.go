@@ -356,6 +356,8 @@ func (o ButtonOptions) ClickedHandler(f ButtonClickedHandlerFunc) ButtonOpt {
 	}
 }
 
+// CursorEnteredHandler is like [Widget.CursorEnteredEvent] handler,
+// but it will ignore disabled buttons.
 func (o ButtonOptions) CursorEnteredHandler(f ButtonCursorHoverHandlerFunc) ButtonOpt {
 	return func(b *Button) {
 		b.CursorEnteredEvent.AddHandler(func(args interface{}) {
@@ -364,6 +366,8 @@ func (o ButtonOptions) CursorEnteredHandler(f ButtonCursorHoverHandlerFunc) Butt
 	}
 }
 
+// CursorExitedHandler is like [Widget.CursorExitedEvent] event handler,
+// but it will ignore disabled buttons.
 func (o ButtonOptions) CursorExitedHandler(f ButtonCursorHoverHandlerFunc) ButtonOpt {
 	return func(b *Button) {
 		b.CursorExitedEvent.AddHandler(func(args interface{}) {
