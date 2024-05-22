@@ -85,7 +85,20 @@ func (a *AnchorLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (i
 }
 
 // Layout implements Layouter.
+func (a *AnchorLayout) CalcLayout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) []image.Rectangle {
+	res := make([]image.Rectangle, 0)
+	a.doLayout(widgets, rect, func(pslw PreferredSizeLocateableWidget, r image.Rectangle) {
+		res = append(res, r)
+	})
+	return res
+}
+
 func (a *AnchorLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) {
+	a.doLayout(widgets, rect, func(pslw PreferredSizeLocateableWidget, r image.Rectangle) {
+		pslw.SetLocation(r)
+	})
+}
+func (a *AnchorLayout) doLayout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle, locater LocationFunction) {
 	if len(widgets) == 0 {
 		return
 	}
@@ -109,7 +122,7 @@ func (a *AnchorLayout) Layout(widgets []PreferredSizeLocateableWidget, rect imag
 		r = r.Add(image.Point{wx, wy})
 		r = r.Add(wrect.Min)
 
-		widget.SetLocation(r)
+		locater(widget, r)
 	}
 }
 

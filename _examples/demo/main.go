@@ -386,7 +386,19 @@ func (g *game) Update() error {
 
 func (g *game) Draw(screen *ebiten.Image) {
 	g.ui.Draw(screen)
+	var dk func(p widget.PreferredSizeLocateableWidget)
+	dk = func(p widget.PreferredSizeLocateableWidget) {
+		if pc, ok := p.(*widget.Container); ok {
+			for _, c := range pc.Children() {
+				dk(c)
+			}
 
+		}
+		if dd, ok := p.GetWidget().CustomData.(widget.DebugData); ok {
+			ebitenutil.DebugPrintAt(screen, dd.Message, dd.X, dd.Y)
+		}
+	}
+	dk(g.ui.Container)
 	x, y := ebiten.CursorPosition()
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %f CUR: %d,%d", ebiten.ActualFPS(), x, y))
 }

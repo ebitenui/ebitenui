@@ -2,6 +2,7 @@ package widget
 
 import (
 	"image"
+	img "image"
 )
 
 // StackedLayout lays out multiple widgets stacked on top of each other in the order they are added as children
@@ -70,12 +71,25 @@ func (a *StackedLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (
 }
 
 // Layout implements Layouter.
+func (a *StackedLayout) CalcLayout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) []img.Rectangle {
+	res := make([]img.Rectangle, 0)
+	a.doLayout(widgets, rect, func(w PreferredSizeLocateableWidget, rect image.Rectangle) {
+		res = append(res, rect)
+	})
+	return res
+}
+
 func (a *StackedLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) {
+	a.doLayout(widgets, rect, func(w PreferredSizeLocateableWidget, rect image.Rectangle) {
+		w.SetLocation(rect)
+	})
+}
+func (a *StackedLayout) doLayout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle, locater LocationFunction) {
 	if len(widgets) == 0 {
 		return
 	}
 	rect = a.padding.Apply(rect)
 	for idx := range widgets {
-		widgets[idx].SetLocation(rect)
+		locater(widgets[idx], rect)
 	}
 }

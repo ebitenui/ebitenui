@@ -9,6 +9,11 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+type DebugData struct {
+	X, Y    int
+	Message string
+}
+
 // A Widget is an abstraction of a user interface widget, such as a button. Actual widget implementations
 // "have" a Widget in their internal structure.
 type Widget struct {

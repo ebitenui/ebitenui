@@ -93,6 +93,13 @@ func (r *RowLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (int,
 }
 
 // Layout implements Layouter.
+func (r *RowLayout) CalcLayout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) []image.Rectangle {
+	res := make([]image.Rectangle, 0)
+	r.layout(widgets, rect, true, func(w PreferredSizeLocateableWidget, wr image.Rectangle) {
+		res = append(res, wr)
+	})
+	return res
+}
 func (r *RowLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) {
 	r.layout(widgets, rect, true, func(w PreferredSizeLocateableWidget, wr image.Rectangle) {
 		w.SetLocation(wr)

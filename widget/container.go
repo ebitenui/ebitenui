@@ -1,6 +1,7 @@
 package widget
 
 import (
+	"fmt"
 	img "image"
 
 	"github.com/ebitenui/ebitenui/image"
@@ -13,9 +14,10 @@ type Container struct {
 	BackgroundImage     *image.NineSlice
 	AutoDisableChildren bool
 
-	widgetOpts  []WidgetOpt
-	layout      Layouter
-	layoutDirty bool
+	widgetOpts      []WidgetOpt
+	layout          Layouter
+	layoutDirty     bool
+	layoutHappening bool
 
 	init     *MultiOnce
 	widget   *Widget
@@ -170,11 +172,21 @@ func (c *Container) Children() []PreferredSizeLocateableWidget {
 func (c *Container) RequestRelayout(rect img.Rectangle) {
 	c.init.Do()
 
+	wasDirty := c.layoutDirty
 	c.layoutDirty = true
+	c.widget.CustomData = DebugData{rect.Min.X, rect.Min.Y, fmt.Sprintf("%d,%d", rect.Max.X, rect.Max.Y)}
+	crects := make([]img.Rectangle, 0)
+	if !wasDirty && !rect.Empty() {
+		crects = c.doCalcLayout(rect)
+	}
 
-	for _, ch := range c.children {
+	for i, ch := range c.children {
 		if r, ok := ch.(Relayoutable); ok {
-			r.RequestRelayout(rect)
+			crect := rect
+			if len(crects) > i {
+				crect = crects[i]
+			}
+			r.RequestRelayout(crect)
 		}
 	}
 }
@@ -221,7 +233,7 @@ func (c *Container) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 	c.widget.Render(screen, def)
 
-	c.doLayout()
+	c.doLayout(c.widget.Rect)
 
 	c.draw(screen)
 
@@ -235,9 +247,16 @@ func (c *Container) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	}
 }
 
-func (c *Container) doLayout() {
+func (c *Container) doCalcLayout(rect img.Rectangle) []img.Rectangle {
 	if c.layout != nil && c.layoutDirty {
-		c.layout.Layout(c.children, c.widget.Rect)
+		return c.layout.CalcLayout(c.children, rect)
+	}
+	return []img.Rectangle{}
+}
+
+func (c *Container) doLayout(rect img.Rectangle) {
+	if c.layout != nil && c.layoutDirty {
+		c.layout.Layout(c.children, rect)
 		c.layoutDirty = false
 	}
 }

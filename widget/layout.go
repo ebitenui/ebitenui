@@ -4,9 +4,11 @@ import (
 	"image"
 )
 
+type LocationFunction func(PreferredSizeLocateableWidget, image.Rectangle)
 type Layouter interface {
 	PreferredSize(widgets []PreferredSizeLocateableWidget) (int, int)
 	Layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle)
+	CalcLayout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) []image.Rectangle
 }
 
 type Relayoutable interface {
