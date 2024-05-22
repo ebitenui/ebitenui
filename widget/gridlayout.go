@@ -48,7 +48,7 @@ const (
 	// GridLayoutPositionStart is the center anchoring position.
 	GridLayoutPositionCenter
 
-	// GridLayoutPositionStart is the anchoring position for "right" (in the horizontal direction) or "bottom" (in the vertical direction.)
+	// GridLayoutPositionEnd is the anchoring position for "right" (in the horizontal direction) or "bottom" (in the vertical direction.)
 	GridLayoutPositionEnd
 )
 
@@ -255,7 +255,7 @@ func (g *GridLayout) applyLayoutData(ld GridLayoutData, wx int, wy int, ww int, 
 
 	switch ld.VerticalPosition {
 	case GridLayoutPositionCenter:
-		wy = x + (ch-wh)/2
+		wy = y + (ch-wh)/2
 	case GridLayoutPositionEnd:
 		wy = y + ch - wh
 	}

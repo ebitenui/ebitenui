@@ -277,9 +277,9 @@ func (l *List) SetLocation(rect img.Rectangle) {
 	l.container.GetWidget().Rect = rect
 }
 
-func (l *List) RequestRelayout() {
+func (l *List) RequestRelayout(rect img.Rectangle) {
 	l.init.Do()
-	l.container.RequestRelayout()
+	l.container.RequestRelayout(rect)
 }
 
 func (l *List) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
@@ -431,11 +431,10 @@ func (l *List) createWidget() {
 				GridLayoutOpts.Stretch([]bool{true, false}, []bool{true, false}),
 				GridLayoutOpts.Spacing(l.controlWidgetSpacing, l.controlWidgetSpacing))))...)
 
-	l.listContent = NewContainer(
-		ContainerOpts.Layout(NewRowLayout(
-			RowLayoutOpts.Direction(DirectionVertical))),
-		ContainerOpts.AutoDisableChildren(),
-	)
+	l.listContent = NewContainer(ContainerOpts.Layout(NewGridLayout(
+		GridLayoutOpts.Columns(1),
+		GridLayoutOpts.Stretch([]bool{true}, []bool{}),
+	)))
 
 	l.buttons = make([]*Button, 0, len(l.entries))
 	for _, e := range l.entries {

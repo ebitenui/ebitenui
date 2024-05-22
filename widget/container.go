@@ -103,7 +103,7 @@ func (c *Container) AddChild(child PreferredSizeLocateableWidget) RemoveChildFun
 		a := args.(*WidgetDragAndDropEventArgs)
 		c.GetWidget().FireDragAndDropEvent(a.Window, a.Show, a.DnD)
 	})
-	c.RequestRelayout()
+	c.RequestRelayout(c.widget.Rect)
 
 	return func() {
 		c.RemoveChild(child)
@@ -138,7 +138,7 @@ func (c *Container) RemoveChild(child PreferredSizeLocateableWidget) {
 	if child.GetWidget().ContextMenuWindow != nil {
 		child.GetWidget().ContextMenuWindow.Close()
 	}
-	c.RequestRelayout()
+	c.RequestRelayout(c.widget.Rect)
 }
 
 func (c *Container) RemoveChildren() {
@@ -160,21 +160,21 @@ func (c *Container) RemoveChildren() {
 	}
 	c.children = nil
 
-	c.RequestRelayout()
+	c.RequestRelayout(c.widget.Rect)
 }
 
 func (c *Container) Children() []PreferredSizeLocateableWidget {
 	return c.children
 }
 
-func (c *Container) RequestRelayout() {
+func (c *Container) RequestRelayout(rect img.Rectangle) {
 	c.init.Do()
 
 	c.layoutDirty = true
 
 	for _, ch := range c.children {
 		if r, ok := ch.(Relayoutable); ok {
-			r.RequestRelayout()
+			r.RequestRelayout(rect)
 		}
 	}
 }
@@ -203,7 +203,7 @@ func (c *Container) PreferredSize() (int, int) {
 func (c *Container) SetLocation(rect img.Rectangle) {
 	c.init.Do()
 	c.widget.Rect = rect
-	c.RequestRelayout()
+	c.RequestRelayout(rect)
 }
 
 func (c *Container) Render(screen *ebiten.Image, def DeferredRenderFunc) {

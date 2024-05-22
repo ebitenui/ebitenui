@@ -167,6 +167,7 @@ func demoContainer(res *uiResources, ui func() *ebitenui.UI) widget.PreferredSiz
 		)))
 
 	pages := []interface{}{
+		scrollPage(res),
 		buttonPage(res),
 		checkboxPage(res),
 		listPage(res),
@@ -225,10 +226,12 @@ func demoContainer(res *uiResources, ui func() *ebitenui.UI) widget.PreferredSiz
 func newPageContainer(res *uiResources) *pageContainer {
 	c := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(res.panel.image),
-		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-			widget.RowLayoutOpts.Padding(res.panel.padding),
-			widget.RowLayoutOpts.Spacing(15))),
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			widget.GridLayoutOpts.Columns(1),
+			widget.GridLayoutOpts.Padding(res.panel.padding),
+			widget.GridLayoutOpts.Spacing(0, 15),
+			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false, true}),
+		)),
 	)
 
 	titleText := widget.NewText(
@@ -255,7 +258,7 @@ func newPageContainer(res *uiResources) *pageContainer {
 func (p *pageContainer) setPage(page *page) {
 	p.titleText.Label = page.title
 	p.flipBook.SetPage(page.content)
-	p.flipBook.RequestRelayout()
+	p.flipBook.RequestRelayout(p.flipBook.GetWidget().Rect)
 }
 
 func newCheckbox(label string, changedHandler widget.CheckboxChangedHandlerFunc, res *uiResources) *widget.LabeledCheckbox {
@@ -384,5 +387,6 @@ func (g *game) Update() error {
 func (g *game) Draw(screen *ebiten.Image) {
 	g.ui.Draw(screen)
 
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %f", ebiten.ActualFPS()))
+	x, y := ebiten.CursorPosition()
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %f CUR: %d,%d", ebiten.ActualFPS(), x, y))
 }

@@ -10,7 +10,7 @@ type Layouter interface {
 }
 
 type Relayoutable interface {
-	RequestRelayout()
+	RequestRelayout(rect image.Rectangle)
 }
 
 type Locateable interface {

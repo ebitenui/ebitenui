@@ -476,11 +476,11 @@ func (b *Button) SetLocation(rect img.Rectangle) {
 	b.widget.Rect = rect
 }
 
-func (b *Button) RequestRelayout() {
+func (b *Button) RequestRelayout(rect img.Rectangle) {
 	b.init.Do()
 
 	if b.container != nil {
-		b.container.RequestRelayout()
+		b.container.RequestRelayout(rect)
 	}
 }
 
@@ -499,7 +499,7 @@ func (b *Button) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 		w := b.container.GetWidget()
 		w.Rect = b.widget.Rect
 		w.Disabled = b.widget.Disabled
-		b.container.RequestRelayout()
+		b.container.RequestRelayout(w.Rect)
 	}
 
 	b.widget.Render(screen, def)
