@@ -431,10 +431,11 @@ func (l *List) createWidget() {
 				GridLayoutOpts.Stretch([]bool{true, false}, []bool{true, false}),
 				GridLayoutOpts.Spacing(l.controlWidgetSpacing, l.controlWidgetSpacing))))...)
 
-	l.listContent = NewContainer(ContainerOpts.Layout(NewGridLayout(
-		GridLayoutOpts.Columns(1),
-		GridLayoutOpts.Stretch([]bool{true}, []bool{}),
-	)))
+	l.listContent = NewContainer(
+		ContainerOpts.Layout(NewRowLayout(
+			RowLayoutOpts.Direction(DirectionVertical))),
+		ContainerOpts.AutoDisableChildren(),
+	)
 
 	l.buttons = make([]*Button, 0, len(l.entries))
 	for _, e := range l.entries {
@@ -446,12 +447,6 @@ func (l *List) createWidget() {
 	}
 
 	l.scrollContainer = NewScrollContainer(append(l.scrollContainerOpts, []ScrollContainerOpt{
-		ScrollContainerOpts.WidgetOpts(
-			WidgetOpts.LayoutData(GridLayoutData{
-				HorizontalPosition: GridLayoutPositionCenter,
-				VerticalPosition:   GridLayoutPositionCenter,
-			}),
-		),
 		ScrollContainerOpts.Content(l.listContent),
 		ScrollContainerOpts.StretchContentWidth(),
 	}...)...)

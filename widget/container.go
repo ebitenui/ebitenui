@@ -18,7 +18,6 @@ type Container struct {
 	widgetOpts      []WidgetOpt
 	layout          Layouter
 	layoutDirty     bool
-	layoutHappening bool
 
 	init     *MultiOnce
 	widget   *Widget

@@ -11,6 +11,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 
+	img "image"
 	"image/color"
 	_ "image/png"
 
@@ -226,12 +227,10 @@ func demoContainer(res *uiResources, ui func() *ebitenui.UI) widget.PreferredSiz
 func newPageContainer(res *uiResources) *pageContainer {
 	c := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(res.panel.image),
-		widget.ContainerOpts.Layout(widget.NewGridLayout(
-			widget.GridLayoutOpts.Columns(1),
-			widget.GridLayoutOpts.Padding(res.panel.padding),
-			widget.GridLayoutOpts.Spacing(0, 15),
-			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false, true}),
-		)),
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+			widget.RowLayoutOpts.Padding(res.panel.padding),
+			widget.RowLayoutOpts.Spacing(15))),
 	)
 
 	titleText := widget.NewText(
@@ -258,7 +257,7 @@ func newPageContainer(res *uiResources) *pageContainer {
 func (p *pageContainer) setPage(page *page) {
 	p.titleText.Label = page.title
 	p.flipBook.SetPage(page.content)
-	p.flipBook.RequestRelayout(p.flipBook.GetWidget().Rect)
+	p.flipBook.RequestRelayout(img.Rectangle{})
 }
 
 func newCheckbox(label string, changedHandler widget.CheckboxChangedHandlerFunc, res *uiResources) *widget.LabeledCheckbox {

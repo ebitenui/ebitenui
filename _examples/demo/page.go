@@ -267,26 +267,12 @@ func scrollPage(res *uiResources) *page {
 }
 
 func listPage(res *uiResources) *page {
-	c := widget.NewContainer(
-		widget.ContainerOpts.WidgetOpts(
-			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
-				StretchHorizontal: true,
-				StretchVertical:   true,
-			}),
-			widget.WidgetOpts.DebugData("lp"),
-		),
-		widget.ContainerOpts.BackgroundImage(res.panel.image),
-		widget.ContainerOpts.Layout(widget.NewGridLayout(
-			widget.GridLayoutOpts.Columns(1),
-			widget.GridLayoutOpts.Padding(res.panel.padding),
-			widget.GridLayoutOpts.Spacing(0, 15),
-			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{true, false, false}),
-		)),
-	)
+	c := newPageContentContainer()
 
 	listsContainer := widget.NewContainer(
 		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: true,
+			Shrink:  true,
 		})),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
 			widget.GridLayoutOpts.Columns(3),
