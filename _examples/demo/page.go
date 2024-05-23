@@ -126,6 +126,11 @@ func scrollPage(res *uiResources) *page {
 	rootContainer := widget.NewContainer(
 		// the container will use a plain color as its background
 		widget.ContainerOpts.BackgroundImage(img.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				StretchVertical: true,
+			}),
+		),
 
 		// the container will use an grid layout to layout its ScrollableContainer and Slider
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
@@ -263,6 +268,13 @@ func scrollPage(res *uiResources) *page {
 
 func listPage(res *uiResources) *page {
 	c := widget.NewContainer(
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				StretchHorizontal: true,
+				StretchVertical:   true,
+			}),
+			widget.WidgetOpts.DebugData("lp"),
+		),
 		widget.ContainerOpts.BackgroundImage(res.panel.image),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
 			widget.GridLayoutOpts.Columns(1),

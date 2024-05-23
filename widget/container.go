@@ -3,6 +3,7 @@ package widget
 import (
 	"fmt"
 	img "image"
+	"strconv"
 
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
@@ -169,14 +170,31 @@ func (c *Container) Children() []PreferredSizeLocateableWidget {
 	return c.children
 }
 
+var _id int = 0
+
 func (c *Container) RequestRelayout(rect img.Rectangle) {
 	c.init.Do()
 
-	wasDirty := c.layoutDirty
 	c.layoutDirty = true
-	c.widget.CustomData = DebugData{rect.Min.X, rect.Min.Y, fmt.Sprintf("%d,%d", rect.Max.X, rect.Max.Y)}
+	var dd *DebugData
+	if d, ok := c.widget.CustomData.(DebugData); ok {
+		dd = &d
+	} else {
+		if c.widget.CustomData == nil {
+			dd = &DebugData{Name: strconv.Itoa(_id + 1)}
+		}
+		_id += 1
+	}
+	if dd != nil {
+		dd.X = rect.Min.X
+		dd.Y = rect.Min.Y
+		dd.Message = fmt.Sprintf("%d,%d", rect.Max.X, rect.Max.Y)
+		c.widget.CustomData = *dd
+	}
+
+	c.widget.CustomData = *dd
 	crects := make([]img.Rectangle, 0)
-	if !wasDirty && !rect.Empty() {
+	if !rect.Empty() {
 		crects = c.doCalcLayout(rect)
 	}
 

@@ -395,7 +395,7 @@ func (g *game) Draw(screen *ebiten.Image) {
 
 		}
 		if dd, ok := p.GetWidget().CustomData.(widget.DebugData); ok {
-			ebitenutil.DebugPrintAt(screen, dd.Message, dd.X, dd.Y)
+			ebitenutil.DebugPrintAt(screen, fmt.Sprintf("%s %s", dd.Name, dd.Message), dd.X, dd.Y)
 		}
 	}
 	dk(g.ui.Container)

@@ -446,6 +446,12 @@ func (l *List) createWidget() {
 	}
 
 	l.scrollContainer = NewScrollContainer(append(l.scrollContainerOpts, []ScrollContainerOpt{
+		ScrollContainerOpts.WidgetOpts(
+			WidgetOpts.LayoutData(GridLayoutData{
+				HorizontalPosition: GridLayoutPositionCenter,
+				VerticalPosition:   GridLayoutPositionCenter,
+			}),
+		),
 		ScrollContainerOpts.Content(l.listContent),
 		ScrollContainerOpts.StretchContentWidth(),
 	}...)...)
