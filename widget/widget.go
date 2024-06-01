@@ -42,6 +42,9 @@ type Widget struct {
 	// CursorEnterEvent fires an event with *WidgetCursorEnterEventArgs when the cursor enters the widget's Rect.
 	CursorEnterEvent *event.Event
 
+	// CursorMoveEvent fires an event with *WidgetCursorMoveEventArgs when the cursor moves within the widget's Rect.
+	CursorMoveEvent *event.Event
+
 	// CursorExitEvent fires an event with *WidgetCursorExitEventArgs when the cursor exits the widget's Rect.
 	CursorExitEvent *event.Event
 
@@ -74,6 +77,7 @@ type Widget struct {
 	parent                      *Widget
 	self                        HasWidget
 	lastUpdateCursorEntered     bool
+	lastUpdateCursorPosition    image.Point
 	lastUpdateMouseLeftPressed  bool
 	lastUpdateMouseRightPressed bool
 	mouseLeftPressedInside      bool
@@ -157,11 +161,35 @@ type PreferredSizer interface {
 // WidgetCursorEnterEventArgs are the arguments for cursor enter events.
 type WidgetCursorEnterEventArgs struct { //nolint:golint
 	Widget *Widget
+
+	// OffsetX is the x offset relative to the widget's Rect.
+	OffsetX int
+
+	// OffsetY is the y offset relative to the widget's Rect.
+	OffsetY int
+}
+
+// WidgetCursorMoveEventArgs are the arguments for cursor move events.
+type WidgetCursorMoveEventArgs struct { //nolint:golint
+	Widget *Widget
+	Button ebiten.MouseButton
+
+	// OffsetX is the x offset relative to the widget's Rect.
+	OffsetX int
+
+	// OffsetY is the y offset relative to the widget's Rect.
+	OffsetY int
 }
 
 // WidgetCursorExitEventArgs are the arguments for cursor exit events.
 type WidgetCursorExitEventArgs struct { //nolint:golint
 	Widget *Widget
+
+	// OffsetX is the x offset relative to the widget's Rect.
+	OffsetX int
+
+	// OffsetY is the y offset relative to the widget's Rect.
+	OffsetY int
 }
 
 // WidgetMouseButtonPressedEventArgs are the arguments for mouse button press events.
@@ -238,6 +266,9 @@ type DragAndDropDroppedHandlerFunc func(args *DragAndDropDroppedEventArgs)
 // WidgetCursorEnterHandlerFunc is a function that handles cursor enter events.
 type WidgetCursorEnterHandlerFunc func(args *WidgetCursorEnterEventArgs) //nolint:golint
 
+// WidgetCursorMoveHandlerFunc is a function that handles cursor move events.
+type WidgetCursorMoveHandlerFunc func(args *WidgetCursorMoveEventArgs) //nolint:golint
+
 // WidgetCursorExitHandlerFunc is a function that handles cursor exit events.
 type WidgetCursorExitHandlerFunc func(args *WidgetCursorExitEventArgs) //nolint:golint
 
@@ -262,6 +293,7 @@ var deferredRenders []RenderFunc
 func NewWidget(opts ...WidgetOpt) *Widget {
 	w := &Widget{
 		CursorEnterEvent:         &event.Event{},
+		CursorMoveEvent:          &event.Event{},
 		CursorExitEvent:          &event.Event{},
 		MouseButtonPressedEvent:  &event.Event{},
 		MouseButtonReleasedEvent: &event.Event{},
@@ -292,6 +324,15 @@ func (o WidgetOptions) CursorEnterHandler(f WidgetCursorEnterHandlerFunc) Widget
 	return func(w *Widget) {
 		w.CursorEnterEvent.AddHandler(func(args interface{}) {
 			f(args.(*WidgetCursorEnterEventArgs))
+		})
+	}
+}
+
+// WithCursorMoveHandler configures a Widget with cursor move event handler f.
+func (o WidgetOptions) CursorMoveHandler(f WidgetCursorMoveHandlerFunc) WidgetOpt {
+	return func(w *Widget) {
+		w.CursorMoveEvent.AddHandler(func(args interface{}) {
+			f(args.(*WidgetCursorMoveEventArgs))
 		})
 	}
 }
@@ -443,16 +484,40 @@ func (w *Widget) fireEvents() {
 	entered := inside && layer.ActiveFor(x, y, input.LayerEventTypeAny)
 	if entered != w.lastUpdateCursorEntered {
 		if entered {
+			off := p.Sub(w.Rect.Min)
 			w.CursorEnterEvent.Fire(&WidgetCursorEnterEventArgs{
-				Widget: w,
+				Widget:  w,
+				OffsetX: off.X,
+				OffsetY: off.Y,
 			})
 		} else {
+			off := p.Sub(w.Rect.Min)
 			w.CursorExitEvent.Fire(&WidgetCursorExitEventArgs{
-				Widget: w,
+				Widget:  w,
+				OffsetX: off.X,
+				OffsetY: off.Y,
 			})
 		}
 
 		w.lastUpdateCursorEntered = entered
+	}
+
+	if entered && w.lastUpdateCursorPosition != p {
+		w.lastUpdateCursorPosition = p
+
+		var mouseButton ebiten.MouseButton
+		if input.MouseButtonPressedLayer(ebiten.MouseButtonLeft, layer) {
+			mouseButton = ebiten.MouseButtonLeft
+		} else if input.MouseButtonPressedLayer(ebiten.MouseButtonRight, layer) {
+			mouseButton = ebiten.MouseButtonRight
+		}
+		off := p.Sub(w.Rect.Min)
+		w.CursorMoveEvent.Fire(&WidgetCursorMoveEventArgs{
+			Widget:  w,
+			Button:  mouseButton,
+			OffsetX: off.X,
+			OffsetY: off.Y,
+		})
 	}
 
 	if entered && len(w.CursorHovered) > 0 {
