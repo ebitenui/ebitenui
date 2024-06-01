@@ -26,6 +26,7 @@ type Button struct {
 	ReleasedEvent      *event.Event
 	ClickedEvent       *event.Event
 	CursorEnteredEvent *event.Event
+	CursorMovedEvent   *event.Event
 	CursorExitedEvent  *event.Event
 	StateChangedEvent  *event.Event
 
@@ -98,6 +99,8 @@ type ButtonClickedEventArgs struct {
 type ButtonHoverEventArgs struct {
 	Button  *Button
 	Entered bool
+	OffsetX int
+	OffsetY int
 }
 
 type ButtonChangedEventArgs struct {
@@ -131,6 +134,7 @@ func NewButton(opts ...ButtonOpt) *Button {
 		ReleasedEvent:      &event.Event{},
 		ClickedEvent:       &event.Event{},
 		CursorEnteredEvent: &event.Event{},
+		CursorMovedEvent:   &event.Event{},
 		CursorExitedEvent:  &event.Event{},
 		StateChangedEvent:  &event.Event{},
 
@@ -359,6 +363,14 @@ func (o ButtonOptions) ClickedHandler(f ButtonClickedHandlerFunc) ButtonOpt {
 func (o ButtonOptions) CursorEnteredHandler(f ButtonCursorHoverHandlerFunc) ButtonOpt {
 	return func(b *Button) {
 		b.CursorEnteredEvent.AddHandler(func(args interface{}) {
+			f(args.(*ButtonHoverEventArgs))
+		})
+	}
+}
+
+func (o ButtonOptions) CursorMovedHandler(f ButtonCursorHoverHandlerFunc) ButtonOpt {
+	return func(b *Button) {
+		b.CursorMovedEvent.AddHandler(func(args interface{}) {
 			f(args.(*ButtonHoverEventArgs))
 		})
 	}
@@ -646,21 +658,37 @@ func (b *Button) initText() {
 
 func (b *Button) createWidget() {
 	b.widget = NewWidget(append(b.widgetOpts, []WidgetOpt{
-		WidgetOpts.CursorEnterHandler(func(_ *WidgetCursorEnterEventArgs) {
+		WidgetOpts.CursorEnterHandler(func(args *WidgetCursorEnterEventArgs) {
 			if !b.widget.Disabled {
 				b.hovering = true
 			}
 			b.CursorEnteredEvent.Fire(&ButtonHoverEventArgs{
 				Button:  b,
 				Entered: true,
+				OffsetX: args.OffsetX,
+				OffsetY: args.OffsetY,
 			})
 		}),
 
-		WidgetOpts.CursorExitHandler(func(_ *WidgetCursorExitEventArgs) {
+		WidgetOpts.CursorMoveHandler(func(args *WidgetCursorMoveEventArgs) {
+			if !b.widget.Disabled {
+				b.hovering = true
+			}
+			b.CursorMovedEvent.Fire(&ButtonHoverEventArgs{
+				Button:  b,
+				Entered: false,
+				OffsetX: args.OffsetX,
+				OffsetY: args.OffsetY,
+			})
+		}),
+
+		WidgetOpts.CursorExitHandler(func(args *WidgetCursorExitEventArgs) {
 			b.hovering = false
 			b.CursorExitedEvent.Fire(&ButtonHoverEventArgs{
 				Button:  b,
 				Entered: false,
+				OffsetX: args.OffsetX,
+				OffsetY: args.OffsetY,
 			})
 		}),
 
