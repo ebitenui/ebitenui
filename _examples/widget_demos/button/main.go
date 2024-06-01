@@ -70,6 +70,21 @@ func main() {
 			println("button clicked")
 		}),
 
+		// add a handler that reacts to entering the button with the cursor
+		widget.ButtonOpts.CursorEnteredHandler(func(args *widget.ButtonHoverEventArgs) {
+			println("cursor entered button: entered =", args.Entered, "offsetX =", args.OffsetX, "offsetY =", args.OffsetY)
+		}),
+
+		// add a handler that reacts to moving the cursor on the button
+		widget.ButtonOpts.CursorMovedHandler(func(args *widget.ButtonHoverEventArgs) {
+			println("cursor moved on button: entered =", args.Entered, "offsetX =", args.OffsetX, "offsetY =", args.OffsetY)
+		}),
+
+		// add a handler that reacts to exiting the button with the cursor
+		widget.ButtonOpts.CursorExitedHandler(func(args *widget.ButtonHoverEventArgs) {
+			println("cursor exited button: entered =", args.Entered, "offsetX =", args.OffsetX, "offsetY =", args.OffsetY)
+		}),
+
 		// Indicate that this button should not be submitted when enter or space are pressed
 		// widget.ButtonOpts.DisableDefaultKeys(),
 	)
