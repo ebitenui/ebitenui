@@ -14,6 +14,8 @@ import (
 
 type Button struct {
 	Image             *ButtonImage
+	MaskImage         *ebiten.Image
+	MaskColor         color.Color
 	KeepPressedOnExit bool
 	ToggleMode        bool
 	GraphicImage      *ButtonImageImage
@@ -64,6 +66,7 @@ type ButtonImage struct {
 	Pressed      *image.NineSlice
 	PressedHover *image.NineSlice
 	Disabled     *image.NineSlice
+	Mask         *image.NineSlice
 }
 
 type ButtonImageImage struct {
@@ -127,6 +130,8 @@ var ButtonOpts ButtonOptions
 
 func NewButton(opts ...ButtonOpt) *Button {
 	b := &Button{
+		MaskColor: color.RGBA{R: 255, G: 255, B: 255, A: 255}, // white
+
 		hTextPosition: TextPositionCenter,
 		vTextPosition: TextPositionCenter,
 
@@ -576,6 +581,10 @@ func (b *Button) draw(screen *ebiten.Image) {
 	}
 
 	if i != nil {
+		if b.Image.Mask != nil && (b.MaskImage == nil || (b.MaskImage.Bounds().Dx() != b.widget.Rect.Dx() || b.MaskImage.Bounds().Dy() != b.widget.Rect.Dy())) {
+			b.MaskImage = ebiten.NewImage(b.widget.Rect.Dx(), b.widget.Rect.Dy())
+			b.Image.Mask.Draw(b.MaskImage, b.MaskImage.Bounds().Dx(), b.MaskImage.Bounds().Dy(), func(_ *ebiten.DrawImageOptions) {})
+		}
 		i.Draw(screen, b.widget.Rect.Dx(), b.widget.Rect.Dy(), func(opts *ebiten.DrawImageOptions) {
 			b.widget.drawImageOptions(opts)
 			b.drawImageOptions(opts)
@@ -653,14 +662,21 @@ func (b *Button) initText() {
 	b.container.AddChild(b.text)
 
 	b.autoUpdateTextAndGraphic = true
-
 }
 
 func (b *Button) createWidget() {
 	b.widget = NewWidget(append(b.widgetOpts, []WidgetOpt{
 		WidgetOpts.CursorEnterHandler(func(args *WidgetCursorEnterEventArgs) {
 			if !b.widget.Disabled {
-				b.hovering = true
+				if b.MaskImage == nil {
+					b.hovering = true
+				} else {
+					b.hovering = false
+					c := b.MaskImage.At(args.OffsetX, args.OffsetY)
+					if c == b.MaskColor {
+						b.hovering = true
+					}
+				}
 			}
 			b.CursorEnteredEvent.Fire(&ButtonHoverEventArgs{
 				Button:  b,
@@ -672,7 +688,15 @@ func (b *Button) createWidget() {
 
 		WidgetOpts.CursorMoveHandler(func(args *WidgetCursorMoveEventArgs) {
 			if !b.widget.Disabled {
-				b.hovering = true
+				if b.MaskImage == nil {
+					b.hovering = true
+				} else {
+					b.hovering = false
+					c := b.MaskImage.At(args.OffsetX, args.OffsetY)
+					if c == b.MaskColor {
+						b.hovering = true
+					}
+				}
 			}
 			b.CursorMovedEvent.Fire(&ButtonHoverEventArgs{
 				Button:  b,
