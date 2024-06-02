@@ -77,7 +77,7 @@ func main() {
 
 		// add a handler that reacts to moving the cursor on the button
 		widget.ButtonOpts.CursorMovedHandler(func(args *widget.ButtonHoverEventArgs) {
-			println("cursor moved on button: entered =", args.Entered, "offsetX =", args.OffsetX, "offsetY =", args.OffsetY)
+			println("cursor moved on button: entered =", args.Entered, "offsetX =", args.OffsetX, "offsetY =", args.OffsetY, "diffX =", args.DiffX, "diffY =", args.DiffY)
 		}),
 
 		// add a handler that reacts to exiting the button with the cursor
