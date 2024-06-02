@@ -5,16 +5,6 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Launch Playground",
-			"type": "go",
-			"request": "launch",
-			"mode": "debug",
-			"program": "${workspaceFolder}/_examples/play",
-			"cwd": "${workspaceFolder}/_examples/play",
-			"env": {},
-			"args": []
-		},
-		{
 			"name": "Launch Hello World",
 			"type": "go",
 			"request": "launch",
