@@ -172,13 +172,18 @@ type WidgetCursorEnterEventArgs struct { //nolint:golint
 // WidgetCursorMoveEventArgs are the arguments for cursor move events.
 type WidgetCursorMoveEventArgs struct { //nolint:golint
 	Widget *Widget
-	Button ebiten.MouseButton
 
 	// OffsetX is the x offset relative to the widget's Rect.
 	OffsetX int
 
 	// OffsetY is the y offset relative to the widget's Rect.
 	OffsetY int
+
+	// DiffX is the x change to the old mouse cursor position.
+	DiffX int
+
+	// DiffY is the y change to the old mouse cursor position.
+	DiffY int
 }
 
 // WidgetCursorExitEventArgs are the arguments for cursor exit events.
@@ -503,21 +508,16 @@ func (w *Widget) fireEvents() {
 	}
 
 	if entered && w.lastUpdateCursorPosition != p {
-		w.lastUpdateCursorPosition = p
-
-		var mouseButton ebiten.MouseButton
-		if input.MouseButtonPressedLayer(ebiten.MouseButtonLeft, layer) {
-			mouseButton = ebiten.MouseButtonLeft
-		} else if input.MouseButtonPressedLayer(ebiten.MouseButtonRight, layer) {
-			mouseButton = ebiten.MouseButtonRight
-		}
 		off := p.Sub(w.Rect.Min)
 		w.CursorMoveEvent.Fire(&WidgetCursorMoveEventArgs{
 			Widget:  w,
-			Button:  mouseButton,
 			OffsetX: off.X,
 			OffsetY: off.Y,
+			DiffX:   p.X - w.lastUpdateCursorPosition.X,
+			DiffY:   p.Y - w.lastUpdateCursorPosition.Y,
 		})
+
+		w.lastUpdateCursorPosition = p
 	}
 
 	if entered && len(w.CursorHovered) > 0 {
