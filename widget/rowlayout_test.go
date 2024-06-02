@@ -77,6 +77,40 @@ func TestRowLayout_PreferredSize(t *testing.T) {
 	is.Equal(h, expectedHeight)
 }
 
+func TestRowLayout_Stretch(t *testing.T) {
+	is := is.New(t)
+	l := newRowLayout(t,
+		RowLayoutOpts.Padding(Insets{
+			Top:    10,
+			Left:   20,
+			Right:  30,
+			Bottom: 40,
+		}),
+		RowLayoutOpts.Spacing(7),
+	)
+	widgets := []PreferredSizeLocateableWidget{
+		newSimpleWidget(10, 10, nil),
+		newSimpleWidget(10, 10, RowLayoutData{
+			Position: RowLayoutPositionCenter,
+			Stretch:  true,
+		}),
+		newSimpleWidget(10, 10, RowLayoutData{
+			Position: RowLayoutPositionEnd,
+		}),
+	}
+	l.Layout(widgets, image.Rect(25, 25, 200, 200))
+
+	expected := []image.Rectangle{
+		image.Rect(45, 35, 55, 45),
+		image.Rect(62, 35, 72, 160),
+		image.Rect(79, 150, 89, 160),
+	}
+
+	for i, r := range expected {
+		is.Equal(widgets[i].GetWidget().Rect, r)
+	}
+}
+
 func TestRowLayout_Layout(t *testing.T) {
 	is := is.New(t)
 

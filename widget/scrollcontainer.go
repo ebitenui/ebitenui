@@ -19,6 +19,7 @@ type ScrollContainer struct {
 	content             HasWidget
 	padding             Insets
 	stretchContentWidth bool
+	bounds              img.Rectangle
 
 	init      *MultiOnce
 	widget    *Widget
@@ -137,6 +138,12 @@ func (s *ScrollContainer) PreferredSize() (int, int) {
 	}
 
 	w, h := p.PreferredSize()
+	if s.bounds.Dx() > 0 && s.bounds.Dx() < w {
+		w = s.bounds.Dx()
+	}
+	if s.bounds.Dy() > 0 && s.bounds.Dy() < h {
+		h = s.bounds.Dy()
+	}
 	return w + s.padding.Dx(), h + s.padding.Dy()
 }
 
@@ -226,6 +233,11 @@ func (s *ScrollContainer) drawImageOptions(opts *ebiten.DrawImageOptions) {
 	}
 }
 
+func (s *ScrollContainer) RequestRelayout(rect img.Rectangle) {
+	s.bounds = rect
+
+}
+
 func (s *ScrollContainer) renderContent(screen *ebiten.Image, def DeferredRenderFunc) {
 	if s.content == nil {
 		return
@@ -257,7 +269,7 @@ func (s *ScrollContainer) renderContent(screen *ebiten.Image, def DeferredRender
 			l.SetLocation(rect)
 
 			if r, ok := s.content.(Relayoutable); ok {
-				r.RequestRelayout()
+				r.RequestRelayout(s.ViewRect())
 			}
 		}
 	}
@@ -276,7 +288,14 @@ func (s *ScrollContainer) renderContent(screen *ebiten.Image, def DeferredRender
 
 func (s *ScrollContainer) ViewRect() img.Rectangle {
 	s.init.Do()
-	return s.padding.Apply(s.widget.Rect)
+	r := s.widget.Rect
+	if s.bounds.Dx() > 0 && r.Dx() > s.bounds.Dx() {
+		r.Max.X = r.Min.X + r.Dx()
+	}
+	if s.bounds.Dy() > 0 && r.Dy() > s.bounds.Dy() {
+		r.Max.Y = r.Min.Y + r.Dy()
+	}
+	return s.padding.Apply(r)
 }
 
 func (s *ScrollContainer) ContentRect() img.Rectangle {

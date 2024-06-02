@@ -1,7 +1,9 @@
 package widget
 
 import (
+	"fmt"
 	img "image"
+	"strconv"
 
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
@@ -13,9 +15,9 @@ type Container struct {
 	BackgroundImage     *image.NineSlice
 	AutoDisableChildren bool
 
-	widgetOpts  []WidgetOpt
-	layout      Layouter
-	layoutDirty bool
+	widgetOpts      []WidgetOpt
+	layout          Layouter
+	layoutDirty     bool
 
 	init     *MultiOnce
 	widget   *Widget
@@ -103,7 +105,7 @@ func (c *Container) AddChild(child PreferredSizeLocateableWidget) RemoveChildFun
 		a := args.(*WidgetDragAndDropEventArgs)
 		c.GetWidget().FireDragAndDropEvent(a.Window, a.Show, a.DnD)
 	})
-	c.RequestRelayout()
+	c.RequestRelayout(c.widget.Rect)
 
 	return func() {
 		c.RemoveChild(child)
@@ -138,7 +140,7 @@ func (c *Container) RemoveChild(child PreferredSizeLocateableWidget) {
 	if child.GetWidget().ContextMenuWindow != nil {
 		child.GetWidget().ContextMenuWindow.Close()
 	}
-	c.RequestRelayout()
+	c.RequestRelayout(c.widget.Rect)
 }
 
 func (c *Container) RemoveChildren() {
@@ -160,21 +162,48 @@ func (c *Container) RemoveChildren() {
 	}
 	c.children = nil
 
-	c.RequestRelayout()
+	c.RequestRelayout(c.widget.Rect)
 }
 
 func (c *Container) Children() []PreferredSizeLocateableWidget {
 	return c.children
 }
 
-func (c *Container) RequestRelayout() {
+var _id int = 0
+
+func (c *Container) RequestRelayout(rect img.Rectangle) {
 	c.init.Do()
 
 	c.layoutDirty = true
+	var dd *DebugData
+	if d, ok := c.widget.CustomData.(DebugData); ok {
+		dd = &d
+	} else {
+		if c.widget.CustomData == nil {
+			dd = &DebugData{Name: strconv.Itoa(_id + 1)}
+		}
+		_id += 1
+	}
+	if dd != nil {
+		dd.X = rect.Min.X
+		dd.Y = rect.Min.Y
+		dd.Message = fmt.Sprintf("%d,%d", rect.Max.X, rect.Max.Y)
+		c.widget.CustomData = *dd
+	}
 
-	for _, ch := range c.children {
+	c.widget.CustomData = *dd
+	crects := make([]img.Rectangle, 0)
+	if !rect.Empty() {
+		crects = c.doCalcLayout(rect)
+	}
+
+	for i, ch := range c.children {
 		if r, ok := ch.(Relayoutable); ok {
-			r.RequestRelayout()
+			crect := rect
+			if len(crects) > i {
+				crect = crects[i]
+			}
+			r.RequestRelayout(crect)
 		}
 	}
 }
@@ -203,7 +232,7 @@ func (c *Container) PreferredSize() (int, int) {
 func (c *Container) SetLocation(rect img.Rectangle) {
 	c.init.Do()
 	c.widget.Rect = rect
-	c.RequestRelayout()
+	c.RequestRelayout(rect)
 }
 
 func (c *Container) Render(screen *ebiten.Image, def DeferredRenderFunc) {
@@ -221,7 +250,7 @@ func (c *Container) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 	c.widget.Render(screen, def)
 
-	c.doLayout()
+	c.doLayout(c.widget.Rect)
 
 	c.draw(screen)
 
@@ -235,9 +264,16 @@ func (c *Container) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	}
 }
 
-func (c *Container) doLayout() {
+func (c *Container) doCalcLayout(rect img.Rectangle) []img.Rectangle {
 	if c.layout != nil && c.layoutDirty {
-		c.layout.Layout(c.children, c.widget.Rect)
+		return c.layout.CalcLayout(c.children, rect)
+	}
+	return []img.Rectangle{}
+}
+
+func (c *Container) doLayout(rect img.Rectangle) {
+	if c.layout != nil && c.layoutDirty {
+		c.layout.Layout(c.children, rect)
 		c.layoutDirty = false
 	}
 }

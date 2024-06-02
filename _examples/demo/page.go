@@ -3,9 +3,12 @@ package main
 import (
 	"fmt"
 	"image"
+	"image/color"
+	"math"
 	"time"
 
 	"github.com/ebitenui/ebitenui"
+	img "github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/widget"
 )
@@ -106,12 +109,170 @@ func checkboxPage(res *uiResources) *page {
 	}
 }
 
+func scrollPage(res *uiResources) *page {
+	innerContainer3 := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(img.NewNineSliceColor(color.NRGBA{0, 0, 255, 255})),
+		widget.ContainerOpts.WidgetOpts(
+			//The widget in this cell has a MaxHeight and MaxWidth less than the
+			//Size of the grid cell so it will use the Position fields below to
+			//Determine where the widget should be displayed within that grid cell.
+			widget.WidgetOpts.LayoutData(widget.GridLayoutData{
+				HorizontalPosition: widget.GridLayoutPositionCenter,
+				VerticalPosition:   widget.GridLayoutPositionCenter,
+			}),
+		),
+	)
+
+	rootContainer := widget.NewContainer(
+		// the container will use a plain color as its background
+		widget.ContainerOpts.BackgroundImage(img.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				StretchVertical: true,
+			}),
+		),
+
+		// the container will use an grid layout to layout its ScrollableContainer and Slider
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			widget.GridLayoutOpts.Columns(2),
+			widget.GridLayoutOpts.Spacing(2, 0),
+			widget.GridLayoutOpts.Stretch([]bool{true, false}, []bool{true}),
+		)),
+	)
+
+	//Create the container with the content that should be scrolled
+	/*
+		content := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+			widget.RowLayoutOpts.Spacing(20),
+		)))
+	*/
+	content := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewGridLayout(
+		widget.GridLayoutOpts.Columns(1),
+		widget.GridLayoutOpts.Spacing(0, 20),
+	)))
+
+	//Add 20 buttons to the scrollable content container
+	for x := 0; x < 20; x++ {
+		//Capture x for use in callback
+		x := x
+		// construct a button
+		button := widget.NewButton(
+			// set general widget options
+			widget.ButtonOpts.WidgetOpts(
+				// instruct the container's anchor layout to center the button both horizontally and vertically
+				widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+					Position: widget.RowLayoutPositionCenter,
+				}),
+			),
+
+			// specify the images to use
+			widget.ButtonOpts.Image(res.list.handle),
+
+			// specify the button's text, the font face, and the color
+			widget.ButtonOpts.Text(fmt.Sprintf("Hello, World! - %d", x), res.list.face, &widget.ButtonTextColor{
+				Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
+			}),
+
+			// specify that the button's text needs some padding for correct display
+			widget.ButtonOpts.TextPadding(widget.Insets{
+				Left:   30,
+				Right:  30,
+				Top:    5,
+				Bottom: 5,
+			}),
+
+			// add a handler that reacts to clicking the button
+			widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+				println(fmt.Sprintf("Button %d Clicked!", x))
+			}),
+		)
+
+		// add the button as a child of the container
+		content.AddChild(button)
+	}
+
+	//Create the new ScrollContainer object
+	scrollContainer := widget.NewScrollContainer(
+		//Set the content that will be scrolled
+		widget.ScrollContainerOpts.Content(content),
+		//Tell the container to stretch the content width to match available space
+		widget.ScrollContainerOpts.StretchContentWidth(),
+		//Set the background images for the scrollable container
+		widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
+			Idle: img.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff}),
+			Mask: img.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff}),
+		}),
+		widget.ScrollContainerOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.GridLayoutData{
+				HorizontalPosition: widget.GridLayoutPositionCenter,
+				VerticalPosition:   widget.GridLayoutPositionCenter,
+			}),
+		),
+	)
+	//Add the scrollable container to the left side of the window
+	rootContainer.AddChild(scrollContainer)
+
+	//Create a function to return the page size used by the slider
+	pageSizeFunc := func() int {
+		return int(math.Round(float64(scrollContainer.ViewRect().Dy()) / float64(content.GetWidget().Rect.Dy()) * 1000))
+	}
+	//Create a vertical Slider bar to control the ScrollableContainer
+	vSlider := widget.NewSlider(
+		widget.SliderOpts.Direction(widget.DirectionVertical),
+		widget.SliderOpts.MinMax(0, 1000),
+		widget.SliderOpts.PageSizeFunc(pageSizeFunc),
+		//On change update scroll location based on the Slider's value
+		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
+			scrollContainer.ScrollTop = float64(args.Slider.Current) / 1000
+		}),
+		widget.SliderOpts.Images(
+			// Set the track images
+			&widget.SliderTrackImage{
+				Idle:  img.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+				Hover: img.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+			},
+			// Set the handle images
+			&widget.ButtonImage{
+				Idle:    img.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}),
+				Hover:   img.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}),
+				Pressed: img.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}),
+			},
+		),
+		widget.SliderOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.GridLayoutData{
+				HorizontalPosition: widget.GridLayoutPositionCenter,
+				VerticalPosition:   widget.GridLayoutPositionCenter,
+			}),
+		),
+	)
+	//Set the slider's position if the scrollContainer is scrolled by other means than the slider
+	scrollContainer.GetWidget().ScrolledEvent.AddHandler(func(args interface{}) {
+		a := args.(*widget.WidgetScrolledEventArgs)
+		p := pageSizeFunc() / 3
+		if p < 1 {
+			p = 1
+		}
+		vSlider.Current -= int(math.Round(a.Y * float64(p)))
+	})
+
+	//Add the slider to the second slot in the root container
+	rootContainer.AddChild(vSlider)
+
+	innerContainer3.AddChild(rootContainer)
+	return &page{
+		title:   "AaaScroll",
+		content: rootContainer,
+	}
+}
+
 func listPage(res *uiResources) *page {
 	c := newPageContentContainer()
 
 	listsContainer := widget.NewContainer(
 		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Stretch: true,
+			Shrink:  true,
 		})),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
 			widget.GridLayoutOpts.Columns(3),
@@ -119,10 +280,9 @@ func listPage(res *uiResources) *page {
 			widget.GridLayoutOpts.Spacing(10, 0))))
 	c.AddChild(listsContainer)
 
-	entries1 := []interface{}{"One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"}
-	list1 := newList(entries1, res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
-		MaxHeight: 220,
-	}))
+	entries1 := []interface{}{"One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten",
+		"Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen", "Twenty"}
+	list1 := newList(entries1, res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{}))
 	listsContainer.AddChild(list1)
 
 	buttonsContainer := widget.NewContainer(
@@ -146,9 +306,7 @@ func listPage(res *uiResources) *page {
 	}
 
 	entries2 := []interface{}{"Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen", "Twenty"}
-	list2 := newList(entries2, res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
-		MaxHeight: 220,
-	}))
+	list2 := newList(entries2, res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{}))
 	listsContainer.AddChild(list2)
 
 	c.AddChild(newSeparator(res, widget.RowLayoutData{
@@ -283,7 +441,7 @@ func comboButtonPage(res *uiResources) *page {
 			return fmt.Sprintf("Entry %d", e.(int))
 		},
 		func(args *widget.ListComboButtonEntrySelectedEventArgs) {
-			c.RequestRelayout()
+			c.RequestRelayout(c.GetWidget().Rect)
 		},
 		res)
 	c.AddChild(cb)
@@ -1042,7 +1200,7 @@ func anchorLayoutPage(res *uiResources) *page {
 			ald := sp.GetWidget().LayoutData.(widget.AnchorLayoutData)
 			ald.HorizontalPosition = widget.AnchorLayoutPosition(indexCheckbox(hCBs, args.Active))
 			sp.GetWidget().LayoutData = ald
-			p.RequestRelayout()
+			p.RequestRelayout(p.GetWidget().Rect)
 		}),
 	)
 
@@ -1073,7 +1231,7 @@ func anchorLayoutPage(res *uiResources) *page {
 			ald := sp.GetWidget().LayoutData.(widget.AnchorLayoutData)
 			ald.VerticalPosition = widget.AnchorLayoutPosition(indexCheckbox(vCBs, args.Active))
 			sp.GetWidget().LayoutData = ald
-			p.RequestRelayout()
+			p.RequestRelayout(p.GetWidget().Rect)
 		}),
 	)
 
@@ -1091,7 +1249,7 @@ func anchorLayoutPage(res *uiResources) *page {
 		ald := sp.GetWidget().LayoutData.(widget.AnchorLayoutData)
 		ald.StretchHorizontal = args.State == widget.WidgetChecked
 		sp.GetWidget().LayoutData = ald
-		p.RequestRelayout()
+		p.RequestRelayout(p.GetWidget().Rect)
 
 		hPosC.GetWidget().Disabled = args.State == widget.WidgetChecked
 	}, res)
@@ -1101,7 +1259,7 @@ func anchorLayoutPage(res *uiResources) *page {
 		ald := sp.GetWidget().LayoutData.(widget.AnchorLayoutData)
 		ald.StretchVertical = args.State == widget.WidgetChecked
 		sp.GetWidget().LayoutData = ald
-		p.RequestRelayout()
+		p.RequestRelayout(p.GetWidget().Rect)
 
 		vPosC.GetWidget().Disabled = args.State == widget.WidgetChecked
 	}, res)

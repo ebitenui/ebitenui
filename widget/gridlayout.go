@@ -48,7 +48,7 @@ const (
 	// GridLayoutPositionStart is the center anchoring position.
 	GridLayoutPositionCenter
 
-	// GridLayoutPositionStart is the anchoring position for "right" (in the horizontal direction) or "bottom" (in the vertical direction.)
+	// GridLayoutPositionEnd is the anchoring position for "right" (in the horizontal direction) or "bottom" (in the vertical direction.)
 	GridLayoutPositionEnd
 )
 
@@ -106,7 +106,19 @@ func (g *GridLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (int
 }
 
 // Layout implements Layouter.
+func (g *GridLayout) CalcLayout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) []image.Rectangle {
+	res := make([]image.Rectangle, 0)
+	g.doLayout(widgets, rect, func(pslw PreferredSizeLocateableWidget, r image.Rectangle) {
+		res = append(res, r)
+	})
+	return res
+}
 func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) {
+	g.doLayout(widgets, rect, func(pslw PreferredSizeLocateableWidget, r image.Rectangle) {
+		pslw.SetLocation(r)
+	})
+}
+func (g *GridLayout) doLayout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle, locater LocationFunction) {
 	rect = g.padding.Apply(rect)
 
 	colWidths, rowHeights := g.preferredColumnWidthsAndRowHeights(widgets)
@@ -146,7 +158,7 @@ func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.
 			wx, wy, ww, wh = g.applyLayoutData(gld, wx, wy, ww, wh, x, y, cw, ch)
 		}
 
-		w.SetLocation(image.Rect(rect.Min.X+wx, rect.Min.Y+wy, rect.Min.X+wx+ww, rect.Min.Y+wy+wh))
+		locater(w, image.Rect(rect.Min.X+wx, rect.Min.Y+wy, rect.Min.X+wx+ww, rect.Min.Y+wy+wh))
 
 		c++
 		x += cw + g.columnSpacing
@@ -255,7 +267,7 @@ func (g *GridLayout) applyLayoutData(ld GridLayoutData, wx int, wy int, ww int, 
 
 	switch ld.VerticalPosition {
 	case GridLayoutPositionCenter:
-		wy = x + (ch-wh)/2
+		wy = y + (ch-wh)/2
 	case GridLayoutPositionEnd:
 		wy = y + ch - wh
 	}

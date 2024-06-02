@@ -1,6 +1,9 @@
 package widget
 
-import "image"
+import (
+	"image"
+	img "image"
+)
 
 // RowLayout layouts widgets in either a single row or a single column,
 // optionally stretching them in the other direction.
@@ -31,6 +34,9 @@ type RowLayoutData struct {
 
 	// MaxHeight specifies the maximum height.
 	MaxHeight int
+
+	// Shrink specifies whether to shrink in the primary direction of the layout. Assumes that the Widget can handle it
+	Shrink bool
 }
 
 // RowLayoutPosition is the type used to specify an anchoring position.
@@ -93,6 +99,13 @@ func (r *RowLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (int,
 }
 
 // Layout implements Layouter.
+func (r *RowLayout) CalcLayout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) []image.Rectangle {
+	res := make([]image.Rectangle, 0)
+	r.layout(widgets, rect, true, func(w PreferredSizeLocateableWidget, wr image.Rectangle) {
+		res = append(res, wr)
+	})
+	return res
+}
 func (r *RowLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.Rectangle) {
 	r.layout(widgets, rect, true, func(w PreferredSizeLocateableWidget, wr image.Rectangle) {
 		w.SetLocation(wr)
@@ -107,13 +120,51 @@ func (r *RowLayout) layout(widgets []PreferredSizeLocateableWidget, rect image.R
 	rect = r.padding.Apply(rect)
 	x, y := 0, 0
 
-	for _, widget := range widgets {
+	// make a pass to see if there is something resizable in case our stuff won't fit
+	// this could be better, but would be a lot more complicated
+	prefs := make([]img.Point, len(widgets))
+	relay := -1
+	tw, th := 0, 0
+	vis := 0
+	for i, widget := range widgets {
+		if widget.GetWidget().Visibility == Visibility_Hide {
+			continue
+		}
+		ww, wh := widget.PreferredSize()
+		prefs[i] = img.Point{ww, wh}
+		vis += 1
+		if relay < 0 {
+			if rld, ok := widget.GetWidget().LayoutData.(RowLayoutData); ok {
+				if rld.Shrink {
+					relay = i
+				}
+			}
+		}
+	}
+	if rect.Dx() > 0 && rect.Dy() > 0 {
+		if r.direction == DirectionHorizontal {
+			tw += ((vis - 1) * r.spacing)
+			if tw > rect.Dx() && relay != -1 {
+				tw -= prefs[relay].X
+				prefs[relay].X = rect.Dx() - tw
+			}
+		} else {
+			th += ((vis - 1) * r.spacing)
+			if th > rect.Dy() && relay != -1 {
+				th -= prefs[relay].Y
+				prefs[relay].Y = rect.Dy() - th
+			}
+
+		}
+	}
+
+	for i, widget := range widgets {
 		if widget.GetWidget().Visibility == Visibility_Hide {
 			continue
 		}
 
 		wx, wy := x, y
-		ww, wh := widget.PreferredSize()
+		ww, wh := prefs[i].X, prefs[i].Y
 
 		ld := widget.GetWidget().LayoutData
 		if rld, ok := ld.(RowLayoutData); ok {
@@ -135,7 +186,7 @@ func (r *RowLayout) layout(widgets []PreferredSizeLocateableWidget, rect image.R
 
 func (r *RowLayout) applyLayoutData(ld RowLayoutData, wx int, wy int, ww int, wh int, usePosition bool, rect image.Rectangle, x int, y int) (int, int, int, int) {
 	if usePosition {
-		ww, wh = r.applyStretch(ld, ww, wh, rect)
+		ww, wh = r.applyStretch(ld, ww, wh, rect, x, y)
 	}
 
 	ww, wh = r.applyMaxSize(ld, ww, wh)
@@ -147,7 +198,7 @@ func (r *RowLayout) applyLayoutData(ld RowLayoutData, wx int, wy int, ww int, wh
 	return wx, wy, ww, wh
 }
 
-func (r *RowLayout) applyStretch(ld RowLayoutData, ww int, wh int, rect image.Rectangle) (int, int) {
+func (r *RowLayout) applyStretch(ld RowLayoutData, ww int, wh int, rect image.Rectangle, x int, y int) (int, int) {
 	if !ld.Stretch {
 		return ww, wh
 	}
@@ -156,6 +207,14 @@ func (r *RowLayout) applyStretch(ld RowLayoutData, ww int, wh int, rect image.Re
 		wh = rect.Dy()
 	} else {
 		ww = rect.Dx()
+	}
+
+	if ww > (rect.Dx() - x) {
+		ww = rect.Dx() - x
+	}
+
+	if wh > (rect.Dy() - y) {
+		wh = rect.Dy() - y
 	}
 
 	return ww, wh

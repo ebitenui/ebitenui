@@ -210,9 +210,9 @@ func (l *TextArea) SetLocation(rect img.Rectangle) {
 	l.container.GetWidget().Rect = rect
 }
 
-func (l *TextArea) RequestRelayout() {
+func (l *TextArea) RequestRelayout(rect img.Rectangle) {
 	l.init.Do()
-	l.container.RequestRelayout()
+	l.container.RequestRelayout(rect)
 }
 
 func (l *TextArea) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {

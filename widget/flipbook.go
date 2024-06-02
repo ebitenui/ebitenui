@@ -75,9 +75,9 @@ func (f *FlipBook) SetLocation(rect img.Rectangle) {
 }
 
 // RequestRelayout implements Relayoutable.
-func (f *FlipBook) RequestRelayout() {
+func (f *FlipBook) RequestRelayout(rect img.Rectangle) {
 	f.init.Do()
-	f.container.RequestRelayout()
+	f.container.RequestRelayout(rect)
 }
 
 // SetupInputLayer implements InputLayerer.

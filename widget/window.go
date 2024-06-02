@@ -260,8 +260,8 @@ func (w *Window) GetCloseFunction() RemoveWindowFunc {
 }
 
 // Typically used internally
-func (w *Window) RequestRelayout() {
-	w.container.RequestRelayout()
+func (w *Window) RequestRelayout(rect image.Rectangle) {
+	w.container.RequestRelayout(rect)
 }
 
 // Typically used internally
