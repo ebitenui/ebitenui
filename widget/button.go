@@ -101,6 +101,8 @@ type ButtonHoverEventArgs struct {
 	Entered bool
 	OffsetX int
 	OffsetY int
+	DiffX   int
+	DiffY   int
 }
 
 type ButtonChangedEventArgs struct {
@@ -667,6 +669,8 @@ func (b *Button) createWidget() {
 				Entered: true,
 				OffsetX: args.OffsetX,
 				OffsetY: args.OffsetY,
+				DiffX:   0,
+				DiffY:   0,
 			})
 		}),
 
@@ -679,6 +683,8 @@ func (b *Button) createWidget() {
 				Entered: false,
 				OffsetX: args.OffsetX,
 				OffsetY: args.OffsetY,
+				DiffX:   args.DiffX,
+				DiffY:   args.DiffY,
 			})
 		}),
 
@@ -689,6 +695,8 @@ func (b *Button) createWidget() {
 				Entered: false,
 				OffsetX: args.OffsetX,
 				OffsetY: args.OffsetY,
+				DiffX:   0,
+				DiffY:   0,
 			})
 		}),
 
