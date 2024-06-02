@@ -669,83 +669,103 @@ func (b *Button) initText() {
 func (b *Button) createWidget() {
 	b.widget = NewWidget(append(b.widgetOpts, []WidgetOpt{
 		WidgetOpts.CursorEnterHandler(func(args *WidgetCursorEnterEventArgs) {
-			if !b.widget.Disabled {
-				if b.MaskImage == nil {
+			if b.MaskImage == nil {
+				if !b.widget.Disabled {
 					b.hovering = true
-				} else {
-					b.hovering = false
-					c := b.MaskImage.At(args.OffsetX, args.OffsetY)
-					if c == b.MaskColor {
-						b.hovering = true
-					}
+				}
+				if b.hovering {
+					b.CursorEnteredEvent.Fire(&ButtonHoverEventArgs{
+						Button:  b,
+						Entered: true,
+						OffsetX: args.OffsetX,
+						OffsetY: args.OffsetY,
+						DiffX:   0,
+						DiffY:   0,
+					})
 				}
 			}
-			b.CursorEnteredEvent.Fire(&ButtonHoverEventArgs{
-				Button:  b,
-				Entered: true,
-				OffsetX: args.OffsetX,
-				OffsetY: args.OffsetY,
-				DiffX:   0,
-				DiffY:   0,
-			})
 		}),
 
 		WidgetOpts.CursorMoveHandler(func(args *WidgetCursorMoveEventArgs) {
-			if !b.widget.Disabled {
-				if b.MaskImage == nil {
+			if b.onMask(args.OffsetX, args.OffsetY) {
+				if !b.hovering {
+					b.CursorEnteredEvent.Fire(&ButtonHoverEventArgs{
+						Button:  b,
+						Entered: true,
+						OffsetX: args.OffsetX,
+						OffsetY: args.OffsetY,
+						DiffX:   0,
+						DiffY:   0,
+					})
+				}
+				if !b.widget.Disabled {
 					b.hovering = true
-				} else {
+				}
+				b.CursorMovedEvent.Fire(&ButtonHoverEventArgs{
+					Button:  b,
+					Entered: false,
+					OffsetX: args.OffsetX,
+					OffsetY: args.OffsetY,
+					DiffX:   args.DiffX,
+					DiffY:   args.DiffY,
+				})
+			} else {
+				if b.hovering {
 					b.hovering = false
-					c := b.MaskImage.At(args.OffsetX, args.OffsetY)
-					if c == b.MaskColor {
-						b.hovering = true
-					}
+					b.CursorExitedEvent.Fire(&ButtonHoverEventArgs{
+						Button:  b,
+						Entered: false,
+						OffsetX: args.OffsetX,
+						OffsetY: args.OffsetY,
+						DiffX:   0,
+						DiffY:   0,
+					})
 				}
 			}
-			b.CursorMovedEvent.Fire(&ButtonHoverEventArgs{
-				Button:  b,
-				Entered: false,
-				OffsetX: args.OffsetX,
-				OffsetY: args.OffsetY,
-				DiffX:   args.DiffX,
-				DiffY:   args.DiffY,
-			})
 		}),
 
 		WidgetOpts.CursorExitHandler(func(args *WidgetCursorExitEventArgs) {
-			b.hovering = false
-			b.CursorExitedEvent.Fire(&ButtonHoverEventArgs{
-				Button:  b,
-				Entered: false,
-				OffsetX: args.OffsetX,
-				OffsetY: args.OffsetY,
-				DiffX:   0,
-				DiffY:   0,
-			})
+			if b.MaskImage == nil {
+				b.hovering = false
+				b.CursorExitedEvent.Fire(&ButtonHoverEventArgs{
+					Button:  b,
+					Entered: false,
+					OffsetX: args.OffsetX,
+					OffsetY: args.OffsetY,
+					DiffX:   0,
+					DiffY:   0,
+				})
+			}
 		}),
 
 		WidgetOpts.MouseButtonPressedHandler(func(args *WidgetMouseButtonPressedEventArgs) {
-			if !b.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
-				b.pressing = true
-
-				b.PressedEvent.Fire(&ButtonPressedEventArgs{
-					Button:  b,
-					OffsetX: args.OffsetX,
-					OffsetY: args.OffsetY,
-				})
+			if b.onMask(args.OffsetX, args.OffsetY) {
+				if !b.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
+					b.pressing = true
+					b.PressedEvent.Fire(&ButtonPressedEventArgs{
+						Button:  b,
+						OffsetX: args.OffsetX,
+						OffsetY: args.OffsetY,
+					})
+				}
 			}
 		}),
 
 		WidgetOpts.MouseButtonReleasedHandler(func(args *WidgetMouseButtonReleasedEventArgs) {
 			if b.pressing && !b.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
+				inside := false
+				if b.onMask(args.OffsetX, args.OffsetY) {
+					inside = true
+				}
+
 				b.ReleasedEvent.Fire(&ButtonReleasedEventArgs{
 					Button:  b,
-					Inside:  args.Inside,
+					Inside:  inside,
 					OffsetX: args.OffsetX,
 					OffsetY: args.OffsetY,
 				})
 
-				if args.Inside {
+				if inside {
 					b.ClickedEvent.Fire(&ButtonClickedEventArgs{
 						Button:  b,
 						OffsetX: args.OffsetX,
@@ -773,4 +793,12 @@ func (b *Button) createWidget() {
 	b.widgetOpts = nil
 
 	b.initText()
+}
+
+func (b *Button) onMask(x, y int) bool {
+	if b.MaskImage == nil {
+		return true
+	}
+	c := b.MaskImage.At(x, y)
+	return c == b.MaskColor
 }
