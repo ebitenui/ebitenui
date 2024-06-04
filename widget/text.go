@@ -259,10 +259,15 @@ func (t *Text) handleBBCodeColor(word string) ([]bbCodeText, color.Color) {
 	if len(tags) > 0 {
 		resultStr := ""
 		isTag := false
-		for idx := range word {
+		// idx is a byte offset inside a utf8-encoded string,
+		// so it's correct for multi-byte runes (it can go like 0, 2, 4, ...);
+		// the word[idx] result is a single byte (not a proper rune),
+		// therefore a 2-value range is needed here to preserve a
+		// full multi-byte rune value.
+		for idx, ch := range word {
 			if len(tags) > 0 {
 				if tags[0][0] > idx || (isTag && idx < tags[0][1]) {
-					resultStr = resultStr + string(word[idx])
+					resultStr = resultStr + string(ch)
 				} else if tags[0][1] == idx {
 					if strings.HasPrefix(resultStr, COLOR_OPEN) {
 						c, err := colorutil.HexToColor(resultStr[6:12])
@@ -281,7 +286,7 @@ func (t *Text) handleBBCodeColor(word string) ([]bbCodeText, color.Color) {
 						resultStr = ""
 						isTag = true
 					} else {
-						resultStr = string(word[idx])
+						resultStr = string(ch)
 						isTag = false
 					}
 				} else {
@@ -290,7 +295,7 @@ func (t *Text) handleBBCodeColor(word string) ([]bbCodeText, color.Color) {
 					isTag = true
 				}
 			} else {
-				resultStr = resultStr + string(word[idx])
+				resultStr = resultStr + string(ch)
 			}
 		}
 		if len(resultStr) > 0 {
