@@ -346,16 +346,21 @@ func (t *Text) measure() {
 		if t.MaxWidth > 0 || t.processBBCode {
 			var newLine []string
 			newLineWidth := float64(t.Inset.Left + t.Inset.Right)
+			spaceWidth := fixedInt26_6ToFloat64(font.MeasureString(t.Face, " "))
 			words := strings.Split(s.Text(), " ")
-			for _, word := range words {
-				wordWidth := fixedInt26_6ToFloat64(font.MeasureString(t.Face, word+" "))
+			for i, word := range words {
+				var wordWidth float64
+				if t.processBBCode && t.bbcodeRegex.MatchString(word) {
+					// Strip out any bbcodes from size calculation
+					cleaned := t.bbcodeRegex.ReplaceAllString(word, "")
+					wordWidth = fixedInt26_6ToFloat64(font.MeasureString(t.Face, cleaned))
+				} else {
+					wordWidth = fixedInt26_6ToFloat64(font.MeasureString(t.Face, word))
+				}
 
-				// Strip out any bbcodes from size calculation
-				if t.processBBCode {
-					if t.bbcodeRegex.MatchString(word) {
-						cleaned := t.bbcodeRegex.ReplaceAllString(word, "")
-						wordWidth = fixedInt26_6ToFloat64(font.MeasureString(t.Face, cleaned+" "))
-					}
+				// Don't add the space to the last chunk.
+				if i != len(words)-1 {
+					wordWidth += spaceWidth
 				}
 
 				// If the new word doesn't push this past the max width continue adding to the current line
