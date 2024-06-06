@@ -14,7 +14,6 @@ import (
 
 type Button struct {
 	Image             *ButtonImage
-	MaskImage         *ebiten.Image
 	MaskColor         color.Color
 	KeepPressedOnExit bool
 	ToggleMode        bool
@@ -47,6 +46,7 @@ type Button struct {
 	textLabel         string
 	textFace          font.Face
 	textProcessBBCode bool
+	mask              [][]bool
 	hovering          bool
 	pressing          bool
 	state             WidgetState
@@ -493,6 +493,33 @@ func (b *Button) PreferredSize() (int, int) {
 func (b *Button) SetLocation(rect img.Rectangle) {
 	b.init.Do()
 	b.widget.Rect = rect
+
+	if b.Image.Mask != nil && (b.mask == nil || (len(b.mask[0]) != b.widget.Rect.Dx() || len(b.mask) != b.widget.Rect.Dy())) {
+		maskImage := ebiten.NewImage(b.widget.Rect.Dx(), b.widget.Rect.Dy())
+		b.Image.Mask.Draw(maskImage, maskImage.Bounds().Dx(), maskImage.Bounds().Dy(), func(_ *ebiten.DrawImageOptions) {})
+
+		wx := maskImage.Bounds().Dx()
+		wy := maskImage.Bounds().Dy()
+		pixels := make([]byte, wx*wy*4)
+		maskImage.ReadPixels(pixels)
+
+		b.mask = make([][]bool, wy)
+		x := 0
+		y := 0
+		for i := 0; i < len(pixels); i += 4 {
+			if b.mask[y] == nil {
+				b.mask[y] = make([]bool, wx)
+			}
+			if pixels[i] == 255 && pixels[i+1] == 255 && pixels[i+2] == 255 && pixels[i+3] == 255 {
+				b.mask[y][x] = true
+			}
+			x++
+			if (i/4+1)%wx == 0 {
+				x = 0
+				y++
+			}
+		}
+	}
 }
 
 func (b *Button) RequestRelayout() {
@@ -583,10 +610,6 @@ func (b *Button) draw(screen *ebiten.Image) {
 	}
 
 	if i != nil {
-		if b.Image.Mask != nil && (b.MaskImage == nil || (b.MaskImage.Bounds().Dx() != b.widget.Rect.Dx() || b.MaskImage.Bounds().Dy() != b.widget.Rect.Dy())) {
-			b.MaskImage = ebiten.NewImage(b.widget.Rect.Dx(), b.widget.Rect.Dy())
-			b.Image.Mask.Draw(b.MaskImage, b.MaskImage.Bounds().Dx(), b.MaskImage.Bounds().Dy(), func(_ *ebiten.DrawImageOptions) {})
-		}
 		i.Draw(screen, b.widget.Rect.Dx(), b.widget.Rect.Dy(), func(opts *ebiten.DrawImageOptions) {
 			b.widget.drawImageOptions(opts)
 			b.drawImageOptions(opts)
@@ -669,7 +692,7 @@ func (b *Button) initText() {
 func (b *Button) createWidget() {
 	b.widget = NewWidget(append(b.widgetOpts, []WidgetOpt{
 		WidgetOpts.CursorEnterHandler(func(args *WidgetCursorEnterEventArgs) {
-			if b.MaskImage == nil {
+			if b.mask == nil {
 				if !b.widget.Disabled {
 					b.hovering = true
 				}
@@ -725,7 +748,7 @@ func (b *Button) createWidget() {
 		}),
 
 		WidgetOpts.CursorExitHandler(func(args *WidgetCursorExitEventArgs) {
-			if b.MaskImage == nil {
+			if b.hovering || b.mask == nil {
 				b.hovering = false
 				b.CursorExitedEvent.Fire(&ButtonHoverEventArgs{
 					Button:  b,
@@ -796,9 +819,8 @@ func (b *Button) createWidget() {
 }
 
 func (b *Button) onMask(x, y int) bool {
-	if b.MaskImage == nil {
+	if b.mask == nil {
 		return true
 	}
-	c := b.MaskImage.At(x, y)
-	return c == b.MaskColor
+	return b.mask[y][x]
 }
