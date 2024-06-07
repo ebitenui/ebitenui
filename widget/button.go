@@ -132,7 +132,7 @@ var ButtonOpts ButtonOptions
 
 func NewButton(opts ...ButtonOpt) *Button {
 	b := &Button{
-		MaskColor: color.RGBA{R: 255, G: 255, B: 255, A: 255}, // white
+		MaskColor: color.NRGBA{R: 255, G: 255, B: 255, A: 255}, // white
 
 		hTextPosition: TextPositionCenter,
 		vTextPosition: TextPositionCenter,
@@ -506,11 +506,19 @@ func (b *Button) SetLocation(rect img.Rectangle) {
 		b.mask = make([][]bool, wy)
 		x := 0
 		y := 0
+
+		// convert alpha-premultiplied colors to non-alpha-premultiplied colors
+		red32, green32, blue32, alpha32 := b.MaskColor.RGBA()
+		red8 := uint8(red32 >> 8)
+		green8 := uint8(green32 >> 8)
+		blue8 := uint8(blue32 >> 8)
+		alpha8 := uint8(alpha32 >> 8)
+
 		for i := 0; i < len(pixels); i += 4 {
 			if b.mask[y] == nil {
 				b.mask[y] = make([]bool, wx)
 			}
-			if pixels[i] == 255 && pixels[i+1] == 255 && pixels[i+2] == 255 && pixels[i+3] == 255 {
+			if pixels[i] == red8 && pixels[i+1] == green8 && pixels[i+2] == blue8 && pixels[i+3] == alpha8 {
 				b.mask[y][x] = true
 			}
 			x++
