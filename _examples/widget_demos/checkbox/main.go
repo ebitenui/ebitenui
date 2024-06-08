@@ -41,6 +41,9 @@ func main() {
 	checkedImage := ebiten.NewImage(20, 20)
 	checkedImage.Fill(color.NRGBA{255, 255, 0, 255})
 
+	greyedImage := ebiten.NewImage(20, 20)
+	greyedImage.Fill(color.NRGBA{255, 0, 0, 255})
+
 	game.checkBox = widget.NewCheckbox(
 		widget.CheckboxOpts.ButtonOpts(
 			widget.ButtonOpts.WidgetOpts(
@@ -68,6 +71,9 @@ func main() {
 			Checked: &widget.ButtonImageImage{
 				Idle: checkedImage,
 			},
+			Greyed: &widget.ButtonImageImage{
+				Idle: greyedImage,
+			},
 		}),
 		// Set the state change handler
 		widget.CheckboxOpts.StateChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
@@ -77,6 +83,8 @@ func main() {
 				fmt.Println("Checkbox is Unchecked")
 			}
 		}),
+		//widget.CheckboxOpts.TriState(),
+		widget.CheckboxOpts.InitialState(widget.WidgetChecked),
 	)
 
 	rootContainer.AddChild(game.checkBox)
