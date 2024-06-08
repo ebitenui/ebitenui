@@ -52,6 +52,9 @@ func main() {
 		// specify the images to use
 		widget.ButtonOpts.Image(buttonImage),
 
+		// specify to ignore transparent pixels for mouse events
+		widget.ButtonOpts.IgnoreTransparentPixels(true),
+
 		// specify the button's text, the font face, and the color
 		widget.ButtonOpts.Text("Hello!", face, &widget.ButtonTextColor{
 			Idle:  color.NRGBA{255, 255, 255, 255},
@@ -137,34 +140,21 @@ func (g *game) Draw(screen *ebiten.Image) {
 
 func loadButtonImage() (*widget.ButtonImage, error) {
 	idleImage := ebiten.NewImage(100, 100)
-	idleImage.Fill(color.NRGBA{R: 80, G: 80, B: 80, A: 255})
 	vector.DrawFilledCircle(idleImage, float32(idleImage.Bounds().Dx())/2, float32(idleImage.Bounds().Dy())/2, 45, color.Black, true)
-	vector.DrawFilledCircle(idleImage, float32(idleImage.Bounds().Dx())/2, float32(idleImage.Bounds().Dy())/2, 20, color.NRGBA{R: 80, G: 80, B: 80, A: 255}, true)
 	idle := image.NewNineSlice(idleImage, [3]int{0, idleImage.Bounds().Dx(), 0}, [3]int{0, idleImage.Bounds().Dy(), 0})
 
 	hoverImage := ebiten.NewImage(100, 100)
-	hoverImage.Fill(color.NRGBA{R: 80, G: 80, B: 80, A: 255})
 	vector.DrawFilledCircle(hoverImage, float32(hoverImage.Bounds().Dx())/2, float32(hoverImage.Bounds().Dy())/2, 45, color.White, true)
-	vector.DrawFilledCircle(hoverImage, float32(hoverImage.Bounds().Dx())/2, float32(hoverImage.Bounds().Dy())/2, 20, color.NRGBA{R: 80, G: 80, B: 80, A: 255}, true)
 	hover := image.NewNineSlice(hoverImage, [3]int{0, hoverImage.Bounds().Dx(), 0}, [3]int{0, hoverImage.Bounds().Dy(), 0})
 
 	pressedImage := ebiten.NewImage(100, 100)
-	pressedImage.Fill(color.NRGBA{R: 80, G: 80, B: 80, A: 255})
 	vector.DrawFilledCircle(pressedImage, float32(pressedImage.Bounds().Dx())/2, float32(pressedImage.Bounds().Dy())/2, 45, color.NRGBA{R: 255, G: 0, B: 0, A: 255}, true)
-	vector.DrawFilledCircle(pressedImage, float32(pressedImage.Bounds().Dx())/2, float32(pressedImage.Bounds().Dy())/2, 20, color.NRGBA{R: 80, G: 80, B: 80, A: 255}, true)
 	pressed := image.NewNineSlice(pressedImage, [3]int{0, pressedImage.Bounds().Dx(), 0}, [3]int{0, pressedImage.Bounds().Dy(), 0})
-
-	maskImage := ebiten.NewImage(100, 100)
-	maskImage.Fill(color.NRGBA{R: 0, G: 0, B: 0, A: 255})
-	vector.DrawFilledCircle(maskImage, float32(maskImage.Bounds().Dx())/2, float32(maskImage.Bounds().Dy())/2, 45, color.NRGBA{R: 255, G: 255, B: 255, A: 255}, true)
-	vector.DrawFilledCircle(maskImage, float32(maskImage.Bounds().Dx())/2, float32(maskImage.Bounds().Dy())/2, 20, color.NRGBA{R: 0, G: 0, B: 0, A: 255}, true)
-	mask := image.NewNineSlice(maskImage, [3]int{0, maskImage.Bounds().Dx(), 0}, [3]int{0, maskImage.Bounds().Dy(), 0})
 
 	return &widget.ButtonImage{
 		Idle:    idle,
 		Hover:   hover,
 		Pressed: pressed,
-		Mask:    mask,
 	}, nil
 }
 
