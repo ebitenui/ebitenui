@@ -14,7 +14,6 @@ import (
 
 type Button struct {
 	Image                   *ButtonImage
-	mask                    []byte
 	IgnoreTransparentPixels bool
 	KeepPressedOnExit       bool
 	ToggleMode              bool
@@ -43,6 +42,7 @@ type Button struct {
 	widget            *Widget
 	container         *Container
 	graphic           *Graphic
+	mask              []byte
 	text              *Text
 	textLabel         string
 	textFace          font.Face
@@ -194,6 +194,10 @@ func (o ButtonOptions) Image(i *ButtonImage) ButtonOpt {
 	}
 }
 
+// IgnoreTransparentPixels disables mouse events like cursor entered,
+// moved and exited if the mouse pointer is over a pixel that is transparent
+// (alpha = 0). The source of pixels is Image.Idle. This options is
+// especially useful, if your button does not have a rectangular shape.
 func (o ButtonOptions) IgnoreTransparentPixels(ignoreTransparentPixels bool) ButtonOpt {
 	return func(b *Button) {
 		b.IgnoreTransparentPixels = ignoreTransparentPixels
@@ -763,10 +767,7 @@ func (b *Button) createWidget() {
 
 		WidgetOpts.MouseButtonReleasedHandler(func(args *WidgetMouseButtonReleasedEventArgs) {
 			if b.pressing && !b.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
-				inside := false
-				if args.Inside && b.onMask(args.OffsetX, args.OffsetY) {
-					inside = true
-				}
+				inside := args.Inside && b.onMask(args.OffsetX, args.OffsetY)
 
 				b.ReleasedEvent.Fire(&ButtonReleasedEventArgs{
 					Button:  b,
