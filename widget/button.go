@@ -526,7 +526,7 @@ func (b *Button) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	}
 
 	if b.autoUpdateTextAndGraphic {
-		if b.graphic != nil {
+		if b.GraphicImage != nil {
 			if b.widget.Disabled && b.GraphicImage.Disabled != nil {
 				b.graphic.Image = b.GraphicImage.Disabled
 			} else {

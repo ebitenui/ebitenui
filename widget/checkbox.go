@@ -83,6 +83,9 @@ func (c *Checkbox) validate() {
 	if c.image.Unchecked.Idle == nil {
 		panic("Checkbox: Image.Unchecked.Idle is required.")
 	}
+	if c.state == WidgetGreyed && !c.triState {
+		panic("Checkbox: non-tri state Checkbox cannot be in greyed state")
+	}
 }
 
 func (o CheckboxOptions) ButtonOpts(opts ...ButtonOpt) CheckboxOpt {
@@ -114,6 +117,12 @@ func (o CheckboxOptions) StateChangedHandler(f CheckboxChangedHandlerFunc) Check
 		c.StateChangedEvent.AddHandler(func(args interface{}) {
 			f(args.(*CheckboxChangedEventArgs))
 		})
+	}
+}
+
+func (o CheckboxOptions) InitialState(state WidgetState) CheckboxOpt {
+	return func(c *Checkbox) {
+		c.state = state
 	}
 }
 
@@ -202,7 +211,6 @@ func (c *Checkbox) Click() {
 func (c *Checkbox) createWidget() {
 	c.button = NewButton(append(c.buttonOpts, []ButtonOpt{
 		ButtonOpts.Graphic(c.image.Unchecked.Idle),
-
 		ButtonOpts.ClickedHandler(func(_ *ButtonClickedEventArgs) {
 			c.SetState(c.state.Advance(c.triState))
 		}),
