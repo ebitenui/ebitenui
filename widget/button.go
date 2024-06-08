@@ -13,14 +13,15 @@ import (
 )
 
 type Button struct {
-	Image             *ButtonImage
-	MaskColor         color.Color
-	KeepPressedOnExit bool
-	ToggleMode        bool
-	GraphicImage      *ButtonImageImage
-	TextColor         *ButtonTextColor
+	Image                   *ButtonImage
+	mask                    []byte
+	IgnoreTransparentPixels bool
+	KeepPressedOnExit       bool
+	ToggleMode              bool
+	GraphicImage            *ButtonImageImage
+	TextColor               *ButtonTextColor
 
-	//Allows the user to disable space bar and enter automatically triggering a focused button.
+	// Allows the user to disable space bar and enter automatically triggering a focused button.
 	DisableDefaultKeys bool
 
 	PressedEvent       *event.Event
@@ -46,7 +47,6 @@ type Button struct {
 	textLabel         string
 	textFace          font.Face
 	textProcessBBCode bool
-	mask              [][]bool
 	hovering          bool
 	pressing          bool
 	state             WidgetState
@@ -66,7 +66,6 @@ type ButtonImage struct {
 	Pressed      *image.NineSlice
 	PressedHover *image.NineSlice
 	Disabled     *image.NineSlice
-	Mask         *image.NineSlice
 }
 
 type ButtonImageImage struct {
@@ -132,8 +131,6 @@ var ButtonOpts ButtonOptions
 
 func NewButton(opts ...ButtonOpt) *Button {
 	b := &Button{
-		MaskColor: color.NRGBA{R: 255, G: 255, B: 255, A: 255}, // white
-
 		hTextPosition: TextPositionCenter,
 		vTextPosition: TextPositionCenter,
 
@@ -194,6 +191,12 @@ func (o ButtonOptions) WidgetOpts(opts ...WidgetOpt) ButtonOpt {
 func (o ButtonOptions) Image(i *ButtonImage) ButtonOpt {
 	return func(b *Button) {
 		b.Image = i
+	}
+}
+
+func (o ButtonOptions) IgnoreTransparentPixels(ignoreTransparentPixels bool) ButtonOpt {
+	return func(b *Button) {
+		b.IgnoreTransparentPixels = ignoreTransparentPixels
 	}
 }
 
@@ -492,42 +495,18 @@ func (b *Button) PreferredSize() (int, int) {
 
 func (b *Button) SetLocation(rect img.Rectangle) {
 	b.init.Do()
-	b.widget.Rect = rect
 
-	if b.Image.Mask != nil && (b.mask == nil || (len(b.mask[0]) != b.widget.Rect.Dx() || len(b.mask) != b.widget.Rect.Dy())) {
-		maskImage := ebiten.NewImage(b.widget.Rect.Dx(), b.widget.Rect.Dy())
-		b.Image.Mask.Draw(maskImage, maskImage.Bounds().Dx(), maskImage.Bounds().Dy(), func(_ *ebiten.DrawImageOptions) {})
+	if b.IgnoreTransparentPixels && (b.mask == nil || b.widget.Rect == img.Rectangle{} || b.widget.Rect.Dx() != rect.Dx() || b.widget.Rect.Dy() != rect.Dy()) {
+		maskImage := ebiten.NewImage(rect.Dx(), rect.Dy())
+		b.Image.Idle.Draw(maskImage, maskImage.Bounds().Dx(), maskImage.Bounds().Dy(), func(_ *ebiten.DrawImageOptions) {})
 
 		wx := maskImage.Bounds().Dx()
 		wy := maskImage.Bounds().Dy()
-		pixels := make([]byte, wx*wy*4)
-		maskImage.ReadPixels(pixels)
-
-		b.mask = make([][]bool, wy)
-		x := 0
-		y := 0
-
-		// convert alpha-premultiplied colors to non-alpha-premultiplied colors
-		red32, green32, blue32, alpha32 := b.MaskColor.RGBA()
-		red8 := uint8(red32 >> 8)
-		green8 := uint8(green32 >> 8)
-		blue8 := uint8(blue32 >> 8)
-		alpha8 := uint8(alpha32 >> 8)
-
-		for i := 0; i < len(pixels); i += 4 {
-			if b.mask[y] == nil {
-				b.mask[y] = make([]bool, wx)
-			}
-			if pixels[i] == red8 && pixels[i+1] == green8 && pixels[i+2] == blue8 && pixels[i+3] == alpha8 {
-				b.mask[y][x] = true
-			}
-			x++
-			if (i/4+1)%wx == 0 {
-				x = 0
-				y++
-			}
-		}
+		b.mask = make([]byte, wx*wy*4)
+		maskImage.ReadPixels(b.mask)
 	}
+
+	b.widget.Rect = rect
 }
 
 func (b *Button) RequestRelayout() {
@@ -785,7 +764,7 @@ func (b *Button) createWidget() {
 		WidgetOpts.MouseButtonReleasedHandler(func(args *WidgetMouseButtonReleasedEventArgs) {
 			if b.pressing && !b.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
 				inside := false
-				if b.onMask(args.OffsetX, args.OffsetY) {
+				if args.Inside && b.onMask(args.OffsetX, args.OffsetY) {
 					inside = true
 				}
 
@@ -830,5 +809,6 @@ func (b *Button) onMask(x, y int) bool {
 	if b.mask == nil {
 		return true
 	}
-	return b.mask[y][x]
+	i := ((x * 4) + (y * b.widget.Rect.Dx() * 4) + 3)
+	return (b.mask[i] > 0)
 }
