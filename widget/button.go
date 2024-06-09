@@ -13,13 +13,14 @@ import (
 )
 
 type Button struct {
-	Image             *ButtonImage
-	KeepPressedOnExit bool
-	ToggleMode        bool
-	GraphicImage      *ButtonImageImage
-	TextColor         *ButtonTextColor
+	Image                   *ButtonImage
+	IgnoreTransparentPixels bool
+	KeepPressedOnExit       bool
+	ToggleMode              bool
+	GraphicImage            *ButtonImageImage
+	TextColor               *ButtonTextColor
 
-	//Allows the user to disable space bar and enter automatically triggering a focused button.
+	// Allows the user to disable space bar and enter automatically triggering a focused button.
 	DisableDefaultKeys bool
 
 	PressedEvent       *event.Event
@@ -41,6 +42,7 @@ type Button struct {
 	widget            *Widget
 	container         *Container
 	graphic           *Graphic
+	mask              []byte
 	text              *Text
 	textLabel         string
 	textFace          font.Face
@@ -189,6 +191,16 @@ func (o ButtonOptions) WidgetOpts(opts ...WidgetOpt) ButtonOpt {
 func (o ButtonOptions) Image(i *ButtonImage) ButtonOpt {
 	return func(b *Button) {
 		b.Image = i
+	}
+}
+
+// IgnoreTransparentPixels disables mouse events like cursor entered,
+// moved and exited if the mouse pointer is over a pixel that is transparent
+// (alpha = 0). The source of pixels is Image.Idle. This options is
+// especially useful, if your button does not have a rectangular shape.
+func (o ButtonOptions) IgnoreTransparentPixels(ignoreTransparentPixels bool) ButtonOpt {
+	return func(b *Button) {
+		b.IgnoreTransparentPixels = ignoreTransparentPixels
 	}
 }
 
@@ -487,6 +499,17 @@ func (b *Button) PreferredSize() (int, int) {
 
 func (b *Button) SetLocation(rect img.Rectangle) {
 	b.init.Do()
+
+	if b.IgnoreTransparentPixels && (b.mask == nil || b.widget.Rect == img.Rectangle{} || b.widget.Rect.Dx() != rect.Dx() || b.widget.Rect.Dy() != rect.Dy()) {
+		maskImage := ebiten.NewImage(rect.Dx(), rect.Dy())
+		b.Image.Idle.Draw(maskImage, maskImage.Bounds().Dx(), maskImage.Bounds().Dy(), func(_ *ebiten.DrawImageOptions) {})
+
+		wx := maskImage.Bounds().Dx()
+		wy := maskImage.Bounds().Dy()
+		b.mask = make([]byte, wx*wy*4)
+		maskImage.ReadPixels(b.mask)
+	}
+
 	b.widget.Rect = rect
 }
 
@@ -655,73 +678,105 @@ func (b *Button) initText() {
 	b.container.AddChild(b.text)
 
 	b.autoUpdateTextAndGraphic = true
-
 }
 
 func (b *Button) createWidget() {
 	b.widget = NewWidget(append(b.widgetOpts, []WidgetOpt{
 		WidgetOpts.CursorEnterHandler(func(args *WidgetCursorEnterEventArgs) {
-			if !b.widget.Disabled {
-				b.hovering = true
+			if b.mask == nil {
+				if !b.widget.Disabled {
+					b.hovering = true
+				}
+				if b.hovering {
+					b.CursorEnteredEvent.Fire(&ButtonHoverEventArgs{
+						Button:  b,
+						Entered: true,
+						OffsetX: args.OffsetX,
+						OffsetY: args.OffsetY,
+						DiffX:   0,
+						DiffY:   0,
+					})
+				}
 			}
-			b.CursorEnteredEvent.Fire(&ButtonHoverEventArgs{
-				Button:  b,
-				Entered: true,
-				OffsetX: args.OffsetX,
-				OffsetY: args.OffsetY,
-				DiffX:   0,
-				DiffY:   0,
-			})
 		}),
 
 		WidgetOpts.CursorMoveHandler(func(args *WidgetCursorMoveEventArgs) {
-			if !b.widget.Disabled {
-				b.hovering = true
+			if b.onMask(args.OffsetX, args.OffsetY) {
+				if !b.hovering {
+					b.CursorEnteredEvent.Fire(&ButtonHoverEventArgs{
+						Button:  b,
+						Entered: true,
+						OffsetX: args.OffsetX,
+						OffsetY: args.OffsetY,
+						DiffX:   0,
+						DiffY:   0,
+					})
+				}
+				if !b.widget.Disabled {
+					b.hovering = true
+				}
+				b.CursorMovedEvent.Fire(&ButtonHoverEventArgs{
+					Button:  b,
+					Entered: false,
+					OffsetX: args.OffsetX,
+					OffsetY: args.OffsetY,
+					DiffX:   args.DiffX,
+					DiffY:   args.DiffY,
+				})
+			} else {
+				if b.hovering {
+					b.hovering = false
+					b.CursorExitedEvent.Fire(&ButtonHoverEventArgs{
+						Button:  b,
+						Entered: false,
+						OffsetX: args.OffsetX,
+						OffsetY: args.OffsetY,
+						DiffX:   0,
+						DiffY:   0,
+					})
+				}
 			}
-			b.CursorMovedEvent.Fire(&ButtonHoverEventArgs{
-				Button:  b,
-				Entered: false,
-				OffsetX: args.OffsetX,
-				OffsetY: args.OffsetY,
-				DiffX:   args.DiffX,
-				DiffY:   args.DiffY,
-			})
 		}),
 
 		WidgetOpts.CursorExitHandler(func(args *WidgetCursorExitEventArgs) {
-			b.hovering = false
-			b.CursorExitedEvent.Fire(&ButtonHoverEventArgs{
-				Button:  b,
-				Entered: false,
-				OffsetX: args.OffsetX,
-				OffsetY: args.OffsetY,
-				DiffX:   0,
-				DiffY:   0,
-			})
+			if b.hovering || b.mask == nil {
+				b.hovering = false
+				b.CursorExitedEvent.Fire(&ButtonHoverEventArgs{
+					Button:  b,
+					Entered: false,
+					OffsetX: args.OffsetX,
+					OffsetY: args.OffsetY,
+					DiffX:   0,
+					DiffY:   0,
+				})
+			}
 		}),
 
 		WidgetOpts.MouseButtonPressedHandler(func(args *WidgetMouseButtonPressedEventArgs) {
-			if !b.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
-				b.pressing = true
-
-				b.PressedEvent.Fire(&ButtonPressedEventArgs{
-					Button:  b,
-					OffsetX: args.OffsetX,
-					OffsetY: args.OffsetY,
-				})
+			if b.onMask(args.OffsetX, args.OffsetY) {
+				if !b.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
+					b.pressing = true
+					b.PressedEvent.Fire(&ButtonPressedEventArgs{
+						Button:  b,
+						OffsetX: args.OffsetX,
+						OffsetY: args.OffsetY,
+					})
+				}
 			}
 		}),
 
 		WidgetOpts.MouseButtonReleasedHandler(func(args *WidgetMouseButtonReleasedEventArgs) {
 			if b.pressing && !b.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
+				inside := args.Inside && b.onMask(args.OffsetX, args.OffsetY)
+
 				b.ReleasedEvent.Fire(&ButtonReleasedEventArgs{
 					Button:  b,
-					Inside:  args.Inside,
+					Inside:  inside,
 					OffsetX: args.OffsetX,
 					OffsetY: args.OffsetY,
 				})
 
-				if args.Inside {
+				if inside {
 					b.ClickedEvent.Fire(&ButtonClickedEventArgs{
 						Button:  b,
 						OffsetX: args.OffsetX,
@@ -749,4 +804,12 @@ func (b *Button) createWidget() {
 	b.widgetOpts = nil
 
 	b.initText()
+}
+
+func (b *Button) onMask(x, y int) bool {
+	if b.mask == nil {
+		return true
+	}
+	i := ((x * 4) + (y * b.widget.Rect.Dx() * 4) + 3)
+	return (b.mask[i] > 0)
 }
