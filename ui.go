@@ -39,6 +39,8 @@ func (u *UI) Update() {
 		u.Container.GetWidget().DragAndDropEvent.AddHandler(u.handleDragAndDropEvent)
 
 		u.previousContainer = u.Container
+		// Close all Ephemeral Windows (tooltip/dnd/etc)
+		u.closeEphemeralWindows(0)
 	}
 }
 
@@ -264,6 +266,8 @@ func (u *UI) AddWindow(w *widget.Window) widget.RemoveWindowFunc {
 		if w.Modal && u.focusedWidget != nil {
 			u.focusedWidget.(widget.Focuser).Focus(false)
 		}
+		// Close all Ephemeral Windows (tooltip/dnd/etc)
+		u.closeEphemeralWindows(0)
 	}
 
 	return w.GetCloseFunction()
@@ -298,10 +302,15 @@ func (u *UI) removeWindow(w *widget.Window) {
 		}
 	}
 	if windowIdx != -1 && !w.Ephemeral {
-		for i := len(u.windows) - 1; i >= windowIdx; i-- {
-			if u.windows[i].Ephemeral {
-				u.windows = append(u.windows[:i], u.windows[i+1:]...)
-			}
+		u.closeEphemeralWindows(windowIdx)
+	}
+}
+
+// Used to close tooltips/dnd etc
+func (u *UI) closeEphemeralWindows(windowIdx int) {
+	for i := len(u.windows) - 1; i >= windowIdx; i-- {
+		if u.windows[i].Ephemeral {
+			u.windows = append(u.windows[:i], u.windows[i+1:]...)
 		}
 	}
 }
