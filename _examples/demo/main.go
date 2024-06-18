@@ -16,6 +16,7 @@ import (
 
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"
+	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/widget"
 )
 
@@ -383,5 +384,5 @@ func (g *game) Update() error {
 func (g *game) Draw(screen *ebiten.Image) {
 	g.ui.Draw(screen)
 
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %f", ebiten.ActualFPS()))
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %f, UI Hovered %t", ebiten.ActualFPS(), input.UIActive))
 }

@@ -331,10 +331,13 @@ func (w *Window) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 func (w *Window) createWidget() {
 	if w.TitleBar != nil {
-		w.container = NewContainer(ContainerOpts.Layout(NewGridLayout(
-			GridLayoutOpts.Columns(1),
-			GridLayoutOpts.Stretch([]bool{true}, []bool{false, true}),
-		)))
+		w.container = NewContainer(
+			ContainerOpts.Layout(NewGridLayout(
+				GridLayoutOpts.Columns(1),
+				GridLayoutOpts.Stretch([]bool{true}, []bool{false, true}),
+			)),
+			ContainerOpts.WidgetOpts(WidgetOpts.TrackHover(true)),
+		)
 		w.TitleBar.GetWidget().LayoutData = GridLayoutData{MaxHeight: w.titleBarHeight}
 		w.TitleBar.GetWidget().MinHeight = w.titleBarHeight
 		if w.Draggable {
@@ -360,10 +363,13 @@ func (w *Window) createWidget() {
 		w.container.AddChild(w.TitleBar)
 		w.container.AddChild(w.Contents)
 	} else {
-		w.container = NewContainer(ContainerOpts.Layout(NewGridLayout(
-			GridLayoutOpts.Columns(1),
-			GridLayoutOpts.Stretch([]bool{true}, []bool{true}),
-		)))
+		w.container = NewContainer(
+			ContainerOpts.Layout(NewGridLayout(
+				GridLayoutOpts.Columns(1),
+				GridLayoutOpts.Stretch([]bool{true}, []bool{true}),
+			)),
+			ContainerOpts.WidgetOpts(WidgetOpts.TrackHover(true)),
+		)
 
 		w.container.AddChild(w.Contents)
 	}

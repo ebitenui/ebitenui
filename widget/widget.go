@@ -5,7 +5,7 @@ import (
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
-
+	internalinput "github.com/ebitenui/ebitenui/internal/input"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -68,8 +68,10 @@ type Widget struct {
 
 	DragAndDropEvent *event.Event
 
-	//Custom Data is a field to allow users to attach data to any widget
+	// Custom Data is a field to allow users to attach data to any widget
 	CustomData interface{}
+	// This allows for non-focusable widgets (Containers) to report hover.
+	TrackHover bool
 
 	canDrop CanDropFunc
 	drop    DropFunc
@@ -445,6 +447,13 @@ func (o WidgetOptions) CursorPressed(cursorPressed string) WidgetOpt {
 	}
 }
 
+// This allows for non-focusable widgets (Containers) to report hover.
+func (o WidgetOptions) TrackHover(trackHover bool) WidgetOpt {
+	return func(w *Widget) {
+		w.TrackHover = trackHover
+	}
+}
+
 func (w *Widget) drawImageOptions(opts *ebiten.DrawImageOptions) {
 	opts.GeoM.Translate(float64(w.Rect.Min.X), float64(w.Rect.Min.Y))
 }
@@ -601,6 +610,10 @@ func (w *Widget) fireEvents() {
 			X:      scrollX,
 			Y:      scrollY,
 		})
+	}
+	_, isFocuser := w.self.(Focuser)
+	if inside && (isFocuser || w.TrackHover) {
+		internalinput.InternalUIActive = true
 	}
 }
 
