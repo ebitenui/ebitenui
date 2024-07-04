@@ -77,6 +77,7 @@ type ButtonTextColor struct {
 	Idle     color.Color
 	Disabled color.Color
 	Hover    color.Color
+	Pressed  color.Color
 }
 
 type ButtonPressedEventArgs struct {
@@ -560,6 +561,8 @@ func (b *Button) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 		if b.text != nil {
 			if b.widget.Disabled && b.TextColor.Disabled != nil {
 				b.text.Color = b.TextColor.Disabled
+			} else if b.pressing && ((b.hovering || b.KeepPressedOnExit) || (b.ToggleMode && b.state == WidgetChecked) || b.justSubmitted) && b.TextColor.Pressed != nil {
+				b.text.Color = b.TextColor.Pressed
 			} else if (b.hovering || b.focused) && b.TextColor.Hover != nil {
 				b.text.Color = b.TextColor.Hover
 			} else {
