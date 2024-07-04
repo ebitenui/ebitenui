@@ -277,9 +277,9 @@ func (l *List) SetLocation(rect img.Rectangle) {
 	l.container.GetWidget().Rect = rect
 }
 
-func (l *List) RequestRelayout() {
+func (l *List) RequestRelayout(rect img.Rectangle) {
 	l.init.Do()
-	l.container.RequestRelayout()
+	l.container.RequestRelayout(rect)
 }
 
 func (l *List) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {

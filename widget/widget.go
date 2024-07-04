@@ -9,6 +9,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+type DebugData struct {
+	X, Y    int
+	Message string
+	Name    string
+}
+
 // A Widget is an abstraction of a user interface widget, such as a button. Actual widget implementations
 // "have" a Widget in their internal structure.
 type Widget struct {
@@ -315,6 +321,22 @@ func NewWidget(opts ...WidgetOpt) *Widget {
 	}
 
 	return w
+}
+
+// WithLayoutData configures a Widget with layout data ld.
+func (o WidgetOptions) DebugData(name string) WidgetOpt {
+	return func(w *Widget) {
+		cd := w.CustomData
+		if cd != nil {
+			if dd, ok := cd.(DebugData); ok {
+				dd.Name = name
+			}
+		} else {
+			w.CustomData = DebugData{
+				Name: name,
+			}
+		}
+	}
 }
 
 // WithLayoutData configures a Widget with layout data ld.

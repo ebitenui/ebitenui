@@ -193,9 +193,9 @@ func (t *TabBook) SetLocation(rect image.Rectangle) {
 	t.container.SetLocation(rect)
 }
 
-func (t *TabBook) RequestRelayout() {
+func (t *TabBook) RequestRelayout(rect image.Rectangle) {
 	t.init.Do()
-	t.container.RequestRelayout()
+	t.container.RequestRelayout(rect)
 }
 
 func (t *TabBook) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {

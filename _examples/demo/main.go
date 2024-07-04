@@ -11,6 +11,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 
+	img "image"
 	"image/color"
 	_ "image/png"
 
@@ -166,6 +167,7 @@ func demoContainer(res *uiResources, ui func() *ebitenui.UI) widget.PreferredSiz
 		)))
 
 	pages := []interface{}{
+		scrollPage(res),
 		buttonPage(res),
 		checkboxPage(res),
 		listPage(res),
@@ -254,7 +256,7 @@ func newPageContainer(res *uiResources) *pageContainer {
 func (p *pageContainer) setPage(page *page) {
 	p.titleText.Label = page.title
 	p.flipBook.SetPage(page.content)
-	p.flipBook.RequestRelayout()
+	p.flipBook.RequestRelayout(img.Rectangle{})
 }
 
 func newCheckbox(label string, changedHandler widget.CheckboxChangedHandlerFunc, res *uiResources) *widget.LabeledCheckbox {
@@ -382,6 +384,19 @@ func (g *game) Update() error {
 
 func (g *game) Draw(screen *ebiten.Image) {
 	g.ui.Draw(screen)
+	var dk func(p widget.PreferredSizeLocateableWidget)
+	dk = func(p widget.PreferredSizeLocateableWidget) {
+		if pc, ok := p.(*widget.Container); ok {
+			for _, c := range pc.Children() {
+				dk(c)
+			}
 
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %f", ebiten.ActualFPS()))
+		}
+		if dd, ok := p.GetWidget().CustomData.(widget.DebugData); ok {
+			ebitenutil.DebugPrintAt(screen, fmt.Sprintf("%s %s", dd.Name, dd.Message), dd.X, dd.Y)
+		}
+	}
+	dk(g.ui.Container)
+	x, y := ebiten.CursorPosition()
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %f CUR: %d,%d", ebiten.ActualFPS(), x, y))
 }
