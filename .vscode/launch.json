@@ -25,6 +25,16 @@
 			"args": []
 		},
 		{
+			"name": "Launch Game",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/_examples/game",
+			"cwd": "${workspaceFolder}/_examples/game",
+			"env": {},
+			"args": []
+		},
+		{
 			"name": "Launch Basic Container",
 			"type": "go",
 			"request": "launch",
