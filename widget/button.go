@@ -681,7 +681,8 @@ func (b *Button) initText() {
 }
 
 func (b *Button) createWidget() {
-	b.widget = NewWidget(append(b.widgetOpts, []WidgetOpt{
+	b.widget = NewWidget(append([]WidgetOpt{
+		WidgetOpts.TrackHover(true),
 		WidgetOpts.CursorEnterHandler(func(args *WidgetCursorEnterEventArgs) {
 			if b.mask == nil {
 				if !b.widget.Disabled {
@@ -800,7 +801,7 @@ func (b *Button) createWidget() {
 
 			b.pressing = false
 		}),
-	}...)...)
+	}, b.widgetOpts...)...)
 	b.widgetOpts = nil
 
 	b.initText()

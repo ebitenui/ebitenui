@@ -25,15 +25,17 @@ type DefaultInternalHandler struct {
 	LastMiddleMouseButtonPressed bool
 	LastRightMouseButtonPressed  bool
 
-	InputChars     []rune
-	KeyPressed     map[ebiten.Key]bool
-	AnyKeyPressed  bool
-	isTouched      bool
-	cursorImages   map[string]*ebiten.Image
-	cursorOffset   map[string]image.Point
+	InputChars    []rune
+	KeyPressed    map[ebiten.Key]bool
+	AnyKeyPressed bool
+	isTouched     bool
+	cursorImages  map[string]*ebiten.Image
+	cursorOffset  map[string]image.Point
 
 	touchscreenPlatform bool
 }
+
+var InternalUIHovered = false
 
 var InputHandler *DefaultInternalHandler = &DefaultInternalHandler{
 	// A touchscreenPlatform is defined as a device that doesn't have a mouse pointer,
@@ -47,9 +49,9 @@ var InputHandler *DefaultInternalHandler = &DefaultInternalHandler{
 	// input options.
 	touchscreenPlatform: jsUtil.IsMobileBrowser() || runtime.GOOS == "android" || runtime.GOOS == "ios",
 
-	KeyPressed:     make(map[ebiten.Key]bool),
-	cursorImages:   make(map[string]*ebiten.Image),
-	cursorOffset:   make(map[string]image.Point),
+	KeyPressed:   make(map[ebiten.Key]bool),
+	cursorImages: make(map[string]*ebiten.Image),
+	cursorOffset: make(map[string]image.Point),
 }
 
 // Update updates the input system. This is called by the UI.

@@ -57,6 +57,9 @@ func (o ContainerOptions) WidgetOpts(opts ...WidgetOpt) ContainerOpt {
 	}
 }
 
+// This will set the background image to the provided NineSlice. If this is set then
+// we will automatically track that the UI has been hovered over for this container
+// Use widget.WidgetOpts.TrackHover(false) to turn this off if desired.
 func (o ContainerOptions) BackgroundImage(i *image.NineSlice) ContainerOpt {
 	return func(c *Container) {
 		c.BackgroundImage = i
@@ -259,7 +262,7 @@ func (c *Container) draw(screen *ebiten.Image) {
 }
 
 func (c *Container) createWidget() {
-	c.widget = NewWidget(c.widgetOpts...)
+	c.widget = NewWidget(append([]WidgetOpt{WidgetOpts.TrackHover(c.BackgroundImage != nil)}, c.widgetOpts...)...)
 	c.widgetOpts = nil
 }
 

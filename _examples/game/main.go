@@ -4,20 +4,20 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//	http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
+//
 // This file was modified from the example found: https://github.com/hajimehoshi/ebiten/blob/main/examples/tiles/main.go with permission from the author
-
 package main
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	"image/color"
 	_ "image/png"
@@ -25,11 +25,13 @@ import (
 
 	"github.com/ebitenui/ebitenui"
 	eimage "github.com/ebitenui/ebitenui/image"
+	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
 
 	"github.com/hajimehoshi/ebiten/v2/examples/resources/images"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/gofont/goregular"
 )
@@ -45,8 +47,8 @@ func main() {
 	g := &Game{
 		layers:     getLayers(),
 		tilesImage: getTileImage(),
-		ui:         getEbitenUI(),
 	}
+	g.ui = g.getEbitenUI()
 
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Game Demo")
@@ -59,19 +61,29 @@ type Game struct {
 	tilesImage *ebiten.Image
 	layers     [][]int
 
-	ui *ebitenui.UI
+	ui        *ebitenui.UI
+	headerLbl *widget.Text
 }
 
 func (g *Game) Update() error {
-	//Ensure that the UI is updated to receive events
+	// Ensure that the UI is updated to receive events
 	g.ui.Update()
+
+	// Update the Label text to indicate if the ui is currently being hovered over or not
+	g.headerLbl.Label = fmt.Sprintf("Game Demo!\nUI is hovered: %t", input.UIHovered)
+
+	// Log out if we have clicked on the gamefield and NOT the ui
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && !input.UIHovered {
+		log.Println("Mouse clicked on gamefield")
+	}
+
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	//Draw the tilemap
+	// Draw the tilemap
 	g.drawGameWorld(screen)
-	//Ensure ui.Draw is called after the gameworld is drawn
+	// Ensure ui.Draw is called after the gameworld is drawn
 	g.ui.Draw(screen)
 }
 
@@ -79,7 +91,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return outsideWidth, outsideHeight
 }
 
-func getEbitenUI() *ebitenui.UI {
+func (g *Game) getEbitenUI() *ebitenui.UI {
 	// load label text font
 	face, _ := loadFont(18)
 
@@ -89,7 +101,23 @@ func getEbitenUI() *ebitenui.UI {
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout(widget.AnchorLayoutOpts.Padding(widget.NewInsetsSimple(5)))),
 	)
 
-	label1 := widget.NewText(
+	// Because this container has a backgroundImage set we track that the ui is hovered over.
+	headerContainer := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(eimage.NewNineSliceColor(color.NRGBA{R: 200, G: 200, B: 200, A: 100})),
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				VerticalPosition:   widget.AnchorLayoutPositionStart,
+				HorizontalPosition: widget.AnchorLayoutPositionCenter,
+				StretchHorizontal:  true,
+				StretchVertical:    false,
+			}),
+			// Uncomment this to not track that you are hovering over this header
+			// widget.WidgetOpts.TrackHover(false),
+		),
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+	)
+
+	g.headerLbl = widget.NewText(
 		widget.TextOpts.Text("Game Demo!", face, color.White),
 		widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter),
 		widget.TextOpts.WidgetOpts(
@@ -99,9 +127,12 @@ func getEbitenUI() *ebitenui.UI {
 				StretchHorizontal:  false,
 				StretchVertical:    false,
 			}),
+			// Uncomment to force tracking hover of this element
+			// widget.WidgetOpts.TrackHover(true),
 		),
 	)
-	rootContainer.AddChild(label1)
+	headerContainer.AddChild(g.headerLbl)
+	rootContainer.AddChild(headerContainer)
 
 	hProgressbar := widget.NewProgressBar(
 		widget.ProgressBarOpts.WidgetOpts(
@@ -116,6 +147,8 @@ func getEbitenUI() *ebitenui.UI {
 			// the provided track image. In this exampe since we are using NineSliceColor
 			// which is 1px x 1px we must set a minimum size.
 			widget.WidgetOpts.MinSize(200, 20),
+			// Set this parameter to indicate we want do not want to track that this ui element is being hovered over.
+			// widget.WidgetOpts.TrackHover(false),
 		),
 		widget.ProgressBarOpts.Images(
 			// Set the track images (Idle, Disabled).
@@ -138,7 +171,7 @@ func getEbitenUI() *ebitenui.UI {
 
 	rootContainer.AddChild(hProgressbar)
 
-	//Create a label to show the percentage on top of the progress bar
+	// Create a label to show the percentage on top of the progress bar
 	label2 := widget.NewText(
 		widget.TextOpts.Text("70%", face, color.Black),
 		widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter),
@@ -207,6 +240,7 @@ func getLayers() [][]int {
 		},
 		{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 26, 27, 28, 29, 30, 31, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 51, 52, 53, 54, 55, 56, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 76, 77, 78, 79, 80, 81, 0, 0, 0, 0,
@@ -218,7 +252,6 @@ func getLayers() [][]int {
 			0, 0, 0, 0, 0, 0, 0, 245, 242, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 245, 242, 0, 0, 0, 0, 0, 0,
 
-			0, 0, 0, 0, 0, 0, 0, 245, 242, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 245, 242, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 245, 242, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 245, 242, 0, 0, 0, 0, 0, 0,

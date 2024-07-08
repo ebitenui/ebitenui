@@ -16,6 +16,7 @@ import (
 
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"
+	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/widget"
 )
 
@@ -60,6 +61,7 @@ func createUI() (*ebitenui.UI, func(), error) {
 
 	//This creates the root container for this UI.
 	rootContainer := widget.NewContainer(
+		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.TrackHover(false)),
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
 			// It is using a GridLayout with a single column
 			widget.GridLayoutOpts.Columns(1),
@@ -136,6 +138,7 @@ func headerContainer(res *uiResources) widget.PreferredSizeLocateableWidget {
 
 func header(label string, res *uiResources, opts ...widget.ContainerOpt) widget.PreferredSizeLocateableWidget {
 	c := widget.NewContainer(append(opts, []widget.ContainerOpt{
+		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.TrackHover(false)),
 		widget.ContainerOpts.BackgroundImage(res.header.background),
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout(widget.AnchorLayoutOpts.Padding(res.header.padding))),
 	}...)...)
@@ -223,6 +226,7 @@ func demoContainer(res *uiResources, ui func() *ebitenui.UI) widget.PreferredSiz
 
 func newPageContainer(res *uiResources) *pageContainer {
 	c := widget.NewContainer(
+		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.TrackHover(false)),
 		widget.ContainerOpts.BackgroundImage(res.panel.image),
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
@@ -383,5 +387,5 @@ func (g *game) Update() error {
 func (g *game) Draw(screen *ebiten.Image) {
 	g.ui.Draw(screen)
 
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %f", ebiten.ActualFPS()))
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %f, UI Hovered %t", ebiten.ActualFPS(), input.UIHovered))
 }

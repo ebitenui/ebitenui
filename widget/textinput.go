@@ -706,7 +706,7 @@ func (t *TextInput) AddFocus(direction FocusDirection, focus Focuser) {
 /** Focuser Interface - End **/
 
 func (t *TextInput) createWidget() {
-	t.widget = NewWidget(t.widgetOpts...)
+	t.widget = NewWidget(append([]WidgetOpt{WidgetOpts.TrackHover(true)}, t.widgetOpts...)...)
 	t.widget.focusable = t
 	t.widgetOpts = nil
 

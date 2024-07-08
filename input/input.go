@@ -39,6 +39,9 @@ type CursorUpdater interface {
 // This flag allows you to disable ebitenui's cursor management
 var CursorManagementEnabled = true
 
+// This variable indicates if the UI has currently being hovered over
+var UIHovered = false
+
 var currentCursorUpdater CursorUpdater = internalinput.InputHandler
 var windowSize image.Point
 
@@ -172,10 +175,12 @@ func Update() {
 func Draw(screen *ebiten.Image) {
 	windowSize = screen.Bounds().Max
 	currentCursorUpdater.Draw(screen)
+	internalinput.InternalUIHovered = false
 }
 
 func AfterDraw(screen *ebiten.Image) {
 	currentCursorUpdater.AfterDraw(screen)
+	UIHovered = internalinput.InternalUIHovered
 	if CursorManagementEnabled {
 		// Process Cursor
 		posX, posY := currentCursorUpdater.CursorPosition()
