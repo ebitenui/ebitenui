@@ -35,7 +35,7 @@ type DefaultInternalHandler struct {
 	touchscreenPlatform bool
 }
 
-var InternalUIActive = false
+var InternalUIHovered = false
 
 var InputHandler *DefaultInternalHandler = &DefaultInternalHandler{
 	// A touchscreenPlatform is defined as a device that doesn't have a mouse pointer,

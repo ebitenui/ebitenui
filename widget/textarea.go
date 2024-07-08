@@ -257,11 +257,14 @@ func (l *TextArea) createWidget() {
 	}
 
 	l.container = NewContainer(
-		append(l.containerOpts,
+		append([]ContainerOpt{
+			ContainerOpts.WidgetOpts(WidgetOpts.TrackHover(true)),
 			ContainerOpts.Layout(NewGridLayout(
 				GridLayoutOpts.Columns(cols),
 				GridLayoutOpts.Stretch([]bool{true, false}, []bool{true, false}),
-				GridLayoutOpts.Spacing(l.controlWidgetSpacing, l.controlWidgetSpacing))))...)
+				GridLayoutOpts.Spacing(l.controlWidgetSpacing, l.controlWidgetSpacing))),
+			}, l.containerOpts...,
+			)...)
 	l.containerOpts = nil
 
 	content := NewContainer(

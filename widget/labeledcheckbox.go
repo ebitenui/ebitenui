@@ -169,7 +169,7 @@ func (l *LabeledCheckbox) createWidget() {
 	l.container = NewContainer(
 		ContainerOpts.Layout(NewRowLayout(RowLayoutOpts.Spacing(l.spacing))),
 		ContainerOpts.AutoDisableChildren(),
-		ContainerOpts.WidgetOpts(l.widgetOpts...),
+		ContainerOpts.WidgetOpts(append([]WidgetOpt{WidgetOpts.TrackHover(true)}, l.widgetOpts...)...),
 	)
 
 	l.checkbox = NewCheckbox(append(l.checkboxOpts, CheckboxOpts.ButtonOpts(ButtonOpts.WidgetOpts(WidgetOpts.LayoutData(RowLayoutData{

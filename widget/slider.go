@@ -471,7 +471,8 @@ func (s *Slider) clampCurrentMinMax() {
 }
 
 func (s *Slider) createWidget() {
-	s.widget = NewWidget(append(s.widgetOpts, []WidgetOpt{
+	s.widget = NewWidget(append([]WidgetOpt{
+		WidgetOpts.TrackHover(true),
 		WidgetOpts.CursorEnterHandler(func(_ *WidgetCursorEnterEventArgs) {
 			if !s.widget.Disabled {
 				s.hovering = true
@@ -516,7 +517,7 @@ func (s *Slider) createWidget() {
 				s.clampCurrentMinMax()
 			}
 		}),
-	}...)...)
+	}, s.widgetOpts...)...)
 	s.widgetOpts = nil
 
 	s.handle = NewButton(append(s.handleOpts, []ButtonOpt{

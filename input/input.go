@@ -40,7 +40,7 @@ type CursorUpdater interface {
 var CursorManagementEnabled = true
 
 // This variable indicates if the UI has currently being hovered over
-var UIActive = false
+var UIHovered = false
 
 var currentCursorUpdater CursorUpdater = internalinput.InputHandler
 var windowSize image.Point
@@ -175,12 +175,12 @@ func Update() {
 func Draw(screen *ebiten.Image) {
 	windowSize = screen.Bounds().Max
 	currentCursorUpdater.Draw(screen)
-	internalinput.InternalUIActive = false
+	internalinput.InternalUIHovered = false
 }
 
 func AfterDraw(screen *ebiten.Image) {
 	currentCursorUpdater.AfterDraw(screen)
-	UIActive = internalinput.InternalUIActive
+	UIHovered = internalinput.InternalUIHovered
 	if CursorManagementEnabled {
 		// Process Cursor
 		posX, posY := currentCursorUpdater.CursorPosition()

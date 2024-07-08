@@ -611,9 +611,9 @@ func (w *Widget) fireEvents() {
 			Y:      scrollY,
 		})
 	}
-	_, isFocuser := w.self.(Focuser)
-	if inside && (isFocuser || w.TrackHover) {
-		internalinput.InternalUIActive = true
+
+	if inside && w.TrackHover {
+		internalinput.InternalUIHovered = true
 	}
 }
 
