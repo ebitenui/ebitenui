@@ -44,7 +44,6 @@ func main() {
 			widget.WidgetOpts.MinSize(100, 100),
 		),
 	)
-	rootContainer.AddChild(innerContainer1)
 
 	innerContainer2 := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0, 255, 0, 255})),
@@ -52,7 +51,6 @@ func main() {
 			widget.WidgetOpts.MinSize(100, 100),
 		),
 	)
-	rootContainer.AddChild(innerContainer2)
 
 	innerContainer3 := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0, 0, 255, 255})),
@@ -69,7 +67,6 @@ func main() {
 			widget.WidgetOpts.MinSize(100, 100),
 		),
 	)
-	rootContainer.AddChild(innerContainer3)
 
 	innerContainer4 := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0, 255, 255, 255})),
@@ -77,7 +74,13 @@ func main() {
 			widget.WidgetOpts.MinSize(100, 100),
 		),
 	)
-	rootContainer.AddChild(innerContainer4)
+
+	rootContainer.AddChild(
+		innerContainer1,
+		innerContainer2,
+		innerContainer3,
+		innerContainer4,
+	)
 	// construct the UI
 	ui := ebitenui.UI{
 		Container: rootContainer,

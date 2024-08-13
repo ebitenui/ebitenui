@@ -78,38 +78,42 @@ func (o ContainerOptions) Layout(layout Layouter) ContainerOpt {
 	}
 }
 
-func (c *Container) AddChild(child PreferredSizeLocateableWidget) RemoveChildFunc {
+func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveChildFunc {
 	c.init.Do()
 
-	if child == nil {
-		panic("cannot add nil child")
+	for _, child := range children {
+		if child == nil {
+			panic("cannot add nil child")
+		}
+
+		c.children = append(c.children, child)
+
+		child.GetWidget().parent = c.widget
+		child.GetWidget().self = child
+
+		child.GetWidget().ContextMenuEvent.AddHandler(func(args interface{}) {
+			a := args.(*WidgetContextMenuEventArgs)
+			c.GetWidget().FireContextMenuEvent(a.Widget, a.Location)
+		})
+		child.GetWidget().FocusEvent.AddHandler(func(args interface{}) {
+			a := args.(*WidgetFocusEventArgs)
+			c.GetWidget().FireFocusEvent(a.Widget, a.Focused, a.Location)
+		})
+		child.GetWidget().ToolTipEvent.AddHandler(func(args interface{}) {
+			a := args.(*WidgetToolTipEventArgs)
+			c.GetWidget().FireToolTipEvent(a.Window, a.Show)
+		})
+		child.GetWidget().DragAndDropEvent.AddHandler(func(args interface{}) {
+			a := args.(*WidgetDragAndDropEventArgs)
+			c.GetWidget().FireDragAndDropEvent(a.Window, a.Show, a.DnD)
+		})
+		c.RequestRelayout()
 	}
 
-	c.children = append(c.children, child)
-
-	child.GetWidget().parent = c.widget
-	child.GetWidget().self = child
-
-	child.GetWidget().ContextMenuEvent.AddHandler(func(args interface{}) {
-		a := args.(*WidgetContextMenuEventArgs)
-		c.GetWidget().FireContextMenuEvent(a.Widget, a.Location)
-	})
-	child.GetWidget().FocusEvent.AddHandler(func(args interface{}) {
-		a := args.(*WidgetFocusEventArgs)
-		c.GetWidget().FireFocusEvent(a.Widget, a.Focused, a.Location)
-	})
-	child.GetWidget().ToolTipEvent.AddHandler(func(args interface{}) {
-		a := args.(*WidgetToolTipEventArgs)
-		c.GetWidget().FireToolTipEvent(a.Window, a.Show)
-	})
-	child.GetWidget().DragAndDropEvent.AddHandler(func(args interface{}) {
-		a := args.(*WidgetDragAndDropEventArgs)
-		c.GetWidget().FireDragAndDropEvent(a.Window, a.Show, a.DnD)
-	})
-	c.RequestRelayout()
-
 	return func() {
-		c.RemoveChild(child)
+		for _, child := range children {
+			c.RemoveChild(child)
+		}
 	}
 }
 
