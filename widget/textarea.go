@@ -8,14 +8,14 @@ import (
 	"github.com/ebitenui/ebitenui/input"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"golang.org/x/image/font"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
 type TextArea struct {
 	containerOpts        []ContainerOpt
 	scrollContainerOpts  []ScrollContainerOpt
 	sliderOpts           []SliderOpt
-	face                 font.Face
+	face                 text.Face
 	foregroundColor      color.Color
 	textPadding          Insets
 	controlWidgetSpacing int
@@ -153,7 +153,7 @@ func (o TextAreaOptions) HorizontalScrollMode(scrollMode ScrollMode) TextAreaOpt
 }
 
 // Set the font face for this text area
-func (o TextAreaOptions) FontFace(f font.Face) TextAreaOpt {
+func (o TextAreaOptions) FontFace(f text.Face) TextAreaOpt {
 	return func(l *TextArea) {
 		l.face = f
 	}
@@ -263,8 +263,8 @@ func (l *TextArea) createWidget() {
 				GridLayoutOpts.Columns(cols),
 				GridLayoutOpts.Stretch([]bool{true, false}, []bool{true, false}),
 				GridLayoutOpts.Spacing(l.controlWidgetSpacing, l.controlWidgetSpacing))),
-			}, l.containerOpts...,
-			)...)
+		}, l.containerOpts...,
+		)...)
 	l.containerOpts = nil
 
 	content := NewContainer(

@@ -9,7 +9,7 @@ import (
 	"github.com/ebitenui/ebitenui/input"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"golang.org/x/image/font"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
 type Button struct {
@@ -45,7 +45,7 @@ type Button struct {
 	mask              []byte
 	text              *Text
 	textLabel         string
-	textFace          font.Face
+	textFace          text.Face
 	textProcessBBCode bool
 	hovering          bool
 	pressing          bool
@@ -208,7 +208,7 @@ func (o ButtonOptions) IgnoreTransparentPixels(ignoreTransparentPixels bool) But
 // Text combines three options: TextLabel, TextFace and TextColor.
 // It can be used for the inline configurations of Text object while
 // separate functions are useful for a multi-step configuration.
-func (o ButtonOptions) Text(label string, face font.Face, color *ButtonTextColor) ButtonOpt {
+func (o ButtonOptions) Text(label string, face text.Face, color *ButtonTextColor) ButtonOpt {
 	return func(b *Button) {
 		b.textLabel = label
 		b.textFace = face
@@ -222,7 +222,7 @@ func (o ButtonOptions) TextLabel(label string) ButtonOpt {
 	}
 }
 
-func (o ButtonOptions) TextFace(face font.Face) ButtonOpt {
+func (o ButtonOptions) TextFace(face text.Face) ButtonOpt {
 	return func(b *Button) {
 		b.textFace = face
 	}
@@ -241,7 +241,7 @@ func (o ButtonOptions) TextProcessBBCode(enabled bool) ButtonOpt {
 }
 
 // TODO: add parameter for image position (start/end)
-func (o ButtonOptions) TextAndImage(label string, face font.Face, image *ButtonImageImage, color *ButtonTextColor) ButtonOpt {
+func (o ButtonOptions) TextAndImage(label string, face text.Face, image *ButtonImageImage, color *ButtonTextColor) ButtonOpt {
 	return func(b *Button) {
 		b.init.Append(func() {
 			b.container = NewContainer(

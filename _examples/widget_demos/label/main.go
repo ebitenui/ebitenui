@@ -1,15 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"image/color"
 	"log"
 
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
-	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
-	"golang.org/x/image/font"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"golang.org/x/image/font/gofont/goregular"
 )
 
@@ -37,17 +37,17 @@ func main() {
 	)
 
 	/**
-		There are two ways to create a label within ebitenui.
-		1) widget.NewText - This is a simple method to create a text label.
-		   You will want to use this one unless you have a need to provide a 
-			 separate Disabled color for the text label you're displaying.
+	There are two ways to create a label within ebitenui.
+	1) widget.NewText - This is a simple method to create a text label.
+	   You will want to use this one unless you have a need to provide a
+		 separate Disabled color for the text label you're displaying.
 
-		2) widget.NewLabel - This is a more complex method to create a text label that can be disabled.
-			You will want to use this one when you want to be able to provide a separate 
-			Disabled color for the text label you're displaying
+	2) widget.NewLabel - This is a more complex method to create a text label that can be disabled.
+		You will want to use this one when you want to be able to provide a separate
+		Disabled color for the text label you're displaying
 
 	*/
-	
+
 	label1 := widget.NewText(
 		widget.TextOpts.Text("Label 1 (NewText)", face, color.White),
 		widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter),
@@ -97,7 +97,7 @@ func main() {
 	)
 	// Add the second label as a child of the container
 	rootContainer.AddChild(label3)
-	// Set this label as disabled and tells it to use the 
+	// Set this label as disabled and tells it to use the
 	// Disabled color.
 	label3.GetWidget().Disabled = true
 
@@ -139,15 +139,15 @@ func (g *game) Draw(screen *ebiten.Image) {
 	g.ui.Draw(screen)
 }
 
-func loadFont(size float64) (font.Face, error) {
-	ttfFont, err := truetype.Parse(goregular.TTF)
+func loadFont(size float64) (text.Face, error) {
+	s, err := text.NewGoTextFaceSource(bytes.NewReader(goregular.TTF))
 	if err != nil {
+		log.Fatal(err)
 		return nil, err
 	}
 
-	return truetype.NewFace(ttfFont, &truetype.Options{
-		Size:    size,
-		DPI:     72,
-		Hinting: font.HintingFull,
-	}), nil
+	return &text.GoTextFace{
+		Source: s,
+		Size:   size,
+	}, nil
 }

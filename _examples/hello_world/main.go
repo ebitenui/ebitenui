@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"image/color"
 	"log"
 
@@ -8,8 +9,8 @@ import (
 
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/widget"
-	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
 type game struct {
@@ -30,15 +31,15 @@ func main() {
 		Container: rootContainer,
 	}
 
-	// This loads a font and creates a font face.
-	ttfFont, err := truetype.Parse(goregular.TTF)
+	s, err := text.NewGoTextFaceSource(bytes.NewReader(goregular.TTF))
 	if err != nil {
-		log.Fatal("Error Parsing Font", err)
+		log.Fatal(err)
 	}
-	fontFace := truetype.NewFace(ttfFont, &truetype.Options{
-		Size: 32,
-	})
 
+	fontFace := &text.GoTextFace{
+		Source: s,
+		Size:   32,
+	}
 	// This creates a text widget that says "Hello World!"
 	helloWorldLabel := widget.NewText(
 		widget.TextOpts.Text("Hello World!", fontFace, color.White),

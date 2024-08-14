@@ -10,8 +10,8 @@ import (
 	"github.com/ebitenui/ebitenui/input"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"golang.org/x/exp/slices"
-	"golang.org/x/image/font"
 )
 
 type List struct {
@@ -22,7 +22,7 @@ type List struct {
 	sliderOpts                  []SliderOpt
 	entries                     []any
 	entryLabelFunc              ListEntryLabelFunc
-	entryFace                   font.Face
+	entryFace                   text.Face
 	entryUnselectedColor        *ButtonImage
 	entrySelectedColor          *ButtonImage
 	entryUnselectedTextColor    *ButtonTextColor
@@ -180,7 +180,7 @@ func (o ListOptions) EntryLabelFunc(f ListEntryLabelFunc) ListOpt {
 	}
 }
 
-func (o ListOptions) EntryFontFace(f font.Face) ListOpt {
+func (o ListOptions) EntryFontFace(f text.Face) ListOpt {
 	return func(l *List) {
 		l.entryFace = f
 	}
