@@ -9,7 +9,7 @@ import (
 	e_image "github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/hajimehoshi/ebiten/v2"
-	"golang.org/x/image/font"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
 type ToolTipPosition int
@@ -100,7 +100,7 @@ func (t *ToolTip) validate() {
 //   - Offset = 0, 20
 //   - ContentOriginHorizontal = TOOLTIP_ANCHOR_END
 //   - ContentOriginVertical = TOOLTIP_ANCHOR_START
-func NewTextToolTip(label string, face font.Face, color color.Color, background *e_image.NineSlice) *ToolTip {
+func NewTextToolTip(label string, face text.Face, color color.Color, background *e_image.NineSlice) *ToolTip {
 	if color == nil {
 		panic("TextToolTip: color is required.")
 	}

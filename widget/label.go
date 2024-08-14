@@ -5,14 +5,14 @@ import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"golang.org/x/image/font"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
 type Label struct {
 	Label string
 
 	textOpts []TextOpt
-	face     font.Face
+	face     text.Face
 	color    *LabelColor
 
 	init *MultiOnce
@@ -65,7 +65,7 @@ func (o LabelOptions) TextOpts(opts ...TextOpt) LabelOpt {
 	}
 }
 
-func (o LabelOptions) Text(label string, face font.Face, color *LabelColor) LabelOpt {
+func (o LabelOptions) Text(label string, face text.Face, color *LabelColor) LabelOpt {
 	return func(l *Label) {
 		l.Label = label
 		l.face = face

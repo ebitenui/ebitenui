@@ -11,8 +11,7 @@ import (
 	"github.com/ebitenui/ebitenui/utilities/colorutil"
 	"github.com/ebitenui/ebitenui/utilities/datastructures"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text"
-	"golang.org/x/image/font"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"golang.org/x/image/math/fixed"
 )
 
@@ -22,7 +21,7 @@ const COLOR_CLOSE = "/color]"
 
 type Text struct {
 	Label              string
-	Face               font.Face
+	Face               text.Face
 	Color              color.Color
 	MaxWidth           float64
 	Inset              Insets
@@ -53,7 +52,7 @@ type TextOptions struct {
 
 type textMeasurements struct {
 	label         string
-	face          font.Face
+	face          text.Face
 	maxWidth      float64
 	processBBCode bool
 
@@ -107,7 +106,7 @@ func (o TextOptions) WidgetOpts(opts ...WidgetOpt) TextOpt {
 // Text combines three options: TextLabel, TextFace and TextColor.
 // It can be used for the inline configurations of Text object while
 // separate functions are useful for a multi-step configuration.
-func (o TextOptions) Text(label string, face font.Face, color color.Color) TextOpt {
+func (o TextOptions) Text(label string, face text.Face, color color.Color) TextOpt {
 	return func(t *Text) {
 		t.Label = label
 		t.Face = face
@@ -121,7 +120,7 @@ func (o TextOptions) TextLabel(label string) TextOpt {
 	}
 }
 
-func (o TextOptions) TextFace(face font.Face) TextOpt {
+func (o TextOptions) TextFace(face text.Face) TextOpt {
 	return func(t *Text) {
 		t.Face = face
 	}
@@ -207,47 +206,58 @@ func (t *Text) draw(screen *ebiten.Image) {
 	t.colorList = &datastructures.Stack[color.Color]{}
 	t.colorList.Push(&t.Color)
 
+	sWidth, _ := text.Measure(" ", t.Face, 0)
+
 	for i, line := range t.measurements.lines {
-		ly := int(math.Round(float64(p.Y) + t.measurements.lineHeight*float64(i) + t.measurements.ascent))
-		if ly > screen.Bounds().Max.Y+int(math.Round(t.measurements.ascent)) {
+		ly := float64(p.Y) + t.measurements.lineHeight*float64(i)
+		if ly > float64(screen.Bounds().Max.Y) {
 			return
 		}
-		if ly < -int(math.Round(t.measurements.lineHeight-t.measurements.ascent)) {
+		if ly < -t.measurements.lineHeight {
 			continue
 		}
 		if t.widget.parent != nil {
-			if ly < t.widget.parent.Rect.Min.Y {
+			if ly < float64(t.widget.parent.Rect.Min.Y) {
 				continue
 			}
-			if ly-int(math.Round(t.measurements.lineHeight)) > t.widget.parent.Rect.Max.Y {
+			if ly-t.measurements.lineHeight > float64(t.widget.parent.Rect.Max.Y) {
 				return
 			}
 		}
 
-		lx := p.X
+		lx := float64(p.X)
 		switch t.horizontalPosition {
 		case TextPositionCenter:
-			lx += int(math.Round((float64(w) - t.measurements.lineWidths[i]) / 2))
+			lx += (float64(w) - t.measurements.lineWidths[i]) / 2
 		case TextPositionEnd:
-			lx += int(math.Ceil(float64(w)-t.measurements.lineWidths[i])) - t.Inset.Right
+			lx += float64(w) - t.measurements.lineWidths[i] - float64(t.Inset.Right)
 		default:
-			lx += t.Inset.Left
+			lx += float64(t.Inset.Left)
 		}
 
 		if t.processBBCode {
-			spaceWidth := font.MeasureString(t.Face, " ").Round()
+
 			for _, word := range line {
 				pieces, updatedColor := t.handleBBCodeColor(word)
 				for _, piece := range pieces {
-					text.Draw(screen, piece.text, t.Face, lx, ly, piece.color)
-					wordWidth := font.MeasureString(t.Face, piece.text)
-					lx += wordWidth.Round()
+					op := &text.DrawOptions{}
+					op.GeoM.Translate(lx, ly)
+					op.ColorScale.ScaleWithColor(piece.color)
+					text.Draw(screen, piece.text, t.Face, op)
+					wordWidth, _ := text.Measure(piece.text, t.Face, 0)
+					lx += float64(wordWidth)
 				}
-				text.Draw(screen, " ", t.Face, lx, ly, updatedColor)
-				lx += spaceWidth
+				op := &text.DrawOptions{}
+				op.GeoM.Translate(lx, ly)
+				op.ColorScale.ScaleWithColor(updatedColor)
+				text.Draw(screen, " ", t.Face, op)
+				lx += sWidth
 			}
 		} else {
-			text.Draw(screen, strings.Join(line, " "), t.Face, lx, ly, t.Color)
+			op := &text.DrawOptions{}
+			op.GeoM.Translate(lx, ly)
+			op.ColorScale.ScaleWithColor(t.Color)
+			text.Draw(screen, strings.Join(line, " "), t.Face, op)
 		}
 	}
 }
@@ -333,12 +343,14 @@ func (t *Text) measure() {
 		label:         t.Label,
 		face:          t.Face,
 		processBBCode: t.processBBCode,
-		ascent:        fixedInt26_6ToFloat64(m.Ascent),
+		ascent:        m.HAscent,
 		maxWidth:      t.MaxWidth,
 	}
 
-	fh := fixedInt26_6ToFloat64(m.Ascent + m.Descent)
-	t.measurements.lineHeight = fixedInt26_6ToFloat64(m.Height)
+	sWidth, sHeight := text.Measure(" ", t.measurements.face, 0)
+
+	fh := m.HAscent + m.HDescent
+	t.measurements.lineHeight = sHeight
 	ld := t.measurements.lineHeight - fh
 
 	s := bufio.NewScanner(strings.NewReader(t.Label))
@@ -346,21 +358,21 @@ func (t *Text) measure() {
 		if t.MaxWidth > 0 || t.processBBCode {
 			var newLine []string
 			newLineWidth := float64(t.Inset.Left + t.Inset.Right)
-			spaceWidth := fixedInt26_6ToFloat64(font.MeasureString(t.Face, " "))
+
 			words := strings.Split(s.Text(), " ")
 			for i, word := range words {
 				var wordWidth float64
 				if t.processBBCode && t.bbcodeRegex.MatchString(word) {
 					// Strip out any bbcodes from size calculation
 					cleaned := t.bbcodeRegex.ReplaceAllString(word, "")
-					wordWidth = fixedInt26_6ToFloat64(font.MeasureString(t.Face, cleaned))
+					wordWidth, _ = text.Measure(cleaned, t.Face, 0)
 				} else {
-					wordWidth = fixedInt26_6ToFloat64(font.MeasureString(t.Face, word))
+					wordWidth, _ = text.Measure(word, t.Face, 0)
 				}
 
 				// Don't add the space to the last chunk.
 				if i != len(words)-1 {
-					wordWidth += spaceWidth
+					wordWidth += sWidth
 				}
 
 				// If the new word doesn't push this past the max width continue adding to the current line
@@ -393,7 +405,8 @@ func (t *Text) measure() {
 		} else {
 			line := s.Text()
 			t.measurements.lines = append(t.measurements.lines, []string{line})
-			lw := fixedInt26_6ToFloat64(font.MeasureString(t.Face, line)) + float64(t.Inset.Left+t.Inset.Right)
+			lw, _ := text.Measure(line, t.Face, 0)
+			lw += float64(t.Inset.Left + t.Inset.Right)
 			t.measurements.lineWidths = append(t.measurements.lineWidths, lw)
 
 			if lw > t.measurements.boundingBoxWidth {

@@ -36,12 +36,10 @@ func main() {
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	ebiten.SetScreenClearedEveryFrame(false)
 
-	ui, closeUI, err := createUI()
+	ui, err := createUI()
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	defer closeUI()
 
 	game := game{
 		ui: ui,
@@ -53,10 +51,10 @@ func main() {
 	}
 }
 
-func createUI() (*ebitenui.UI, func(), error) {
+func createUI() (*ebitenui.UI, error) {
 	res, err := newUIResources()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	//This creates the root container for this UI.
@@ -101,9 +99,7 @@ func createUI() (*ebitenui.UI, func(), error) {
 		Container: rootContainer,
 	}
 
-	return ui, func() {
-		res.close()
-	}, nil
+	return ui, nil
 }
 
 func headerContainer(res *uiResources) widget.PreferredSizeLocateableWidget {

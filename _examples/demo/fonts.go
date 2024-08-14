@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/golang/freetype/truetype"
-	"golang.org/x/image/font"
+	"log"
+
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
 const (
@@ -11,10 +12,10 @@ const (
 )
 
 type fonts struct {
-	face         font.Face
-	titleFace    font.Face
-	bigTitleFace font.Face
-	toolTipFace  font.Face
+	face         text.Face
+	titleFace    text.Face
+	bigTitleFace text.Face
+	toolTipFace  text.Face
 }
 
 func loadFonts() (*fonts, error) {
@@ -46,34 +47,20 @@ func loadFonts() (*fonts, error) {
 	}, nil
 }
 
-func (f *fonts) close() {
-	if f.face != nil {
-		_ = f.face.Close()
-	}
-
-	if f.titleFace != nil {
-		_ = f.titleFace.Close()
-	}
-
-	if f.bigTitleFace != nil {
-		_ = f.bigTitleFace.Close()
-	}
-}
-
-func loadFont(path string, size float64) (font.Face, error) {
-	fontData, err := embeddedAssets.ReadFile(path)
+func loadFont(path string, size float64) (text.Face, error) {
+	fontFile, err := embeddedAssets.Open(path)
 	if err != nil {
 		return nil, err
 	}
 
-	ttfFont, err := truetype.Parse(fontData)
+	s, err := text.NewGoTextFaceSource(fontFile)
 	if err != nil {
+		log.Fatal(err)
 		return nil, err
 	}
 
-	return truetype.NewFace(ttfFont, &truetype.Options{
-		Size:    size,
-		DPI:     72,
-		Hinting: font.HintingFull,
-	}), nil
+	return &text.GoTextFace{
+		Source: s,
+		Size:   size,
+	}, nil
 }

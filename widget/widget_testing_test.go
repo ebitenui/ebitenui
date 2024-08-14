@@ -2,6 +2,7 @@ package widget
 
 import (
 	img "image"
+	"log"
 	"os"
 	"sync"
 	"testing"
@@ -9,9 +10,8 @@ import (
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/image"
 
-	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
-	"golang.org/x/image/font"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
 type simpleWidget struct {
@@ -21,7 +21,7 @@ type simpleWidget struct {
 }
 
 var loadFontOnce sync.Once
-var fontFace2 font.Face
+var fontFace2 text.Face
 
 func newSimpleWidget(preferredWidth int, preferredHeight int, ld interface{}) *simpleWidget {
 	return &simpleWidget{
@@ -43,24 +43,24 @@ func (s *simpleWidget) SetLocation(rect img.Rectangle) {
 	s.widget.Rect = rect
 }
 
-func loadFont(t *testing.T) font.Face {
+func loadFont(t *testing.T) text.Face {
 	t.Helper()
 
 	loadFontOnce.Do(func() {
-		data, err := os.ReadFile("testdata/fonts/NotoSans-Regular.ttf")
+
+		data, err := os.Open("testdata/fonts/NotoSans-Regular.ttf")
 		if err != nil {
 			panic(err)
 		}
-
-		f, err := truetype.Parse(data)
+		s, err := text.NewGoTextFaceSource(data)
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 
-		fontFace2 = truetype.NewFace(f, &truetype.Options{
-			Size: 20,
-			DPI:  72,
-		})
+		fontFace2 = &text.GoTextFace{
+			Source: s,
+			Size:   20,
+		}
 	})
 
 	return fontFace2

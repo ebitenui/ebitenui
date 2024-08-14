@@ -7,7 +7,7 @@ import (
 	"github.com/ebitenui/ebitenui/input"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"golang.org/x/image/font"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
 type ListComboButton struct {
@@ -80,7 +80,7 @@ func (o ListComboButtonOptions) ListOpts(opts ...ListOpt) ListComboButtonOpt {
 	}
 }
 
-func (o ListComboButtonOptions) Text(face font.Face, image *ButtonImageImage, color *ButtonTextColor) ListComboButtonOpt {
+func (o ListComboButtonOptions) Text(face text.Face, image *ButtonImageImage, color *ButtonTextColor) ListComboButtonOpt {
 	return o.SelectComboButtonOpts(SelectComboButtonOpts.ComboButtonOpts(ComboButtonOpts.ButtonOpts(ButtonOpts.TextAndImage("", face, image, color))))
 }
 

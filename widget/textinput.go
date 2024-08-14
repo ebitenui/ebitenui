@@ -14,7 +14,7 @@ import (
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/internal/jsUtil"
 	"github.com/hajimehoshi/ebiten/v2"
-	"golang.org/x/image/font"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
 type TextInput struct {
@@ -28,7 +28,7 @@ type TextInput struct {
 	image           *TextInputImage
 	color           *TextInputColor
 	padding         Insets
-	face            font.Face
+	face            text.Face
 	repeatDelay     time.Duration
 	repeatInterval  time.Duration
 	validationFunc  TextInputValidationFunc
@@ -230,7 +230,7 @@ func (o TextInputOptions) Padding(i Insets) TextInputOpt {
 	}
 }
 
-func (o TextInputOptions) Face(f font.Face) TextInputOpt {
+func (o TextInputOptions) Face(f text.Face) TextInputOpt {
 	return func(t *TextInput) {
 		t.face = f
 	}
@@ -718,14 +718,14 @@ func (t *TextInput) createWidget() {
 	t.mask = image.NewNineSliceColor(color.NRGBA{255, 0, 255, 255})
 }
 
-func fontAdvance(s string, f font.Face) int {
-	_, a := font.BoundString(f, s)
-	return int(math.Round(fixedInt26_6ToFloat64(a)))
+func fontAdvance(s string, f text.Face) int {
+	a := text.Advance(s, f)
+	return int(math.Round(a))
 }
 
 // fontStringIndex returns an index into r that corresponds closest to pixel position x
 // when string(r) is drawn using f. Pixel position x==0 corresponds to r[0].
-func fontStringIndex(r []rune, f font.Face, x int) int {
+func fontStringIndex(r []rune, f text.Face, x int) int {
 	start := 0
 	end := len(r)
 	p := 0
