@@ -197,10 +197,12 @@ func (t *Text) draw(screen *ebiten.Image) {
 	p := r.Min
 
 	switch t.verticalPosition {
+	case TextPositionStart:
+		p = p.Add(image.Point{0, t.Inset.Top})
 	case TextPositionCenter:
-		p = p.Add(image.Point{0, int((float64(r.Dy()) - t.measurements.boundingBoxHeight) / 2)})
+		p = p.Add(image.Point{0, int((float64(r.Dy())-t.measurements.boundingBoxHeight)/2 + float64(t.Inset.Top))})
 	case TextPositionEnd:
-		p = p.Add(image.Point{0, int(float64(r.Dy()) - t.measurements.boundingBoxHeight)})
+		p = p.Add(image.Point{0, int(float64(r.Dy())-t.measurements.boundingBoxHeight) - t.Inset.Bottom})
 	}
 
 	t.colorList = &datastructures.Stack[color.Color]{}
@@ -228,7 +230,7 @@ func (t *Text) draw(screen *ebiten.Image) {
 		lx := float64(p.X)
 		switch t.horizontalPosition {
 		case TextPositionCenter:
-			lx += (float64(w) - t.measurements.lineWidths[i]) / 2
+			lx += ((float64(w) - t.measurements.lineWidths[i]) / 2) + float64(t.Inset.Left)
 		case TextPositionEnd:
 			lx += float64(w) - t.measurements.lineWidths[i] - float64(t.Inset.Right)
 		default:

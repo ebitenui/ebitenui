@@ -677,6 +677,7 @@ func (b *Button) initText() {
 		})),
 		TextOpts.Text(b.textLabel, b.textFace, b.TextColor.Idle),
 		TextOpts.ProcessBBCode(b.textProcessBBCode),
+		TextOpts.Position(b.hTextPosition, b.vTextPosition),
 	)
 	b.container.AddChild(b.text)
 
