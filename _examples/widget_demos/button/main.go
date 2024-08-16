@@ -36,8 +36,10 @@ func main() {
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 
+	// Creating button variable first so that it is usable in callbacks
+	var button *widget.Button
 	// construct a button
-	button := widget.NewButton(
+	button = widget.NewButton(
 		// set general widget options
 		widget.ButtonOpts.WidgetOpts(
 			// instruct the container's anchor layout to center the button both horizontally and vertically
@@ -46,7 +48,6 @@ func main() {
 				VerticalPosition:   widget.AnchorLayoutPositionCenter,
 			}),
 		),
-
 		// specify the images to use
 		widget.ButtonOpts.Image(buttonImage),
 
@@ -65,6 +66,18 @@ func main() {
 			Top:    5,
 			Bottom: 5,
 		}),
+		//Move the text down and right on press
+		widget.ButtonOpts.PressedHandler(func(args *widget.ButtonPressedEventArgs) {
+			button.Text().Inset.Top = 4
+			button.Text().Inset.Left = 4
+			button.GetWidget().CustomData = true
+		}),
+		//Move the text back to start on press released
+		widget.ButtonOpts.ReleasedHandler(func(args *widget.ButtonReleasedEventArgs) {
+			button.Text().Inset.Top = 0
+			button.Text().Inset.Left = 0
+			button.GetWidget().CustomData = false
+		}),
 
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
@@ -74,6 +87,11 @@ func main() {
 		// add a handler that reacts to entering the button with the cursor
 		widget.ButtonOpts.CursorEnteredHandler(func(args *widget.ButtonHoverEventArgs) {
 			println("cursor entered button: entered =", args.Entered, "offsetX =", args.OffsetX, "offsetY =", args.OffsetY)
+			//If we moved the Text because we clicked on this button previously, move the text down and right
+			if button.GetWidget().CustomData == true {
+				button.Text().Inset.Top = 4
+				button.Text().Inset.Left = 4
+			}
 		}),
 
 		// add a handler that reacts to moving the cursor on the button
@@ -84,6 +102,9 @@ func main() {
 		// add a handler that reacts to exiting the button with the cursor
 		widget.ButtonOpts.CursorExitedHandler(func(args *widget.ButtonHoverEventArgs) {
 			println("cursor exited button: entered =", args.Entered, "offsetX =", args.OffsetX, "offsetY =", args.OffsetY)
+			//Reset the Text inset if the cursor is no longer over the button
+			button.Text().Inset.Top = 0
+			button.Text().Inset.Left = 0
 		}),
 
 		// Indicate that this button should not be submitted when enter or space are pressed
