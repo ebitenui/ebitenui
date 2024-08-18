@@ -41,14 +41,14 @@ func main() {
 	innerContainer1 := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{255, 0, 0, 255})),
 		widget.ContainerOpts.WidgetOpts(
-			widget.WidgetOpts.MinSize(100, 100),
+			widget.WidgetOpts.MinSize(50, 50),
 		),
 	)
 
 	innerContainer2 := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0, 255, 0, 255})),
 		widget.ContainerOpts.WidgetOpts(
-			widget.WidgetOpts.MinSize(100, 100),
+			widget.WidgetOpts.MinSize(50, 50),
 		),
 	)
 
@@ -64,14 +64,14 @@ func main() {
 				MaxWidth:           100,
 				MaxHeight:          100,
 			}),
-			widget.WidgetOpts.MinSize(100, 100),
+			widget.WidgetOpts.MinSize(50, 50),
 		),
 	)
 
 	innerContainer4 := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0, 255, 255, 255})),
 		widget.ContainerOpts.WidgetOpts(
-			widget.WidgetOpts.MinSize(100, 100),
+			widget.WidgetOpts.MinSize(50, 50),
 		),
 	)
 
