@@ -48,7 +48,7 @@ func main() {
 				//How tall can this element grow to (override preferred widget size)
 				MaxHeight: 100,
 			}),
-			widget.WidgetOpts.MinSize(100, 100),
+			widget.WidgetOpts.MinSize(50, 50),
 		),
 	)
 	rootContainer.AddChild(innerContainer1)
@@ -66,7 +66,7 @@ func main() {
 				//How tall can this element grow to (override preferred widget size)
 				MaxHeight: 100,
 			}),
-			widget.WidgetOpts.MinSize(100, 100),
+			widget.WidgetOpts.MinSize(50, 50),
 		),
 	)
 	rootContainer.AddChild(innerContainer2)
@@ -84,7 +84,7 @@ func main() {
 				//How tall can this element grow to (override preferred widget size)
 				MaxHeight: 100,
 			}),
-			widget.WidgetOpts.MinSize(100, 100),
+			widget.WidgetOpts.MinSize(50, 50),
 		),
 	)
 	rootContainer.AddChild(innerContainer3)

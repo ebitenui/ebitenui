@@ -12,7 +12,6 @@ import (
 	"github.com/ebitenui/ebitenui/utilities/datastructures"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
-	"golang.org/x/image/math/fixed"
 )
 
 const bbcodeRegEx = `\[color=[0-9a-fA-F]{6}\]|\[\/color\]`
@@ -219,7 +218,7 @@ func (t *Text) draw(screen *ebiten.Image) {
 			continue
 		}
 		if t.widget.parent != nil {
-			if ly < float64(t.widget.parent.Rect.Min.Y) {
+			if ly < float64(t.widget.parent.Rect.Min.Y)-t.measurements.lineHeight {
 				continue
 			}
 			if ly-t.measurements.lineHeight > float64(t.widget.parent.Rect.Max.Y) {
@@ -423,8 +422,4 @@ func (t *Text) measure() {
 func (t *Text) createWidget() {
 	t.widget = NewWidget(t.widgetOpts...)
 	t.widgetOpts = nil
-}
-
-func fixedInt26_6ToFloat64(i fixed.Int26_6) float64 {
-	return float64(i) / (1 << 6)
 }

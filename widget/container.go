@@ -193,17 +193,33 @@ func (c *Container) GetWidget() *Widget {
 
 func (c *Container) PreferredSize() (int, int) {
 	c.init.Do()
+	w, h := 0, 0
 
-	if c.layout == nil {
-		return 50, 50
+	//Start with the background image min size if one is set
+	if c.BackgroundImage != nil {
+		w, h = c.BackgroundImage.MinSize()
 	}
-	w, h := c.layout.PreferredSize(c.children)
+
+	// If the preferred layout for the children is greater than the background image
+	// min size then use that
+	if c.layout != nil {
+		pW, pH := c.layout.PreferredSize(c.children)
+		if pW > w {
+			w = pW
+		}
+		if pH > h {
+			h = pH
+		}
+	}
+
+	// If the set MinHeight or MinWidth are greater than calculated, use that
 	if c.widget != nil && h < c.widget.MinHeight {
 		h = c.widget.MinHeight
 	}
 	if c.widget != nil && w < c.widget.MinWidth {
 		w = c.widget.MinWidth
 	}
+
 	return w, h
 }
 
