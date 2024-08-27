@@ -157,7 +157,7 @@ func (d *DragAndDrop) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 	}
 }
 
-func (d *DragAndDrop) Render(parent HasWidget, screen *ebiten.Image, def DeferredRenderFunc) {
+func (d *DragAndDrop) Update(parent HasWidget) {
 	newState, _ := d.state(parent)
 	if newState != nil {
 		d.state = newState

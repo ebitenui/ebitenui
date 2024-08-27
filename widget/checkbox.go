@@ -169,12 +169,18 @@ func (c *Checkbox) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 	c.button.SetupInputLayer(def)
 }
 
-func (c *Checkbox) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+func (c *Checkbox) Render(screen *ebiten.Image) {
 	c.init.Do()
 
 	c.button.GraphicImage = c.state.graphicImage(c.image)
 
-	c.button.Render(screen, def)
+	c.button.Render(screen)
+}
+
+func (c *Checkbox) Update() {
+	c.init.Do()
+
+	c.button.Update()
 }
 
 /** Focuser Interface - Start **/

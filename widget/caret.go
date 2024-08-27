@@ -89,12 +89,12 @@ func (c *Caret) PreferredSize() (int, int) {
 	return c.Width, c.height
 }
 
-func (c *Caret) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+func (c *Caret) Render(screen *ebiten.Image) {
 	c.init.Do()
 
 	c.state = c.state()
 
-	c.widget.Render(screen, def)
+	c.widget.Render(screen)
 
 	if !c.visible {
 		return
@@ -106,6 +106,12 @@ func (c *Caret) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 		p := c.widget.Rect.Min
 		opts.GeoM.Translate(float64(p.X), float64(p.Y))
 	})
+}
+
+func (c *Caret) Update() {
+	c.init.Do()
+
+	c.widget.Update()
 }
 
 func (c *Caret) ResetBlinking() {

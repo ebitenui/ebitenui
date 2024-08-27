@@ -88,7 +88,7 @@ func (l *Label) PreferredSize() (int, int) {
 	return l.text.PreferredSize()
 }
 
-func (l *Label) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+func (l *Label) Render(screen *ebiten.Image) {
 	l.init.Do()
 
 	l.text.Label = l.Label
@@ -99,7 +99,13 @@ func (l *Label) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 		l.text.Color = l.color.Idle
 	}
 
-	l.text.Render(screen, def)
+	l.text.Render(screen)
+}
+
+func (l *Label) Update() {
+	l.init.Do()
+
+	l.text.Update()
 }
 
 func (l *Label) createWidget() {

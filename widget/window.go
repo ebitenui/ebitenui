@@ -279,7 +279,7 @@ func (w *Window) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 }
 
 // Typically used internally
-func (w *Window) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+func (w *Window) Render(screen *ebiten.Image) {
 	x, y := input.CursorPosition()
 
 	if w.dragging {
@@ -326,7 +326,12 @@ func (w *Window) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 			w.resizingHeight = false
 		}
 	}
-	w.container.Render(screen, def)
+	w.container.Render(screen)
+}
+
+func (w *Window) Update() {
+	w.init.Do()
+	w.container.Update()
 }
 
 func (w *Window) createWidget() {

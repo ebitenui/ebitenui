@@ -118,9 +118,14 @@ func (l *LabeledCheckbox) SetupInputLayer(def input.DeferredSetupInputLayerFunc)
 	l.checkbox.SetupInputLayer(def)
 }
 
-func (l *LabeledCheckbox) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+func (l *LabeledCheckbox) Render(screen *ebiten.Image) {
 	l.init.Do()
-	l.container.Render(screen, def)
+	l.container.Render(screen)
+}
+
+func (l *LabeledCheckbox) Update() {
+	l.init.Do()
+	l.container.Update()
 }
 
 func (l *LabeledCheckbox) Checkbox() *Checkbox {

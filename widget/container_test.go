@@ -86,8 +86,8 @@ func (c *controlMock) SetLocation(rect image.Rectangle) {
 	c.Called(rect)
 }
 
-func (c *controlMock) Render(screen *ebiten.Image, def DeferredRenderFunc) {
-	c.Called(screen, def)
+func (c *controlMock) Render(screen *ebiten.Image) {
+	c.Called(screen)
 }
 
 func (c *controlMock) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {

@@ -287,7 +287,7 @@ func (l *List) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 	l.container.SetupInputLayer(def)
 }
 
-func (l *List) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+func (l *List) Render(screen *ebiten.Image) {
 	l.init.Do()
 
 	d := l.container.GetWidget().Disabled
@@ -303,13 +303,18 @@ func (l *List) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 		l.scrollVisible(l.buttons[l.focusIndex])
 	}
 
-	l.handleInput()
-
 	if l.selectFocus {
 		l.SelectFocused()
 	}
 
-	l.container.Render(screen, def)
+	l.container.Render(screen)
+}
+
+func (l *List) Update() {
+	l.init.Do()
+
+	l.handleInput()
+	l.container.Update()
 }
 
 /** Focuser Interface - Start **/
@@ -505,17 +510,26 @@ func (l *List) createWidget() {
 // Updates the entries in the list.
 // Note: Duplicates will be removed.
 func (l *List) SetEntries(newEntries []any) {
+	//Remove old entries
+	for i := range l.entries {
+		but := l.buttons[i]
+		l.listContent.RemoveChild(but)
+	}
 	l.entries = nil
+	l.buttons = nil
+
+	//Add new Entries
 	for idx := range newEntries {
 		if !slices.ContainsFunc(l.entries, func(cmp any) bool {
 			return cmp == newEntries[idx]
 		}) {
 			l.entries = append(l.entries, newEntries[idx])
+			but := l.createEntry(newEntries[idx])
+			l.buttons = append(l.buttons, but)
+			l.listContent.AddChild(but)
 		}
 	}
 	l.selectedEntry = nil
-	l.container.RemoveChildren()
-	l.createWidget()
 	l.resetFocusIndex()
 }
 

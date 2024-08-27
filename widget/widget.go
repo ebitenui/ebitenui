@@ -108,8 +108,14 @@ type HasWidget interface {
 
 // Renderer may be implemented by concrete widget types that can render onto the screen.
 type Renderer interface {
-	// Render renders the widget onto screen. def may be called to defer additional rendering.
-	Render(screen *ebiten.Image, def DeferredRenderFunc)
+	// Render renders the widget onto screen.
+	Render(screen *ebiten.Image)
+}
+
+// Updater may be implemented by concrete widget types that should be updated.
+type Updater interface {
+	// Update updates the widget state based on input.
+	Update()
 }
 
 type FocusDirection int
@@ -148,12 +154,7 @@ const (
 	Visibility_Hide                     // Hide widget, but don't take up space
 )
 
-// RenderFunc is a function that renders a widget onto screen. def may be called to defer
-// additional rendering.
-type RenderFunc func(screen *ebiten.Image, def DeferredRenderFunc)
-
-// DeferredRenderFunc is a function that stores r for deferred execution.
-type DeferredRenderFunc func(r RenderFunc)
+type RenderFunc func(screen *ebiten.Image)
 
 // PreferredSizer may be implemented by concrete widget types that can report a preferred size.
 type PreferredSizer interface {
@@ -479,13 +480,17 @@ func (w *Widget) EffectiveInputLayer() *input.Layer {
 }
 
 // always call this method first before rendering themselves.
-func (w *Widget) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+func (w *Widget) Render(screen *ebiten.Image) {
+
+}
+
+func (w *Widget) Update() {
 	w.fireEvents()
-	if w.ToolTip != nil {
-		w.ToolTip.Render(w, screen, def)
-	}
 	if w.DragAndDrop != nil {
-		w.DragAndDrop.Render(w.self, screen, def)
+		w.DragAndDrop.Update(w.self)
+	}
+	if w.ToolTip != nil {
+		w.ToolTip.Update(w)
 	}
 }
 
@@ -555,7 +560,6 @@ func (w *Widget) fireEvents() {
 
 	if w.lastUpdateMouseRightPressed && !input.MouseButtonPressed(ebiten.MouseButtonRight) {
 		w.lastUpdateMouseRightPressed = false
-
 		off := p.Sub(w.Rect.Min)
 		w.MouseButtonReleasedEvent.Fire(&WidgetMouseButtonReleasedEventArgs{
 			Widget:  w,
@@ -571,28 +575,25 @@ func (w *Widget) fireEvents() {
 	}
 
 	if inside && input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, layer) {
-		if inside {
-			w.mouseLeftPressedInside = inside
+		w.mouseLeftPressedInside = inside
 
-			if w.focusable != nil && !w.Disabled {
-				w.focusable.Focus(true)
-			} else {
-				w.FireFocusEvent(nil, false, p)
-			}
-
-			off := p.Sub(w.Rect.Min)
-			w.MouseButtonPressedEvent.Fire(&WidgetMouseButtonPressedEventArgs{
-				Widget:  w,
-				Button:  ebiten.MouseButtonLeft,
-				OffsetX: off.X,
-				OffsetY: off.Y,
-			})
+		if w.focusable != nil && !w.Disabled {
+			w.focusable.Focus(true)
+		} else {
+			w.FireFocusEvent(nil, false, p)
 		}
+
+		off := p.Sub(w.Rect.Min)
+		w.MouseButtonPressedEvent.Fire(&WidgetMouseButtonPressedEventArgs{
+			Widget:  w,
+			Button:  ebiten.MouseButtonLeft,
+			OffsetX: off.X,
+			OffsetY: off.Y,
+		})
 	}
 
 	if w.lastUpdateMouseLeftPressed && !input.MouseButtonPressed(ebiten.MouseButtonLeft) {
 		w.lastUpdateMouseLeftPressed = false
-
 		off := p.Sub(w.Rect.Min)
 		w.MouseButtonReleasedEvent.Fire(&WidgetMouseButtonReleasedEventArgs{
 			Widget:  w,
@@ -668,15 +669,7 @@ func (widget *Widget) FireDragAndDropEvent(w *Window, show bool, dnd *DragAndDro
 }
 
 // RenderWithDeferred renders r to screen. This function should not be called directly.
-func RenderWithDeferred(screen *ebiten.Image, rs []Renderer) {
-	for _, r := range rs {
-		appendToDeferredRenderQueue(r.Render)
-	}
-
-	renderDeferredRenderQueue(screen)
-}
-
-func renderDeferredRenderQueue(screen *ebiten.Image) {
+func RenderDeferred(screen *ebiten.Image) {
 	defer func(d []RenderFunc) {
 		deferredRenders = d[:0]
 	}(deferredRenders)
@@ -685,10 +678,10 @@ func renderDeferredRenderQueue(screen *ebiten.Image) {
 		r := deferredRenders[0]
 		deferredRenders = deferredRenders[1:]
 
-		r(screen, appendToDeferredRenderQueue)
+		r(screen)
 	}
 }
 
-func appendToDeferredRenderQueue(r RenderFunc) {
+func AppendToDeferredRenderQueue(r RenderFunc) {
 	deferredRenders = append(deferredRenders, r)
 }

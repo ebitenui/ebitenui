@@ -182,10 +182,16 @@ func (t *Text) PreferredSize() (int, int) {
 	return w, h
 }
 
-func (t *Text) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+func (t *Text) Render(screen *ebiten.Image) {
 	t.init.Do()
-	t.widget.Render(screen, def)
+	t.widget.Render(screen)
 	t.draw(screen)
+}
+
+func (t *Text) Update() {
+	t.init.Do()
+
+	t.widget.Update()
 }
 
 func (t *Text) draw(screen *ebiten.Image) {

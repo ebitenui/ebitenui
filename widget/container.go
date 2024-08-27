@@ -229,7 +229,7 @@ func (c *Container) SetLocation(rect img.Rectangle) {
 	c.RequestRelayout()
 }
 
-func (c *Container) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+func (c *Container) Render(screen *ebiten.Image) {
 	c.init.Do()
 
 	if c.widget.Visibility == Visibility_Hide_Blocking || c.widget.Visibility == Visibility_Hide {
@@ -242,7 +242,7 @@ func (c *Container) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 		}
 	}
 
-	c.widget.Render(screen, def)
+	c.widget.Render(screen)
 
 	c.doLayout()
 
@@ -253,7 +253,20 @@ func (c *Container) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 			if ch.GetWidget().Visibility == Visibility_Hide_Blocking || ch.GetWidget().Visibility == Visibility_Hide {
 				continue
 			}
-			cr.Render(screen, def)
+			cr.Render(screen)
+		}
+	}
+}
+
+func (c *Container) Update() {
+	c.init.Do()
+
+	c.widget.Update()
+
+	for _, ch := range c.children {
+		if cu, ok := ch.(Updater); ok {
+
+			cu.Update()
 		}
 	}
 }

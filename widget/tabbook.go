@@ -207,7 +207,7 @@ func (t *TabBook) GetDropTargets() []HasWidget {
 	return t.container.GetDropTargets()
 }
 
-func (t *TabBook) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+func (t *TabBook) Render(screen *ebiten.Image) {
 	t.init.Do()
 
 	d := t.container.GetWidget().Disabled
@@ -215,7 +215,13 @@ func (t *TabBook) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 		b.GetWidget().Disabled = d || tab.Disabled
 	}
 
-	t.container.Render(screen, def)
+	t.container.Render(screen)
+}
+
+func (t *TabBook) Update() {
+	t.init.Do()
+
+	t.container.Update()
 }
 
 func (t *TabBook) createWidget() {
