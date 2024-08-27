@@ -232,7 +232,7 @@ func (l *TextArea) GetFocusers() []Focuser {
 	return result
 }
 
-func (l *TextArea) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+func (l *TextArea) Render(screen *ebiten.Image) {
 	l.init.Do()
 
 	d := l.container.GetWidget().Disabled
@@ -245,7 +245,14 @@ func (l *TextArea) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	}
 	l.text.MaxWidth = float64(l.container.GetWidget().Rect.Dx())
 	l.scrollContainer.GetWidget().Disabled = d
-	l.container.Render(screen, def)
+	l.container.Render(screen)
+}
+
+func (l *TextArea) Update() {
+	l.init.Do()
+	if l.container != nil {
+		l.container.Update()
+	}
 }
 
 func (l *TextArea) createWidget() {

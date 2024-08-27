@@ -303,7 +303,7 @@ func (t *TextInput) PreferredSize() (int, int) {
 	return w, h
 }
 
-func (t *TextInput) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+func (t *TextInput) Render(screen *ebiten.Image) {
 	t.init.Do()
 
 	t.text.GetWidget().Disabled = t.widget.Disabled
@@ -345,10 +345,22 @@ func (t *TextInput) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 		}
 	}
 
-	t.widget.Render(screen, def)
+	t.widget.Render(screen)
 
 	t.renderImage(screen)
-	t.renderTextAndCaret(screen, def)
+	t.renderTextAndCaret(screen)
+}
+
+func (t *TextInput) Update() {
+	t.init.Do()
+
+	t.widget.Update()
+	if t.text != nil {
+		t.text.Update()
+	}
+	if t.caret != nil {
+		t.caret.Update()
+	}
 }
 
 func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
@@ -560,10 +572,10 @@ func (t *TextInput) renderImage(screen *ebiten.Image) {
 	}
 }
 
-func (t *TextInput) renderTextAndCaret(screen *ebiten.Image, def DeferredRenderFunc) {
+func (t *TextInput) renderTextAndCaret(screen *ebiten.Image) {
 	t.renderBuf.Draw(screen,
 		func(buf *ebiten.Image) {
-			t.drawTextAndCaret(buf, def)
+			t.drawTextAndCaret(buf)
 		},
 		func(buf *ebiten.Image) {
 			rect := t.widget.Rect
@@ -575,7 +587,7 @@ func (t *TextInput) renderTextAndCaret(screen *ebiten.Image, def DeferredRenderF
 		})
 }
 
-func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFunc) {
+func (t *TextInput) drawTextAndCaret(screen *ebiten.Image) {
 	rect := t.widget.Rect
 	tr := rect
 	tr = tr.Add(img.Point{t.padding.Left, t.padding.Top})
@@ -614,7 +626,7 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFun
 	} else {
 		t.text.Color = t.color.Idle
 	}
-	t.text.Render(screen, def)
+	t.text.Render(screen)
 
 	if t.focused {
 		if t.widget.Disabled && t.color.DisabledCaret != nil {
@@ -626,7 +638,7 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image, def DeferredRenderFun
 		tr = tr.Add(img.Point{cx, 0})
 		t.caret.SetLocation(tr)
 
-		t.caret.Render(screen, def)
+		t.caret.Render(screen)
 	}
 }
 

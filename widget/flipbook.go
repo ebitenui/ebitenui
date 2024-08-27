@@ -87,9 +87,14 @@ func (f *FlipBook) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 }
 
 // Render implements Renderer.
-func (f *FlipBook) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+func (f *FlipBook) Render(screen *ebiten.Image) {
 	f.init.Do()
-	f.container.Render(screen, def)
+	f.container.Render(screen)
+}
+
+func (f *FlipBook) Update() {
+	f.init.Do()
+	f.container.Update()
 }
 
 // WidgetAt implements WidgetLocator.

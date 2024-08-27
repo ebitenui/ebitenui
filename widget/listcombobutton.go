@@ -178,8 +178,18 @@ func (l *ListComboButton) SetupInputLayer(def input.DeferredSetupInputLayerFunc)
 	l.button.SetupInputLayer(def)
 }
 
-func (l *ListComboButton) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+func (l *ListComboButton) Render(screen *ebiten.Image) {
 	l.init.Do()
+
+	l.button.Render(screen)
+
+}
+
+func (l *ListComboButton) Update() {
+	l.init.Do()
+
+	l.button.Update()
+
 	if l.button.button.button.focused {
 		if !l.disableDefaultKeys {
 			if input.KeyPressed(ebiten.KeyDown) || input.KeyPressed(ebiten.KeyUp) {
@@ -187,8 +197,6 @@ func (l *ListComboButton) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 			}
 		}
 	}
-
-	l.button.Render(screen, def)
 
 }
 

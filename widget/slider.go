@@ -272,7 +272,7 @@ func (s *Slider) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 	s.handle.SetupInputLayer(def)
 }
 
-func (s *Slider) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+func (s *Slider) Render(screen *ebiten.Image) {
 	s.init.Do()
 
 	s.handleDirection()
@@ -280,7 +280,7 @@ func (s *Slider) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 
 	s.handle.GetWidget().Disabled = s.widget.Disabled
 
-	s.widget.Render(screen, def)
+	s.widget.Render(screen)
 
 	s.drawTrack(screen)
 
@@ -288,11 +288,18 @@ func (s *Slider) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	s.updateHandleLocation(hl, tl)
 	s.updateHandleSize(hl)
 
-	s.handle.Render(screen, def)
+	s.handle.Render(screen)
 
 	s.fireEvents()
 
 	s.lastCurrent = s.Current
+}
+
+func (s *Slider) Update() {
+	s.init.Do()
+
+	s.widget.Update()
+	s.handle.Update()
 }
 
 func (s *Slider) drawTrack(screen *ebiten.Image) {

@@ -194,7 +194,7 @@ func (o ToolTipOptions) ToolTipUpdater(toolTipUpdater ToolTipUpdater) ToolTipOpt
 	}
 }
 
-func (t *ToolTip) Render(parent *Widget, screen *ebiten.Image, def DeferredRenderFunc) {
+func (t *ToolTip) Update(parent *Widget) {
 	newState := t.state(parent)
 	if newState != nil {
 		t.state = newState

@@ -22,7 +22,6 @@ type UI struct {
 
 	focusedWidget widget.HasWidget
 	inputLayerers []input.Layerer
-	renderers     []widget.Renderer
 	windows       []*widget.Window
 
 	previousContainer *widget.Container
@@ -42,20 +41,72 @@ func (u *UI) Update() {
 		// Close all Ephemeral Windows (tooltip/dnd/etc)
 		u.closeEphemeralWindows(0)
 	}
+
+	u.handleFocusChangeRequest()
+
+	index := 0
+	for ; index < len(u.windows); index++ {
+		if u.windows[index].DrawLayer < 0 {
+			u.windows[index].Update()
+		} else {
+			break
+		}
+	}
+	u.Container.Update()
+
+	for ; index < len(u.windows); index++ {
+		u.windows[index].Update()
+	}
+
+	event.ExecuteDeferred()
 }
 
 // Draw renders u onto screen. This function should be called in the Ebiten Draw function.
 func (u *UI) Draw(screen *ebiten.Image) {
 	input.Draw(screen)
-	event.ExecuteDeferred()
 	defer input.AfterDraw(screen)
 	x, y := screen.Bounds().Dx(), screen.Bounds().Dy()
 	rect := image.Rect(0, 0, x, y)
-
-	u.handleFocusChangeRequest()
 	u.setupInputLayers()
 	u.Container.SetLocation(rect)
 	u.render(screen)
+	//Render elements that pop up (like combobox) on top of everything else
+	widget.RenderDeferred(screen)
+}
+
+func (u *UI) setupInputLayers() {
+	num := 1
+	if len(u.windows) > 0 {
+		num += len(u.windows)
+	}
+
+	if cap(u.inputLayerers) < num {
+		u.inputLayerers = make([]input.Layerer, num)
+	}
+
+	u.inputLayerers = u.inputLayerers[:0]
+	u.inputLayerers = append(u.inputLayerers, u.Container)
+	for _, w := range u.windows {
+		u.inputLayerers = append(u.inputLayerers, w)
+	}
+
+	input.SetupInputLayersWithDeferred(u.inputLayerers)
+}
+
+func (u *UI) render(screen *ebiten.Image) {
+	index := 0
+	for ; index < len(u.windows); index++ {
+		if u.windows[index].DrawLayer < 0 {
+			u.windows[index].Render(screen)
+		} else {
+			break
+		}
+	}
+	u.Container.Render(screen)
+
+	for ; index < len(u.windows); index++ {
+		u.windows[index].Render(screen)
+	}
 }
 
 func (u *UI) handleContextMenu(args interface{}) {
@@ -203,55 +254,6 @@ func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 			focusableWidgets[0].Focus(true)
 		}
 	}
-}
-
-func (u *UI) setupInputLayers() {
-	num := 1 // u.Container
-	if len(u.windows) > 0 {
-		num += len(u.windows)
-	}
-
-	if cap(u.inputLayerers) < num {
-		u.inputLayerers = make([]input.Layerer, num)
-	}
-
-	u.inputLayerers = u.inputLayerers[:0]
-	u.inputLayerers = append(u.inputLayerers, u.Container)
-	for _, w := range u.windows {
-		u.inputLayerers = append(u.inputLayerers, w)
-	}
-
-	// TODO: SetupInputLayersWithDeferred should reside in "internal" subpackage
-	input.SetupInputLayersWithDeferred(u.inputLayerers)
-}
-
-func (u *UI) render(screen *ebiten.Image) {
-	num := 1 // u.Container
-	if len(u.windows) > 0 {
-		num += len(u.windows)
-	}
-
-	if cap(u.renderers) < num {
-		u.renderers = make([]widget.Renderer, num)
-	}
-	u.renderers = u.renderers[:0]
-
-	index := 0
-	for ; index < len(u.windows); index++ {
-		if u.windows[index].DrawLayer < 0 {
-			u.renderers = append(u.renderers, u.windows[index])
-		} else {
-			break
-		}
-	}
-	u.renderers = append(u.renderers, u.Container)
-
-	for ; index < len(u.windows); index++ {
-		u.renderers = append(u.renderers, u.windows[index])
-	}
-
-	// TODO: RenderWithDeferred should reside in "internal" subpackage
-	widget.RenderWithDeferred(screen, u.renderers)
 }
 
 // AddWindow adds window w to ui for rendering. It returns a function to remove w from ui.

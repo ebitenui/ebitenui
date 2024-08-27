@@ -530,7 +530,7 @@ func (b *Button) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 	}
 }
 
-func (b *Button) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+func (b *Button) Render(screen *ebiten.Image) {
 	b.init.Do()
 
 	if b.container != nil {
@@ -540,7 +540,7 @@ func (b *Button) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 		b.container.RequestRelayout()
 	}
 
-	b.widget.Render(screen, def)
+	b.widget.Render(screen)
 	b.draw(screen)
 
 	if !b.DisableDefaultKeys {
@@ -572,7 +572,15 @@ func (b *Button) Render(screen *ebiten.Image, def DeferredRenderFunc) {
 	}
 
 	if b.container != nil {
-		b.container.Render(screen, def)
+		b.container.Render(screen)
+	}
+}
+
+func (b *Button) Update() {
+	b.init.Do()
+	b.widget.Update()
+	if b.container != nil {
+		b.container.Update()
 	}
 }
 
@@ -773,15 +781,14 @@ func (b *Button) createWidget() {
 		WidgetOpts.MouseButtonReleasedHandler(func(args *WidgetMouseButtonReleasedEventArgs) {
 			if b.pressing && !b.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
 				inside := args.Inside && b.onMask(args.OffsetX, args.OffsetY)
-
-				b.ReleasedEvent.Fire(&ButtonReleasedEventArgs{
-					Button:  b,
-					Inside:  inside,
-					OffsetX: args.OffsetX,
-					OffsetY: args.OffsetY,
-				})
-
 				if inside {
+					b.ReleasedEvent.Fire(&ButtonReleasedEventArgs{
+						Button:  b,
+						Inside:  inside,
+						OffsetX: args.OffsetX,
+						OffsetY: args.OffsetY,
+					})
+
 					b.ClickedEvent.Fire(&ButtonClickedEventArgs{
 						Button:  b,
 						OffsetX: args.OffsetX,

@@ -75,10 +75,16 @@ func (g *Graphic) PreferredSize() (int, int) {
 	return 50, 50
 }
 
-func (g *Graphic) Render(screen *ebiten.Image, def DeferredRenderFunc) {
+func (g *Graphic) Render(screen *ebiten.Image) {
 	g.init.Do()
-	g.widget.Render(screen, def)
+	g.widget.Render(screen)
 	g.draw(screen)
+}
+
+func (g *Graphic) Update() {
+	g.init.Do()
+
+	g.widget.Update()
 }
 
 func (g *Graphic) draw(screen *ebiten.Image) {

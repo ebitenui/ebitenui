@@ -118,6 +118,6 @@ func render(r Renderer, t *testing.T) {
 	t.Helper()
 
 	screen := ebiten.NewImage(1, 1)
-	RenderWithDeferred(screen, []Renderer{r})
+	r.Render(screen)
 	event.ExecuteDeferred()
 }

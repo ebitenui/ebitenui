@@ -3,11 +3,10 @@ module github.com/ebitenui/ebitenui
 go 1.19
 
 require (
-	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/hajimehoshi/ebiten/v2 v2.7.8
 	github.com/matryer/is v1.4.1
 	github.com/stretchr/testify v1.9.0
-	golang.org/x/image v0.19.0
+	golang.org/x/image v0.19.0 // indirect
 	golang.org/x/sys v0.24.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
