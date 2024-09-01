@@ -215,7 +215,7 @@ func main() {
 
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			entries := make([]any, 0)
+			entries = nil
 			game.list.SetEntries(entries)
 		}),
 	)

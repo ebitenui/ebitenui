@@ -574,7 +574,7 @@ func (l *List) AddEntry(entry any) {
 }
 
 // Return the current entries in the list
-func (l *List) Entries() any {
+func (l *List) Entries() []any {
 	l.init.Do()
 	return l.entries
 }
