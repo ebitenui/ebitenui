@@ -170,8 +170,8 @@ func (t *Text) SetLocation(rect image.Rectangle) {
 func (t *Text) PreferredSize() (int, int) {
 	t.init.Do()
 	t.measure()
-	w := int(math.Ceil(t.measurements.boundingBoxWidth))
-	h := int(math.Ceil(t.measurements.boundingBoxHeight))
+	w := int(math.Ceil(t.measurements.boundingBoxWidth)) + t.Inset.Left + t.Inset.Right
+	h := int(math.Ceil(t.measurements.boundingBoxHeight)) + t.Inset.Top + t.Inset.Bottom
 
 	if t.widget != nil && h < t.widget.MinHeight {
 		h = t.widget.MinHeight
