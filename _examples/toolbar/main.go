@@ -38,7 +38,7 @@ func main() {
 
 	// Create a toolbar and add it to the UI.
 	toolbar := newToolbar(&ui, res)
-	root.AddChild(toolbar.widget)
+	root.AddChild(toolbar.container)
 
 	// Set up the ebiten game struct.
 	game := game{

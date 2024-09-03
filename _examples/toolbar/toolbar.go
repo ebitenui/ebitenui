@@ -18,7 +18,7 @@ import (
 // so for completeness' sake. When you keep a reference to buttons in the struct, you can later configure them to respond
 // to certain events in your application, and keep your program's logic outside the toolbar.
 type toolbar struct {
-	widget      *widget.Container
+	container   *widget.Container
 	fileMenu    *widget.Button
 	editMenu    *widget.Button
 	helpButton  *widget.Button
@@ -96,7 +96,7 @@ func newToolbar(ui *ebitenui.UI, res *resources) *toolbar {
 	root.AddChild(help)
 
 	return &toolbar{
-		widget:      root,
+		container:   root,
 		fileMenu:    file,
 		editMenu:    edit,
 		helpButton:  help,
