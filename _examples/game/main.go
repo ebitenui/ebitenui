@@ -28,6 +28,7 @@ import (
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 
 	"github.com/hajimehoshi/ebiten/v2/examples/resources/images"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -187,7 +188,13 @@ func (g *Game) getEbitenUI() *ebitenui.UI {
 
 	return &ebitenui.UI{
 		Container: rootContainer,
+		//Call a render method after the rootContainer is drawn but before any ebitenui.Windows are drawn
+		RenderHook: g.Render,
 	}
+}
+
+func (g *Game) Render(screen *ebiten.Image) {
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %f, UI Hovered %t", ebiten.ActualFPS(), input.UIHovered))
 }
 
 func (g *Game) drawGameWorld(screen *ebiten.Image) {
