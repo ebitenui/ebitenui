@@ -189,7 +189,7 @@ func (g *Game) getEbitenUI() *ebitenui.UI {
 	return &ebitenui.UI{
 		Container: rootContainer,
 		//Call a render method after the rootContainer is drawn but before any ebitenui.Windows are drawn
-		RenderHook: g.Render,
+		//PostRenderHook: g.Render,
 	}
 }
 
