@@ -20,6 +20,14 @@ type UI struct {
 	//If true the default tab/shift-tab to focus will be disabled
 	DisableDefaultFocus bool
 
+	// This exposes a Render call before the Container is drawn,
+	// but after the Windows with DrawLayer < 0 are drawn.
+	PreRenderHook widget.RenderFunc
+
+	// This exposes a Render call after the Container is drawn,
+	// but before the Windows with DrawLayer >= 0 (all by default) are drawn.
+	PostRenderHook widget.RenderFunc
+
 	focusedWidget widget.HasWidget
 	inputLayerers []input.Layerer
 	windows       []*widget.Window
@@ -102,7 +110,16 @@ func (u *UI) render(screen *ebiten.Image) {
 			break
 		}
 	}
+
+	if u.PreRenderHook != nil {
+		u.PreRenderHook(screen)
+	}
+
 	u.Container.Render(screen)
+
+	if u.PostRenderHook != nil {
+		u.PostRenderHook(screen)
+	}
 
 	for ; index < len(u.windows); index++ {
 		u.windows[index].Render(screen)
