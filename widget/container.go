@@ -232,7 +232,7 @@ func (c *Container) SetLocation(rect img.Rectangle) {
 func (c *Container) Render(screen *ebiten.Image) {
 	c.init.Do()
 
-	if c.widget.Visibility == Visibility_Hide_Blocking || c.widget.Visibility == Visibility_Hide {
+	if !c.widget.IsVisible() {
 		return
 	}
 
@@ -250,7 +250,7 @@ func (c *Container) Render(screen *ebiten.Image) {
 
 	for _, ch := range c.children {
 		if cr, ok := ch.(Renderer); ok {
-			if ch.GetWidget().Visibility == Visibility_Hide_Blocking || ch.GetWidget().Visibility == Visibility_Hide {
+			if !ch.GetWidget().IsVisible() {
 				continue
 			}
 			cr.Render(screen)

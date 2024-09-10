@@ -205,7 +205,8 @@ func (t *ToolTip) idleState() toolTipState {
 	return func(parent *Widget) toolTipState {
 		if input.MouseButtonPressed(ebiten.MouseButtonLeft) ||
 			input.MouseButtonPressed(ebiten.MouseButtonMiddle) ||
-			input.MouseButtonPressed(ebiten.MouseButtonRight) {
+			input.MouseButtonPressed(ebiten.MouseButtonRight) ||
+			!parent.IsVisible() {
 			t.visible = false
 			parent.FireToolTipEvent(t.window, false)
 			return nil
