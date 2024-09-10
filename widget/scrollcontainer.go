@@ -73,6 +73,9 @@ func NewScrollContainer(opts ...ScrollContainerOpt) *ScrollContainer {
 }
 
 func (s *ScrollContainer) validate() {
+	if s.content == nil {
+		panic("ScrollContainer: Content is required.")
+	}
 	if s.image == nil {
 		panic("ScrollContainer: Image is required.")
 	}
