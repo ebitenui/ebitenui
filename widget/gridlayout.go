@@ -63,7 +63,15 @@ func NewGridLayout(opts ...GridLayoutOpt) *GridLayout {
 		o(g)
 	}
 
+	g.validate()
+
 	return g
+}
+
+func (gl *GridLayout) validate() {
+	if gl.columns == 0 {
+		panic("GridLayout: columns is required.")
+	}
 }
 
 // Columns configures a grid layout to use c columns.
