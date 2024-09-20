@@ -143,16 +143,18 @@ func (s *ScrollContainer) PreferredSize() (int, int) {
 func (s *ScrollContainer) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 	s.init.Do()
 
-	s.content.GetWidget().ElevateToNewInputLayer(&input.Layer{
-		DebugLabel: "scroll container content",
-		EventTypes: input.LayerEventTypeAll ^ input.LayerEventTypeWheel,
-		BlockLower: true,
-		FullScreen: false,
-		RectFunc:   s.ViewRect,
-	})
+	if s.widget.IsVisible() {
+		s.content.GetWidget().ElevateToNewInputLayer(&input.Layer{
+			DebugLabel: "scroll container content",
+			EventTypes: input.LayerEventTypeAll ^ input.LayerEventTypeWheel,
+			BlockLower: true,
+			FullScreen: false,
+			RectFunc:   s.ViewRect,
+		})
 
-	if il, ok := s.content.(input.Layerer); ok {
-		il.SetupInputLayer(def)
+		if il, ok := s.content.(input.Layerer); ok {
+			il.SetupInputLayer(def)
+		}
 	}
 }
 
