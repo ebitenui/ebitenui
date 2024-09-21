@@ -668,6 +668,19 @@ func (widget *Widget) FireDragAndDropEvent(w *Window, show bool, dnd *DragAndDro
 	})
 }
 
+// IsVisible will check if this particular widget is visible by checking Visibility of it and
+// all the parents it has, as if one of the parents is not visible this widget will not be visible
+// even if it has Visibility_Show
+func (widget *Widget) IsVisible() bool {
+	if widget.Visibility != Visibility_Show {
+		return false
+	}
+	if widget.parent != nil {
+		return widget.parent.IsVisible()
+	}
+	return true
+}
+
 // RenderWithDeferred renders r to screen. This function should not be called directly.
 func RenderDeferred(screen *ebiten.Image) {
 	defer func(d []RenderFunc) {
