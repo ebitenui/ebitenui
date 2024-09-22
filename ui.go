@@ -28,6 +28,10 @@ type UI struct {
 	// but before the Windows with DrawLayer >= 0 (all by default) are drawn.
 	PostRenderHook widget.RenderFunc
 
+	//Theme
+	PrimaryTheme  *widget.Theme
+	previousTheme *widget.Theme
+
 	focusedWidget widget.HasWidget
 	inputLayerers []input.Layerer
 	windows       []*widget.Window
@@ -44,10 +48,15 @@ func (u *UI) Update() {
 		u.Container.GetWidget().FocusEvent.AddHandler(u.handleFocusEvent)
 		u.Container.GetWidget().ToolTipEvent.AddHandler(u.handleToolTipEvent)
 		u.Container.GetWidget().DragAndDropEvent.AddHandler(u.handleDragAndDropEvent)
-
 		u.previousContainer = u.Container
 		// Close all Ephemeral Windows (tooltip/dnd/etc)
 		u.closeEphemeralWindows(0)
+	}
+
+	if (u.Container.GetWidget().GetTheme() == nil && u.PrimaryTheme != nil) || u.PrimaryTheme != u.previousTheme {
+		u.Container.GetWidget().SetTheme(u.PrimaryTheme)
+		u.Container.Validate()
+		u.previousTheme = u.PrimaryTheme
 	}
 
 	u.handleFocusChangeRequest()
@@ -295,6 +304,11 @@ func (u *UI) addWindow(w *widget.Window) bool {
 	if u.IsWindowOpen(w) {
 		return false
 	}
+
+	if w.Contents.GetWidget().GetTheme() == nil {
+		w.Contents.GetWidget().SetTheme(u.PrimaryTheme)
+	}
+	w.Contents.Validate()
 
 	closeFunc := func() {
 		u.removeWindow(w)

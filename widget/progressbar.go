@@ -56,12 +56,12 @@ func NewProgressBar(opts ...ProgressBarOpt) *ProgressBar {
 		o(pb)
 	}
 
-	pb.validate()
+	pb.Validate()
 
 	return pb
 }
 
-func (pb *ProgressBar) validate() {
+func (pb *ProgressBar) Validate() {
 	if pb.trackImage == nil {
 		panic("ProgressBar: TrackImage is required.")
 	}

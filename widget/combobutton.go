@@ -37,12 +37,12 @@ func NewComboButton(opts ...ComboButtonOpt) *ComboButton {
 		o(c)
 	}
 
-	c.validate()
+	c.Validate()
 
 	return c
 }
 
-func (c *ComboButton) validate() {
+func (c *ComboButton) Validate() {
 	if c.content == nil {
 		panic("ComboButton: Content is required.")
 	}

@@ -20,7 +20,7 @@ const COLOR_CLOSE = "/color]"
 
 type Text struct {
 	Label              string
-	Face               text.Face
+	Face               *text.Face
 	Color              color.Color
 	MaxWidth           float64
 	Inset              Insets
@@ -51,7 +51,7 @@ type TextOptions struct {
 
 type textMeasurements struct {
 	label         string
-	face          text.Face
+	face          *text.Face
 	maxWidth      float64
 	processBBCode bool
 
@@ -82,12 +82,12 @@ func NewText(opts ...TextOpt) *Text {
 		o(t)
 	}
 
-	t.validate()
+	//	t.Validate()
 
 	return t
 }
 
-func (t *Text) validate() {
+func (t *Text) Validate() {
 	if t.Color == nil {
 		panic("Text: Color is required.")
 	}
@@ -105,7 +105,7 @@ func (o TextOptions) WidgetOpts(opts ...WidgetOpt) TextOpt {
 // Text combines three options: TextLabel, TextFace and TextColor.
 // It can be used for the inline configurations of Text object while
 // separate functions are useful for a multi-step configuration.
-func (o TextOptions) Text(label string, face text.Face, color color.Color) TextOpt {
+func (o TextOptions) Text(label string, face *text.Face, color color.Color) TextOpt {
 	return func(t *Text) {
 		t.Label = label
 		t.Face = face
@@ -119,7 +119,7 @@ func (o TextOptions) TextLabel(label string) TextOpt {
 	}
 }
 
-func (o TextOptions) TextFace(face text.Face) TextOpt {
+func (o TextOptions) TextFace(face *text.Face) TextOpt {
 	return func(t *Text) {
 		t.Face = face
 	}
@@ -213,7 +213,7 @@ func (t *Text) draw(screen *ebiten.Image) {
 	t.colorList = &datastructures.Stack[color.Color]{}
 	t.colorList.Push(&t.Color)
 
-	sWidth, _ := text.Measure(" ", t.Face, 0)
+	sWidth, _ := text.Measure(" ", *t.Face, 0)
 
 	for i, line := range t.measurements.lines {
 		ly := float64(p.Y) + t.measurements.lineHeight*float64(i)
@@ -250,21 +250,21 @@ func (t *Text) draw(screen *ebiten.Image) {
 					op := &text.DrawOptions{}
 					op.GeoM.Translate(lx, ly)
 					op.ColorScale.ScaleWithColor(piece.color)
-					text.Draw(screen, piece.text, t.Face, op)
-					wordWidth, _ := text.Measure(piece.text, t.Face, 0)
+					text.Draw(screen, piece.text, *t.Face, op)
+					wordWidth, _ := text.Measure(piece.text, *t.Face, 0)
 					lx += float64(wordWidth)
 				}
 				op := &text.DrawOptions{}
 				op.GeoM.Translate(lx, ly)
 				op.ColorScale.ScaleWithColor(updatedColor)
-				text.Draw(screen, " ", t.Face, op)
+				text.Draw(screen, " ", *t.Face, op)
 				lx += sWidth
 			}
 		} else {
 			op := &text.DrawOptions{}
 			op.GeoM.Translate(lx, ly)
 			op.ColorScale.ScaleWithColor(t.Color)
-			text.Draw(screen, strings.Join(line, " "), t.Face, op)
+			text.Draw(screen, strings.Join(line, " "), *t.Face, op)
 		}
 	}
 }
@@ -344,7 +344,7 @@ func (t *Text) measure() {
 	if t.Label == t.measurements.label && t.Face == t.measurements.face && t.MaxWidth == t.measurements.maxWidth && t.processBBCode == t.measurements.processBBCode {
 		return
 	}
-	m := t.Face.Metrics()
+	m := (*t.Face).Metrics()
 
 	t.measurements = textMeasurements{
 		label:         t.Label,
@@ -354,7 +354,7 @@ func (t *Text) measure() {
 		maxWidth:      t.MaxWidth,
 	}
 
-	sWidth, sHeight := text.Measure(" ", t.measurements.face, 0)
+	sWidth, sHeight := text.Measure(" ", *t.measurements.face, 0)
 
 	fh := m.HAscent + m.HDescent
 	t.measurements.lineHeight = sHeight
@@ -372,9 +372,9 @@ func (t *Text) measure() {
 				if t.processBBCode && t.bbcodeRegex.MatchString(word) {
 					// Strip out any bbcodes from size calculation
 					cleaned := t.bbcodeRegex.ReplaceAllString(word, "")
-					wordWidth, _ = text.Measure(cleaned, t.Face, 0)
+					wordWidth, _ = text.Measure(cleaned, *t.Face, 0)
 				} else {
-					wordWidth, _ = text.Measure(word, t.Face, 0)
+					wordWidth, _ = text.Measure(word, *t.Face, 0)
 				}
 
 				// Don't add the space to the last chunk.
@@ -412,7 +412,7 @@ func (t *Text) measure() {
 		} else {
 			line := s.Text()
 			t.measurements.lines = append(t.measurements.lines, []string{line})
-			lw, _ := text.Measure(line, t.Face, 0)
+			lw, _ := text.Measure(line, *t.Face, 0)
 			lw += float64(t.Inset.Left + t.Inset.Right)
 			t.measurements.lineWidths = append(t.measurements.lineWidths, lw)
 

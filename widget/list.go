@@ -22,7 +22,7 @@ type List struct {
 	sliderOpts                  []SliderOpt
 	entries                     []any
 	entryLabelFunc              ListEntryLabelFunc
-	entryFace                   text.Face
+	entryFace                   *text.Face
 	entryUnselectedColor        *ButtonImage
 	entrySelectedColor          *ButtonImage
 	entryUnselectedTextColor    *ButtonTextColor
@@ -106,12 +106,12 @@ func NewList(opts ...ListOpt) *List {
 
 	l.resetFocusIndex()
 
-	l.validate()
+	l.Validate()
 
 	return l
 }
 
-func (l *List) validate() {
+func (l *List) Validate() {
 	if len(l.scrollContainerOpts) == 0 {
 		panic("List: ScrollContainerOpts are required.")
 	}
@@ -180,7 +180,7 @@ func (o ListOptions) EntryLabelFunc(f ListEntryLabelFunc) ListOpt {
 	}
 }
 
-func (o ListOptions) EntryFontFace(f text.Face) ListOpt {
+func (o ListOptions) EntryFontFace(f *text.Face) ListOpt {
 	return func(l *List) {
 		l.entryFace = f
 	}
@@ -599,11 +599,11 @@ func (l *List) setSelectedEntry(e any, user bool) {
 		l.resetFocusIndex()
 		for i, b := range l.buttons {
 			if l.entries[i] == e {
-				b.Image = l.entrySelectedColor
-				b.TextColor = l.entryTextColor
+				b.computedParams.Image = l.entrySelectedColor
+				b.computedParams.TextColor = l.entryTextColor
 			} else {
-				b.Image = l.entryUnselectedColor
-				b.TextColor = l.entryUnselectedTextColor
+				b.computedParams.Image = l.entryUnselectedColor
+				b.computedParams.TextColor = l.entryUnselectedTextColor
 			}
 		}
 

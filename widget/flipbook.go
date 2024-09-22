@@ -74,6 +74,10 @@ func (f *FlipBook) SetLocation(rect img.Rectangle) {
 	f.container.SetLocation(rect)
 }
 
+func (f *FlipBook) Validate() {
+
+}
+
 // RequestRelayout implements Relayoutable.
 func (f *FlipBook) RequestRelayout() {
 	f.init.Do()

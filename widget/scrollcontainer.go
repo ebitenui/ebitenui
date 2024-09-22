@@ -51,7 +51,7 @@ func NewScrollContainer(opts ...ScrollContainerOpt) *ScrollContainer {
 		o(s)
 	}
 
-	s.validate()
+	s.Validate()
 
 	s.content.GetWidget().ContextMenuEvent.AddHandler(func(args interface{}) {
 		a := args.(*WidgetContextMenuEventArgs)
@@ -72,7 +72,7 @@ func NewScrollContainer(opts ...ScrollContainerOpt) *ScrollContainer {
 	return s
 }
 
-func (s *ScrollContainer) validate() {
+func (s *ScrollContainer) Validate() {
 	if s.content == nil {
 		panic("ScrollContainer: Content is required.")
 	}

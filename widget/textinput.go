@@ -28,7 +28,7 @@ type TextInput struct {
 	image           *TextInputImage
 	color           *TextInputColor
 	padding         Insets
-	face            text.Face
+	face            *text.Face
 	repeatDelay     time.Duration
 	repeatInterval  time.Duration
 	validationFunc  TextInputValidationFunc
@@ -143,12 +143,12 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 		o(t)
 	}
 
-	t.validate()
+	t.Validate()
 
 	return t
 }
 
-func (t *TextInput) validate() {
+func (t *TextInput) Validate() {
 	if len(t.caretOpts) == 0 {
 		panic("TextInput: CaretOpts are required.")
 	}
@@ -230,7 +230,7 @@ func (o TextInputOptions) Padding(i Insets) TextInputOpt {
 	}
 }
 
-func (o TextInputOptions) Face(f text.Face) TextInputOpt {
+func (o TextInputOptions) Face(f *text.Face) TextInputOpt {
 	return func(t *TextInput) {
 		t.face = f
 	}
@@ -730,14 +730,14 @@ func (t *TextInput) createWidget() {
 	t.mask = image.NewNineSliceColor(color.NRGBA{255, 0, 255, 255})
 }
 
-func fontAdvance(s string, f text.Face) int {
-	a := text.Advance(s, f)
+func fontAdvance(s string, f *text.Face) int {
+	a := text.Advance(s, *f)
 	return int(math.Round(a))
 }
 
 // fontStringIndex returns an index into r that corresponds closest to pixel position x
 // when string(r) is drawn using f. Pixel position x==0 corresponds to r[0].
-func fontStringIndex(r []rune, f text.Face, x int) int {
+func fontStringIndex(r []rune, f *text.Face, x int) int {
 	start := 0
 	end := len(r)
 	p := 0

@@ -75,6 +75,10 @@ func (g *Graphic) PreferredSize() (int, int) {
 	return 50, 50
 }
 
+func (g *Graphic) Validate() {
+
+}
+
 func (g *Graphic) Render(screen *ebiten.Image) {
 	g.init.Do()
 	g.widget.Render(screen)

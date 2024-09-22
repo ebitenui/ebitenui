@@ -84,13 +84,13 @@ func NewWindow(opts ...WindowOpt) *Window {
 		o(w)
 	}
 
-	w.validate()
+	w.Validate()
 
 	w.init.Do()
 	return w
 }
 
-func (w *Window) validate() {
+func (w *Window) Validate() {
 	if w.Contents == nil {
 		panic("Window: Contents is required.")
 	}

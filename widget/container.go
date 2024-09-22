@@ -16,6 +16,7 @@ type Container struct {
 	widgetOpts  []WidgetOpt
 	layout      Layouter
 	layoutDirty bool
+	validated   bool
 
 	init     *MultiOnce
 	widget   *Widget
@@ -35,6 +36,7 @@ type PreferredSizeLocateableWidget interface {
 	HasWidget
 	PreferredSizer
 	Locateable
+	Validate()
 }
 
 func NewContainer(opts ...ContainerOpt) *Container {
@@ -86,6 +88,10 @@ func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveCh
 			panic("cannot add nil child")
 		}
 
+		if c.validated {
+			child.Validate()
+		}
+
 		c.children = append(c.children, child)
 
 		child.GetWidget().parent = c.widget
@@ -107,8 +113,8 @@ func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveCh
 			a := args.(*WidgetDragAndDropEventArgs)
 			c.GetWidget().FireDragAndDropEvent(a.Window, a.Show, a.DnD)
 		})
-		c.RequestRelayout()
 	}
+	c.RequestRelayout()
 
 	return func() {
 		for _, child := range children {
@@ -227,6 +233,13 @@ func (c *Container) SetLocation(rect img.Rectangle) {
 	c.init.Do()
 	c.widget.Rect = rect
 	c.RequestRelayout()
+}
+
+func (c *Container) Validate() {
+	for idx := range c.children {
+		c.children[idx].Validate()
+	}
+	c.validated = true
 }
 
 func (c *Container) Render(screen *ebiten.Image) {

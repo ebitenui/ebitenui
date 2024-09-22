@@ -54,12 +54,12 @@ func NewListComboButton(opts ...ListComboButtonOpt) *ListComboButton {
 		o(l)
 	}
 
-	l.validate()
+	l.Validate()
 
 	return l
 }
 
-func (l *ListComboButton) validate() {
+func (l *ListComboButton) Validate() {
 	if len(l.buttonOpts) == 0 {
 		panic("ListComboButton: ButtonOpts are required.")
 	}
@@ -80,7 +80,7 @@ func (o ListComboButtonOptions) ListOpts(opts ...ListOpt) ListComboButtonOpt {
 	}
 }
 
-func (o ListComboButtonOptions) Text(face text.Face, image *ButtonImageImage, color *ButtonTextColor) ListComboButtonOpt {
+func (o ListComboButtonOptions) Text(face *text.Face, image *ButtonImageImage, color *ButtonTextColor) ListComboButtonOpt {
 	return o.SelectComboButtonOpts(SelectComboButtonOpts.ComboButtonOpts(ComboButtonOpts.ButtonOpts(ButtonOpts.TextAndImage("", face, image, color))))
 }
 

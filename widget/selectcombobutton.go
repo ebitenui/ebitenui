@@ -52,12 +52,12 @@ func NewSelectComboButton(opts ...SelectComboButtonOpt) *SelectComboButton {
 		o(s)
 	}
 
-	s.validate()
+	s.Validate()
 
 	return s
 }
 
-func (s *SelectComboButton) validate() {
+func (s *SelectComboButton) Validate() {
 	if len(s.buttonOpts) == 0 {
 		panic("SelectComboButton: ButtonOpts are required.")
 	}

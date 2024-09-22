@@ -58,12 +58,12 @@ func NewCheckbox(opts ...CheckboxOpt) *Checkbox {
 		o(c)
 	}
 
-	c.validate()
+	c.Validate()
 
 	return c
 }
 
-func (c *Checkbox) validate() {
+func (c *Checkbox) Validate() {
 	if len(c.buttonOpts) == 0 {
 		panic("Checkbox: ButtonOpts are required.")
 	}
@@ -172,7 +172,7 @@ func (c *Checkbox) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 func (c *Checkbox) Render(screen *ebiten.Image) {
 	c.init.Do()
 
-	c.button.GraphicImage = c.state.graphicImage(c.image)
+	c.button.computedParams.GraphicImage = c.state.graphicImage(c.image)
 
 	c.button.Render(screen)
 }

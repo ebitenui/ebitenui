@@ -16,7 +16,7 @@ type Caret struct {
 	Width int
 	Color color.Color
 
-	face          text.Face
+	face          *text.Face
 	blinkInterval time.Duration
 
 	init    *MultiOnce
@@ -50,12 +50,12 @@ func NewCaret(opts ...CaretOpt) *Caret {
 		o(c)
 	}
 
-	c.validate()
+	c.Validate()
 
 	return c
 }
 
-func (c *Caret) validate() {
+func (c *Caret) Validate() {
 	if c.face == nil {
 		panic("Caret: Font Face is required.")
 	}
@@ -67,7 +67,7 @@ func (o CaretOptions) Color(c color.Color) CaretOpt {
 	}
 }
 
-func (o CaretOptions) Size(face text.Face, width int) CaretOpt {
+func (o CaretOptions) Size(face *text.Face, width int) CaretOpt {
 	return func(c *Caret) {
 		c.face = face
 		c.Width = width
@@ -147,7 +147,7 @@ func (c *Caret) blinkState(visible bool, timer *time.Timer, expired *atomic.Valu
 func (c *Caret) createWidget() {
 	c.widget = NewWidget()
 
-	_, height := text.Measure(" ", c.face, 0)
+	_, height := text.Measure(" ", *c.face, 0)
 	c.height = int(math.Round(height))
 	c.face = nil
 }

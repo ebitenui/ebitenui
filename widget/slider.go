@@ -96,12 +96,12 @@ func NewSlider(opts ...SliderOpt) *Slider {
 		o(s)
 	}
 
-	s.validate()
+	s.Validate()
 
 	return s
 }
 
-func (s *Slider) validate() {
+func (s *Slider) Validate() {
 	if len(s.handleOpts) == 0 {
 		panic("Slider: HandleImage is required.")
 	}

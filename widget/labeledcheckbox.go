@@ -49,12 +49,12 @@ func NewLabeledCheckbox(opts ...LabeledCheckboxOpt) *LabeledCheckbox {
 		o(l)
 	}
 
-	l.validate()
+	l.Validate()
 
 	return l
 }
 
-func (l *LabeledCheckbox) validate() {
+func (l *LabeledCheckbox) Validate() {
 	if len(l.checkboxOpts) == 0 {
 		panic("LabeledCheckbox: CheckboxOpts are required.")
 	}

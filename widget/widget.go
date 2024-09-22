@@ -85,6 +85,7 @@ type Widget struct {
 	mouseLeftPressedInside      bool
 	inputLayer                  *input.Layer
 	focusable                   Focuser
+	theme                       *Theme
 
 	ContextMenu          *Container
 	ContextMenuWindow    *Window
@@ -697,4 +698,17 @@ func RenderDeferred(screen *ebiten.Image) {
 
 func AppendToDeferredRenderQueue(r RenderFunc) {
 	deferredRenders = append(deferredRenders, r)
+}
+
+func (widget *Widget) SetTheme(theme *Theme) {
+	widget.theme = theme
+}
+
+func (widget *Widget) GetTheme() *Theme {
+	if widget.theme != nil {
+		return widget.theme
+	} else if widget.parent != nil {
+		return widget.parent.GetTheme()
+	}
+	return nil
 }

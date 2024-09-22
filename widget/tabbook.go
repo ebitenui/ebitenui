@@ -16,7 +16,7 @@ type TabBook struct {
 	containerOpts []ContainerOpt
 	buttonOpts    []ButtonOpt
 	buttonImages  *ButtonImage
-	buttonFace    text.Face
+	buttonFace    *text.Face
 	buttonColor   *ButtonTextColor
 	flipBookOpts  []FlipBookOpt
 	buttonSpacing int
@@ -65,12 +65,12 @@ func NewTabBook(opts ...TabBookOpt) *TabBook {
 		o(t)
 	}
 
-	t.validate()
+	t.Validate()
 
 	return t
 }
 
-func (t *TabBook) validate() {
+func (t *TabBook) Validate() {
 	if len(t.tabs) == 0 {
 		panic("TabBook: At least one tab is required.")
 	}
@@ -145,7 +145,7 @@ func (o TabBookOptions) TabButtonSpacing(s int) TabBookOpt {
 	}
 }
 
-func (o TabBookOptions) TabButtonText(face text.Face, color *ButtonTextColor) TabBookOpt {
+func (o TabBookOptions) TabButtonText(face *text.Face, color *ButtonTextColor) TabBookOpt {
 	return func(t *TabBook) {
 		t.buttonFace = face
 		t.buttonColor = color

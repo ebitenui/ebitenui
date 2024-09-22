@@ -43,7 +43,11 @@ func (s *simpleWidget) SetLocation(rect img.Rectangle) {
 	s.widget.Rect = rect
 }
 
-func loadFont(t *testing.T) text.Face {
+func (s *simpleWidget) Validate() {
+
+}
+
+func loadFont(t *testing.T) *text.Face {
 	t.Helper()
 
 	loadFontOnce.Do(func() {
@@ -63,7 +67,7 @@ func loadFont(t *testing.T) text.Face {
 		}
 	})
 
-	return fontFace2
+	return &fontFace2
 }
 
 func newImageEmpty(t *testing.T) *ebiten.Image {

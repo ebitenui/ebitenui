@@ -15,7 +15,7 @@ type TextArea struct {
 	containerOpts        []ContainerOpt
 	scrollContainerOpts  []ScrollContainerOpt
 	sliderOpts           []SliderOpt
-	face                 text.Face
+	face                 *text.Face
 	foregroundColor      color.Color
 	textPadding          Insets
 	controlWidgetSpacing int
@@ -76,12 +76,12 @@ func NewTextArea(opts ...TextAreaOpt) *TextArea {
 		o(l)
 	}
 
-	l.validate()
+	l.Validate()
 
 	return l
 }
 
-func (t *TextArea) validate() {
+func (t *TextArea) Validate() {
 	if t.foregroundColor == nil {
 		panic("TextArea: FontColor is required.")
 	}
@@ -153,7 +153,7 @@ func (o TextAreaOptions) HorizontalScrollMode(scrollMode ScrollMode) TextAreaOpt
 }
 
 // Set the font face for this text area
-func (o TextAreaOptions) FontFace(f text.Face) TextAreaOpt {
+func (o TextAreaOptions) FontFace(f *text.Face) TextAreaOpt {
 	return func(l *TextArea) {
 		l.face = f
 	}

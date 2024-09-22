@@ -12,7 +12,7 @@ type Label struct {
 	Label string
 
 	textOpts []TextOpt
-	face     text.Face
+	face     *text.Face
 	color    *LabelColor
 
 	init *MultiOnce
@@ -42,12 +42,12 @@ func NewLabel(opts ...LabelOpt) *Label {
 		o(l)
 	}
 
-	l.validate()
+	l.Validate()
 
 	return l
 }
 
-func (l *Label) validate() {
+func (l *Label) Validate() {
 	if l.color == nil {
 		panic("Label: LabelColor is required.")
 	}
@@ -65,7 +65,7 @@ func (o LabelOptions) TextOpts(opts ...TextOpt) LabelOpt {
 	}
 }
 
-func (o LabelOptions) Text(label string, face text.Face, color *LabelColor) LabelOpt {
+func (o LabelOptions) Text(label string, face *text.Face, color *LabelColor) LabelOpt {
 	return func(l *Label) {
 		l.Label = label
 		l.face = face
