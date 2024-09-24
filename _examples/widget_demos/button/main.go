@@ -21,9 +21,9 @@ type game struct {
 
 func main() {
 	// construct a new container that serves as the root of the UI hierarchy
-	rootContainer := widget.NewContainer(
+	rootContainer := widget.NewPanel(
 		// the container will use a plain color as its background
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
+		//widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
 
 		// the container will use an anchor layout to layout its single child widget
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
@@ -47,6 +47,7 @@ func main() {
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			println("button clicked")
+			rootContainer.SetBackgroundImage(image.NewNineSliceColor(color.NRGBA{0xff, 0x1a, 0x22, 0xff}))
 		}),
 	)
 

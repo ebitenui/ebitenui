@@ -15,8 +15,7 @@ import (
 // There should only be exactly one UI per application.
 type UI struct {
 	// Container is the root container of the UI hierarchy.
-	Container *widget.Container
-
+	Container widget.Containerer
 	//If true the default tab/shift-tab to focus will be disabled
 	DisableDefaultFocus bool
 
@@ -36,7 +35,7 @@ type UI struct {
 	inputLayerers []input.Layerer
 	windows       []*widget.Window
 
-	previousContainer *widget.Container
+	previousContainer widget.Containerer
 	tabWasPressed     bool
 }
 

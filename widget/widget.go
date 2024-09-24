@@ -162,6 +162,15 @@ type PreferredSizer interface {
 	PreferredSize() (int, int)
 }
 
+type Containerer interface {
+	Updater
+	Renderer
+	Dropper
+	input.Layerer
+	PreferredSizeLocateableWidget
+	GetFocusers() []Focuser
+}
+
 // WidgetCursorEnterEventArgs are the arguments for cursor enter events.
 type WidgetCursorEnterEventArgs struct { //nolint:golint
 	Widget *Widget
