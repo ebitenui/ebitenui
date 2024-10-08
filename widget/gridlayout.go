@@ -136,11 +136,16 @@ func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.
 	x, y := 0, 0
 	firstStretchedCol, firstStretchedRow := true, true
 	for _, w := range widgets {
+		cw := colWidths[c]
 		if w.GetWidget().Visibility == Visibility_Hide {
+			c++
+			continue
+		} else if w.GetWidget().Visibility == Visibility_Hide {
+			c++
+			x += cw + g.columnSpacing
 			continue
 		}
 
-		cw := colWidths[c]
 		if g.columnStretched(c) {
 			cw = stretchedColWidth
 			if firstStretchedCol {
