@@ -21,9 +21,9 @@ func GetLightTheme() *widget.Theme {
 	return &widget.Theme{
 		ButtonTheme: &widget.ButtonParams{
 			TextColor: &widget.ButtonTextColor{
-				Idle:    color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
-				Hover:   color.NRGBA{0, 255, 128, 255},
-				Pressed: color.NRGBA{255, 0, 0, 255},
+				Idle:    color.NRGBA{40, 40, 40, 255},
+				Hover:   color.NRGBA{40, 40, 40, 255},
+				Pressed: color.NRGBA{40, 40, 40, 255},
 			},
 			TextFace: &face,
 			Image:    buttonImage,
@@ -75,9 +75,9 @@ func GetDarkTheme() *widget.Theme {
 func loadButtonImage() (*widget.ButtonImage, error) {
 	idle := image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 180, A: 255})
 
-	hover := image.NewNineSliceColor(color.NRGBA{R: 130, G: 130, B: 150, A: 255})
+	hover := image.NewNineSliceColor(color.NRGBA{R: 150, G: 150, B: 170, A: 255})
 
-	pressed := image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 120, A: 255})
+	pressed := image.NewNineSliceColor(color.NRGBA{R: 120, G: 120, B: 140, A: 255})
 
 	return &widget.ButtonImage{
 		Idle:    idle,

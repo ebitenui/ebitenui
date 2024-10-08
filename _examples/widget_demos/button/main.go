@@ -1,11 +1,9 @@
 package main
 
 import (
-	"image/color"
 	"log"
 
 	"github.com/ebitenui/ebitenui"
-	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -47,7 +45,6 @@ func main() {
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			println("button clicked")
-			rootContainer.SetBackgroundImage(image.NewNineSliceColor(color.NRGBA{0xff, 0x1a, 0x22, 0xff}))
 		}),
 	)
 
