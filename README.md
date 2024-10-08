@@ -1,8 +1,8 @@
 <div align="center">
   <a href="https://ebitenui.github.io/">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="ebitenui-logo-dark.svg">
-      <img alt="ebitenui-logo" src="ebitenui-logo-light.svg" height="128">
+      <source media="(prefers-color-scheme: dark)" srcset="_media/ebitenui-logo-dark.svg">
+      <img alt="ebitenui-logo" src="_media/ebitenui-logo-light.svg" height="128">
     </picture>
   </a>
   <h1>Ebiten UI</h1>
@@ -26,7 +26,7 @@ All graphics used by Ebiten UI can be fully customized, so you can really make y
 
 Documentation on how to use and extend Ebiten UI is available at [ebitenui.github.io](https://ebitenui.github.io).
 
-![Screenshots](ebiten-ui.gif)
+![Screenshots](_media/ebiten-ui.gif)
 
 Quick Start
 ------
@@ -54,7 +54,6 @@ Used By
 Social Media
 -------
 * [Discord](https://discord.gg/ujEeeHgptU)
-
 * [Reddit](https://www.reddit.com/r/birdmtndev/)
 
 
