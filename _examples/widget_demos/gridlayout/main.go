@@ -32,9 +32,11 @@ func main() {
 			widget.GridLayoutOpts.Padding(widget.NewInsetsSimple(30)),
 			//Define how far apart the rows and columns should be
 			widget.GridLayoutOpts.Spacing(20, 10),
-			//Define how to stretch the rows and columns. Note it is required to
-			//specify the Stretch for each row and column.
-			widget.GridLayoutOpts.Stretch([]bool{true, false}, []bool{false, true}),
+			// DefaultStretch values will be used when extra columns/rows are used
+			// out of the ones defined on the normal Stretch
+			widget.GridLayoutOpts.DefaultStretch(false, true),
+			//Define how to stretch the rows and columns.
+			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false}),
 		)),
 	)
 

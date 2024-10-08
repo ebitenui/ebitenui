@@ -15,6 +15,9 @@ type GridLayout struct {
 	rowSpacing    int
 	columnStretch []bool
 	rowStretch    []bool
+
+	defaultColumnStretch bool
+	defaultRowStretch    bool
 }
 
 // GridLayoutOpt is a function that configures g.
@@ -103,6 +106,15 @@ func (o GridLayoutOptions) Stretch(c []bool, r []bool) GridLayoutOpt {
 	return func(g *GridLayout) {
 		g.columnStretch = c
 		g.rowStretch = r
+	}
+}
+
+// DefaultStretch will set the stretch value to the columns/rows that are
+// extra not defined on the main Stretch
+func (o GridLayoutOptions) DefaultStretch(c bool, r bool) GridLayoutOpt {
+	return func(g *GridLayout) {
+		g.defaultColumnStretch = c
+		g.defaultRowStretch = r
 	}
 }
 
@@ -206,11 +218,17 @@ func (g *GridLayout) stretchedCellSizes(colWidths []int, rowHeights []int, rect 
 }
 
 func (g *GridLayout) columnStretched(c int) bool {
-	return g.columnStretch != nil && c < len(g.columnStretch) && g.columnStretch[c]
+	if g.columnStretched == nil || c >= len(g.columnStretch) {
+		return g.defaultColumnStretch
+	}
+	return g.columnStretch[c]
 }
 
 func (g *GridLayout) rowStretched(r int) bool {
-	return g.rowStretch != nil && r < len(g.rowStretch) && g.rowStretch[r]
+	if g.rowStretched == nil || r >= len(g.rowStretch) {
+		return g.defaultRowStretch
+	}
+	return g.rowStretch[r]
 }
 
 func (g *GridLayout) preferredColumnWidthsAndRowHeights(widgets []PreferredSizeLocateableWidget) ([]int, []int) {
