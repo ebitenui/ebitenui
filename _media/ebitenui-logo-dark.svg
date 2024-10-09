@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="512"
+   height="512"
+   viewBox="0 0 135.46666 135.46666"
+   version="1.1"
+   id="root"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25)"
+   sodipodi:docname="ebitenui-logo-dark.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="view"
+     pagecolor="#313131"
+     bordercolor="#000000"
+     borderopacity="1"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="false"
+     inkscape:document-units="px"
+     showgrid="true"
+     units="px"
+     width="256px"
+     inkscape:showpageshadow="false"
+     borderlayer="false"
+     showborder="true"
+     inkscape:deskcolor="#383838"
+     inkscape:zoom="1.4468104"
+     inkscape:cx="120.95572"
+     inkscape:cy="235.34528"
+     inkscape:window-width="1920"
+     inkscape:window-height="1000"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="main">
+    <inkscape:grid
+       id="grid"
+       units="px"
+       originx="0"
+       originy="0"
+       spacingx="1.9182291"
+       spacingy="1.9182291"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="5"
+       dotted="false"
+       gridanglex="30"
+       gridanglez="30"
+       visible="true"
+       enabled="false" />
+  </sodipodi:namedview>
+  <defs
+     id="later" />
+  <g
+     inkscape:groupmode="layer"
+     id="main">
+    <path
+       id="back"
+       style="fill:#5a7d93;fill-opacity:1;stroke:none;stroke-width:2.64583;stroke-linecap:square"
+       d="m 115.09374,19.182291 c -11.69353,4.932456 -17.720643,11.427771 -19.182286,19.18229 0,0 -5.754699,10e-7 -7.672917,1.91823 -1.918228,1.918218 -1.918229,7.672916 -1.918229,7.672916 V 67.138018 L 57.546872,76.729163 V 86.320308 105.5026 L 38.364581,95.911454 C 25.875055,98.335797 22.473888,106.67909 19.182291,115.09374 H 76.729163 L 115.09374,76.729163 Z"
+       sodipodi:nodetypes="ccscccccccccc" />
+    <path
+       id="fore"
+       style="display:inline;fill:#90b8d2;fill-opacity:1;stroke:none;stroke-width:2.64583;stroke-linecap:square"
+       d="M 19.182291,115.09374 38.364577,95.91145 c 0,0 5.754699,-10e-7 7.672917,-1.91823 1.918228,-1.918218 1.918229,-7.672916 1.918229,-7.672916 V 67.138013 L 76.729159,57.546868 V 47.955723 28.773431 L 95.91145,38.364577 115.09374,19.182291 H 57.546868 L 19.182291,57.546868 Z" />
+  </g>
+</svg>
