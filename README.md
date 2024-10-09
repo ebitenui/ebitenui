@@ -26,7 +26,7 @@ All graphics used by Ebiten UI can be fully customized, so you can really make y
 
 Documentation on how to use and extend Ebiten UI is available at [ebitenui.github.io](https://ebitenui.github.io).
 
-![Screenshots](_media/ebiten-ui.gif)
+![Screenshots](_media/ebitenui.gif)
 
 Quick Start
 ------

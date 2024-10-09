@@ -1,9 +1,10 @@
 package widget
 
 import (
+	"bytes"
+	_ "embed"
 	img "image"
 	"log"
-	"os"
 	"sync"
 	"testing"
 
@@ -13,6 +14,9 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
+
+//go:embed testdata/fonts/notosans-regular.ttf
+var data []byte
 
 type simpleWidget struct {
 	widget          *Widget
@@ -47,12 +51,7 @@ func loadFont(t *testing.T) text.Face {
 	t.Helper()
 
 	loadFontOnce.Do(func() {
-
-		data, err := os.Open("testdata/fonts/NotoSans-Regular.ttf")
-		if err != nil {
-			panic(err)
-		}
-		s, err := text.NewGoTextFaceSource(data)
+		s, err := text.NewGoTextFaceSource(bytes.NewReader(data))
 		if err != nil {
 			log.Fatal(err)
 		}

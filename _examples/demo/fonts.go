@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	fontFaceRegular = "assets/fonts/NotoSans-Regular.ttf"
-	fontFaceBold    = "assets/fonts/NotoSans-Bold.ttf"
+	fontFaceRegular = "assets/fonts/notosans-regular.ttf"
+	fontFaceBold    = "assets/fonts/notosans-bold.ttf"
 )
 
 type fonts struct {
