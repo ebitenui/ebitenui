@@ -3,8 +3,6 @@ name: Go
 on:
   push:
     branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
     
 permissions:
   contents: write
@@ -22,16 +20,20 @@ jobs:
     - name: Update apt-get
       run: sudo apt-get update
     - name: Install xorg-dev
-      run: sudo apt-get install -y xorg-dev
+      run: sudo apt-get install -y xorg-dev xvfb
     - name: Install libgl1-mesa-dev
       run: sudo apt-get install -y libgl1-mesa-dev
+    - name: Vet
+      run: go vet ./...
+    - name: Test
+      run: xvfb-run go test ./...
     - name: Build
       run: go build -v ./...
     - name: Build Demo wasm
       run: GOOS=js GOARCH=wasm go build -o ./wasm/demo.wasm ./_examples/demo
     - name: Build examples
       run: |
-        find ./_examples/widget_demos -maxdepth 1 -mindepth 1 -type d -exec bash -c 'MARK=$(basename "{}") &&  GOOS=js GOARCH=wasm go build -o ./wasm/$MARK.wasm {}' \;
+        find ./_examples/widget_demos -maxdepth 1 -mindepth 1 -type d -exec bash -c 'NAME=$(basename "{}") &&  GOOS=js GOARCH=wasm go build -o ./wasm/$NAME.wasm {}' \;
         ls ./wasm
     - name: Deploy Examples to docs/wasm
       uses: JamesIves/github-pages-deploy-action@v4
