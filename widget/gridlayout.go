@@ -223,14 +223,14 @@ func (g *GridLayout) stretchedCellSizes(colWidths []int, rowHeights []int, rect 
 }
 
 func (g *GridLayout) columnStretched(c int) bool {
-	if g.columnStretched == nil || c >= len(g.columnStretch) {
+	if c >= len(g.columnStretch) {
 		return g.defaultColumnStretch
 	}
 	return g.columnStretch[c]
 }
 
 func (g *GridLayout) rowStretched(r int) bool {
-	if g.rowStretched == nil || r >= len(g.rowStretch) {
+	if r >= len(g.rowStretch) {
 		return g.defaultRowStretch
 	}
 	return g.rowStretch[r]
