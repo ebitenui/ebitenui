@@ -3,8 +3,6 @@ name: Go
 on:
   push:
     branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
     
 permissions:
   contents: write
@@ -25,6 +23,10 @@ jobs:
       run: sudo apt-get install -y xorg-dev
     - name: Install libgl1-mesa-dev
       run: sudo apt-get install -y libgl1-mesa-dev
+    - name: Vet
+      run: go vet ./...
+    - name: Test
+      run: go test ./...
     - name: Build
       run: go build -v ./...
     - name: Build Demo wasm
