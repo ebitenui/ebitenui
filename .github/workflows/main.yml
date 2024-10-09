@@ -20,11 +20,13 @@ jobs:
     - name: Update apt-get
       run: sudo apt-get update
     - name: Install xorg-dev
-      run: sudo apt-get install -y xorg-dev
+      run: sudo apt-get install -y xorg-dev xvfb
     - name: Install libgl1-mesa-dev
       run: sudo apt-get install -y libgl1-mesa-dev
     - name: Vet
       run: go vet ./...
+    - name: Test
+      run: go test ./...
     - name: Build
       run: go build -v ./...
     - name: Build Demo wasm
