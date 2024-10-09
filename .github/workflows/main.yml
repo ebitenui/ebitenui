@@ -28,7 +28,7 @@ jobs:
     - name: Test
       run: go test ./...
       env:
-        DISPLAY: :1
+        DISPLAY: :0
     - name: Build
       run: go build -v ./...
     - name: Build Demo wasm
