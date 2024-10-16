@@ -286,7 +286,7 @@ func (g *GridLayout) applyLayoutData(ld GridLayoutData, wx int, wy int, ww int, 
 
 	switch ld.VerticalPosition {
 	case GridLayoutPositionCenter:
-		wy = x + (ch-wh)/2
+		wy = y + (ch-wh)/2
 	case GridLayoutPositionEnd:
 		wy = y + ch - wh
 	}
