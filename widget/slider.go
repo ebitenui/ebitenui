@@ -297,7 +297,9 @@ func (s *Slider) Render(screen *ebiten.Image) {
 
 	s.handle.Render(screen)
 
-	s.fireEvents()
+	if s.Current != s.lastCurrent {
+		s.fireEvents()
+	}
 
 	s.lastCurrent = s.Current
 }
@@ -367,13 +369,11 @@ func (s *Slider) handleDirection() {
 }
 
 func (s *Slider) fireEvents() {
-	if s.Current != s.lastCurrent {
-		s.ChangedEvent.Fire(&SliderChangedEventArgs{
-			Slider:  s,
-			Current: s.Current,
-			Dragging: s.dragging,
-		})
-	}
+	s.ChangedEvent.Fire(&SliderChangedEventArgs{
+		Slider:  s,
+		Current: s.Current,
+		Dragging: s.dragging,
+	})
 }
 
 func (s *Slider) updateHandleSize(handleLength float64) {
@@ -548,6 +548,7 @@ func (s *Slider) createWidget() {
 
 		ButtonOpts.ReleasedHandler(func(_ *ButtonReleasedEventArgs) {
 			s.dragging = false
+			s.fireEvents()
 		}),
 
 		ButtonOpts.WidgetOpts(WidgetOpts.ScrolledHandler(func(args *WidgetScrolledEventArgs) {
