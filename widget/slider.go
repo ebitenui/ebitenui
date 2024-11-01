@@ -175,6 +175,13 @@ func (o SliderOptions) MinMax(min int, max int) SliderOpt {
 	}
 }
 
+func (o SliderOptions) InitialCurrent(value int) SliderOpt {
+	return func(s *Slider) {
+		s.Current = value
+		s.lastCurrent = value
+	}
+}
+
 func (o SliderOptions) PageSizeFunc(f SliderPageSizeFunc) SliderOpt {
 	return func(s *Slider) {
 		s.pageSizeFunc = f

@@ -32,7 +32,8 @@ func main() {
 		widget.SliderOpts.Direction(widget.DirectionHorizontal),
 		// Set the minimum and maximum value for the slider
 		widget.SliderOpts.MinMax(0, 10),
-
+		// Set the current value of the slider, without triggering a change event
+		widget.SliderOpts.InitialCurrent(5),
 		widget.SliderOpts.WidgetOpts(
 			// Set the Widget to layout in the center on the screen
 			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
@@ -68,8 +69,6 @@ func main() {
 			fmt.Println(args.Current)
 		}),
 	)
-	// Set the current value of the slider
-	slider.Current = 5
 	// add the slider as a child of the container
 	rootContainer.AddChild(slider)
 
