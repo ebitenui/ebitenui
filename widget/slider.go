@@ -371,6 +371,7 @@ func (s *Slider) fireEvents() {
 		s.ChangedEvent.Fire(&SliderChangedEventArgs{
 			Slider:  s,
 			Current: s.Current,
+			Dragging: s.dragging,
 		})
 	}
 }

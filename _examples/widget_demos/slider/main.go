@@ -66,7 +66,7 @@ func main() {
 		}),
 		// Set the callback to call when the slider value is changed
 		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
-			fmt.Println(args.Current)
+			fmt.Println(args.Current, "dragging", args.Dragging)
 		}),
 	)
 	// add the slider as a child of the container
