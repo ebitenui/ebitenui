@@ -94,7 +94,9 @@ func (o ListComboButtonOptions) EntryLabelFunc(button SelectComboButtonEntryLabe
 func (o ListComboButtonOptions) EntrySelectedHandler(f ListComboButtonEntrySelectedHandlerFunc) ListComboButtonOpt {
 	return func(l *ListComboButton) {
 		l.EntrySelectedEvent.AddHandler(func(args interface{}) {
-			f(args.(*ListComboButtonEntrySelectedEventArgs))
+			if arg, ok := args.(*ListComboButtonEntrySelectedEventArgs); ok {
+				f(arg)
+			}
 		})
 	}
 }
@@ -220,18 +222,20 @@ func (l *ListComboButton) createWidget() {
 	}
 
 	l.button.EntrySelectedEvent.AddHandler(func(args interface{}) {
-		a := args.(*SelectComboButtonEntrySelectedEventArgs)
-		l.EntrySelectedEvent.Fire(&ListComboButtonEntrySelectedEventArgs{
-			Button:        l,
-			Entry:         a.Entry,
-			PreviousEntry: a.PreviousEntry,
-		})
+		if a, ok := args.(*SelectComboButtonEntrySelectedEventArgs); ok {
+			l.EntrySelectedEvent.Fire(&ListComboButtonEntrySelectedEventArgs{
+				Button:        l,
+				Entry:         a.Entry,
+				PreviousEntry: a.PreviousEntry,
+			})
+		}
 	})
 
 	l.list.EntrySelectedEvent.AddHandler(func(args interface{}) {
-		a := args.(*ListEntrySelectedEventArgs)
-		l.SetContentVisible(false)
-		l.SetSelectedEntry(a.Entry)
+		if a, ok := args.(*ListEntrySelectedEventArgs); ok {
+			l.SetContentVisible(false)
+			l.SetSelectedEntry(a.Entry)
+		}
 	})
 }
 

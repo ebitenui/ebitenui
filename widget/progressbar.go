@@ -206,11 +206,12 @@ func (s *ProgressBar) currentPercentage() float64 {
 
 func (s *ProgressBar) SetCurrent(value int) bool {
 	oldValue := s.current
-	if value < s.Min {
+	switch {
+	case value < s.Min:
 		s.current = s.Min
-	} else if value > s.Max {
+	case value > s.Max:
 		s.current = s.Max
-	} else {
+	default:
 		s.current = value
 	}
 	return oldValue != s.current

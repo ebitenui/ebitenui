@@ -17,7 +17,8 @@ func TestList_SelectedEntry_Initial(t *testing.T) {
 		ListOpts.Entries(entries),
 
 		ListOpts.EntryLabelFunc(func(e interface{}) string {
-			return e.(string)
+			result, _ := e.(string)
+			return result
 		}),
 
 		ListOpts.EntrySelectedHandler(func(_ *ListEntrySelectedEventArgs) {
@@ -39,7 +40,8 @@ func TestList_SetSelectedEntry(t *testing.T) {
 		ListOpts.Entries(entries),
 
 		ListOpts.EntryLabelFunc(func(e interface{}) string {
-			return e.(string)
+			result, _ := e.(string)
+			return result
 		}),
 
 		ListOpts.EntrySelectedHandler(func(args *ListEntrySelectedEventArgs) {
@@ -71,7 +73,8 @@ func TestList_EntrySelectedEvent_User(t *testing.T) {
 		ListOpts.Entries(entries),
 
 		ListOpts.EntryLabelFunc(func(e interface{}) string {
-			return e.(string)
+			result, _ := e.(string)
+			return result
 		}),
 
 		ListOpts.EntrySelectedHandler(func(args *ListEntrySelectedEventArgs) {
@@ -101,7 +104,8 @@ func TestList_EntrySelectedEvent_User_AllowReselect(t *testing.T) {
 		ListOpts.Entries(entries),
 
 		ListOpts.EntryLabelFunc(func(e interface{}) string {
-			return e.(string)
+			result, _ := e.(string)
+			return result
 		}),
 
 		ListOpts.AllowReselect(),

@@ -88,20 +88,20 @@ func TestTabBook_GetTabButton(t *testing.T) {
 	tb := newTabBook(t,
 		TabBookOpts.Tabs(tab1, tab2),
 	)
-	//Test Nil Pointer
+	// Test Nil Pointer
 	is.True(tb.GetTabButton(nil) == nil)
 
-	//Test existing tab
+	// Test existing tab
 	is.True(tb.GetTabButton(tab1) != nil)
 	is.True(tb.GetTabButton(tab1).Text() != nil)
 	is.Equal(tb.GetTabButton(tab1).Text().Label, "Tab 1")
 
-	//Test existing tab
+	// Test existing tab
 	is.True(tb.GetTabButton(tab2) != nil)
 	is.True(tb.GetTabButton(tab2).Text() != nil)
 	is.Equal(tb.GetTabButton(tab2).Text().Label, "Tab 2")
 
-	//Test non-existing tab
+	// Test non-existing tab
 	is.True(tb.GetTabButton(tab3) == nil)
 }
 

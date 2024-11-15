@@ -115,7 +115,9 @@ func (o CheckboxOptions) TabOrder(tabOrder int) CheckboxOpt {
 func (o CheckboxOptions) StateChangedHandler(f CheckboxChangedHandlerFunc) CheckboxOpt {
 	return func(c *Checkbox) {
 		c.StateChangedEvent.AddHandler(func(args interface{}) {
-			f(args.(*CheckboxChangedEventArgs))
+			if arg, ok := args.(*CheckboxChangedEventArgs); ok {
+				f(arg)
+			}
 		})
 	}
 }

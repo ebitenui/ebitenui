@@ -11,11 +11,11 @@ import (
 type WindowCloseMode int
 
 const (
-	// The window will not automatically close
+	// The window will not automatically close.
 	NONE WindowCloseMode = iota
-	// The window will close when you click anywhere
+	// The window will close when you click anywhere.
 	CLICK
-	// The window will close when you click outside the window
+	// The window will close when you click outside the window.
 	CLICK_OUT
 )
 
@@ -47,7 +47,7 @@ type Window struct {
 	MinSize    *image.Point
 	MaxSize    *image.Point
 	DrawLayer  int
-	//Used to indicate this window should close if other windows close.
+	// Used to indicate this window should close if other windows close.
 	Ephemeral bool
 
 	closeMode WindowCloseMode
@@ -61,6 +61,7 @@ type Window struct {
 	resizing       bool
 	resizingWidth  bool
 	resizingHeight bool
+	blockLower     bool
 	originalSize   image.Point
 	init           *MultiOnce
 }
@@ -78,6 +79,7 @@ func NewWindow(opts ...WindowOpt) *Window {
 		ResizeEvent: &event.Event{},
 		ClosedEvent: &event.Event{},
 		init:        &MultiOnce{},
+		blockLower:  true,
 	}
 	w.init.Append(w.createWidget)
 	for _, o := range opts {
@@ -96,14 +98,14 @@ func (w *Window) validate() {
 	}
 }
 
-// This is the container with the body of this window
+// This is the container with the body of this window.
 func (o WindowOptions) Contents(c *Container) WindowOpt {
 	return func(w *Window) {
 		w.Contents = c
 	}
 }
 
-// Sets the container for the TitleBar and its fixed height
+// Sets the container for the TitleBar and its fixed height.
 func (o WindowOptions) TitleBar(tb *Container, height int) WindowOpt {
 	return func(w *Window) {
 		w.TitleBar = tb
@@ -119,55 +121,66 @@ func (o WindowOptions) Modal() WindowOpt {
 }
 
 // Sets the window to be draggable. The handle for this is the titleBar.
-// If you haven't provided a titleBar this option is ignored
+// If you haven't provided a titleBar this option is ignored.
 func (o WindowOptions) Draggable() WindowOpt {
 	return func(w *Window) {
 		w.Draggable = true
 	}
 }
 
-// Sets the window to be resizeable
+// Sets the window to be resizeable.
 func (o WindowOptions) Resizeable() WindowOpt {
 	return func(w *Window) {
 		w.Resizeable = true
 	}
 }
 
-// Sets the minimum size that the window can be reszied to
+// Sets the window to be block.
+func (o WindowOptions) BlockLower(blockLower bool) WindowOpt {
+	return func(w *Window) {
+		w.blockLower = blockLower
+	}
+}
+
+// Sets the minimum size that the window can be reszied to.
 func (o WindowOptions) MinSize(width int, height int) WindowOpt {
 	return func(w *Window) {
 		w.MinSize = &image.Point{X: width, Y: height}
 	}
 }
 
-// Set the maximum size that the window can be resized to
+// Set the maximum size that the window can be resized to.
 func (o WindowOptions) MaxSize(width int, height int) WindowOpt {
 	return func(w *Window) {
 		w.MaxSize = &image.Point{X: width, Y: height}
 	}
 }
 
-// Set the way this window should close
+// Set the way this window should close.
 func (o WindowOptions) CloseMode(mode WindowCloseMode) WindowOpt {
 	return func(w *Window) {
 		w.closeMode = mode
 	}
 }
 
-// This handler is triggered when a move event is completed
+// This handler is triggered when a move event is completed.
 func (o WindowOptions) MoveHandler(f WindowChangedHandlerFunc) WindowOpt {
 	return func(w *Window) {
 		w.MoveEvent.AddHandler(func(args interface{}) {
-			f(args.(*WindowChangedEventArgs))
+			if arg, ok := args.(*WindowChangedEventArgs); ok {
+				f(arg)
+			}
 		})
 	}
 }
 
-// This handler is triggered when a resize event is completed
+// This handler is triggered when a resize event is completed.
 func (o WindowOptions) ResizeHandler(f WindowChangedHandlerFunc) WindowOpt {
 	return func(w *Window) {
 		w.ResizeEvent.AddHandler(func(args interface{}) {
-			f(args.(*WindowChangedEventArgs))
+			if arg, ok := args.(*WindowChangedEventArgs); ok {
+				f(arg)
+			}
 		})
 	}
 }
@@ -182,7 +195,9 @@ func (o WindowOptions) ResizeHandler(f WindowChangedHandlerFunc) WindowOpt {
 func (o WindowOptions) ClosedHandler(f WindowClosedHandlerFunc) WindowOpt {
 	return func(w *Window) {
 		w.ClosedEvent.AddHandler(func(args interface{}) {
-			f(args.(*WindowClosedEventArgs))
+			if arg, ok := args.(*WindowClosedEventArgs); ok {
+				f(arg)
+			}
 		})
 	}
 }
@@ -204,7 +219,7 @@ func (o WindowOptions) DrawLayer(layer int) WindowOpt {
 	}
 }
 
-// This method is used to be able to close the window
+// This method is used to be able to close the window.
 func (w *Window) Close() {
 	if w.closeFunc != nil {
 		w.closeFunc()
@@ -239,15 +254,15 @@ func (w *Window) SetLocation(rect image.Rectangle) {
 
 // Typically used internally.
 //
-//	Returns the root container that holds the provided titlebar and contents
+//	Returns the root container that holds the provided titlebar and contents.
 func (w *Window) GetContainer() *Container {
 	return w.container
 }
 
 // Typically used internally.
-func (w *Window) SetCloseFunction(close RemoveWindowFunc) {
+func (w *Window) SetCloseFunction(removeWindowFunc RemoveWindowFunc) {
 	w.closeFunc = func() {
-		close()
+		removeWindowFunc()
 		w.ClosedEvent.Fire(&WindowClosedEventArgs{
 			Window: w,
 		})
@@ -259,17 +274,17 @@ func (w *Window) GetCloseFunction() RemoveWindowFunc {
 	return w.closeFunc
 }
 
-// Typically used internally
+// Typically used internally.
 func (w *Window) RequestRelayout() {
 	w.container.RequestRelayout()
 }
 
-// Typically used internally
+// Typically used internally.
 func (w *Window) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 	w.container.GetWidget().ElevateToNewInputLayer(&input.Layer{
 		DebugLabel: "window",
 		EventTypes: input.LayerEventTypeAll,
-		BlockLower: !w.Ephemeral,
+		BlockLower: w.blockLower && !w.Ephemeral,
 		FullScreen: w.Modal,
 		RectFunc: func() image.Rectangle {
 			return w.container.GetWidget().Rect
@@ -278,7 +293,7 @@ func (w *Window) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 	w.container.SetupInputLayer(def)
 }
 
-// Typically used internally
+// Typically used internally.
 func (w *Window) Render(screen *ebiten.Image) {
 	x, y := input.CursorPosition()
 
@@ -309,15 +324,16 @@ func (w *Window) Render(screen *ebiten.Image) {
 			xRect := image.Rect(w.container.GetWidget().Rect.Max.X-6, w.container.GetWidget().Rect.Min.Y, w.container.GetWidget().Rect.Max.X, w.container.GetWidget().Rect.Max.Y)
 			yRect := image.Rect(w.container.GetWidget().Rect.Min.X, w.container.GetWidget().Rect.Max.Y-6, w.container.GetWidget().Rect.Max.X, w.container.GetWidget().Rect.Max.Y)
 			cursorRect := image.Rect(x, y, x+1, y+1)
-			if cursorRect.Overlaps(xRect) {
+			switch {
+			case cursorRect.Overlaps(xRect):
 				input.SetCursorShape(input.CURSOR_EWRESIZE)
 				w.resizingWidth = true
 				w.resizingHeight = false
-			} else if cursorRect.Overlaps(yRect) {
+			case cursorRect.Overlaps(yRect):
 				input.SetCursorShape(input.CURSOR_NSRESIZE)
 				w.resizingWidth = false
 				w.resizingHeight = true
-			} else if !input.MouseButtonPressed(ebiten.MouseButtonLeft) {
+			case !input.MouseButtonPressed(ebiten.MouseButtonLeft):
 				w.resizingWidth = false
 				w.resizingHeight = false
 			}
@@ -347,21 +363,23 @@ func (w *Window) createWidget() {
 		w.TitleBar.GetWidget().MinHeight = w.titleBarHeight
 		if w.Draggable {
 			w.TitleBar.GetWidget().MouseButtonPressedEvent.AddHandler(func(a any) {
-				args := a.(*WidgetMouseButtonPressedEventArgs)
-				if args.Button == ebiten.MouseButtonLeft {
-					x, y := input.CursorPosition()
-					w.startingPoint = image.Point{x, y}
-					w.dragging = true
+				if args, ok := a.(*WidgetMouseButtonPressedEventArgs); ok {
+					if args.Button == ebiten.MouseButtonLeft {
+						x, y := input.CursorPosition()
+						w.startingPoint = image.Point{x, y}
+						w.dragging = true
+					}
 				}
 			})
 			w.TitleBar.GetWidget().MouseButtonReleasedEvent.AddHandler(func(a any) {
-				args := a.(*WidgetMouseButtonReleasedEventArgs)
-				if w.dragging && args.Button == ebiten.MouseButtonLeft {
-					w.dragging = false
-					w.MoveEvent.Fire(&WindowChangedEventArgs{
-						Window: w,
-						Rect:   w.container.GetWidget().Rect,
-					})
+				if args, ok := a.(*WidgetMouseButtonReleasedEventArgs); ok {
+					if w.dragging && args.Button == ebiten.MouseButtonLeft {
+						w.dragging = false
+						w.MoveEvent.Fire(&WindowChangedEventArgs{
+							Window: w,
+							Rect:   w.container.GetWidget().Rect,
+						})
+					}
 				}
 			})
 		}
@@ -381,23 +399,25 @@ func (w *Window) createWidget() {
 
 	if w.Resizeable {
 		w.Contents.GetWidget().MouseButtonPressedEvent.AddHandler(func(a any) {
-			args := a.(*WidgetMouseButtonPressedEventArgs)
-			if args.Button == ebiten.MouseButtonLeft {
-				x, y := input.CursorPosition()
-				w.startingPoint = image.Point{x, y}
-				w.originalSize.X = w.container.GetWidget().Rect.Max.X
-				w.originalSize.Y = w.container.GetWidget().Rect.Max.Y
-				w.resizing = true
+			if args, ok := a.(*WidgetMouseButtonPressedEventArgs); ok {
+				if args.Button == ebiten.MouseButtonLeft {
+					x, y := input.CursorPosition()
+					w.startingPoint = image.Point{x, y}
+					w.originalSize.X = w.container.GetWidget().Rect.Max.X
+					w.originalSize.Y = w.container.GetWidget().Rect.Max.Y
+					w.resizing = true
+				}
 			}
 		})
 		w.Contents.GetWidget().MouseButtonReleasedEvent.AddHandler(func(a any) {
-			args := a.(*WidgetMouseButtonReleasedEventArgs)
-			if w.resizing && args.Button == ebiten.MouseButtonLeft {
-				w.resizing = false
-				w.ResizeEvent.Fire(&WindowChangedEventArgs{
-					Window: w,
-					Rect:   w.container.GetWidget().Rect,
-				})
+			if args, ok := a.(*WidgetMouseButtonReleasedEventArgs); ok {
+				if w.resizing && args.Button == ebiten.MouseButtonLeft {
+					w.resizing = false
+					w.ResizeEvent.Fire(&WindowChangedEventArgs{
+						Window: w,
+						Rect:   w.container.GetWidget().Rect,
+					})
+				}
 			}
 		})
 	}
@@ -405,10 +425,11 @@ func (w *Window) createWidget() {
 	if w.closeMode == CLICK || w.closeMode == CLICK_OUT {
 		w.container.GetWidget().CustomData = "Window"
 		w.container.GetWidget().MouseButtonReleasedEvent.AddHandler(func(args interface{}) {
-			a := args.(*WidgetMouseButtonReleasedEventArgs)
-			if w.closeMode == CLICK || (w.closeMode == CLICK_OUT && !a.Inside) {
-				if w.closeFunc != nil {
-					w.closeFunc()
+			if a, ok := args.(*WidgetMouseButtonReleasedEventArgs); ok {
+				if w.closeMode == CLICK || (w.closeMode == CLICK_OUT && !a.Inside) {
+					if w.closeFunc != nil {
+						w.closeFunc()
+					}
 				}
 			}
 		})

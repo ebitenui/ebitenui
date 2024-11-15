@@ -74,7 +74,10 @@ func TestContainer_SetupInputLayer(t *testing.T) {
 
 func (c *controlMock) GetWidget() *Widget {
 	args := c.Called()
-	return args.Get(0).(*Widget)
+	if arg, ok := args.Get(0).(*Widget); ok {
+		return arg
+	}
+	return nil
 }
 
 func (c *controlMock) PreferredSize() (int, int) {

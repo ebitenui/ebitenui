@@ -75,7 +75,9 @@ func (o SelectComboButtonOptions) ComboButtonOpts(opts ...ComboButtonOpt) Select
 func (o SelectComboButtonOptions) EntrySelectedHandler(f SelectComboButtonEntrySelectedHandlerFunc) SelectComboButtonOpt {
 	return func(s *SelectComboButton) {
 		s.EntrySelectedEvent.AddHandler(func(args interface{}) {
-			f(args.(*SelectComboButtonEntrySelectedEventArgs))
+			if arg, ok := args.(*SelectComboButtonEntrySelectedEventArgs); ok {
+				f(arg)
+			}
 		})
 	}
 }

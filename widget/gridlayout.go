@@ -110,7 +110,7 @@ func (o GridLayoutOptions) Stretch(c []bool, r []bool) GridLayoutOpt {
 }
 
 // DefaultStretch will set the stretch value to the columns/rows that are
-// extra not defined on the main Stretch
+// extra not defined on the main Stretch.
 func (o GridLayoutOptions) DefaultStretch(c bool, r bool) GridLayoutOpt {
 	return func(g *GridLayout) {
 		g.defaultColumnStretch = c
@@ -278,13 +278,18 @@ func (g *GridLayout) applyLayoutData(ld GridLayoutData, wx int, wy int, ww int, 
 	}
 
 	switch ld.HorizontalPosition {
+	case GridLayoutPositionStart:
+		// Do Nothing
 	case GridLayoutPositionCenter:
 		wx = x + (cw-ww)/2
 	case GridLayoutPositionEnd:
 		wx = x + cw - ww
+
 	}
 
 	switch ld.VerticalPosition {
+	case GridLayoutPositionStart:
+		// Do Nothing
 	case GridLayoutPositionCenter:
 		wy = y + (ch-wh)/2
 	case GridLayoutPositionEnd:

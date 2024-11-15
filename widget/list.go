@@ -238,7 +238,9 @@ func (o ListOptions) EntryTextPosition(h TextPosition, v TextPosition) ListOpt {
 func (o ListOptions) EntrySelectedHandler(f ListEntrySelectedHandlerFunc) ListOpt {
 	return func(l *List) {
 		l.EntrySelectedEvent.AddHandler(func(args any) {
-			f(args.(*ListEntrySelectedEventArgs))
+			if arg, ok := args.(*ListEntrySelectedEventArgs); ok {
+				f(arg)
+			}
 		})
 	}
 }
@@ -482,12 +484,13 @@ func (l *List) createWidget() {
 		l.container.AddChild(l.vSlider)
 
 		l.scrollContainer.widget.ScrolledEvent.AddHandler(func(args any) {
-			a := args.(*WidgetScrolledEventArgs)
-			p := pageSizeFunc() / 3
-			if p < 1 {
-				p = 1
+			if a, ok := args.(*WidgetScrolledEventArgs); ok {
+				p := pageSizeFunc() / 3
+				if p < 1 {
+					p = 1
+				}
+				l.vSlider.Current -= int(math.Round(a.Y * float64(p)))
 			}
-			l.vSlider.Current -= int(math.Round(a.Y * float64(p)))
 		})
 	}
 
@@ -510,7 +513,7 @@ func (l *List) createWidget() {
 // Updates the entries in the list.
 // Note: Duplicates will be removed.
 func (l *List) SetEntries(newEntries []any) {
-	//Remove old entries
+	// Remove old entries
 	for i := range l.entries {
 		but := l.buttons[i]
 		l.listContent.RemoveChild(but)
@@ -518,7 +521,7 @@ func (l *List) SetEntries(newEntries []any) {
 	l.entries = nil
 	l.buttons = nil
 
-	//Add new Entries
+	// Add new Entries
 	for idx := range newEntries {
 		if !slices.ContainsFunc(l.entries, func(cmp any) bool {
 			return cmp == newEntries[idx]
@@ -533,7 +536,7 @@ func (l *List) SetEntries(newEntries []any) {
 	l.resetFocusIndex()
 }
 
-// Remove the passed in entry from the list if it exists
+// Remove the passed in entry from the list if it exists.
 func (l *List) RemoveEntry(entry any) {
 	l.init.Do()
 
@@ -561,7 +564,7 @@ func (l *List) RemoveEntry(entry any) {
 }
 
 // Add a new entry to the end of the list
-// Note: Duplicates will not be added
+// Note: Duplicates will not be added.
 func (l *List) AddEntry(entry any) {
 	l.init.Do()
 	if !l.checkForDuplicates(l.entries, entry) {
@@ -573,13 +576,13 @@ func (l *List) AddEntry(entry any) {
 	l.resetFocusIndex()
 }
 
-// Return the current entries in the list
+// Return the current entries in the list.
 func (l *List) Entries() []any {
 	l.init.Do()
 	return l.entries
 }
 
-// Return the currently selected entry in the list
+// Return the currently selected entry in the list.
 func (l *List) SelectedEntry() any {
 	l.init.Do()
 	return l.selectedEntry

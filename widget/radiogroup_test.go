@@ -40,7 +40,9 @@ func TestRadioGroup_ChangedEvent_User(t *testing.T) {
 
 	var eventArgs *RadioGroupChangedEventArgs
 	r.ChangedEvent.AddHandler(func(args interface{}) {
-		eventArgs = args.(*RadioGroupChangedEventArgs)
+		if a, ok := args.(*RadioGroupChangedEventArgs); ok {
+			eventArgs = a
+		}
 	})
 
 	leftMouseButtonClick(cbs[1], t)
@@ -64,7 +66,9 @@ func TestRadioGroup_SetActive(t *testing.T) {
 
 	var eventArgs *RadioGroupChangedEventArgs
 	r.ChangedEvent.AddHandler(func(args interface{}) {
-		eventArgs = args.(*RadioGroupChangedEventArgs)
+		if a, ok := args.(*RadioGroupChangedEventArgs); ok {
+			eventArgs = a
+		}
 	})
 
 	r.SetActive(cbs[1])

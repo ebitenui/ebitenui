@@ -65,8 +65,7 @@ func NewRadioGroup(opts ...RadioGroupOpt) *RadioGroup {
 func (o RadioGroupOptions) Elements(e ...RadioGroupElement) RadioGroupOpt {
 	return func(r *RadioGroup) {
 		for idx := range e {
-			switch eletype := e[idx].(type) {
-			case *Button:
+			if eletype, ok := e[idx].(*Button); ok {
 				eletype.ToggleMode = true
 			}
 		}
@@ -77,7 +76,9 @@ func (o RadioGroupOptions) Elements(e ...RadioGroupElement) RadioGroupOpt {
 func (o RadioGroupOptions) ChangedHandler(f RadioGroupChangedHandlerFunc) RadioGroupOpt {
 	return func(r *RadioGroup) {
 		r.ChangedEvent.AddHandler(func(args interface{}) {
-			f(args.(*RadioGroupChangedEventArgs))
+			if arg, ok := args.(*RadioGroupChangedEventArgs); ok {
+				f(arg)
+			}
 		})
 	}
 }

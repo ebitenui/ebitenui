@@ -101,7 +101,7 @@ func NewTabBookTab(label string, opts ...ContainerOpt) *TabBookTab {
 	c.init = &MultiOnce{}
 	c.init.Append(c.createWidget)
 
-	//Set a default layout so that tabs use the full container
+	// Set a default layout so that tabs use the full container
 	c.widgetOpts = append(c.widgetOpts, WidgetOpts.LayoutData(AnchorLayoutData{
 		StretchHorizontal:  true,
 		StretchVertical:    true,
@@ -173,7 +173,9 @@ func (o TabBookOptions) InitialTab(tab *TabBookTab) TabBookOpt {
 func (o TabBookOptions) TabSelectedHandler(f TabBookTabSelectedHandlerFunc) TabBookOpt {
 	return func(t *TabBook) {
 		t.TabSelectedEvent.AddHandler(func(args interface{}) {
-			f(args.(*TabBookTabSelectedEventArgs))
+			if arg, ok := args.(*TabBookTabSelectedEventArgs); ok {
+				f(arg)
+			}
 		})
 	}
 }
@@ -261,7 +263,7 @@ func (t *TabBook) createWidget() {
 			}
 		}
 	}
-	//If we cannot find an initial tab default to to the first one
+	// If we cannot find an initial tab default to to the first one
 	if firstTab == nil {
 		firstTab = t.tabs[0]
 	}
@@ -270,8 +272,11 @@ func (t *TabBook) createWidget() {
 		RadioGroupOpts.Elements(btnElements...),
 		RadioGroupOpts.InitialElement(t.tabToButton[firstTab]),
 		RadioGroupOpts.ChangedHandler(func(args *RadioGroupChangedEventArgs) {
-			tab := args.Active.(*Button).GetWidget().CustomData.(*TabBookTab)
-			t.SetTab(tab)
+			if hasWidget, ok := args.Active.(HasWidget); ok {
+				if tab, ok := hasWidget.GetWidget().CustomData.(*TabBookTab); ok {
+					t.SetTab(tab)
+				}
+			}
 		}))
 
 	t.buttonOpts = nil
@@ -315,12 +320,12 @@ func (t *TabBook) SetTab(tab *TabBookTab) {
 	}
 }
 
-// Return the currently selected tab
+// Return the currently selected tab.
 func (t *TabBook) Tab() *TabBookTab {
 	return t.tab
 }
 
-// Return the button associated with the provided TabBookTab if not exists else nil
+// Return the button associated with the provided TabBookTab if not exists else nil.
 func (t *TabBook) GetTabButton(tab *TabBookTab) *Button {
 	t.init.Do()
 

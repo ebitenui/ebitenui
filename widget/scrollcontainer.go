@@ -54,20 +54,24 @@ func NewScrollContainer(opts ...ScrollContainerOpt) *ScrollContainer {
 	s.validate()
 
 	s.content.GetWidget().ContextMenuEvent.AddHandler(func(args interface{}) {
-		a := args.(*WidgetContextMenuEventArgs)
-		s.GetWidget().FireContextMenuEvent(a.Widget, a.Location)
+		if a, ok := args.(*WidgetContextMenuEventArgs); ok {
+			s.GetWidget().FireContextMenuEvent(a.Widget, a.Location)
+		}
 	})
 	s.content.GetWidget().FocusEvent.AddHandler(func(args interface{}) {
-		a := args.(*WidgetFocusEventArgs)
-		s.GetWidget().FireFocusEvent(a.Widget, a.Focused, a.Location)
+		if a, ok := args.(*WidgetFocusEventArgs); ok {
+			s.GetWidget().FireFocusEvent(a.Widget, a.Focused, a.Location)
+		}
 	})
 	s.content.GetWidget().ToolTipEvent.AddHandler(func(args interface{}) {
-		a := args.(*WidgetToolTipEventArgs)
-		s.GetWidget().FireToolTipEvent(a.Window, a.Show)
+		if a, ok := args.(*WidgetToolTipEventArgs); ok {
+			s.GetWidget().FireToolTipEvent(a.Window, a.Show)
+		}
 	})
 	s.content.GetWidget().DragAndDropEvent.AddHandler(func(args interface{}) {
-		a := args.(*WidgetDragAndDropEventArgs)
-		s.GetWidget().FireDragAndDropEvent(a.Window, a.Show, a.DnD)
+		if a, ok := args.(*WidgetDragAndDropEventArgs); ok {
+			s.GetWidget().FireDragAndDropEvent(a.Window, a.Show, a.DnD)
+		}
 	})
 	return s
 }
@@ -194,8 +198,10 @@ func (s *ScrollContainer) GetFocusers() []Focuser {
 	result := []Focuser{}
 	switch v := s.content.(type) {
 	case Focuser:
-		if v.TabOrder() >= 0 && !v.(HasWidget).GetWidget().Disabled {
-			result = append(result, v)
+		if widget, ok := v.(HasWidget); ok {
+			if v.TabOrder() >= 0 && !widget.GetWidget().Disabled {
+				result = append(result, v)
+			}
 		}
 	case *Container:
 		result = append(result, v.GetFocusers()...)

@@ -21,10 +21,10 @@ type Widget struct {
 	// GridLayoutData to be used.
 	LayoutData interface{}
 
-	//The minimum width for this Widget
+	// The minimum width for this Widget
 	MinWidth int
 
-	//The minimum height for this Widget
+	// The minimum height for this Widget
 	MinHeight int
 
 	// Disabled specifies whether the widget is disabled, whatever that means. Disabled widgets should
@@ -331,7 +331,9 @@ func (o WidgetOptions) LayoutData(ld interface{}) WidgetOpt {
 func (o WidgetOptions) CursorEnterHandler(f WidgetCursorEnterHandlerFunc) WidgetOpt {
 	return func(w *Widget) {
 		w.CursorEnterEvent.AddHandler(func(args interface{}) {
-			f(args.(*WidgetCursorEnterEventArgs))
+			if arg, ok := args.(*WidgetCursorEnterEventArgs); ok {
+				f(arg)
+			}
 		})
 	}
 }
@@ -340,7 +342,9 @@ func (o WidgetOptions) CursorEnterHandler(f WidgetCursorEnterHandlerFunc) Widget
 func (o WidgetOptions) CursorMoveHandler(f WidgetCursorMoveHandlerFunc) WidgetOpt {
 	return func(w *Widget) {
 		w.CursorMoveEvent.AddHandler(func(args interface{}) {
-			f(args.(*WidgetCursorMoveEventArgs))
+			if arg, ok := args.(*WidgetCursorMoveEventArgs); ok {
+				f(arg)
+			}
 		})
 	}
 }
@@ -349,7 +353,9 @@ func (o WidgetOptions) CursorMoveHandler(f WidgetCursorMoveHandlerFunc) WidgetOp
 func (o WidgetOptions) CursorExitHandler(f WidgetCursorExitHandlerFunc) WidgetOpt {
 	return func(w *Widget) {
 		w.CursorExitEvent.AddHandler(func(args interface{}) {
-			f(args.(*WidgetCursorExitEventArgs))
+			if arg, ok := args.(*WidgetCursorExitEventArgs); ok {
+				f(arg)
+			}
 		})
 	}
 }
@@ -358,7 +364,9 @@ func (o WidgetOptions) CursorExitHandler(f WidgetCursorExitHandlerFunc) WidgetOp
 func (o WidgetOptions) MouseButtonPressedHandler(f WidgetMouseButtonPressedHandlerFunc) WidgetOpt {
 	return func(w *Widget) {
 		w.MouseButtonPressedEvent.AddHandler(func(args interface{}) {
-			f(args.(*WidgetMouseButtonPressedEventArgs))
+			if arg, ok := args.(*WidgetMouseButtonPressedEventArgs); ok {
+				f(arg)
+			}
 		})
 	}
 }
@@ -367,7 +375,9 @@ func (o WidgetOptions) MouseButtonPressedHandler(f WidgetMouseButtonPressedHandl
 func (o WidgetOptions) MouseButtonReleasedHandler(f WidgetMouseButtonReleasedHandlerFunc) WidgetOpt {
 	return func(w *Widget) {
 		w.MouseButtonReleasedEvent.AddHandler(func(args interface{}) {
-			f(args.(*WidgetMouseButtonReleasedEventArgs))
+			if arg, ok := args.(*WidgetMouseButtonReleasedEventArgs); ok {
+				f(arg)
+			}
 		})
 	}
 }
@@ -376,7 +386,9 @@ func (o WidgetOptions) MouseButtonReleasedHandler(f WidgetMouseButtonReleasedHan
 func (o WidgetOptions) ScrolledHandler(f WidgetScrolledHandlerFunc) WidgetOpt {
 	return func(w *Widget) {
 		w.ScrolledEvent.AddHandler(func(args interface{}) {
-			f(args.(*WidgetScrolledEventArgs))
+			if arg, ok := args.(*WidgetScrolledEventArgs); ok {
+				f(arg)
+			}
 		})
 	}
 }
@@ -413,7 +425,7 @@ func (o WidgetOptions) ToolTip(toolTip *ToolTip) WidgetOpt {
 	}
 }
 
-// This sets the source of a Drag and Drop action
+// This sets the source of a Drag and Drop action.
 func (o WidgetOptions) EnableDragAndDrop(d *DragAndDrop) WidgetOpt {
 	return func(w *Widget) {
 		w.DragAndDrop = d
@@ -422,14 +434,14 @@ func (o WidgetOptions) EnableDragAndDrop(d *DragAndDrop) WidgetOpt {
 
 // This sets the widget as a target of a Drag and Drop action
 //
-//	The Drop function must return true if it accepts this drop and false if it does not accept the drop
+//	The Drop function must return true if it accepts this drop and false if it does not accept the drop.
 func (o WidgetOptions) CanDrop(candropFunc CanDropFunc) WidgetOpt {
 	return func(w *Widget) {
 		w.canDrop = candropFunc
 	}
 }
 
-// This is the function that is run if an item is dropped on this widget
+// This is the function that is run if an item is dropped on this widget.
 func (o WidgetOptions) Dropped(dropFunc DropFunc) WidgetOpt {
 	return func(w *Widget) {
 		w.drop = dropFunc
@@ -670,7 +682,7 @@ func (widget *Widget) FireDragAndDropEvent(w *Window, show bool, dnd *DragAndDro
 
 // IsVisible will check if this particular widget is visible by checking Visibility of it and
 // all the parents it has, as if one of the parents is not visible this widget will not be visible
-// even if it has Visibility_Show
+// even if it has Visibility_Show.
 func (widget *Widget) IsVisible() bool {
 	if widget.Visibility != Visibility_Show {
 		return false

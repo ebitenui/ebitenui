@@ -15,9 +15,9 @@ import (
 type ToolTipPosition int
 
 const (
-	// The tooltip will follow the cursor around while visible
+	// The tooltip will follow the cursor around while visible.
 	TOOLTIP_POS_CURSOR_FOLLOW ToolTipPosition = iota
-	// The tooltip will stick to where the cursor was when the tooltip was made visible
+	// The tooltip will stick to where the cursor was when the tooltip was made visible.
 	TOOLTIP_POS_CURSOR_STICKY
 	// The tooltip will display based on the Widget and Content anchor settings.
 	// It defaults to opening right aligned and directly under the widget.
@@ -27,11 +27,11 @@ const (
 type ToolTipAnchor int
 
 const (
-	// Anchor at the start of the element
+	// Anchor at the start of the element.
 	TOOLTIP_ANCHOR_START ToolTipAnchor = iota
-	// Anchor in the middle of the element
+	// Anchor in the middle of the element.
 	TOOLTIP_ANCHOR_MIDDLE
-	// Anchor at the end of the element
+	// Anchor at the end of the element.
 	TOOLTIP_ANCHOR_END
 )
 
@@ -130,28 +130,28 @@ func NewTextToolTip(label string, face text.Face, color color.Color, background 
 	)
 }
 
-// The container to be displayed
+// The container to be displayed.
 func (o ToolTipOptions) Content(c *Container) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.content = c
 	}
 }
 
-// The X/Y offsets from the Tooltip anchor point
+// The X/Y offsets from the Tooltip anchor point.
 func (o ToolTipOptions) Offset(off image.Point) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.Offset = off
 	}
 }
 
-// The vertical position of the anchor on the widget. Only used when Postion = WIDGET
+// The vertical position of the anchor on the widget. Only used when Postion = WIDGET.
 func (o ToolTipOptions) WidgetOriginVertical(widgetOriginVertical ToolTipAnchor) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.WidgetOriginVertical = widgetOriginVertical
 	}
 }
 
-// The horizontal position of the anchor on the widget. Only used when Postion = WIDGET
+// The horizontal position of the anchor on the widget. Only used when Postion = WIDGET.
 func (o ToolTipOptions) WidgetOriginHorizontal(widgetOriginHorizontal ToolTipAnchor) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.WidgetOriginHorizontal = widgetOriginHorizontal
@@ -172,14 +172,14 @@ func (o ToolTipOptions) ContentOriginHorizontal(contentOriginHorizontal ToolTipA
 	}
 }
 
-// Where to display the tooltip
+// Where to display the tooltip.
 func (o ToolTipOptions) Position(position ToolTipPosition) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.Position = position
 	}
 }
 
-// How long to wait before displaying the tooltip
+// How long to wait before displaying the tooltip.
 func (o ToolTipOptions) Delay(d time.Duration) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.Delay = d
@@ -187,7 +187,7 @@ func (o ToolTipOptions) Delay(d time.Duration) ToolTipOpt {
 }
 
 // A method that is called every draw call that the tooltip is visible.
-// This allows you to hook into the draw loop to update the tooltip if necessary
+// This allows you to hook into the draw loop to update the tooltip if necessary.
 func (o ToolTipOptions) ToolTipUpdater(toolTipUpdater ToolTipUpdater) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.ToolTipUpdater = toolTipUpdater
@@ -242,9 +242,10 @@ func (t *ToolTip) armedState(p image.Point, timer *time.Timer, expired *atomic.V
 			parent.FireToolTipEvent(t.window, false)
 			return t.idleState()
 		}
-
-		if timer != nil && expired.Load().(bool) {
-			return t.showingState(cp)
+		if timer != nil {
+			if isExpired, _ := expired.Load().(bool); isExpired {
+				return t.showingState(cp)
+			}
 		}
 
 		if timer == nil {
@@ -303,36 +304,40 @@ func (t *ToolTip) showingState(p image.Point) toolTipState {
 
 func (t *ToolTip) processWidgetPosition(widgetRect image.Rectangle) image.Point {
 	p := image.Point{}
-	if t.WidgetOriginVertical == TOOLTIP_ANCHOR_START {
-		if t.WidgetOriginHorizontal == TOOLTIP_ANCHOR_START {
+	switch t.WidgetOriginVertical {
+	case TOOLTIP_ANCHOR_START:
+		switch t.WidgetOriginHorizontal {
+		case TOOLTIP_ANCHOR_START:
 			p.X = widgetRect.Min.X
 			p.Y = widgetRect.Min.Y
-		} else if t.WidgetOriginHorizontal == TOOLTIP_ANCHOR_MIDDLE {
+		case TOOLTIP_ANCHOR_MIDDLE:
 			p.X = widgetRect.Min.X + (widgetRect.Dx() / 2)
 			p.Y = widgetRect.Min.Y
-		} else {
+		case TOOLTIP_ANCHOR_END:
 			p.X = widgetRect.Max.X
 			p.Y = widgetRect.Min.Y
 		}
-	} else if t.WidgetOriginVertical == TOOLTIP_ANCHOR_MIDDLE {
-		if t.WidgetOriginHorizontal == TOOLTIP_ANCHOR_START {
+	case TOOLTIP_ANCHOR_MIDDLE:
+		switch t.WidgetOriginHorizontal {
+		case TOOLTIP_ANCHOR_START:
 			p.X = widgetRect.Min.X
 			p.Y = widgetRect.Min.Y + (widgetRect.Dy() / 2)
-		} else if t.WidgetOriginHorizontal == TOOLTIP_ANCHOR_MIDDLE {
+		case TOOLTIP_ANCHOR_MIDDLE:
 			p.X = widgetRect.Min.X + (widgetRect.Dx() / 2)
 			p.Y = widgetRect.Min.Y + (widgetRect.Dy() / 2)
-		} else {
+		case TOOLTIP_ANCHOR_END:
 			p.X = widgetRect.Max.X
 			p.Y = widgetRect.Min.Y + (widgetRect.Dy() / 2)
 		}
-	} else {
-		if t.WidgetOriginHorizontal == TOOLTIP_ANCHOR_START {
+	case TOOLTIP_ANCHOR_END:
+		switch t.WidgetOriginHorizontal {
+		case TOOLTIP_ANCHOR_START:
 			p.X = widgetRect.Min.X
 			p.Y = widgetRect.Max.Y
-		} else if t.WidgetOriginHorizontal == TOOLTIP_ANCHOR_MIDDLE {
+		case TOOLTIP_ANCHOR_MIDDLE:
 			p.X = widgetRect.Min.X + (widgetRect.Dx() / 2)
 			p.Y = widgetRect.Max.Y
-		} else {
+		case TOOLTIP_ANCHOR_END:
 			p.X = widgetRect.Max.X
 			p.Y = widgetRect.Max.Y
 		}
@@ -349,10 +354,10 @@ func (t *ToolTip) processContentPosition(p image.Point, sx int, sy int, widgetRe
 		if t.Position == TOOLTIP_POS_WIDGET {
 			p.X = widgetRect.Min.X
 		}
-		p.X = p.X - 2*t.Offset.X
+		p.X -= 2 * t.Offset.X
 		result = processContentPositionWorker(p, sx, sy, horizontalAnchor, t.ContentOriginVertical)
 	} else if result.X < 0 {
-		p.X = p.X - 2*t.Offset.X
+		p.X -= 2 * t.Offset.X
 		horizontalAnchor = TOOLTIP_ANCHOR_START
 		result = processContentPositionWorker(p, sx, sy, horizontalAnchor, t.ContentOriginVertical)
 	}
@@ -361,10 +366,10 @@ func (t *ToolTip) processContentPosition(p image.Point, sx int, sy int, widgetRe
 		if t.Position == TOOLTIP_POS_WIDGET {
 			p.Y = widgetRect.Min.Y
 		}
-		p.Y = p.Y - 2*t.Offset.Y
+		p.Y -= 2 * t.Offset.Y
 		result = processContentPositionWorker(p, sx, sy, horizontalAnchor, TOOLTIP_ANCHOR_END)
 	} else if result.Y < 0 {
-		p.Y = p.Y - 2*t.Offset.Y
+		p.Y -= 2 * t.Offset.Y
 		result = processContentPositionWorker(p, sx, sy, horizontalAnchor, TOOLTIP_ANCHOR_START)
 	}
 
@@ -372,33 +377,37 @@ func (t *ToolTip) processContentPosition(p image.Point, sx int, sy int, widgetRe
 }
 
 func processContentPositionWorker(p image.Point, sx int, sy int, originHorizontal ToolTipAnchor, originVertical ToolTipAnchor) image.Point {
-	if originVertical == TOOLTIP_ANCHOR_START {
-		if originHorizontal == TOOLTIP_ANCHOR_START {
-			//Do nothing
-		} else if originHorizontal == TOOLTIP_ANCHOR_MIDDLE {
-			p.X = p.X - (sx / 2)
-		} else {
-			p.X = p.X - sx
+	switch originVertical {
+	case TOOLTIP_ANCHOR_START:
+		switch originHorizontal {
+		case TOOLTIP_ANCHOR_START:
+			// Do nothing
+		case TOOLTIP_ANCHOR_MIDDLE:
+			p.X -= (sx / 2)
+		case TOOLTIP_ANCHOR_END:
+			p.X -= sx
 		}
-	} else if originVertical == TOOLTIP_ANCHOR_MIDDLE {
-		if originHorizontal == TOOLTIP_ANCHOR_START {
-			p.Y = p.Y - (sy / 2)
-		} else if originHorizontal == TOOLTIP_ANCHOR_MIDDLE {
-			p.X = p.X - (sx / 2)
-			p.Y = p.Y - (sy / 2)
-		} else {
-			p.X = p.X - sx
-			p.Y = p.Y - (sy / 2)
+	case TOOLTIP_ANCHOR_MIDDLE:
+		switch originHorizontal {
+		case TOOLTIP_ANCHOR_START:
+			p.Y -= (sy / 2)
+		case TOOLTIP_ANCHOR_MIDDLE:
+			p.X -= (sx / 2)
+			p.Y -= (sy / 2)
+		case TOOLTIP_ANCHOR_END:
+			p.X -= sx
+			p.Y -= (sy / 2)
 		}
-	} else if originVertical == TOOLTIP_ANCHOR_END {
-		if originHorizontal == TOOLTIP_ANCHOR_START {
-			p.Y = p.Y - sy
-		} else if originHorizontal == TOOLTIP_ANCHOR_MIDDLE {
-			p.X = p.X - (sx / 2)
-			p.Y = p.Y - sy
-		} else {
-			p.X = p.X - sx
-			p.Y = p.Y - sy
+	case TOOLTIP_ANCHOR_END:
+		switch originHorizontal {
+		case TOOLTIP_ANCHOR_START:
+			p.Y -= sy
+		case TOOLTIP_ANCHOR_MIDDLE:
+			p.X -= (sx / 2)
+			p.Y -= sy
+		case TOOLTIP_ANCHOR_END:
+			p.X -= sx
+			p.Y -= sy
 		}
 	}
 	return p
