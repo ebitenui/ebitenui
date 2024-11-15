@@ -135,7 +135,8 @@ func (o WindowOptions) Resizeable() WindowOpt {
 	}
 }
 
-// Sets the window to be block.
+// Sets whether the window should block input beneath the window or not.
+// Default: true.
 func (o WindowOptions) BlockLower(blockLower bool) WindowOpt {
 	return func(w *Window) {
 		w.blockLower = blockLower
