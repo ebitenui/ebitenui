@@ -22,9 +22,11 @@ func TestListComboButton_SelectedEntry_Initial(t *testing.T) {
 
 		ListComboButtonOpts.EntryLabelFunc(
 			func(e interface{}) string {
-				return "label " + e.(string)
+				result, _ := e.(string)
+				return "label " + result
 			}, func(e interface{}) string {
-				return e.(string)
+				result, _ := e.(string)
+				return result
 			}))
 
 	is.Equal(l.SelectedEntry(), entries[0])
@@ -49,9 +51,11 @@ func TestListComboButton_SetSelectedEntry(t *testing.T) {
 
 		ListComboButtonOpts.EntryLabelFunc(
 			func(e interface{}) string {
-				return "label " + e.(string)
+				result, _ := e.(string)
+				return "label " + result
 			}, func(e interface{}) string {
-				return e.(string)
+				result, _ := e.(string)
+				return result
 			}))
 
 	l.SetSelectedEntry(entries[1])
@@ -85,9 +89,11 @@ func TestListComboButton_EntrySelectedEvent_User(t *testing.T) {
 
 		ListComboButtonOpts.EntryLabelFunc(
 			func(e interface{}) string {
-				return "label " + e.(string)
+				result, _ := e.(string)
+				return "label " + result
 			}, func(e interface{}) string {
-				return e.(string)
+				result, _ := e.(string)
+				return result
 			}))
 
 	l.SetContentVisible(true)
@@ -118,9 +124,11 @@ func TestListComboButton_ContentVisible_Click(t *testing.T) {
 
 		ListComboButtonOpts.EntryLabelFunc(
 			func(e interface{}) string {
-				return e.(string)
+				result, _ := e.(string)
+				return result
 			}, func(e interface{}) string {
-				return e.(string)
+				result, _ := e.(string)
+				return result
 			}))
 
 	leftMouseButtonClick(l, t)
@@ -140,9 +148,11 @@ func TestListComboButton_ContentVisible_Programmatic(t *testing.T) {
 
 		ListComboButtonOpts.EntryLabelFunc(
 			func(e interface{}) string {
-				return e.(string)
+				result, _ := e.(string)
+				return result
 			}, func(e interface{}) string {
-				return e.(string)
+				result, _ := e.(string)
+				return result
 			}))
 
 	l.SetContentVisible(true)
@@ -195,5 +205,6 @@ func newListComboButton(t *testing.T, opts ...ListComboButtonOpt) *ListComboButt
 }
 
 func listComboButtonContentList(l *ListComboButton) *List {
-	return l.button.button.content.(*List)
+	result, _ := l.button.button.content.(*List)
+	return result
 }

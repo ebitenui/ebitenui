@@ -47,7 +47,9 @@ func TestTextInput_DoBackspace(t *testing.T) {
 	render(ti, t)
 
 	ti.ChangedEvent.AddHandler(func(args interface{}) {
-		is.Equal(args.(*TextInputChangedEventArgs).InputText, "oo")
+		if arg, ok := args.(*TextInputChangedEventArgs); ok {
+			is.Equal(arg.InputText, "oo")
+		}
 	})
 
 	ti.Backspace()
@@ -79,7 +81,9 @@ func TestTextInput_DoDelete(t *testing.T) {
 	render(ti, t)
 
 	ti.ChangedEvent.AddHandler(func(args interface{}) {
-		is.Equal(args.(*TextInputChangedEventArgs).InputText, "oo")
+		if arg, ok := args.(*TextInputChangedEventArgs); ok {
+			is.Equal(arg.InputText, "oo")
+		}
 	})
 
 	ti.Delete()

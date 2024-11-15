@@ -181,7 +181,9 @@ func (o TextInputOptions) CaretOpts(opts ...CaretOpt) TextInputOpt {
 func (o TextInputOptions) ChangedHandler(f TextInputChangedHandlerFunc) TextInputOpt {
 	return func(t *TextInput) {
 		t.ChangedEvent.AddHandler(func(args interface{}) {
-			f(args.(*TextInputChangedEventArgs))
+			if arg, ok := args.(*TextInputChangedEventArgs); ok {
+				f(arg)
+			}
 		})
 	}
 }
@@ -189,7 +191,9 @@ func (o TextInputOptions) ChangedHandler(f TextInputChangedHandlerFunc) TextInpu
 func (o TextInputOptions) SubmitHandler(f TextInputChangedHandlerFunc) TextInputOpt {
 	return func(t *TextInput) {
 		t.SubmitEvent.AddHandler(func(args interface{}) {
-			f(args.(*TextInputChangedEventArgs))
+			if arg, ok := args.(*TextInputChangedEventArgs); ok {
+				f(arg)
+			}
 		})
 	}
 }
@@ -424,8 +428,10 @@ func (t *TextInput) commandState(cmd textInputControlCommand, key ebiten.Key, de
 			return t.idleState(true), true
 		}
 
-		if timer != nil && expired.Load().(bool) {
-			return t.idleState(false), true
+		if timer != nil {
+			if isExpired, _ := expired.Load().(bool); isExpired {
+				return t.idleState(false), true
+			}
 		}
 
 		if timer == nil {

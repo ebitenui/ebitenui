@@ -37,16 +37,16 @@ type TextArea struct {
 type ScrollMode int
 
 const (
-	// Default. Scrolling is not automatically handled
+	// Default. Scrolling is not automatically handled.
 	None ScrollMode = iota
 
-	// The TextArea is automatically scrolled to the beginning on change
+	// The TextArea is automatically scrolled to the beginning on change.
 	ScrollBeginning
 
-	// The TextArea is automatically scrolled to the end on change
+	// The TextArea is automatically scrolled to the end on change.
 	ScrollEnd
 
-	// The TextArea will initially position the text at the end of the scroll area
+	// The TextArea will initially position the text at the end of the scroll area.
 	PositionAtEnd
 )
 
@@ -96,28 +96,28 @@ func (t *TextArea) validate() {
 	}
 }
 
-// Specify the Container options for the text area
+// Specify the Container options for the text area.
 func (o TextAreaOptions) ContainerOpts(opts ...ContainerOpt) TextAreaOpt {
 	return func(l *TextArea) {
 		l.containerOpts = append(l.containerOpts, opts...)
 	}
 }
 
-// Specify the options for the scroll container
+// Specify the options for the scroll container.
 func (o TextAreaOptions) ScrollContainerOpts(opts ...ScrollContainerOpt) TextAreaOpt {
 	return func(l *TextArea) {
 		l.scrollContainerOpts = append(l.scrollContainerOpts, opts...)
 	}
 }
 
-// Specify the options for the scroll bars
+// Specify the options for the scroll bars.
 func (o TextAreaOptions) SliderOpts(opts ...SliderOpt) TextAreaOpt {
 	return func(l *TextArea) {
 		l.sliderOpts = append(l.sliderOpts, opts...)
 	}
 }
 
-// Specify spacing between the text container and scrollbars
+// Specify spacing between the text container and scrollbars.
 func (o TextAreaOptions) ControlWidgetSpacing(s int) TextAreaOpt {
 	return func(l *TextArea) {
 		l.controlWidgetSpacing = s
@@ -138,49 +138,49 @@ func (o TextAreaOptions) ShowVerticalScrollbar() TextAreaOpt {
 	}
 }
 
-// Set how vertical scrolling should be handled
+// Set how vertical scrolling should be handled.
 func (o TextAreaOptions) VerticalScrollMode(scrollMode ScrollMode) TextAreaOpt {
 	return func(l *TextArea) {
 		l.verticalScrollMode = scrollMode
 	}
 }
 
-// Set how horizontal scrolling should be handled
+// Set how horizontal scrolling should be handled.
 func (o TextAreaOptions) HorizontalScrollMode(scrollMode ScrollMode) TextAreaOpt {
 	return func(l *TextArea) {
 		l.horizontalScrollMode = scrollMode
 	}
 }
 
-// Set the font face for this text area
+// Set the font face for this text area.
 func (o TextAreaOptions) FontFace(f text.Face) TextAreaOpt {
 	return func(l *TextArea) {
 		l.face = f
 	}
 }
 
-// Set the default color for the text area
+// Set the default color for the text area.
 func (o TextAreaOptions) FontColor(color color.Color) TextAreaOpt {
 	return func(l *TextArea) {
 		l.foregroundColor = color
 	}
 }
 
-// Set how far from the edges of the textarea the text should be set
+// Set how far from the edges of the textarea the text should be set.
 func (o TextAreaOptions) TextPadding(i Insets) TextAreaOpt {
 	return func(l *TextArea) {
 		l.textPadding = i
 	}
 }
 
-// Set the initial Text for the text area
+// Set the initial Text for the text area.
 func (o TextAreaOptions) Text(initialText string) TextAreaOpt {
 	return func(l *TextArea) {
 		l.initialText = initialText
 	}
 }
 
-// Set whether or not the text area should process BBCodes. e.g. [color=FF0000]red[/color]
+// Set whether or not the text area should process BBCodes. e.g. [color=FF0000]red[/color].
 func (o TextAreaOptions) ProcessBBCode(processBBCode bool) TextAreaOpt {
 	return func(l *TextArea) {
 		l.processBBCode = processBBCode
@@ -320,12 +320,13 @@ func (l *TextArea) createWidget() {
 		l.container.AddChild(l.vSlider)
 
 		l.scrollContainer.widget.ScrolledEvent.AddHandler(func(args interface{}) {
-			a := args.(*WidgetScrolledEventArgs)
-			p := pageSizeFunc() / 3
-			if p < 1 {
-				p = 1
+			if a, ok := args.(*WidgetScrolledEventArgs); ok {
+				p := pageSizeFunc() / 3
+				if p < 1 {
+					p = 1
+				}
+				l.vSlider.Current -= int(math.Round(a.Y * float64(p)))
 			}
-			l.vSlider.Current -= int(math.Round(a.Y * float64(p)))
 		})
 	}
 
@@ -379,7 +380,7 @@ func (l *TextArea) PrependText(value string) {
 
 func (l *TextArea) AppendText(value string) {
 	l.init.Do()
-	l.text.Label = l.text.Label + value
+	l.text.Label += value
 
 	if l.showHorizontalSlider {
 		if l.horizontalScrollMode == ScrollBeginning {

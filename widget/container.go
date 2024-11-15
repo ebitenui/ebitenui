@@ -92,20 +92,24 @@ func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveCh
 		child.GetWidget().self = child
 
 		child.GetWidget().ContextMenuEvent.AddHandler(func(args interface{}) {
-			a := args.(*WidgetContextMenuEventArgs)
-			c.GetWidget().FireContextMenuEvent(a.Widget, a.Location)
+			if a, ok := args.(*WidgetContextMenuEventArgs); ok {
+				c.GetWidget().FireContextMenuEvent(a.Widget, a.Location)
+			}
 		})
 		child.GetWidget().FocusEvent.AddHandler(func(args interface{}) {
-			a := args.(*WidgetFocusEventArgs)
-			c.GetWidget().FireFocusEvent(a.Widget, a.Focused, a.Location)
+			if a, ok := args.(*WidgetFocusEventArgs); ok {
+				c.GetWidget().FireFocusEvent(a.Widget, a.Focused, a.Location)
+			}
 		})
 		child.GetWidget().ToolTipEvent.AddHandler(func(args interface{}) {
-			a := args.(*WidgetToolTipEventArgs)
-			c.GetWidget().FireToolTipEvent(a.Window, a.Show)
+			if a, ok := args.(*WidgetToolTipEventArgs); ok {
+				c.GetWidget().FireToolTipEvent(a.Window, a.Show)
+			}
 		})
 		child.GetWidget().DragAndDropEvent.AddHandler(func(args interface{}) {
-			a := args.(*WidgetDragAndDropEventArgs)
-			c.GetWidget().FireDragAndDropEvent(a.Window, a.Show, a.DnD)
+			if a, ok := args.(*WidgetDragAndDropEventArgs); ok {
+				c.GetWidget().FireDragAndDropEvent(a.Window, a.Show, a.DnD)
+			}
 		})
 		c.RequestRelayout()
 	}
@@ -195,7 +199,7 @@ func (c *Container) PreferredSize() (int, int) {
 	c.init.Do()
 	w, h := 0, 0
 
-	//Start with the background image min size if one is set
+	// Start with the background image min size if one is set
 	if c.BackgroundImage != nil {
 		w, h = c.BackgroundImage.MinSize()
 	}
@@ -304,8 +308,10 @@ func (c *Container) GetFocusers() []Focuser {
 	for _, child := range c.children {
 		switch v := child.(type) {
 		case Focuser:
-			if v.TabOrder() >= 0 && !v.(HasWidget).GetWidget().Disabled {
-				result = append(result, v)
+			if widget, ok := v.(HasWidget); ok {
+				if v.TabOrder() >= 0 && !widget.GetWidget().Disabled {
+					result = append(result, v)
+				}
 			}
 		case *Container:
 			result = append(result, v.GetFocusers()...)

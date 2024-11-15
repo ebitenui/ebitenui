@@ -188,6 +188,8 @@ func (r *RowLayout) applyPosition(ld RowLayoutData, wx int, wy int, ww int, wh i
 		} else {
 			wx = x + rect.Dx() - ww
 		}
+	case RowLayoutPositionStart:
+		// Do Nothing
 	}
 
 	return wx, wy

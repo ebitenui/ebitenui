@@ -119,7 +119,7 @@ func (o SliderOptions) Direction(d Direction) SliderOpt {
 	}
 }
 
-// This sets the track images (not required) and the handle images (required)
+// This sets the track images (not required) and the handle images (required).
 func (o SliderOptions) Images(track *SliderTrackImage, handle *ButtonImage) SliderOpt {
 	return func(s *Slider) {
 		s.trackImage = track
@@ -129,14 +129,14 @@ func (o SliderOptions) Images(track *SliderTrackImage, handle *ButtonImage) Slid
 	}
 }
 
-// This sets the track images (not required)
+// This sets the track images (not required).
 func (o SliderOptions) TrackImage(track *SliderTrackImage) SliderOpt {
 	return func(s *Slider) {
 		s.trackImage = track
 	}
 }
 
-// This sets the handle images (required)
+// This sets the handle images (required).
 func (o SliderOptions) HandleImage(handle *ButtonImage) SliderOpt {
 	return func(s *Slider) {
 		if handle != nil && len(s.handleOpts) == 0 {
@@ -184,7 +184,9 @@ func (o SliderOptions) PageSizeFunc(f SliderPageSizeFunc) SliderOpt {
 func (o SliderOptions) ChangedHandler(f SliderChangedHandlerFunc) SliderOpt {
 	return func(s *Slider) {
 		s.ChangedEvent.AddHandler(func(args interface{}) {
-			f(args.(*SliderChangedEventArgs))
+			if arg, ok := args.(*SliderChangedEventArgs); ok {
+				f(arg)
+			}
 		})
 	}
 }
@@ -336,7 +338,7 @@ func (s *Slider) handleDirection() {
 					if input.KeyPressed(ebiten.KeyLeft) {
 						changeDir = -1
 					}
-					s.Current = s.Current + (changeDir * s.pageSizeFunc())
+					s.Current += (changeDir * s.pageSizeFunc())
 					s.justMoved = true
 				}
 			} else {
@@ -349,7 +351,7 @@ func (s *Slider) handleDirection() {
 					if input.KeyPressed(ebiten.KeyUp) {
 						changeDir = -1
 					}
-					s.Current = s.Current + (changeDir * s.pageSizeFunc())
+					s.Current += (changeDir * s.pageSizeFunc())
 					s.justMoved = true
 				}
 			} else {

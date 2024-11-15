@@ -49,7 +49,7 @@ func TestRowLayout_PreferredSize(t *testing.T) {
 
 	expectedWidth, expectedHeight := 0, 0
 	for i, wi := range widgets {
-		s := wi.(*simpleWidget)
+		s, _ := wi.(*simpleWidget)
 		w, h := s.preferredWidth, s.preferredHeight
 
 		expectedWidth += w

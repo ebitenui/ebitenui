@@ -1,20 +1,21 @@
 linters:
   enable:
-    - gocognit
-    - gocritic
-    - gocyclo
-    - goerr113
-    - golint
-    - interfacer
-    - nakedret
+    - errcheck
+    - gosimple
+    - ineffassign
+    - decorder
+    - dupl
+    - errorlint
+    - exhaustive
+    - forcetypeassert
+    - goconst
+    - godot
+    - gofmt
     - prealloc
+    - nilerr
+    - predeclared
     - unconvert
-    - unparam
-
-linters-settings:
-  gocognit:
-    min-complexity: 15
-  gocyclo:
-    min-complexity: 10
-  nakedret:
-    max-func-lines: 0
+    - wrapcheck
+    - staticcheck
+    - dupl
+    - gocritic
