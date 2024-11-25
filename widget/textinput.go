@@ -273,9 +273,10 @@ func (o TextInputOptions) TabOrder(to int) TextInputOpt {
 	}
 }
 
-func (o TextInputOptions) SubmitOnEnter(to bool) TextInputOpt {
+// Sets if the input will submit when pressing enter or not.
+func (o TextInputOptions) SubmitOnEnter(submitOnEnter bool) TextInputOpt {
 	return func(t *TextInput) {
-		t.submitOnEnter = to
+		t.submitOnEnter = submitOnEnter
 	}
 }
 
