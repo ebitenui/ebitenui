@@ -53,6 +53,7 @@ type TextInput struct {
 	clearOnSubmit         bool
 	ignoreEmptySubmit     bool
 	allowDuplicateSubmit  bool
+	submitOnEnter         bool
 	previousSubmittedText *string
 	tabOrder              int
 	focusMap              map[FocusDirection]Focuser
@@ -103,13 +104,14 @@ const (
 )
 
 var textInputKeyToCommand = map[ebiten.Key]textInputControlCommand{
-	ebiten.KeyLeft:      textInputGoLeft,
-	ebiten.KeyRight:     textInputGoRight,
-	ebiten.KeyHome:      textInputGoStart,
-	ebiten.KeyEnd:       textInputGoEnd,
-	ebiten.KeyBackspace: textInputBackspace,
-	ebiten.KeyDelete:    textInputDelete,
-	ebiten.KeyEnter:     textInputEnter,
+	ebiten.KeyLeft:        textInputGoLeft,
+	ebiten.KeyRight:       textInputGoRight,
+	ebiten.KeyHome:        textInputGoStart,
+	ebiten.KeyEnd:         textInputGoEnd,
+	ebiten.KeyBackspace:   textInputBackspace,
+	ebiten.KeyDelete:      textInputDelete,
+	ebiten.KeyEnter:       textInputEnter,
+	ebiten.KeyNumpadEnter: textInputEnter,
 }
 
 func NewTextInput(opts ...TextInputOpt) *TextInput {
@@ -126,6 +128,7 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 
 		mobileInputMode: jsUtil.TEXT,
 		focusMap:        make(map[FocusDirection]Focuser),
+		submitOnEnter:   true,
 	}
 	t.state = t.idleState(true)
 
@@ -135,7 +138,7 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 	t.commandToFunc[textInputGoEnd] = t.CursorMoveEnd
 	t.commandToFunc[textInputBackspace] = t.Backspace
 	t.commandToFunc[textInputDelete] = t.Delete
-	t.commandToFunc[textInputEnter] = t.Submit
+	t.commandToFunc[textInputEnter] = t.submitWithEnter
 
 	t.init.Append(t.createWidget)
 
@@ -267,6 +270,12 @@ func (o TextInputOptions) Secure(b bool) TextInputOpt {
 func (o TextInputOptions) TabOrder(to int) TextInputOpt {
 	return func(t *TextInput) {
 		t.tabOrder = to
+	}
+}
+
+func (o TextInputOptions) SubmitOnEnter(to bool) TextInputOpt {
+	return func(t *TextInput) {
+		t.submitOnEnter = to
 	}
 }
 
@@ -530,6 +539,12 @@ func (t *TextInput) Delete() {
 		t.inputText = string(removeChar([]rune(t.inputText), t.cursorPosition))
 	}
 	t.caret.ResetBlinking()
+}
+
+func (t *TextInput) submitWithEnter() {
+	if t.submitOnEnter {
+		t.Submit()
+	}
 }
 
 func (t *TextInput) Submit() {
