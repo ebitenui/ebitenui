@@ -199,7 +199,7 @@ func (s *ScrollContainer) GetFocusers() []Focuser {
 	switch v := s.content.(type) {
 	case Focuser:
 		if widget, ok := v.(HasWidget); ok {
-			if v.TabOrder() >= 0 && !widget.GetWidget().Disabled {
+			if v.TabOrder() >= 0 && !widget.GetWidget().Disabled && widget.GetWidget().IsVisible() {
 				result = append(result, v)
 			}
 		}

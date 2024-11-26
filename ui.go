@@ -52,6 +52,11 @@ func (u *UI) Update() {
 
 	u.handleFocusChangeRequest()
 
+	//If widget is not visible or disabled, change focus to next widget
+	if u.focusedWidget != nil && (u.focusedWidget.GetWidget().Disabled || !u.focusedWidget.GetWidget().IsVisible()) {
+		u.ChangeFocus(widget.FOCUS_NEXT)
+	}
+
 	index := 0
 	for ; index < len(u.windows); index++ {
 		if u.windows[index].DrawLayer < 0 {
@@ -217,7 +222,7 @@ func (u *UI) handleFocusChangeRequest() {
 func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 	if u.focusedWidget != nil {
 		if next := u.focusedWidget.(widget.Focuser).GetFocus(direction); next != nil {
-			if !next.GetWidget().Disabled {
+			if !next.GetWidget().Disabled && next.GetWidget().IsVisible() {
 				next.Focus(true)
 			}
 		}

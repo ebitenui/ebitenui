@@ -309,7 +309,7 @@ func (c *Container) GetFocusers() []Focuser {
 		switch v := child.(type) {
 		case Focuser:
 			if widget, ok := v.(HasWidget); ok {
-				if v.TabOrder() >= 0 && !widget.GetWidget().Disabled {
+				if v.TabOrder() >= 0 && !widget.GetWidget().Disabled && widget.GetWidget().IsVisible() {
 					result = append(result, v)
 				}
 			}
