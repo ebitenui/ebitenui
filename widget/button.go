@@ -661,12 +661,57 @@ func (b *Button) Click() {
 	}
 }
 
+// Press presses the button emulating a Mouse Left click
+func (b *Button) Press() {
+	b.init.Do()
+
+	offx := b.widget.Rect.Dx()
+	offy := b.widget.Rect.Dy()
+
+	// This means that there are some pixels that are not clickable
+	if b.mask != nil {
+		offx /= 2
+		offy /= 2
+	}
+	b.hovering = true
+	b.widget.MouseButtonPressedEvent.Fire(&WidgetMouseButtonPressedEventArgs{
+		Widget:  b.widget,
+		Button:  ebiten.MouseButtonLeft,
+		OffsetX: offx,
+		OffsetY: offy,
+	})
+}
+
+// Release releases the button emulating a Mouse Left release
+func (b *Button) Release() {
+	b.init.Do()
+
+	offx := b.widget.Rect.Dx()
+	offy := b.widget.Rect.Dy()
+
+	// This means that there are some pixels that are not clickable
+	if b.mask != nil {
+		offx /= 2
+		offy /= 2
+	}
+	b.hovering = false
+	b.widget.MouseButtonReleasedEvent.Fire(&WidgetMouseButtonReleasedEventArgs{
+		Widget:  b.widget,
+		Inside:  true,
+		Button:  ebiten.MouseButtonLeft,
+		OffsetX: offx,
+		OffsetY: offy,
+	})
+}
+
 func (b *Button) handleSubmit() {
 	if input.KeyPressed(ebiten.KeyEnter) || input.KeyPressed(ebiten.KeySpace) {
 		if !b.justSubmitted && b.focused {
-			b.Click()
+			b.justSubmitted = true
+			b.Press()
 		}
-	} else {
+	} else if b.justSubmitted {
+		b.Release()
 		b.justSubmitted = false
 	}
 }
@@ -839,5 +884,8 @@ func (b *Button) onMask(x, y int) bool {
 		return true
 	}
 	i := ((x * 4) + (y * b.widget.Rect.Dx() * 4) + 3)
+	if len(b.mask)-1 < i {
+		return false
+	}
 	return (b.mask[i] > 0)
 }
