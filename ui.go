@@ -53,7 +53,7 @@ func (u *UI) Update() {
 	u.handleFocusChangeRequest()
 
 	//If widget is not visible or disabled, change focus to next widget
-	if u.focusedWidget != nil && (u.focusedWidget.GetWidget().Disabled || u.focusedWidget.GetWidget().Visibility != widget.Visibility_Show) {
+	if u.focusedWidget != nil && (u.focusedWidget.GetWidget().Disabled || !u.focusedWidget.GetWidget().IsVisible()) {
 		u.ChangeFocus(widget.FOCUS_NEXT)
 	}
 
@@ -222,7 +222,7 @@ func (u *UI) handleFocusChangeRequest() {
 func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 	if u.focusedWidget != nil {
 		if next := u.focusedWidget.(widget.Focuser).GetFocus(direction); next != nil {
-			if !next.GetWidget().Disabled && next.GetWidget().Visibility == widget.Visibility_Show {
+			if !next.GetWidget().Disabled && next.GetWidget().IsVisible() {
 				next.Focus(true)
 			}
 		}
