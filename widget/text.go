@@ -74,7 +74,7 @@ func NewText(opts ...TextOpt) *Text {
 	t := &Text{
 		init: &MultiOnce{},
 	}
-	t.bbcodeRegex, _ = regexp.Compile(bbcodeRegEx)
+	t.bbcodeRegex = regexp.MustCompile(bbcodeRegEx)
 
 	t.init.Append(t.createWidget)
 
@@ -150,7 +150,7 @@ func (o TextOptions) ProcessBBCode(processBBCode bool) TextOpt {
 	}
 }
 
-// MaxWidth sets the max width the text will allow before wrapping to the next line
+// MaxWidth sets the max width the text will allow before wrapping to the next line.
 func (o TextOptions) MaxWidth(maxWidth float64) TextOpt {
 	return func(t *Text) {
 		t.MaxWidth = maxWidth
@@ -238,7 +238,7 @@ func (t *Text) draw(screen *ebiten.Image) {
 			lx += ((float64(w) - t.measurements.lineWidths[i]) / 2) + float64(t.Inset.Left)
 		case TextPositionEnd:
 			lx += float64(w) - t.measurements.lineWidths[i] - float64(t.Inset.Right)
-		default:
+		case TextPositionStart:
 			lx += float64(t.Inset.Left)
 		}
 
@@ -283,9 +283,10 @@ func (t *Text) handleBBCodeColor(word string) ([]bbCodeText, color.Color) {
 		// full multi-byte rune value.
 		for idx, ch := range word {
 			if len(tags) > 0 {
-				if tags[0][0] > idx || (isTag && idx < tags[0][1]) {
-					resultStr = resultStr + string(ch)
-				} else if tags[0][1] == idx {
+				switch {
+				case tags[0][0] > idx || (isTag && idx < tags[0][1]):
+					resultStr += string(ch)
+				case tags[0][1] == idx:
 					if strings.HasPrefix(resultStr, COLOR_OPEN) {
 						c, err := colorutil.HexToColor(resultStr[6:12])
 						if err == nil {
@@ -306,13 +307,13 @@ func (t *Text) handleBBCodeColor(word string) ([]bbCodeText, color.Color) {
 						resultStr = string(ch)
 						isTag = false
 					}
-				} else {
+				default:
 					result = append(result, bbCodeText{text: resultStr, color: newColor})
 					resultStr = ""
 					isTag = true
 				}
 			} else {
-				resultStr = resultStr + string(ch)
+				resultStr += string(ch)
 			}
 		}
 		if len(resultStr) > 0 {

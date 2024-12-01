@@ -22,6 +22,7 @@ func main() {
 	// load images for button states: idle, hover, and pressed
 	buttonImage := loadButtonImage()
 	buttonIcon := loadButtonIcon()
+	buttonDisabledIcon := loadDisabledButtonIcon()
 
 	// construct a new container that serves as the root of the UI hierarchy
 	rootContainer := widget.NewContainer(
@@ -45,6 +46,13 @@ func main() {
 			VerticalPosition:   widget.AnchorLayoutPositionCenter,
 		})),
 	)
+	btnIconG := widget.NewGraphic(
+		widget.GraphicOpts.Images(&widget.GraphicImage{
+			Idle:     buttonIcon,
+			Disabled: buttonDisabledIcon,
+		},
+		),
+	)
 	// construct a pressable button
 	button := widget.NewButton(
 		// specify the images to use
@@ -53,6 +61,7 @@ func main() {
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			println("button clicked")
+			btnIconG.GetWidget().Disabled = !btnIconG.GetWidget().Disabled
 		}),
 	)
 	buttonStackedLayout.AddChild(button)
@@ -61,7 +70,9 @@ func main() {
 	// you may see a transparent rectangle inside the button.
 	// To fix that, either use a separate button image (that can fit the image)
 	// or add an appropriate stretching.
-	buttonStackedLayout.AddChild(widget.NewGraphic(widget.GraphicOpts.Image(buttonIcon)))
+	buttonStackedLayout.AddChild(
+		btnIconG,
+	)
 
 	// since our button is a multi-widget object, add its wrapping container
 	rootContainer.AddChild(buttonStackedLayout)
@@ -107,6 +118,14 @@ func loadButtonIcon() *ebiten.Image {
 	// in reality it could be an arbitrary *ebiten.Image
 	icon := ebiten.NewImage(32, 32)
 	ebitenutil.DrawCircle(icon, 16, 16, 16, color.RGBA{R: 0x71, G: 0x56, B: 0xbd, A: 255})
+	return icon
+}
+
+func loadDisabledButtonIcon() *ebiten.Image {
+	// we'll use a circle as an icon image
+	// in reality it could be an arbitrary *ebiten.Image
+	icon := ebiten.NewImage(32, 32)
+	ebitenutil.DrawCircle(icon, 16, 16, 16, color.RGBA{R: 250, G: 0x56, B: 0xbd, A: 255})
 	return icon
 }
 

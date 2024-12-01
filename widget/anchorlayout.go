@@ -131,6 +131,8 @@ func (a *AnchorLayout) applyLayoutData(ld AnchorLayoutData, wx int, wy int, ww i
 		wx = (rect.Dx() - ww) / 2
 	case AnchorLayoutPositionEnd:
 		wx = rect.Dx() - ww
+	case AnchorLayoutPositionStart:
+		// Do nothing
 	}
 
 	switch vPos {
@@ -138,6 +140,8 @@ func (a *AnchorLayout) applyLayoutData(ld AnchorLayoutData, wx int, wy int, ww i
 		wy = (rect.Dy() - wh) / 2
 	case AnchorLayoutPositionEnd:
 		wy = rect.Dy() - wh
+	case AnchorLayoutPositionStart:
+		// Do nothing
 	}
 
 	return wx, wy, ww, wh

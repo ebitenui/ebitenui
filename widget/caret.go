@@ -127,8 +127,10 @@ func (c *Caret) blinkState(visible bool, timer *time.Timer, expired *atomic.Valu
 	return func() caretBlinkState {
 		c.visible = visible
 
-		if timer != nil && expired.Load().(bool) {
-			return c.blinkState(!visible, nil, nil)
+		if timer != nil {
+			if isExpired, _ := expired.Load().(bool); isExpired {
+				return c.blinkState(!visible, nil, nil)
+			}
 		}
 
 		if timer == nil {

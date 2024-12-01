@@ -97,7 +97,11 @@ func (g *game) Update() error {
 		}
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyG) {
+		g.btn.Press()
+	} else if inpututil.IsKeyJustReleased(ebiten.KeyG) {
+		g.btn.Release()
+	} else if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		if g.ui.PrimaryTheme == g.lightTheme {
 			g.ui.PrimaryTheme = g.darkTheme
 		} else {

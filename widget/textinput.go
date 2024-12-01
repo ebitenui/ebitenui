@@ -53,6 +53,7 @@ type TextInput struct {
 	clearOnSubmit         bool
 	ignoreEmptySubmit     bool
 	allowDuplicateSubmit  bool
+	submitOnEnter         bool
 	previousSubmittedText *string
 	tabOrder              int
 	focusMap              map[FocusDirection]Focuser
@@ -103,13 +104,14 @@ const (
 )
 
 var textInputKeyToCommand = map[ebiten.Key]textInputControlCommand{
-	ebiten.KeyLeft:      textInputGoLeft,
-	ebiten.KeyRight:     textInputGoRight,
-	ebiten.KeyHome:      textInputGoStart,
-	ebiten.KeyEnd:       textInputGoEnd,
-	ebiten.KeyBackspace: textInputBackspace,
-	ebiten.KeyDelete:    textInputDelete,
-	ebiten.KeyEnter:     textInputEnter,
+	ebiten.KeyLeft:        textInputGoLeft,
+	ebiten.KeyRight:       textInputGoRight,
+	ebiten.KeyHome:        textInputGoStart,
+	ebiten.KeyEnd:         textInputGoEnd,
+	ebiten.KeyBackspace:   textInputBackspace,
+	ebiten.KeyDelete:      textInputDelete,
+	ebiten.KeyEnter:       textInputEnter,
+	ebiten.KeyNumpadEnter: textInputEnter,
 }
 
 func NewTextInput(opts ...TextInputOpt) *TextInput {
@@ -126,6 +128,7 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 
 		mobileInputMode: jsUtil.TEXT,
 		focusMap:        make(map[FocusDirection]Focuser),
+		submitOnEnter:   true,
 	}
 	t.state = t.idleState(true)
 
@@ -135,7 +138,7 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 	t.commandToFunc[textInputGoEnd] = t.CursorMoveEnd
 	t.commandToFunc[textInputBackspace] = t.Backspace
 	t.commandToFunc[textInputDelete] = t.Delete
-	t.commandToFunc[textInputEnter] = t.Submit
+	t.commandToFunc[textInputEnter] = t.submitWithEnter
 
 	t.init.Append(t.createWidget)
 
@@ -181,7 +184,9 @@ func (o TextInputOptions) CaretOpts(opts ...CaretOpt) TextInputOpt {
 func (o TextInputOptions) ChangedHandler(f TextInputChangedHandlerFunc) TextInputOpt {
 	return func(t *TextInput) {
 		t.ChangedEvent.AddHandler(func(args interface{}) {
-			f(args.(*TextInputChangedEventArgs))
+			if arg, ok := args.(*TextInputChangedEventArgs); ok {
+				f(arg)
+			}
 		})
 	}
 }
@@ -189,7 +194,9 @@ func (o TextInputOptions) ChangedHandler(f TextInputChangedHandlerFunc) TextInpu
 func (o TextInputOptions) SubmitHandler(f TextInputChangedHandlerFunc) TextInputOpt {
 	return func(t *TextInput) {
 		t.SubmitEvent.AddHandler(func(args interface{}) {
-			f(args.(*TextInputChangedEventArgs))
+			if arg, ok := args.(*TextInputChangedEventArgs); ok {
+				f(arg)
+			}
 		})
 	}
 }
@@ -263,6 +270,13 @@ func (o TextInputOptions) Secure(b bool) TextInputOpt {
 func (o TextInputOptions) TabOrder(to int) TextInputOpt {
 	return func(t *TextInput) {
 		t.tabOrder = to
+	}
+}
+
+// Sets if the input will submit when pressing enter or not.
+func (o TextInputOptions) SubmitOnEnter(submitOnEnter bool) TextInputOpt {
+	return func(t *TextInput) {
+		t.submitOnEnter = submitOnEnter
 	}
 }
 
@@ -424,8 +438,10 @@ func (t *TextInput) commandState(cmd textInputControlCommand, key ebiten.Key, de
 			return t.idleState(true), true
 		}
 
-		if timer != nil && expired.Load().(bool) {
-			return t.idleState(false), true
+		if timer != nil {
+			if isExpired, _ := expired.Load().(bool); isExpired {
+				return t.idleState(false), true
+			}
 		}
 
 		if timer == nil {
@@ -524,6 +540,12 @@ func (t *TextInput) Delete() {
 		t.inputText = string(removeChar([]rune(t.inputText), t.cursorPosition))
 	}
 	t.caret.ResetBlinking()
+}
+
+func (t *TextInput) submitWithEnter() {
+	if t.submitOnEnter {
+		t.Submit()
+	}
 }
 
 func (t *TextInput) Submit() {

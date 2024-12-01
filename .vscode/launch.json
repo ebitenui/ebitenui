@@ -155,6 +155,16 @@
 			"args": []
 		},
 		{
+			"name": "Launch Graphic - GIF",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"program": "${workspaceFolder}/_examples/widget_demos/graphic_gif",
+			"cwd": "${workspaceFolder}/_examples/widget_demos/graphic_gif",
+			"env": {},
+			"args": []
+		},
+		{
 			"name": "Launch Grid Layout",
 			"type": "go",
 			"request": "launch",

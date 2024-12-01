@@ -11,11 +11,11 @@ import (
 type DragAndDropAnchor int
 
 const (
-	// Anchor at the start of the element
+	// Anchor at the start of the element.
 	DND_ANCHOR_START DragAndDropAnchor = iota
-	// Anchor in the middle of the element
+	// Anchor in the middle of the element.
 	DND_ANCHOR_MIDDLE
-	// Anchor at the end of the element
+	// Anchor at the end of the element.
 	DND_ANCHOR_END
 )
 
@@ -119,7 +119,7 @@ func (o DragAndDropOptions) ContentsOriginHorizontal(contentsOriginHorizontal Dr
 	}
 }
 
-// The X/Y offsets from the Tooltip anchor point
+// The X/Y offsets from the Tooltip anchor point.
 func (o DragAndDropOptions) Offset(off image.Point) DragAndDropOpt {
 	return func(t *DragAndDrop) {
 		t.Offset = off
@@ -137,7 +137,7 @@ func (o DragAndDropOptions) DisableDrag() DragAndDropOpt {
 	}
 }
 
-// To avoid conflicting with dragging, if you trigger it on left click you should put the trigger in the button released event
+// To avoid conflicting with dragging, if you trigger it on left click you should put the trigger in the button released event.
 func (d *DragAndDrop) StartDrag() {
 	d.dndTriggered = true
 }
@@ -331,33 +331,37 @@ func (d *DragAndDrop) droppingState(srcX int, srcY int, x int, y int, dragData i
 	}
 }
 func (d *DragAndDrop) processContentsPosition(p image.Point, sx int, sy int) image.Point {
-	if d.ContentsOriginVertical == DND_ANCHOR_START {
-		if d.ContentsOriginHorizontal == DND_ANCHOR_START {
-			//Do nothing
-		} else if d.ContentsOriginHorizontal == DND_ANCHOR_MIDDLE {
-			p.X = p.X - (sx / 2)
-		} else {
-			p.X = p.X - sx
+	switch d.ContentsOriginVertical {
+	case DND_ANCHOR_START:
+		switch d.ContentsOriginHorizontal {
+		case DND_ANCHOR_START:
+			// Do nothing
+		case DND_ANCHOR_MIDDLE:
+			p.X -= (sx / 2)
+		case DND_ANCHOR_END:
+			p.X -= sx
 		}
-	} else if d.ContentsOriginVertical == DND_ANCHOR_MIDDLE {
-		if d.ContentsOriginHorizontal == DND_ANCHOR_START {
-			p.Y = p.Y - (sy / 2)
-		} else if d.ContentsOriginHorizontal == DND_ANCHOR_MIDDLE {
-			p.X = p.X - (sx / 2)
-			p.Y = p.Y - (sy / 2)
-		} else {
-			p.X = p.X - sx
-			p.Y = p.Y - (sy / 2)
+	case DND_ANCHOR_MIDDLE:
+		switch d.ContentsOriginHorizontal {
+		case DND_ANCHOR_START:
+			p.Y -= (sy / 2)
+		case DND_ANCHOR_MIDDLE:
+			p.X -= (sx / 2)
+			p.Y -= (sy / 2)
+		case DND_ANCHOR_END:
+			p.X -= sx
+			p.Y -= (sy / 2)
 		}
-	} else if d.ContentsOriginVertical == DND_ANCHOR_END {
-		if d.ContentsOriginHorizontal == DND_ANCHOR_START {
-			p.Y = p.Y - sy
-		} else if d.ContentsOriginHorizontal == DND_ANCHOR_MIDDLE {
-			p.X = p.X - (sx / 2)
-			p.Y = p.Y - sy
-		} else {
-			p.X = p.X - sx
-			p.Y = p.Y - sy
+	case DND_ANCHOR_END:
+		switch d.ContentsOriginHorizontal {
+		case DND_ANCHOR_START:
+			p.Y -= sy
+		case DND_ANCHOR_MIDDLE:
+			p.X -= (sx / 2)
+			p.Y -= sy
+		case DND_ANCHOR_END:
+			p.X -= sx
+			p.Y -= sy
 		}
 	}
 	return p
