@@ -195,7 +195,7 @@ func (b *Button) populateComputedParams() {
 		VTextPosition: TextPositionCenter,
 	}
 	theme := b.widget.GetTheme()
-	//clone the theme
+	// clone the theme
 	if theme != nil {
 		if theme.ButtonTheme != nil {
 			if theme.ButtonTheme.Image != nil {
@@ -763,14 +763,14 @@ func (b *Button) Click() {
 	}
 }
 
-// Press presses the button emulating a Mouse Left click
+// Press presses the button emulating a Mouse Left click.
 func (b *Button) Press() {
 	b.init.Do()
 
 	offx := b.widget.Rect.Dx()
 	offy := b.widget.Rect.Dy()
 
-	// This means that there are some pixels that are not clickable
+	// This means that there are some pixels that are not clickable.
 	if b.mask != nil {
 		offx /= 2
 		offy /= 2
@@ -784,14 +784,14 @@ func (b *Button) Press() {
 	})
 }
 
-// Release releases the button emulating a Mouse Left release
+// Release releases the button emulating a Mouse Left release.
 func (b *Button) Release() {
 	b.init.Do()
 
 	offx := b.widget.Rect.Dx()
 	offy := b.widget.Rect.Dy()
 
-	// This means that there are some pixels that are not clickable
+	// This means that there are some pixels that are not clickable.
 	if b.mask != nil {
 		offx /= 2
 		offy /= 2
@@ -831,7 +831,7 @@ func (b *Button) Text() *Text {
 
 func (b *Button) initText() {
 	if b.computedParams.TextColor == nil {
-		return // Nothing to do
+		return // Nothing to do.
 	}
 
 	if b.text != nil {
@@ -843,7 +843,9 @@ func (b *Button) initText() {
 			HorizontalPosition: AnchorLayoutPosition(b.computedParams.HTextPosition),
 			VerticalPosition:   AnchorLayoutPosition(b.computedParams.VTextPosition),
 		}
-		b.container.layout.(*AnchorLayout).padding = *b.computedParams.TextPadding
+		if aLayout, ok := b.container.layout.(*AnchorLayout); ok {
+			aLayout.padding = *b.computedParams.TextPadding
+		}
 	} else {
 
 		// We're expecting all 3 options to be present: label, font face and color.
