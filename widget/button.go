@@ -343,7 +343,7 @@ func (o ButtonOptions) TextProcessBBCode(enabled bool) ButtonOpt {
 }
 
 // TODO: add parameter for image position (start/end).
-func (o ButtonOptions) TextAndImage(label string, face text.Face, image *ButtonImageImage, color *ButtonTextColor) ButtonOpt {
+func (o ButtonOptions) TextAndImage(label string, face *text.Face, image *ButtonImageImage, color *ButtonTextColor) ButtonOpt {
 	return func(b *Button) {
 		b.init.Append(func() {
 			b.container = NewContainer(
