@@ -448,12 +448,6 @@ func (b *Button) getStateChangedEvent() *event.Event {
 	return b.StateChangedEvent
 }
 
-func (b *Button) Configure(opts ...ButtonOpt) {
-	for _, o := range opts {
-		o(b)
-	}
-}
-
 /** Focuser Interface - Start **/
 
 func (b *Button) Focus(focused bool) {

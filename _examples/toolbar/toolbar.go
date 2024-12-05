@@ -9,6 +9,7 @@ import (
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
+	"github.com/ebitenui/ebitenui/event"
 	"golang.org/x/image/colornames"
 	goimage "image"
 	"image/color"
@@ -60,12 +61,11 @@ func newToolbar(ui *ebitenui.UI, res *resources) *toolbar {
 		load = newToolbarMenuEntry(res, "Load")
 		quit = newToolbarMenuEntry(res, "Quit")
 	)
-	file.Configure(
-		// Make the toolbar entry open a menu with our "save" and "load" entries  when the user clicks it.
-		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			openToolbarMenu(args.Button.GetWidget(), ui, save, load, quit)
-		}),
-	)
+
+    // Make the toolbar entry open a menu with our "save" and "load" entries  when the user clicks it.
+	file.ClickedEvent.AddHandler(event.WrapHandler(func(args *widget.ButtonClickedEventArgs) {
+		openToolbarMenu(args.Button.GetWidget(), ui, save, load, quit)
+	}))
 	root.AddChild(file)
 
 	//
@@ -80,11 +80,9 @@ func newToolbar(ui *ebitenui.UI, res *resources) *toolbar {
 		copy  = newToolbarMenuEntry(res, "Copy")
 		paste = newToolbarMenuEntry(res, "Paste")
 	)
-	edit.Configure(
-		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			openToolbarMenu(args.Button.GetWidget(), ui, undo, redo, cut, copy, paste)
-		}),
-	)
+	edit.ClickedEvent.AddHandler(event.WrapHandler(func(args *widget.ButtonClickedEventArgs) {
+		openToolbarMenu(args.Button.GetWidget(), ui, undo, redo, cut, copy, paste)
+	}))
 	root.AddChild(edit)
 
 	//
