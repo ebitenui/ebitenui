@@ -18,12 +18,19 @@ const bbcodeRegEx = `\[color=[0-9a-fA-F]{6}\]|\[\/color\]`
 const COLOR_OPEN = "color="
 const COLOR_CLOSE = "/color]"
 
+type TextParams struct {
+	Face   *text.Face
+	Color  color.Color
+	Insets *Insets
+}
+
 type Text struct {
-	Label              string
-	Face               *text.Face
-	Color              color.Color
-	MaxWidth           float64
-	Inset              Insets
+	definedParams  TextParams
+	computedParams TextParams
+
+	Label    string
+	MaxWidth float64
+
 	widgetOpts         []WidgetOpt
 	horizontalPosition TextPosition
 	verticalPosition   TextPosition
@@ -82,18 +89,45 @@ func NewText(opts ...TextOpt) *Text {
 		o(t)
 	}
 
-	//	t.Validate()
-
 	return t
 }
 
 func (t *Text) Validate() {
-	if t.Color == nil {
+	t.populateComputedParams()
+
+	if t.computedParams.Color == nil {
 		panic("Text: Color is required.")
 	}
-	if t.Face == nil {
+	if t.computedParams.Face == nil {
 		panic("Text: Face is required.")
 	}
+}
+
+func (t *Text) populateComputedParams() {
+	txtParams := TextParams{}
+	theme := t.widget.GetTheme()
+	if theme != nil {
+		if theme.TextTheme != nil {
+			txtParams.Color = theme.TextTheme.Color
+			txtParams.Face = theme.TextTheme.Face
+			txtParams.Insets = theme.TextTheme.Insets
+		}
+	}
+	if t.definedParams.Face != nil {
+		txtParams.Face = t.definedParams.Face
+	}
+	if t.definedParams.Insets != nil {
+		txtParams.Insets = t.definedParams.Insets
+	}
+	if t.definedParams.Color != nil {
+		txtParams.Color = t.definedParams.Color
+	}
+
+	if txtParams.Insets == nil {
+		txtParams.Insets = &Insets{}
+	}
+
+	t.computedParams = txtParams
 }
 
 func (o TextOptions) WidgetOpts(opts ...WidgetOpt) TextOpt {
@@ -108,8 +142,8 @@ func (o TextOptions) WidgetOpts(opts ...WidgetOpt) TextOpt {
 func (o TextOptions) Text(label string, face *text.Face, color color.Color) TextOpt {
 	return func(t *Text) {
 		t.Label = label
-		t.Face = face
-		t.Color = color
+		t.definedParams.Face = face
+		t.definedParams.Color = color
 	}
 }
 
@@ -121,19 +155,19 @@ func (o TextOptions) TextLabel(label string) TextOpt {
 
 func (o TextOptions) TextFace(face *text.Face) TextOpt {
 	return func(t *Text) {
-		t.Face = face
+		t.definedParams.Face = face
 	}
 }
 
 func (o TextOptions) TextColor(color color.Color) TextOpt {
 	return func(t *Text) {
-		t.Color = color
+		t.definedParams.Color = color
 	}
 }
 
-func (o TextOptions) Insets(inset Insets) TextOpt {
+func (o TextOptions) Insets(inset *Insets) TextOpt {
 	return func(t *Text) {
-		t.Inset = inset
+		t.definedParams.Insets = inset
 	}
 }
 
@@ -157,6 +191,33 @@ func (o TextOptions) MaxWidth(maxWidth float64) TextOpt {
 	}
 }
 
+func (t *Text) SetFace(face *text.Face) {
+	t.definedParams.Face = face
+	if t.definedParams.Face == nil {
+		t.Validate()
+	} else {
+		t.computedParams.Face = face
+	}
+}
+
+func (t *Text) SetInset(inset *Insets) {
+	t.definedParams.Insets = inset
+	if t.definedParams.Insets == nil {
+		t.Validate()
+	} else {
+		t.computedParams.Insets = inset
+	}
+}
+
+func (t *Text) SetColor(color color.Color) {
+	t.definedParams.Color = color
+	if t.definedParams.Color == nil {
+		t.Validate()
+	} else {
+		t.computedParams.Color = color
+	}
+}
+
 func (t *Text) GetWidget() *Widget {
 	t.init.Do()
 	return t.widget
@@ -170,8 +231,8 @@ func (t *Text) SetLocation(rect image.Rectangle) {
 func (t *Text) PreferredSize() (int, int) {
 	t.init.Do()
 	t.measure()
-	w := int(math.Ceil(t.measurements.boundingBoxWidth)) + t.Inset.Left + t.Inset.Right
-	h := int(math.Ceil(t.measurements.boundingBoxHeight)) + t.Inset.Top + t.Inset.Bottom
+	w := int(math.Ceil(t.measurements.boundingBoxWidth)) + t.computedParams.Insets.Left + t.computedParams.Insets.Right
+	h := int(math.Ceil(t.measurements.boundingBoxHeight)) + t.computedParams.Insets.Top + t.computedParams.Insets.Bottom
 
 	if t.widget != nil && h < t.widget.MinHeight {
 		h = t.widget.MinHeight
@@ -203,17 +264,17 @@ func (t *Text) draw(screen *ebiten.Image) {
 
 	switch t.verticalPosition {
 	case TextPositionStart:
-		p = p.Add(image.Point{0, t.Inset.Top})
+		p = p.Add(image.Point{0, t.computedParams.Insets.Top})
 	case TextPositionCenter:
-		p = p.Add(image.Point{0, int((float64(r.Dy())-t.measurements.boundingBoxHeight)/2 + float64(t.Inset.Top))})
+		p = p.Add(image.Point{0, int((float64(r.Dy())-t.measurements.boundingBoxHeight)/2 + float64(t.computedParams.Insets.Top))})
 	case TextPositionEnd:
-		p = p.Add(image.Point{0, int(float64(r.Dy())-t.measurements.boundingBoxHeight) - t.Inset.Bottom})
+		p = p.Add(image.Point{0, int(float64(r.Dy())-t.measurements.boundingBoxHeight) - t.computedParams.Insets.Bottom})
 	}
 
 	t.colorList = &datastructures.Stack[color.Color]{}
-	t.colorList.Push(&t.Color)
+	t.colorList.Push(&t.computedParams.Color)
 
-	sWidth, _ := text.Measure(" ", *t.Face, 0)
+	sWidth, _ := text.Measure(" ", *t.computedParams.Face, 0)
 
 	for i, line := range t.measurements.lines {
 		ly := float64(p.Y) + t.measurements.lineHeight*float64(i)
@@ -235,11 +296,11 @@ func (t *Text) draw(screen *ebiten.Image) {
 		lx := float64(p.X)
 		switch t.horizontalPosition {
 		case TextPositionCenter:
-			lx += ((float64(w) - t.measurements.lineWidths[i]) / 2) + float64(t.Inset.Left)
+			lx += ((float64(w) - t.measurements.lineWidths[i]) / 2) + float64(t.computedParams.Insets.Left)
 		case TextPositionEnd:
-			lx += float64(w) - t.measurements.lineWidths[i] - float64(t.Inset.Right)
+			lx += float64(w) - t.measurements.lineWidths[i] - float64(t.computedParams.Insets.Right)
 		case TextPositionStart:
-			lx += float64(t.Inset.Left)
+			lx += float64(t.computedParams.Insets.Left)
 		}
 
 		if t.processBBCode {
@@ -250,21 +311,21 @@ func (t *Text) draw(screen *ebiten.Image) {
 					op := &text.DrawOptions{}
 					op.GeoM.Translate(lx, ly)
 					op.ColorScale.ScaleWithColor(piece.color)
-					text.Draw(screen, piece.text, *t.Face, op)
-					wordWidth, _ := text.Measure(piece.text, *t.Face, 0)
+					text.Draw(screen, piece.text, *t.computedParams.Face, op)
+					wordWidth, _ := text.Measure(piece.text, *t.computedParams.Face, 0)
 					lx += float64(wordWidth)
 				}
 				op := &text.DrawOptions{}
 				op.GeoM.Translate(lx, ly)
 				op.ColorScale.ScaleWithColor(updatedColor)
-				text.Draw(screen, " ", *t.Face, op)
+				text.Draw(screen, " ", *t.computedParams.Face, op)
 				lx += sWidth
 			}
 		} else {
 			op := &text.DrawOptions{}
 			op.GeoM.Translate(lx, ly)
-			op.ColorScale.ScaleWithColor(t.Color)
-			text.Draw(screen, strings.Join(line, " "), *t.Face, op)
+			op.ColorScale.ScaleWithColor(t.computedParams.Color)
+			text.Draw(screen, strings.Join(line, " "), *t.computedParams.Face, op)
 		}
 	}
 }
@@ -342,14 +403,15 @@ func (t *Text) handleBBCodeColor(word string) ([]bbCodeText, color.Color) {
 }
 
 func (t *Text) measure() {
-	if t.Label == t.measurements.label && t.Face == t.measurements.face && t.MaxWidth == t.measurements.maxWidth && t.processBBCode == t.measurements.processBBCode {
+	if t.Label == t.measurements.label && t.computedParams.Face == t.measurements.face && t.MaxWidth == t.measurements.maxWidth && t.processBBCode == t.measurements.processBBCode {
 		return
 	}
-	m := (*t.Face).Metrics()
+	t.populateComputedParams()
+	m := (*t.computedParams.Face).Metrics()
 
 	t.measurements = textMeasurements{
 		label:         t.Label,
-		face:          t.Face,
+		face:          t.computedParams.Face,
 		processBBCode: t.processBBCode,
 		ascent:        m.HAscent,
 		maxWidth:      t.MaxWidth,
@@ -365,7 +427,7 @@ func (t *Text) measure() {
 	for s.Scan() {
 		if t.MaxWidth > 0 || t.processBBCode {
 			var newLine []string
-			newLineWidth := float64(t.Inset.Left + t.Inset.Right)
+			newLineWidth := float64(t.computedParams.Insets.Left + t.computedParams.Insets.Right)
 
 			words := strings.Split(s.Text(), " ")
 			for i, word := range words {
@@ -373,9 +435,9 @@ func (t *Text) measure() {
 				if t.processBBCode && t.bbcodeRegex.MatchString(word) {
 					// Strip out any bbcodes from size calculation
 					cleaned := t.bbcodeRegex.ReplaceAllString(word, "")
-					wordWidth, _ = text.Measure(cleaned, *t.Face, 0)
+					wordWidth, _ = text.Measure(cleaned, *t.computedParams.Face, 0)
 				} else {
-					wordWidth, _ = text.Measure(word, *t.Face, 0)
+					wordWidth, _ = text.Measure(word, *t.computedParams.Face, 0)
 				}
 
 				// Don't add the space to the last chunk.
@@ -398,7 +460,7 @@ func (t *Text) measure() {
 						}
 					}
 					newLine = []string{word}
-					newLineWidth = wordWidth + float64(t.Inset.Left+t.Inset.Right)
+					newLineWidth = wordWidth + float64(t.computedParams.Insets.Left+t.computedParams.Insets.Right)
 				}
 			}
 			// Save the final line
@@ -413,8 +475,8 @@ func (t *Text) measure() {
 		} else {
 			line := s.Text()
 			t.measurements.lines = append(t.measurements.lines, []string{line})
-			lw, _ := text.Measure(line, *t.Face, 0)
-			lw += float64(t.Inset.Left + t.Inset.Right)
+			lw, _ := text.Measure(line, *t.computedParams.Face, 0)
+			lw += float64(t.computedParams.Insets.Left + t.computedParams.Insets.Right)
 			t.measurements.lineWidths = append(t.measurements.lineWidths, lw)
 
 			if lw > t.measurements.boundingBoxWidth {

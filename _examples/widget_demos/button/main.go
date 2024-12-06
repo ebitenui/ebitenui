@@ -9,7 +9,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// Game object used by ebiten
+// Game object used by ebiten.
 type game struct {
 	ui         *ebitenui.UI
 	btn        *widget.Button
@@ -21,35 +21,35 @@ func main() {
 	// construct a new container that serves as the root of the UI hierarchy
 	rootContainer := widget.NewPanel(
 		// the container will use a plain color as its background
-		//widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
+		// widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
 
 		// the container will use an anchor layout to layout its single child widget
-		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+			widget.RowLayoutOpts.Spacing(10),
+			widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(5)))),
 	)
 
 	// construct a button
 	button := widget.NewButton(
-		// set general widget options
-		widget.ButtonOpts.WidgetOpts(
-			// instruct the container's anchor layout to center the button both horizontally and vertically
-			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
-				HorizontalPosition: widget.AnchorLayoutPositionCenter,
-				VerticalPosition:   widget.AnchorLayoutPositionCenter,
-			}),
-		),
 		// specify the button's text
 		widget.ButtonOpts.TextLabel("Hello, World!"),
-
-		widget.ButtonOpts.TextProcessBBCode(true),
 
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			println("button clicked")
 		}),
 	)
-
 	// add the button as a child of the container
 	rootContainer.AddChild(button)
+
+	rootContainer.AddChild(widget.NewLabel(
+		widget.LabelOpts.LabelText("Label"),
+	))
+
+	rootContainer.AddChild(widget.NewText(
+		widget.TextOpts.TextLabel("Text"),
+	))
 
 	lightTheme := GetLightTheme()
 	darkTheme := GetDarkTheme()
@@ -90,7 +90,7 @@ func (g *game) Update() error {
 		g.btn.Click()
 	}
 
-	//Test that you can call Click on the focused widget.
+	// Test that you can call Click on the focused widget.
 	if inpututil.IsKeyJustPressed(ebiten.KeyF) {
 		if btn, ok := g.ui.GetFocusedWidget().(*widget.Button); ok {
 			btn.Click()

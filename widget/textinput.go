@@ -644,9 +644,9 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image) {
 		t.text.Label = t.placeholderText
 	}
 	if (t.widget.Disabled || len([]rune(t.inputText)) == 0) && t.color.Disabled != nil {
-		t.text.Color = t.color.Disabled
+		t.text.SetColor(t.color.Disabled)
 	} else {
-		t.text.Color = t.color.Idle
+		t.text.SetColor(t.color.Idle)
 	}
 	t.text.Render(screen)
 

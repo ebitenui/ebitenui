@@ -49,7 +49,7 @@ func main() {
 	*/
 
 	label1 := widget.NewText(
-		widget.TextOpts.Text("Label 1 (NewText)", face, color.White),
+		widget.TextOpts.Text("Label 1 (NewText)", &face, color.White),
 		widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter),
 		widget.TextOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
@@ -64,7 +64,7 @@ func main() {
 
 	// Create a new label
 	label2 := widget.NewLabel(
-		widget.LabelOpts.Text("Label 2 (NewLabel - Enabled)", face, &widget.LabelColor{
+		widget.LabelOpts.Text("Label 2 (NewLabel - Enabled)", &face, &widget.LabelColor{
 			Idle:     color.White,
 			Disabled: color.NRGBA{100, 100, 100, 255},
 		}),
@@ -82,7 +82,7 @@ func main() {
 
 	// Create a new label
 	label3 := widget.NewLabel(
-		widget.LabelOpts.Text("Label 3 (NewLabel - Disabled)", face, &widget.LabelColor{
+		widget.LabelOpts.Text("Label 3 (NewLabel - Disabled)", &face, &widget.LabelColor{
 			Idle:     color.White,
 			Disabled: color.NRGBA{100, 100, 100, 255},
 		}),

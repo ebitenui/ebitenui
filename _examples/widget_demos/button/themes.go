@@ -19,6 +19,8 @@ func GetLightTheme() *widget.Theme {
 	buttonImage, _ := loadButtonImage()
 
 	return &widget.Theme{
+		DefaultFace:      &face,
+		DefaultTextColor: color.Black,
 		ButtonTheme: &widget.ButtonParams{
 			TextColor: &widget.ButtonTextColor{
 				Idle:    color.NRGBA{40, 40, 40, 255},
@@ -38,6 +40,19 @@ func GetLightTheme() *widget.Theme {
 		PanelTheme: &widget.PanelParams{
 			BackgroundImage: image.NewNineSliceColor(color.NRGBA{212, 208, 200, 255}),
 		},
+		LabelTheme: &widget.LabelParams{
+			Face: &face,
+			Color: &widget.LabelColor{
+				Idle:     color.Black,
+				Disabled: color.NRGBA{222, 222, 222, 255},
+			},
+			Insets: &widget.Insets{Top: 10},
+		},
+		TextTheme: &widget.TextParams{
+			Face:   &face,
+			Color:  color.NRGBA{0, 255, 0, 255},
+			Insets: &widget.Insets{Top: 10},
+		},
 	}
 }
 
@@ -46,6 +61,8 @@ func GetDarkTheme() *widget.Theme {
 	face, _ := loadFont(20)
 
 	return &widget.Theme{
+		DefaultFace:      &face,
+		DefaultTextColor: color.White,
 		ButtonTheme: &widget.ButtonParams{
 			TextColor: &widget.ButtonTextColor{
 				Idle:    color.NRGBA{0x00, 0xf4, 0xff, 0xff},
@@ -68,6 +85,19 @@ func GetDarkTheme() *widget.Theme {
 		},
 		PanelTheme: &widget.PanelParams{
 			BackgroundImage: image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff}),
+		},
+		LabelTheme: &widget.LabelParams{
+			Face: &face,
+			Color: &widget.LabelColor{
+				Idle:     color.White,
+				Disabled: color.NRGBA{222, 222, 222, 255},
+			},
+			Insets: &widget.Insets{Top: 5},
+		},
+		TextTheme: &widget.TextParams{
+			Face:   &face,
+			Color:  color.NRGBA{255, 0, 0, 255},
+			Insets: &widget.Insets{Top: 5},
 		},
 	}
 }

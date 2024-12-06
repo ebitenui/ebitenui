@@ -197,6 +197,15 @@ func (b *Button) populateComputedParams() {
 	theme := b.widget.GetTheme()
 	// clone the theme
 	if theme != nil {
+		btnParams.TextFace = theme.DefaultFace
+		if theme.DefaultTextColor != nil {
+			btnParams.TextColor = &ButtonTextColor{
+				Idle:     theme.DefaultTextColor,
+				Disabled: theme.DefaultTextColor,
+				Hover:    theme.DefaultTextColor,
+				Pressed:  theme.DefaultTextColor,
+			}
+		}
 		if theme.ButtonTheme != nil {
 			if theme.ButtonTheme.Image != nil {
 				btnParams.Image = &ButtonImage{
@@ -216,9 +225,30 @@ func (b *Button) populateComputedParams() {
 			btnParams.GraphicPadding = theme.ButtonTheme.GraphicPadding
 			btnParams.HTextPosition = theme.ButtonTheme.HTextPosition
 			btnParams.VTextPosition = theme.ButtonTheme.VTextPosition
-			btnParams.TextFace = theme.ButtonTheme.TextFace
 			btnParams.TextPadding = theme.ButtonTheme.TextPadding
-			btnParams.TextColor = theme.ButtonTheme.TextColor
+
+			if theme.ButtonTheme.TextFace != nil {
+				btnParams.TextFace = theme.ButtonTheme.TextFace
+			}
+
+			if theme.ButtonTheme.TextColor != nil {
+				if btnParams.TextColor == nil {
+					btnParams.TextColor = theme.ButtonTheme.TextColor
+				} else {
+					if theme.ButtonTheme.TextColor.Disabled != nil {
+						btnParams.TextColor.Disabled = theme.ButtonTheme.TextColor.Disabled
+					}
+					if theme.ButtonTheme.TextColor.Hover != nil {
+						btnParams.TextColor.Hover = theme.ButtonTheme.TextColor.Hover
+					}
+					if theme.ButtonTheme.TextColor.Idle != nil {
+						btnParams.TextColor.Idle = theme.ButtonTheme.TextColor.Idle
+					}
+					if theme.ButtonTheme.TextColor.Pressed != nil {
+						btnParams.TextColor.Pressed = theme.ButtonTheme.TextColor.Pressed
+					}
+				}
+			}
 		}
 	}
 
@@ -677,16 +707,16 @@ func (b *Button) Render(screen *ebiten.Image) {
 		if b.text != nil {
 			switch {
 			case b.widget.Disabled && b.computedParams.TextColor.Disabled != nil:
-				b.text.Color = b.computedParams.TextColor.Disabled
+				b.text.SetColor(b.computedParams.TextColor.Disabled)
 
 			case (b.pressing && (b.hovering || b.KeepPressedOnExit) || (b.ToggleMode && b.state == WidgetChecked) || b.justSubmitted) && b.computedParams.TextColor.Pressed != nil:
-				b.text.Color = b.computedParams.TextColor.Pressed
+				b.text.SetColor(b.computedParams.TextColor.Pressed)
 
 			case (b.hovering || b.focused) && b.computedParams.TextColor.Hover != nil:
-				b.text.Color = b.computedParams.TextColor.Hover
+				b.text.SetColor(b.computedParams.TextColor.Hover)
 
 			default:
-				b.text.Color = b.computedParams.TextColor.Idle
+				b.text.SetColor(b.computedParams.TextColor.Idle)
 			}
 		}
 	}
@@ -835,8 +865,8 @@ func (b *Button) initText() {
 	}
 
 	if b.text != nil {
-		b.text.Face = b.computedParams.TextFace
-		b.text.Color = b.computedParams.TextColor.Idle
+		b.text.SetFace(b.computedParams.TextFace)
+		b.text.SetColor(b.computedParams.TextColor.Idle)
 		b.text.horizontalPosition = b.computedParams.HTextPosition
 		b.text.verticalPosition = b.computedParams.VTextPosition
 		b.text.widget.LayoutData = AnchorLayoutData{
@@ -867,6 +897,7 @@ func (b *Button) initText() {
 			TextOpts.Position(b.computedParams.HTextPosition, b.computedParams.VTextPosition),
 		)
 		b.container.AddChild(b.text)
+		b.container.Validate()
 
 		b.autoUpdateTextAndGraphic = true
 	}
