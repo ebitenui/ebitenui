@@ -49,6 +49,13 @@ func NewNineSliceSimple(image *ebiten.Image, borderWidthHeight int, centerWidthH
 	}
 }
 
+// NewNineSliceSimple constructs a new NineSlice from image. borderWidthHeight specifies the width of the
+// left and right column and the height of the top and bottom row. The center width and height is computed as
+// the width of image minus 2*borderWidthHeight
+func NewNineSliceBorder(image *ebiten.Image, borderWidthHeight int) *NineSlice {
+    return NewNineSliceSimple(image, borderWidthHeight, image.Bounds().Dx() - borderWidthHeight * 2)
+}
+
 // NewNineSliceColor constructs a new NineSlice that when drawn fills with color c.
 func NewNineSliceColor(c color.Color) *NineSlice {
 	if c == nil {
