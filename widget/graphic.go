@@ -31,6 +31,11 @@ type Graphic struct {
 type GraphicImage struct {
 	Idle     *ebiten.Image
 	Disabled *ebiten.Image
+
+	// Graphic does not have a handler for this 2 states
+	// and they are used through the Button
+	Pressed *ebiten.Image
+	Hover   *ebiten.Image
 }
 
 type GraphicOpt func(g *Graphic)
