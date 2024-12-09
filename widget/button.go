@@ -17,7 +17,7 @@ type Button struct {
 	IgnoreTransparentPixels bool
 	KeepPressedOnExit       bool
 	ToggleMode              bool
-	GraphicImage            *ButtonImageImage
+	GraphicImage            *GraphicImage
 	TextColor               *ButtonTextColor
 
 	// Allows the user to disable space bar and enter automatically triggering a focused button.
@@ -66,11 +66,6 @@ type ButtonImage struct {
 	Pressed      *image.NineSlice
 	PressedHover *image.NineSlice
 	Disabled     *image.NineSlice
-}
-
-type ButtonImageImage struct {
-	Idle     *ebiten.Image
-	Disabled *ebiten.Image
 }
 
 type ButtonTextColor struct {
@@ -241,7 +236,7 @@ func (o ButtonOptions) TextProcessBBCode(enabled bool) ButtonOpt {
 }
 
 // TODO: add parameter for image position (start/end).
-func (o ButtonOptions) TextAndImage(label string, face text.Face, image *ButtonImageImage, color *ButtonTextColor) ButtonOpt {
+func (o ButtonOptions) TextAndImage(label string, face text.Face, image *GraphicImage, color *ButtonTextColor) ButtonOpt {
 	return func(b *Button) {
 		b.init.Append(func() {
 			b.container = NewContainer(
@@ -266,14 +261,18 @@ func (o ButtonOptions) TextAndImage(label string, face text.Face, image *ButtonI
 				TextOpts.Text(label, face, color.Idle),
 				TextOpts.ProcessBBCode(b.textProcessBBCode),
 			)
-			c.AddChild(b.text)
 
 			b.graphic = NewGraphic(
 				GraphicOpts.WidgetOpts(WidgetOpts.LayoutData(RowLayoutData{
 					Stretch: true,
 				})),
-				GraphicOpts.Image(image.Idle))
-			c.AddChild(b.graphic)
+				GraphicOpts.Image(image.Idle),
+			)
+
+			c.AddChild(
+				b.text,
+				b.graphic,
+			)
 
 			b.autoUpdateTextAndGraphic = true
 			b.GraphicImage = image
@@ -297,8 +296,8 @@ func (o ButtonOptions) TextPadding(p Insets) ButtonOpt {
 	}
 }
 
-func (o ButtonOptions) Graphic(i *ebiten.Image) ButtonOpt {
-	return o.withGraphic(GraphicOpts.Image(i))
+func (o ButtonOptions) Graphic(image *GraphicImage) ButtonOpt {
+	return o.withGraphic(GraphicOpts.Images(image))
 }
 
 func (o ButtonOptions) GraphicNineSlice(i *image.NineSlice) ButtonOpt {
@@ -322,6 +321,13 @@ func (o ButtonOptions) withGraphic(opt GraphicOpt) ButtonOpt {
 			b.container.AddChild(b.graphic)
 
 			b.autoUpdateTextAndGraphic = true
+			if b.graphic.images != nil {
+				b.GraphicImage = b.graphic.images
+				// To control the state we set just an Image to the
+				// Graphic and remove the Images
+				b.graphic.Image = b.graphic.images.Idle
+				b.graphic.images = nil
+			}
 		})
 	}
 }
@@ -448,12 +454,6 @@ func (b *Button) getStateChangedEvent() *event.Event {
 	return b.StateChangedEvent
 }
 
-func (b *Button) Configure(opts ...ButtonOpt) {
-	for _, o := range opts {
-		o(b)
-	}
-}
-
 /** Focuser Interface - Start **/
 
 func (b *Button) Focus(focused bool) {
@@ -523,6 +523,7 @@ func (b *Button) SetLocation(rect img.Rectangle) {
 		wy := maskImage.Bounds().Dy()
 		b.mask = make([]byte, wx*wy*4)
 		maskImage.ReadPixels(b.mask)
+		b.GetWidget().mask = b.mask
 	}
 
 	b.widget.Rect = rect
@@ -564,27 +565,39 @@ func (b *Button) Render(screen *ebiten.Image) {
 	}
 
 	if b.autoUpdateTextAndGraphic {
+
+		// We set the defaults first and then if needed
+		// they'll be overwritten by the other states
+		if b.text != nil {
+			b.text.Color = b.TextColor.Idle
+		}
 		if b.GraphicImage != nil {
-			if b.widget.Disabled && b.GraphicImage.Disabled != nil {
-				b.graphic.Image = b.GraphicImage.Disabled
-			} else {
-				b.graphic.Image = b.GraphicImage.Idle
-			}
+			b.graphic.Image = b.GraphicImage.Idle
 		}
 
-		if b.text != nil {
-			switch {
-			case b.widget.Disabled && b.TextColor.Disabled != nil:
+		switch {
+		case b.widget.Disabled:
+			if b.text != nil && b.TextColor.Disabled != nil {
 				b.text.Color = b.TextColor.Disabled
+			}
+			if b.GraphicImage != nil && b.GraphicImage.Disabled != nil {
+				b.graphic.Image = b.GraphicImage.Disabled
+			}
 
-			case (b.pressing && (b.hovering || b.KeepPressedOnExit) || (b.ToggleMode && b.state == WidgetChecked) || b.justSubmitted) && b.TextColor.Pressed != nil:
+		case (b.pressing && (b.hovering || b.KeepPressedOnExit) || (b.ToggleMode && b.state == WidgetChecked) || b.justSubmitted):
+			if b.text != nil && b.TextColor.Pressed != nil {
 				b.text.Color = b.TextColor.Pressed
+			}
+			if b.GraphicImage != nil && b.GraphicImage.Pressed != nil {
+				b.graphic.Image = b.GraphicImage.Pressed
+			}
 
-			case (b.hovering || b.focused) && b.TextColor.Hover != nil:
+		case (b.hovering || b.focused):
+			if b.text != nil && b.TextColor.Hover != nil {
 				b.text.Color = b.TextColor.Hover
-
-			default:
-				b.text.Color = b.TextColor.Idle
+			}
+			if b.GraphicImage != nil && b.GraphicImage.Hover != nil {
+				b.graphic.Image = b.GraphicImage.Hover
 			}
 		}
 	}

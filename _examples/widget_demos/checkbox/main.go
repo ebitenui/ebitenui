@@ -64,14 +64,14 @@ func main() {
 		// Set the check object images
 		widget.CheckboxOpts.Image(&widget.CheckboxGraphicImage{
 			// When the checkbox is unchecked
-			Unchecked: &widget.ButtonImageImage{
+			Unchecked: &widget.GraphicImage{
 				Idle: uncheckedImage,
 			},
 			// When the checkbox is checked
-			Checked: &widget.ButtonImageImage{
+			Checked: &widget.GraphicImage{
 				Idle: checkedImage,
 			},
-			Greyed: &widget.ButtonImageImage{
+			Greyed: &widget.GraphicImage{
 				Idle: greyedImage,
 			},
 		}),
