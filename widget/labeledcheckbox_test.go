@@ -42,10 +42,10 @@ func newLabeledCheckbox(t *testing.T, opts ...LabeledCheckboxOpt) *LabeledCheckb
 				Pressed: newNineSliceEmpty(t),
 			})),
 			CheckboxOpts.Image(&CheckboxGraphicImage{
-				Unchecked: &ButtonImageImage{
+				Unchecked: &GraphicImage{
 					Idle: newImageEmpty(t),
 				},
-				Checked: &ButtonImageImage{
+				Checked: &GraphicImage{
 					Idle: newImageEmpty(t),
 				},
 			}),

@@ -90,7 +90,7 @@ type comboButtonResources struct {
 	image   *widget.ButtonImage
 	text    *widget.ButtonTextColor
 	face    text.Face
-	graphic *widget.ButtonImageImage
+	graphic *widget.GraphicImage
 	padding widget.Insets
 }
 
