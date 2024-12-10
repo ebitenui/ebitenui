@@ -58,11 +58,11 @@ var InputHandler *DefaultInternalHandler = &DefaultInternalHandler{
 // Update updates the input system. This is called by the UI.
 func (handler *DefaultInternalHandler) Update() {
 	handler.touchIDs = ebiten.AppendTouchIDs(handler.touchIDs[:0])
-	if len(touches) > 0 {
+	if len(handler.touchIDs) > 0 {
 		handler.isTouched = true
 	}
 	if handler.isTouched {
-		if len(touches) > 0 {
+		if len(handler.touchIDs) > 0 {
 			handler.LeftMouseButtonPressed = true
 			handler.CursorX, handler.CursorY = ebiten.TouchPosition(handler.touchIDs[0])
 		} else {
