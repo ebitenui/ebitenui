@@ -22,6 +22,8 @@ const (
 	// The tooltip will display based on the Widget and Content anchor settings.
 	// It defaults to opening right aligned and directly under the widget.
 	TOOLTIP_POS_WIDGET
+	// The tooltip will display based on x/y (offset is required)
+	TOOLTIP_POS_SCREEN
 )
 
 type ToolTipAnchor int
@@ -278,10 +280,13 @@ func (t *ToolTip) showingState(p image.Point) toolTipState {
 		sx, sy := t.content.PreferredSize()
 
 		position := p
-		if t.Position == TOOLTIP_POS_CURSOR_FOLLOW {
+		switch t.Position {
+		case TOOLTIP_POS_CURSOR_FOLLOW:
 			position = cp
-		} else if t.Position == TOOLTIP_POS_WIDGET {
+		case TOOLTIP_POS_WIDGET:
 			position = t.processWidgetPosition(parent.Rect)
+		case TOOLTIP_POS_SCREEN:
+			position = image.Point{}
 		}
 		position = position.Add(t.Offset)
 		position = t.processContentPosition(position, sx, sy, parent.Rect)

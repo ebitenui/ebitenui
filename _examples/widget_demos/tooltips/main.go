@@ -103,7 +103,7 @@ func main() {
 	// add the button as a child of the container
 	rootContainer.AddChild(button)
 
-	//Use the NewTextToolTip convenience method to create the tooltip
+	// Use the NewTextToolTip convenience method to create the tooltip
 	btn2ToolTip := widget.NewTextToolTip("Label: 1\nLabel: 2\nLabel: 3\nLabel: 4\nLabel: 5",
 		face, color.White,
 		image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 230, A: 255}))
@@ -146,6 +146,54 @@ func main() {
 	)
 	// add the button2 as a child of the container
 	rootContainer.AddChild(button2)
+
+	// Use the NewTextToolTip convenience method to create the tooltip
+	btn3ToolTip := widget.NewTextToolTip("Label: 1\nLabel: 2\nLabel: 3\nLabel: 4\nLabel: 5",
+		face, color.White,
+		image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 230, A: 255}))
+
+	// The NewTextToolTip defaults to follow the cursor
+	// But every parameter is available to update after it has been created
+	btn3ToolTip.Position = widget.TOOLTIP_POS_SCREEN
+	btn3ToolTip.Offset.X = 200
+	btn3ToolTip.Offset.Y = 200
+	btn3ToolTip.ContentOriginHorizontal = widget.TOOLTIP_ANCHOR_MIDDLE
+	btn3ToolTip.ContentOriginVertical = widget.TOOLTIP_ANCHOR_MIDDLE
+
+	// construct a button
+	button3 := widget.NewButton(
+		// set general widget options
+		widget.ButtonOpts.WidgetOpts(
+			// instruct the container's anchor layout to center the button both horizontally and vertically
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Position: widget.RowLayoutPositionCenter,
+			}),
+			widget.WidgetOpts.ToolTip(btn3ToolTip),
+		),
+
+		// specify the images to use
+		widget.ButtonOpts.Image(buttonImage),
+
+		// specify the button's text, the font face, and the color
+		widget.ButtonOpts.Text("Hover for tooltip", face, &widget.ButtonTextColor{
+			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
+		}),
+
+		// specify that the button's text needs some padding for correct display
+		widget.ButtonOpts.TextPadding(widget.Insets{
+			Left:   30,
+			Right:  30,
+			Top:    5,
+			Bottom: 5,
+		}),
+
+		// add a handler that reacts to clicking the button
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			println("button3 clicked")
+		}),
+	)
+	// add the button2 as a child of the container
+	rootContainer.AddChild(button3)
 
 	// construct the UI
 	ui := ebitenui.UI{
