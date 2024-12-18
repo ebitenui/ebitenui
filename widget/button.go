@@ -517,6 +517,7 @@ func (b *Button) SetLocation(rect img.Rectangle) {
 		wy := maskImage.Bounds().Dy()
 		b.mask = make([]byte, wx*wy*4)
 		maskImage.ReadPixels(b.mask)
+		b.GetWidget().mask = b.mask
 	}
 
 	b.widget.Rect = rect
