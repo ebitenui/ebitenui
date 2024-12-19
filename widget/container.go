@@ -338,6 +338,11 @@ func (c *Container) GetDropTargets() []HasWidget {
 	for _, child := range c.children {
 		if v, ok := child.(Dropper); ok {
 			result = append(result, v.GetDropTargets()...)
+		} else if child.GetWidget().drop != nil {
+			// If the Widget has 'drop' implemented then
+			// we have to push them to the 'result' as
+			// it means it has a handler for it
+			result = append(result, child)
 		}
 	}
 
