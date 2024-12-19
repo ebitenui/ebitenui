@@ -707,7 +707,9 @@ func (b *Button) Release() {
 		offx /= 2
 		offy /= 2
 	}
-	b.hovering = false
+	if !b.ToggleMode {
+		b.hovering = false
+	}
 	b.widget.MouseButtonReleasedEvent.Fire(&WidgetMouseButtonReleasedEventArgs{
 		Widget:  b.widget,
 		Inside:  true,
