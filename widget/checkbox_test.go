@@ -148,10 +148,10 @@ func newCheckbox(t *testing.T, opts ...CheckboxOpt) *Checkbox {
 		})),
 
 		CheckboxOpts.Image(&CheckboxGraphicImage{
-			Unchecked: &ButtonImageImage{
+			Unchecked: &GraphicImage{
 				Idle: newImageEmpty(t),
 			},
-			Checked: &ButtonImageImage{
+			Checked: &GraphicImage{
 				Idle: newImageEmpty(t),
 			},
 		}),
