@@ -23,7 +23,7 @@ const (
 	// It defaults to opening right aligned and directly under the widget.
 	TOOLTIP_POS_WIDGET
 	// The tooltip will display based on x/y (offset is required)
-	TOOLTIP_POS_SCREEN
+	TOOLTIP_POS_ABSOLUTE
 )
 
 type ToolTipAnchor int
@@ -285,7 +285,7 @@ func (t *ToolTip) showingState(p image.Point) toolTipState {
 			position = cp
 		case TOOLTIP_POS_WIDGET:
 			position = t.processWidgetPosition(parent.Rect)
-		case TOOLTIP_POS_SCREEN:
+		case TOOLTIP_POS_ABSOLUTE:
 			position = image.Point{}
 		}
 		position = position.Add(t.Offset)

@@ -154,7 +154,7 @@ func main() {
 
 	// The NewTextToolTip defaults to follow the cursor
 	// But every parameter is available to update after it has been created
-	btn3ToolTip.Position = widget.TOOLTIP_POS_SCREEN
+	btn3ToolTip.Position = widget.TOOLTIP_POS_ABSOLUTE
 	btn3ToolTip.Offset.X = 200
 	btn3ToolTip.Offset.Y = 200
 	btn3ToolTip.ContentOriginHorizontal = widget.TOOLTIP_ANCHOR_MIDDLE
