@@ -24,6 +24,9 @@ const (
 	TOOLTIP_POS_WIDGET
 	// The tooltip will display based on x/y (offset is required)
 	TOOLTIP_POS_ABSOLUTE
+	// The tooltip will display based on the Widget and Content anchor settings.
+	// It defaults to opening right aligned and directly under the x: 0, y: 0.
+	TOOLTIP_POS_SCREEN
 )
 
 type ToolTipAnchor int
@@ -287,6 +290,8 @@ func (t *ToolTip) showingState(p image.Point) toolTipState {
 			position = t.processWidgetPosition(parent.Rect)
 		case TOOLTIP_POS_ABSOLUTE:
 			position = image.Point{}
+		case TOOLTIP_POS_SCREEN:
+			position = t.processScreenPosition()
 		}
 		position = position.Add(t.Offset)
 		position = t.processContentPosition(position, sx, sy, parent.Rect)
@@ -350,7 +355,29 @@ func (t *ToolTip) processWidgetPosition(widgetRect image.Rectangle) image.Point 
 	return p
 }
 
-func (t *ToolTip) processContentPosition(p image.Point, sx int, sy int, widgetRect image.Rectangle) image.Point {
+func (t *ToolTip) processScreenPosition() image.Point {
+	windowSize := input.GetWindowSize()
+	p := image.Point{}
+	switch t.WidgetOriginHorizontal {
+	case TOOLTIP_ANCHOR_START:
+		p.X = 0
+	case TOOLTIP_ANCHOR_MIDDLE:
+		p.X = windowSize.X / 2
+	case TOOLTIP_ANCHOR_END:
+		p.X = windowSize.X
+	}
+	switch t.WidgetOriginVertical {
+	case TOOLTIP_ANCHOR_START:
+		p.Y = 0
+	case TOOLTIP_ANCHOR_MIDDLE:
+		p.Y = windowSize.Y / 2
+	case TOOLTIP_ANCHOR_END:
+		p.Y = windowSize.Y
+	}
+	return p
+}
+
+func (t *ToolTip) processContentPosition(p image.Point, sx, sy int, widgetRect image.Rectangle) image.Point {
 	result := processContentPositionWorker(p, sx, sy, t.ContentOriginHorizontal, t.ContentOriginVertical)
 	windowSize := input.GetWindowSize()
 	horizontalAnchor := t.ContentOriginHorizontal

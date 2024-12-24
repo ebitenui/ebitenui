@@ -70,8 +70,8 @@ func main() {
 				//widget.WidgetToolTipOpts.Delay(1*time.Second),
 				widget.ToolTipOpts.Offset(img.Point{-5, 5}),
 				widget.ToolTipOpts.Position(widget.TOOLTIP_POS_WIDGET),
-				//When the Position is set to TOOLTIP_POS_WIDGET, you can configure where it opens with the optional parameters below
-				//They will default to what you see below if you do not provide them
+				// When the Position is set to TOOLTIP_POS_WIDGET, you can configure where it opens with the optional parameters below
+				// They will default to what you see below if you do not provide them
 				widget.ToolTipOpts.WidgetOriginHorizontal(widget.TOOLTIP_ANCHOR_END),
 				widget.ToolTipOpts.WidgetOriginVertical(widget.TOOLTIP_ANCHOR_END),
 				widget.ToolTipOpts.ContentOriginHorizontal(widget.TOOLTIP_ANCHOR_END),
@@ -148,7 +148,7 @@ func main() {
 	rootContainer.AddChild(button2)
 
 	// Use the NewTextToolTip convenience method to create the tooltip
-	btn3ToolTip := widget.NewTextToolTip("Label: 1\nLabel: 2\nLabel: 3\nLabel: 4\nLabel: 5",
+	btn3ToolTip := widget.NewTextToolTip("This Tooltip uses\n'widget.TOOLTIP_POS_ABSOLUTE'\nto appear always at X: 200 / Y: 100!",
 		face, color.White,
 		image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 230, A: 255}))
 
@@ -156,9 +156,10 @@ func main() {
 	// But every parameter is available to update after it has been created
 	btn3ToolTip.Position = widget.TOOLTIP_POS_ABSOLUTE
 	btn3ToolTip.Offset.X = 200
-	btn3ToolTip.Offset.Y = 200
+	btn3ToolTip.Offset.Y = 100
 	btn3ToolTip.ContentOriginHorizontal = widget.TOOLTIP_ANCHOR_MIDDLE
 	btn3ToolTip.ContentOriginVertical = widget.TOOLTIP_ANCHOR_MIDDLE
+	btn3ToolTip.Delay = 0
 
 	// construct a button
 	button3 := widget.NewButton(
@@ -175,7 +176,7 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Hover for tooltip", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Hover for tooltip #3", face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
@@ -194,6 +195,57 @@ func main() {
 	)
 	// add the button2 as a child of the container
 	rootContainer.AddChild(button3)
+
+	// Use the NewTextToolTip convenience method to create the tooltip
+	btn4ToolTip := widget.NewTextToolTip("This Tooltip uses\n'widget.TOOLTIP_POS_SCREEN'\nto appear always center screen!",
+		face, color.White,
+		image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 230, A: 255}))
+
+	// The NewTextToolTip defaults to follow the cursor
+	// But every parameter is available to update after it has been created
+	btn4ToolTip.Position = widget.TOOLTIP_POS_SCREEN
+	btn4ToolTip.Offset.X = 0
+	btn4ToolTip.Offset.Y = 0
+	btn4ToolTip.ContentOriginHorizontal = widget.TOOLTIP_ANCHOR_MIDDLE
+	btn4ToolTip.ContentOriginVertical = widget.TOOLTIP_ANCHOR_MIDDLE
+	btn4ToolTip.WidgetOriginHorizontal = widget.TOOLTIP_ANCHOR_MIDDLE
+	btn4ToolTip.WidgetOriginVertical = widget.TOOLTIP_ANCHOR_START
+	btn4ToolTip.Delay = 0
+
+	// construct a button
+	button4 := widget.NewButton(
+		// set general widget options
+		widget.ButtonOpts.WidgetOpts(
+			// instruct the container's anchor layout to center the button both horizontally and vertically
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Position: widget.RowLayoutPositionCenter,
+			}),
+			widget.WidgetOpts.ToolTip(btn4ToolTip),
+		),
+
+		// specify the images to use
+		widget.ButtonOpts.Image(buttonImage),
+
+		// specify the button's text, the font face, and the color
+		widget.ButtonOpts.Text("Hover for tooltip #4", face, &widget.ButtonTextColor{
+			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
+		}),
+
+		// specify that the button's text needs some padding for correct display
+		widget.ButtonOpts.TextPadding(widget.Insets{
+			Left:   30,
+			Right:  30,
+			Top:    5,
+			Bottom: 5,
+		}),
+
+		// add a handler that reacts to clicking the button
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			println("button4 clicked")
+		}),
+	)
+	// add the button2 as a child of the container
+	rootContainer.AddChild(button4)
 
 	// construct the UI
 	ui := ebitenui.UI{
@@ -251,7 +303,7 @@ func loadFont(size float64) (text.Face, error) {
 	s, err := text.NewGoTextFaceSource(bytes.NewReader(goregular.TTF))
 	if err != nil {
 		log.Fatal(err)
-		return nil, err
+		return nil, fmt.Errorf("loadFont: %w", err)
 	}
 
 	return &text.GoTextFace{
