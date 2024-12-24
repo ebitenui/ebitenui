@@ -209,7 +209,7 @@ func main() {
 	btn4ToolTip.ContentOriginHorizontal = widget.TOOLTIP_ANCHOR_MIDDLE
 	btn4ToolTip.ContentOriginVertical = widget.TOOLTIP_ANCHOR_MIDDLE
 	btn4ToolTip.WidgetOriginHorizontal = widget.TOOLTIP_ANCHOR_MIDDLE
-	btn4ToolTip.WidgetOriginVertical = widget.TOOLTIP_ANCHOR_START
+	btn4ToolTip.WidgetOriginVertical = widget.TOOLTIP_ANCHOR_MIDDLE
 	btn4ToolTip.Delay = 0
 
 	// construct a button
