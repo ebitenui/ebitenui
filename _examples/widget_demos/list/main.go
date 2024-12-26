@@ -116,6 +116,8 @@ func main() {
 		}),
 		// This option will select the entry as it is focused
 		// widget.ListOpts.SelectFocus(),
+		// This option will select the entry when pressing the mouse button instead of releasing it
+		// widget.ListOpts.SelectPressed(),
 
 		// This option will disable default keys (up and down)
 		//widget.ListOpts.DisableDefaultKeys(true),
