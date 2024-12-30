@@ -83,7 +83,7 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Hover for tooltip", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Hover for tooltip #1", face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
@@ -127,7 +127,7 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Hover for tooltip", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Hover for tooltip #2", face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
@@ -148,7 +148,7 @@ func main() {
 	rootContainer.AddChild(button2)
 
 	// Use the NewTextToolTip convenience method to create the tooltip
-	btn3ToolTip := widget.NewTextToolTip("This Tooltip uses\n'widget.TOOLTIP_POS_ABSOLUTE'\nto appear always at X: 200 / Y: 100!",
+	btn3ToolTip := widget.NewTextToolTip("This Tooltip uses\n'widget.TOOLTIP_POS_ABSOLUTE'\nto always appear at X: 200 / Y: 100!",
 		face, color.White,
 		image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 230, A: 255}))
 
@@ -197,7 +197,7 @@ func main() {
 	rootContainer.AddChild(button3)
 
 	// Use the NewTextToolTip convenience method to create the tooltip
-	btn4ToolTip := widget.NewTextToolTip("This Tooltip uses\n'widget.TOOLTIP_POS_SCREEN'\nto appear always center screen!",
+	btn4ToolTip := widget.NewTextToolTip("This Tooltip uses\n'widget.TOOLTIP_POS_SCREEN'\nto always appear center screen!",
 		face, color.White,
 		image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 230, A: 255}))
 
