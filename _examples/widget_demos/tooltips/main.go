@@ -72,8 +72,8 @@ func main() {
 				widget.ToolTipOpts.Position(widget.TOOLTIP_POS_WIDGET),
 				// When the Position is set to TOOLTIP_POS_WIDGET, you can configure where it opens with the optional parameters below
 				// They will default to what you see below if you do not provide them
-				widget.ToolTipOpts.WidgetOriginHorizontal(widget.TOOLTIP_ANCHOR_END),
-				widget.ToolTipOpts.WidgetOriginVertical(widget.TOOLTIP_ANCHOR_END),
+				widget.ToolTipOpts.AnchorOriginHorizontal(widget.TOOLTIP_ANCHOR_END),
+				widget.ToolTipOpts.AnchorOriginVertical(widget.TOOLTIP_ANCHOR_END),
 				widget.ToolTipOpts.ContentOriginHorizontal(widget.TOOLTIP_ANCHOR_END),
 				widget.ToolTipOpts.ContentOriginVertical(widget.TOOLTIP_ANCHOR_START),
 			)),
@@ -208,8 +208,8 @@ func main() {
 	btn4ToolTip.Offset.Y = 0
 	btn4ToolTip.ContentOriginHorizontal = widget.TOOLTIP_ANCHOR_MIDDLE
 	btn4ToolTip.ContentOriginVertical = widget.TOOLTIP_ANCHOR_MIDDLE
-	btn4ToolTip.WidgetOriginHorizontal = widget.TOOLTIP_ANCHOR_MIDDLE
-	btn4ToolTip.WidgetOriginVertical = widget.TOOLTIP_ANCHOR_MIDDLE
+	btn4ToolTip.AnchorOriginHorizontal = widget.TOOLTIP_ANCHOR_MIDDLE
+	btn4ToolTip.AnchorOriginVertical = widget.TOOLTIP_ANCHOR_MIDDLE
 	btn4ToolTip.Delay = 0
 
 	// construct a button
