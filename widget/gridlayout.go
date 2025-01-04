@@ -140,10 +140,6 @@ func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.
 		if w.GetWidget().Visibility == Visibility_Hide {
 			c++
 			continue
-		} else if w.GetWidget().Visibility == Visibility_Hide {
-			c++
-			x += cw + g.columnSpacing
-			continue
 		}
 
 		if g.columnStretched(c) {
