@@ -137,6 +137,7 @@ func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.
 	firstStretchedCol, firstStretchedRow := true, true
 	for _, w := range widgets {
 		cw := colWidths[c]
+		ch := rowHeights[r]
 		if w.GetWidget().Visibility == Visibility_Hide {
 			c++
 			continue
@@ -150,7 +151,6 @@ func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.
 			}
 		}
 
-		ch := rowHeights[r]
 		if g.rowStretched(r) {
 			ch = stretchedRowHeight
 			if firstStretchedRow {
@@ -169,9 +169,9 @@ func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.
 
 		w.SetLocation(image.Rect(rect.Min.X+wx, rect.Min.Y+wy, rect.Min.X+wx+ww, rect.Min.Y+wy+wh))
 
-		c++
 		x += cw + g.columnSpacing
 
+		c++
 		if c >= g.columns {
 			c = 0
 			r++
