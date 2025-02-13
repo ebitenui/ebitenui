@@ -25,7 +25,7 @@ type DrawFunc func(buf *ebiten.Image)
 func (b *BufferedImage) Image() *ebiten.Image {
 	w, h := -1, -1
 	if b.image != nil {
-		w, h = b.image.Size()
+		w, h = b.image.Bounds().Dx(), b.image.Bounds().Dy()
 	}
 
 	if b.image == nil || b.Width != w || b.Height != h {

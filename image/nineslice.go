@@ -195,7 +195,7 @@ func (n *NineSlice) centerOnly() bool {
 		return false
 	}
 
-	w, h := n.image.Size()
+	w, h := n.image.Bounds().Dx(), n.image.Bounds().Dy()
 	return n.widths[1] == w && n.heights[1] == h
 }
 
