@@ -187,7 +187,7 @@ func textAreaPage(res *uiResources) *page {
 	)
 	c.AddChild(textAreaContainer)
 
-	textArea := newTextArea("Hello [color=FF0000] World! [/color]", res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
+	textArea := newTextArea("Hello [color=#FF0000] World! [/color]", res, widget.WidgetOpts.LayoutData(widget.GridLayoutData{
 		MaxHeight: 220,
 	}))
 	textAreaContainer.AddChild(textArea)
