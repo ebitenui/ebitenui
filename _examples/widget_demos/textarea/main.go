@@ -59,7 +59,7 @@ func main() {
 		//Set the initial text for the textarea
 		//It will automatically line wrap and process newlines characters
 		//If ProcessBBCode is true it will parse out bbcode
-		widget.TextAreaOpts.Text("Hello World\nTest1\nTest2\n[color=ff0000]Red[/color]\n[color=00ff00]Green[/color]\n[color=0000ff]Blue[/color]\nTest3\nTest4"),
+		widget.TextAreaOpts.Text("Hello World\nTest1\nTest2\n[color=#ff0000]Red[/color]\n[color=#00ff00]Green[/color]\n[color=#0000ff]Blue[/color]\nTest3\nTest4"),
 		//Tell the TextArea to show the vertical scrollbar
 		widget.TextAreaOpts.ShowVerticalScrollbar(),
 		//Set padding between edge of the widget and where the text is drawn
