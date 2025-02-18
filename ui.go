@@ -308,9 +308,7 @@ func (u *UI) addWindow(w *widget.Window) bool {
 
 	u.windows = append(u.windows, w)
 
-	sort.SliceStable(u.windows, func(i, j int) bool {
-		return u.windows[i].DrawLayer < u.windows[j].DrawLayer
-	})
+	u.SortWindows()
 
 	return true
 }
@@ -338,6 +336,7 @@ func (u *UI) closeEphemeralWindows(windowIdx int) {
 	}
 }
 
+// This function returns true if the provided window object is currently active in this UI.
 func (u *UI) IsWindowOpen(w *widget.Window) bool {
 	for i := range u.windows {
 		if u.windows[i] == w {
@@ -347,6 +346,14 @@ func (u *UI) IsWindowOpen(w *widget.Window) bool {
 	return false
 }
 
+// This function will re-sort the current windows attached to this UI based on its DrawLayer value.
+func (u *UI) SortWindows() {
+	sort.SliceStable(u.windows, func(i, j int) bool {
+		return u.windows[i].DrawLayer < u.windows[j].DrawLayer
+	})
+}
+
+// This function will return true if any widget is currently focused or a Modal window is open.
 func (u *UI) HasFocus() bool {
 	for i := len(u.windows) - 1; i >= 0; i-- {
 		if u.windows[i].Modal {
@@ -356,12 +363,14 @@ func (u *UI) HasFocus() bool {
 	return u.focusedWidget != nil
 }
 
+// This function will unfocus the currently focused widget
 func (u *UI) ClearFocus() {
 	if u.focusedWidget != nil {
 		u.focusedWidget.(widget.Focuser).Focus(false)
 	}
 }
 
+// This function will return the currently focused widget if available otherwise it returns nil
 func (u *UI) GetFocusedWidget() widget.Focuser {
 	if u.focusedWidget != nil {
 		return u.focusedWidget.(widget.Focuser)
