@@ -134,15 +134,29 @@ func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.
 
 	c, r := 0, 0
 	x, y := 0, 0
+	var ch int
 	firstStretchedCol, firstStretchedRow := true, true
+
+	// Anytime c is incremented, call this
+	nextColumn := func() {
+		c++
+		if c >= g.columns {
+			c = 0
+			r++
+			x = 0
+			y += ch + g.rowSpacing
+			firstStretchedCol = true
+		}
+	}
+
 	for _, w := range widgets {
 		cw := colWidths[c]
 		if w.GetWidget().Visibility == Visibility_Hide {
-			c++
+			nextColumn()
 			continue
 		} else if w.GetWidget().Visibility == Visibility_Hide {
-			c++
 			x += cw + g.columnSpacing
+			nextColumn()
 			continue
 		}
 
@@ -154,7 +168,7 @@ func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.
 			}
 		}
 
-		ch := rowHeights[r]
+		ch = rowHeights[r]
 		if g.rowStretched(r) {
 			ch = stretchedRowHeight
 			if firstStretchedRow {
@@ -173,16 +187,8 @@ func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.
 
 		w.SetLocation(image.Rect(rect.Min.X+wx, rect.Min.Y+wy, rect.Min.X+wx+ww, rect.Min.Y+wy+wh))
 
-		c++
+		nextColumn()
 		x += cw + g.columnSpacing
-
-		if c >= g.columns {
-			c = 0
-			r++
-			x = 0
-			y += ch + g.rowSpacing
-			firstStretchedCol = true
-		}
 	}
 }
 
