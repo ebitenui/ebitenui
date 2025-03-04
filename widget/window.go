@@ -50,6 +50,12 @@ type Window struct {
 	// Used to indicate this window should close if other windows close.
 	Ephemeral bool
 
+	// INTERNAL USE ONLY: Used to indicate that this window is the currently focused window.
+	FocusedWindow bool
+	// Sets whether the window should move to the top of the draw order when clicked
+	// Default: false.
+	DisableRelayering bool
+
 	closeMode WindowCloseMode
 	closeFunc RemoveWindowFunc
 	container *Container
@@ -140,6 +146,14 @@ func (o WindowOptions) Resizeable() WindowOpt {
 func (o WindowOptions) BlockLower(blockLower bool) WindowOpt {
 	return func(w *Window) {
 		w.blockLower = blockLower
+	}
+}
+
+// Sets whether the window should move to the top of the draw order when clicked
+// Default: false.
+func (o WindowOptions) DisableRelayering(disableRelayering bool) WindowOpt {
+	return func(w *Window) {
+		w.DisableRelayering = disableRelayering
 	}
 }
 
@@ -435,4 +449,11 @@ func (w *Window) createWidget() {
 			}
 		})
 	}
+
+	w.container.GetWidget().MouseButtonPressedEvent.AddHandler(func(_ any) {
+		if !w.DisableRelayering {
+			w.FocusedWindow = true
+		}
+	})
+
 }

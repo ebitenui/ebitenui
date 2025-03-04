@@ -15,7 +15,7 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 )
 
-// Game object used by ebiten
+// Game object used by ebiten.
 type game struct {
 	ui *ebitenui.UI
 }
@@ -23,72 +23,6 @@ type game struct {
 func main() {
 	// construct the UI
 	ui := ebitenui.UI{}
-
-	// load images for button states: idle, hover, and pressed
-	buttonImage, _ := loadButtonImage()
-
-	// load button text font
-	face, _ := loadFont(20)
-
-	// load the font for the window title
-	titleFace, _ := loadFont(12)
-
-	// Create the contents of the window
-	windowContainer := widget.NewContainer(
-		widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255})),
-		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
-	)
-	windowContainer.AddChild(widget.NewText(
-		widget.TextOpts.Text("Hello from window", face, color.NRGBA{254, 255, 255, 255}),
-		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
-			HorizontalPosition: widget.AnchorLayoutPositionCenter,
-			VerticalPosition:   widget.AnchorLayoutPositionCenter,
-		})),
-	))
-
-	// Create the titlebar for the window
-	titleContainer := widget.NewContainer(
-		widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{150, 150, 150, 255})),
-		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
-	)
-	titleContainer.AddChild(widget.NewText(
-		widget.TextOpts.Text("Window Title", titleFace, color.NRGBA{254, 255, 255, 255}),
-		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
-			HorizontalPosition: widget.AnchorLayoutPositionCenter,
-			VerticalPosition:   widget.AnchorLayoutPositionCenter,
-		})),
-	))
-
-	// Create the new window object. The window object is not tied to a container. Its location and
-	// size are set manually using the SetLocation method on the window and added to the UI with ui.AddWindow()
-	// Set the Button callback below to see how the window is added to the UI.
-	window := widget.NewWindow(
-		//Set the main contents of the window
-		widget.WindowOpts.Contents(windowContainer),
-		//Set the titlebar for the window (Optional)
-		widget.WindowOpts.TitleBar(titleContainer, 25),
-		//Set the window above everything else and block input elsewhere
-		widget.WindowOpts.Modal(),
-		//Set how to close the window. CLICK_OUT will close the window when clicking anywhere
-		//that is not a part of the window object
-		widget.WindowOpts.CloseMode(widget.CLICK_OUT),
-		//Indicates that the window is draggable. It must have a TitleBar for this to work
-		widget.WindowOpts.Draggable(),
-		//Set the window resizeable
-		widget.WindowOpts.Resizeable(),
-		//Set the minimum size the window can be
-		widget.WindowOpts.MinSize(200, 100),
-		//Set the maximum size a window can be
-		widget.WindowOpts.MaxSize(300, 300),
-		//Set the callback that triggers when a move is complete
-		widget.WindowOpts.MoveHandler(func(args *widget.WindowChangedEventArgs) {
-			fmt.Println("Window Moved")
-		}),
-		//Set the callback that triggers when a resize is complete
-		widget.WindowOpts.ResizeHandler(func(args *widget.WindowChangedEventArgs) {
-			fmt.Println("Window Resized")
-		}),
-	)
 
 	// construct a new container that serves as the root of the UI hierarchy
 	rootContainer := widget.NewContainer(
@@ -99,51 +33,31 @@ func main() {
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 
-	// construct a button
-	button := widget.NewButton(
-		// set general widget options
-		widget.ButtonOpts.WidgetOpts(
-			// instruct the container's anchor layout to center the button both horizontally and vertically
+	// construct a new row layout container that is centered on the page
+	centerContainer := widget.NewContainer(
+		// Configure the container to be centered in it's parent
+		widget.ContainerOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 				HorizontalPosition: widget.AnchorLayoutPositionCenter,
 				VerticalPosition:   widget.AnchorLayoutPositionCenter,
 			}),
 		),
-
-		// specify the images to use
-		widget.ButtonOpts.Image(buttonImage),
-
-		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Open Window", face, &widget.ButtonTextColor{
-			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
-		}),
-
-		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
-			Left:   30,
-			Right:  30,
-			Top:    5,
-			Bottom: 5,
-		}),
-
-		// add a handler that reacts to clicking the button
-		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			//Get the preferred size of the content
-			x, y := window.Contents.PreferredSize()
-			//Create a rect with the preferred size of the content
-			r := image.Rect(0, 0, x, y)
-			//Use the Add method to move the window to the specified point
-			r = r.Add(image.Point{100, 50})
-			//Set the windows location to the rect.
-			window.SetLocation(r)
-			//Add the window to the UI.
-			//Note: If the window is already added, this will just move the window and not add a duplicate.
-			ui.AddWindow(window)
-		}),
+		// Configure the container to be a Vertical Row Layout.
+		widget.ContainerOpts.Layout(
+			widget.NewRowLayout(
+				widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+				widget.RowLayoutOpts.Spacing(10),
+			)),
 	)
 
-	// add the button as a child of the container
-	rootContainer.AddChild(button)
+	window1 := createWindow(&ui, "Window 1")
+	centerContainer.AddChild(createButton(&ui, window1, "Window 1", image.Pt(100, 50)))
+
+	window2 := createWindow(&ui, "Window 2")
+	centerContainer.AddChild(createButton(&ui, window2, "Window 2", image.Pt(100, 260)))
+
+	rootContainer.AddChild(centerContainer)
+
 	// Set Root Container
 	ui.Container = rootContainer
 
@@ -160,6 +74,123 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
+}
+
+func createButton(ui *ebitenui.UI, win *widget.Window, label string, winPos image.Point) *widget.Button {
+	// load images for button states: idle, hover, and pressed
+	buttonImage, _ := loadButtonImage() // load button text font
+	face, _ := loadFont(20)
+	var btn *widget.Button
+
+	btn = widget.NewButton(
+		// set general widget options
+		widget.ButtonOpts.WidgetOpts(
+			// instruct the container's anchor layout to center the button both horizontally and vertically
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Position: widget.RowLayoutPositionCenter,
+			}),
+		),
+
+		// specify the images to use
+		widget.ButtonOpts.Image(buttonImage),
+
+		// specify the button's text, the font face, and the color
+		widget.ButtonOpts.Text("Open "+label, face, &widget.ButtonTextColor{
+			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
+		}),
+
+		// specify that the button's text needs some padding for correct display
+		widget.ButtonOpts.TextPadding(widget.Insets{
+			Left:   30,
+			Right:  30,
+			Top:    5,
+			Bottom: 5,
+		}),
+
+		// add a handler that reacts to clicking the button
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			if !ui.IsWindowOpen(win) {
+				btn.Text().Label = "Close " + label
+				// Get the preferred size of the content
+				x, y := win.Contents.PreferredSize()
+				// Create a rect with the preferred size of the content
+				r := image.Rect(0, 0, x, y)
+				// Use the Add method to move the window to the specified point
+				r = r.Add(winPos)
+				// Set the windows location to the rect.
+				win.SetLocation(r)
+				// Add the window to the UI.
+				// Note: If the window is already added, this will just move the window and not add a duplicate.
+				ui.AddWindow(win)
+			} else {
+				win.Close()
+				btn.Text().Label = "Open " + label
+			}
+		}),
+	)
+	return btn
+}
+func createWindow(ui *ebitenui.UI, label string) *widget.Window {
+	// load the font for the window title
+	titleFace, _ := loadFont(12)
+	face, _ := loadFont(20)
+
+	// Create the contents of the window
+	windowContainer := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255})),
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+	)
+	windowContainer.AddChild(widget.NewText(
+		widget.TextOpts.Text("Hello from "+label, face, color.NRGBA{254, 255, 255, 255}),
+		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+			HorizontalPosition: widget.AnchorLayoutPositionCenter,
+			VerticalPosition:   widget.AnchorLayoutPositionCenter,
+		})),
+	))
+
+	// Create the titlebar for the window
+	titleContainer := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{150, 150, 150, 255})),
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+	)
+	titleContainer.AddChild(widget.NewText(
+		widget.TextOpts.Text(label+" Title", titleFace, color.NRGBA{254, 255, 255, 255}),
+		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+			HorizontalPosition: widget.AnchorLayoutPositionCenter,
+			VerticalPosition:   widget.AnchorLayoutPositionCenter,
+		})),
+	))
+
+	// Create the new window object. The window object is not tied to a container. Its location and
+	// size are set manually using the SetLocation method on the window and added to the UI with ui.AddWindow()
+	// Set the Button callback below to see how the window is added to the UI.
+	return widget.NewWindow(
+		// Set the main contents of the window
+		widget.WindowOpts.Contents(windowContainer),
+		// Set the titlebar for the window (Optional)
+		widget.WindowOpts.TitleBar(titleContainer, 25),
+		// Set the window above everything else and block input elsewhere
+		// widget.WindowOpts.Modal(),
+		// Set how to close the window. CLICK_OUT will close the window when clicking anywhere
+		// that is not a part of the window object
+		// widget.WindowOpts.CloseMode(widget.CLICK_OUT),
+		// Indicates that the window is draggable. It must have a TitleBar for this to work
+		widget.WindowOpts.Draggable(),
+		// Set the window resizeable
+		widget.WindowOpts.Resizeable(),
+		// Set the minimum size the window can be
+		widget.WindowOpts.MinSize(200, 100),
+		// Set the maximum size a window can be
+		widget.WindowOpts.MaxSize(300, 300),
+		// Set the callback that triggers when a move is complete
+		widget.WindowOpts.MoveHandler(func(args *widget.WindowChangedEventArgs) {
+			fmt.Println("Window Moved")
+		}),
+		// Set the callback that triggers when a resize is complete
+		widget.WindowOpts.ResizeHandler(func(args *widget.WindowChangedEventArgs) {
+			fmt.Println("Window Resized")
+		}),
+	)
 }
 
 // Layout implements Game.
