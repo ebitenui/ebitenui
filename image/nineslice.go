@@ -21,6 +21,19 @@ type NineSlice struct {
 	tiles [9]*ebiten.Image
 }
 
+type borders struct {
+	borderTop    int
+	borderBottom int
+	borderLeft   int
+	borderRight  int
+	borderColor  color.Color
+}
+
+// This function returns a new borders struct instance for use with the NewAdvancedNineSlice* functions
+func NewBorder(borderTop int, borderBottom int, borderLeft int, borderRight int, borderColor color.Color) borders {
+	return borders{borderTop, borderBottom, borderLeft, borderRight, borderColor}
+}
+
 // A DrawImageOptionsFunc is responsible for setting DrawImageOptions when drawing an image.
 // This is usually used to translate the image.
 type DrawImageOptionsFunc func(opts *ebiten.DrawImageOptions)
@@ -51,9 +64,9 @@ func NewNineSliceSimple(image *ebiten.Image, borderWidthHeight int, centerWidthH
 
 // NewNineSliceSimple constructs a new NineSlice from image. borderWidthHeight specifies the width of the
 // left and right column and the height of the top and bottom row. The center width and height is computed as
-// the width of image minus 2*borderWidthHeight
+// the width of image minus 2*borderWidthHeight.
 func NewNineSliceBorder(image *ebiten.Image, borderWidthHeight int) *NineSlice {
-    return NewNineSliceSimple(image, borderWidthHeight, image.Bounds().Dx() - borderWidthHeight * 2)
+	return NewNineSliceSimple(image, borderWidthHeight, image.Bounds().Dx()-borderWidthHeight*2)
 }
 
 // NewNineSliceColor constructs a new NineSlice that when drawn fills with color c.
@@ -80,6 +93,74 @@ func NewNineSliceColor(c color.Color) *NineSlice {
 	}
 	colorNineSlices[c] = n
 	return n
+}
+
+// NewBorderedNineSliceColor constructs a new NineSlice that when drawn fills with color c and has a border with
+// the specified color and width.
+func NewBorderedNineSliceColor(bodyColor color.Color, borderColor color.Color, borderWidth int) *NineSlice {
+	i := ebiten.NewImage(borderWidth*2+1, borderWidth*2+1)
+	i.Fill(borderColor)
+	i.Set(borderWidth, borderWidth, bodyColor)
+
+	return &NineSlice{
+		image:   i,
+		widths:  [3]int{borderWidth, 1, borderWidth},
+		heights: [3]int{borderWidth, 1, borderWidth},
+	}
+}
+
+// NewBorderedNineSliceColor constructs a new NineSlice that when drawn fills with the provided image and has a border with
+// the specified color and width.
+func NewBorderedNineSliceImage(img *ebiten.Image, borderColor color.Color, borderWidth int) *NineSlice {
+	i := ebiten.NewImage(borderWidth*2+img.Bounds().Dx(), borderWidth*2+img.Bounds().Dy())
+	// Set the border color.
+	i.Fill(borderColor)
+	// Draw the image in the middle.
+	geo := ebiten.GeoM{}
+	geo.Translate(float64(borderWidth), float64(borderWidth))
+	i.DrawImage(img, &ebiten.DrawImageOptions{
+		GeoM: geo,
+	})
+
+	return &NineSlice{
+		image:   i,
+		widths:  [3]int{borderWidth, img.Bounds().Dx(), borderWidth},
+		heights: [3]int{borderWidth, img.Bounds().Dy(), borderWidth},
+	}
+}
+
+// NewAdvancedNineSliceColor constructs a new NineSlice that when drawn fills with color c and
+// has a border defined by the borders struct.
+func NewAdvancedNineSliceColor(bodyColor color.Color, border borders) *NineSlice {
+	i := ebiten.NewImage(border.borderLeft+border.borderRight+1, border.borderTop+border.borderBottom*2+1)
+	i.Fill(border.borderColor)
+	i.Set(border.borderLeft, border.borderTop, bodyColor)
+
+	return &NineSlice{
+		image:   i,
+		widths:  [3]int{border.borderLeft, 1, border.borderRight},
+		heights: [3]int{border.borderTop, 1, border.borderBottom},
+	}
+}
+
+// NewAdvancedNineSliceImage constructs a new NineSlice that when drawn fills with the provided image and
+// has a border defined by the borders struct.
+func NewAdvancedNineSliceImage(img *ebiten.Image, border borders) *NineSlice {
+	i := ebiten.NewImage(border.borderLeft+border.borderRight+img.Bounds().Dx(), border.borderTop+border.borderBottom+img.Bounds().Dy())
+	// Set the border color.
+	i.Fill(border.borderColor)
+	// Draw the image in the middle.
+	geo := ebiten.GeoM{}
+	geo.Translate(float64(border.borderLeft), float64(border.borderTop))
+	i.DrawImage(img, &ebiten.DrawImageOptions{
+		GeoM: geo,
+	})
+
+	return &NineSlice{
+		image:   i,
+		widths:  [3]int{border.borderLeft, img.Bounds().Dx(), border.borderRight},
+		heights: [3]int{border.borderTop, img.Bounds().Dy(), border.borderBottom},
+	}
 }
 
 // NewImageColor constructs a new Image that when drawn fills with color c.
@@ -182,7 +263,9 @@ func (n *NineSlice) createTiles() {
 			if sh > 0 && sw > 0 {
 				rect := image.Rect(0, 0, sw, sh)
 				rect = rect.Add(image.Point{sx, sy})
-				n.tiles[r*3+c] = n.image.SubImage(rect).(*ebiten.Image)
+				if tile, ok := n.image.SubImage(rect).(*ebiten.Image); ok {
+					n.tiles[r*3+c] = tile
+				}
 			}
 			sx += sw
 		}
