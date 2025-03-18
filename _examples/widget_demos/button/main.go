@@ -67,13 +67,11 @@ func main() {
 		// Move the text down and right on press
 		widget.ButtonOpts.PressedHandler(func(args *widget.ButtonPressedEventArgs) {
 			button.Text().Inset.Top = 1
-			button.Text().Inset.Left = 1
 			button.GetWidget().CustomData = true
 		}),
 		// Move the text back to start on press released
 		widget.ButtonOpts.ReleasedHandler(func(args *widget.ButtonReleasedEventArgs) {
 			button.Text().Inset.Top = 0
-			button.Text().Inset.Left = 0
 			button.GetWidget().CustomData = false
 		}),
 
@@ -88,7 +86,6 @@ func main() {
 			// If we moved the Text because we clicked on this button previously, move the text down and right
 			if button.GetWidget().CustomData == true {
 				button.Text().Inset.Top = 1
-				button.Text().Inset.Left = 1
 			}
 		}),
 
@@ -107,7 +104,6 @@ func main() {
 			println("cursor exited button: entered =", args.Entered, "offsetX =", args.OffsetX, "offsetY =", args.OffsetY)
 			// Reset the Text inset if the cursor is no longer over the button
 			button.Text().Inset.Top = 0
-			button.Text().Inset.Left = 0
 		}),
 
 		// Indicate that this button should not be submitted when enter or space are pressed
@@ -179,7 +175,7 @@ func loadButtonImage() (*widget.ButtonImage, error) {
 
 	hover := image.NewBorderedNineSliceColor(color.NRGBA{R: 130, G: 130, B: 150, A: 255}, color.NRGBA{70, 70, 70, 255}, 3)
 
-	pressed := image.NewAdvancedNineSliceColor(color.NRGBA{R: 130, G: 130, B: 150, A: 255}, image.NewBorder(3, 2, 3, 2, color.NRGBA{70, 70, 70, 255}))
+	pressed := image.NewAdvancedNineSliceColor(color.NRGBA{R: 130, G: 130, B: 150, A: 255}, image.NewBorder(3, 2, 2, 2, color.NRGBA{70, 70, 70, 255}))
 
 	return &widget.ButtonImage{
 		Idle:    idle,

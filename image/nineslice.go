@@ -23,15 +23,15 @@ type NineSlice struct {
 
 type borders struct {
 	borderTop    int
+	borderRight  int
 	borderBottom int
 	borderLeft   int
-	borderRight  int
 	borderColor  color.Color
 }
 
-// This function returns a new borders struct instance for use with the NewAdvancedNineSlice* functions
-func NewBorder(borderTop int, borderBottom int, borderLeft int, borderRight int, borderColor color.Color) borders {
-	return borders{borderTop, borderBottom, borderLeft, borderRight, borderColor}
+// This function returns a new borders struct instance for use with the NewAdvancedNineSlice* functions.
+func NewBorder(borderTop int, borderRight int, borderBottom int, borderLeft int, borderColor color.Color) borders {
+	return borders{max(borderTop, 0), max(borderRight, 0), max(borderBottom, 0), max(borderLeft, 0), borderColor}
 }
 
 // A DrawImageOptionsFunc is responsible for setting DrawImageOptions when drawing an image.
@@ -254,11 +254,11 @@ func (n *NineSlice) createTiles() {
 		return
 	}
 
-	min := n.image.Bounds().Min
+	minSize := n.image.Bounds().Min
 
-	sy := min.Y
+	sy := minSize.Y
 	for r, sh := range n.heights {
-		sx := min.X
+		sx := minSize.X
 		for c, sw := range n.widths {
 			if sh > 0 && sw > 0 {
 				rect := image.Rect(0, 0, sw, sh)
