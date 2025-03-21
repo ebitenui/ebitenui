@@ -703,7 +703,7 @@ func (b *Button) Render(screen *ebiten.Image) {
 		// We set the defaults first and then if needed
 		// they'll be overwritten by the other states
 		if b.text != nil {
-			b.text.SetColor(b.TextColor.Idle)
+			b.text.SetColor(b.computedParams.TextColor.Idle)
 		}
 
 		if b.computedParams.GraphicImage != nil {
