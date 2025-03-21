@@ -177,8 +177,7 @@ func (d *DragAndDrop) idleState() dragAndDropState {
 		}
 
 		x, y := input.CursorPosition()
-		p := image.Point{x, y}
-		if !p.In(parent.GetWidget().Rect) && !d.dndTriggered {
+		if !parent.GetWidget().In(x, y) && !d.dndTriggered {
 			return nil, false
 		}
 		if !parent.GetWidget().EffectiveInputLayer().ActiveFor(x, y, input.LayerEventTypeAny) {
@@ -237,7 +236,6 @@ func (d *DragAndDrop) draggingState(srcX int, srcY int, dragWidget *Container, d
 			var element HasWidget
 
 			if !input.KeyPressed(ebiten.KeyEscape) && !d.dndStopped {
-				p := image.Point{x, y}
 				args := &DragAndDropDroppedEventArgs{
 					Source:  parent,
 					SourceX: srcX,
@@ -250,7 +248,7 @@ func (d *DragAndDrop) draggingState(srcX int, srcY int, dragWidget *Container, d
 					if target.GetWidget().Visibility == Visibility_Hide {
 						continue
 					}
-					if !p.In(target.GetWidget().Rect) {
+					if !target.GetWidget().In(x, y) {
 						continue
 					}
 					if !target.GetWidget().EffectiveInputLayer().ActiveFor(x, y, input.LayerEventTypeAny) {
@@ -295,13 +293,12 @@ func (d *DragAndDrop) droppingState(srcX int, srcY int, x int, y int, dragData i
 			TargetY: y,
 			Data:    dragData,
 		}
-		p := image.Point{x, y}
 		dropSuccessful := false
 		for _, target := range d.AvailableDropTargets {
 			if target.GetWidget().Visibility == Visibility_Hide {
 				continue
 			}
-			if !p.In(target.GetWidget().Rect) {
+			if !target.GetWidget().In(x, y) {
 				continue
 			}
 			if !target.GetWidget().EffectiveInputLayer().ActiveFor(x, y, input.LayerEventTypeAny) {

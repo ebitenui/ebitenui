@@ -16,6 +16,11 @@ type Widget struct {
 	// used to set the position in relation to other widgets or the space available.
 	Rect image.Rectangle
 
+	// If the Widget is not a perfect Rect, the specific implementation (like Button with IgnoreTransparentPixels)
+	// will fill this mask that then will be used to precisely check if actions on this widget
+	// are actually happening in it
+	mask []byte
+
 	// LayoutData specifies additional optional data for a Layouter that is used to layout this widget's
 	// parent container. The exact type depends on the layout being used, for example, GridLayout requires
 	// GridLayoutData to be used.
@@ -719,6 +724,25 @@ func RenderDeferred(screen *ebiten.Image) {
 
 func AppendToDeferredRenderQueue(r RenderFunc) {
 	deferredRenders = append(deferredRenders, r)
+}
+
+// In checks if the x and y are inside of the widget
+// even if they have a mask
+func (widget *Widget) In(x, y int) bool {
+	p := image.Point{x, y}
+	in := p.In(widget.Rect)
+	if widget.mask == nil || !in {
+		return in
+	}
+
+	off := p.Sub(widget.Rect.Min)
+
+	x, y = off.X, off.Y
+	i := ((x * 4) + (y * widget.Rect.Dx() * 4) + 3)
+	if len(widget.mask)-1 < i {
+		return false
+	}
+	return (widget.mask[i] > 0)
 }
 
 func (widget *Widget) SetTheme(theme *Theme) {

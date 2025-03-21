@@ -80,7 +80,7 @@ func (o ListComboButtonOptions) ListOpts(opts ...ListOpt) ListComboButtonOpt {
 	}
 }
 
-func (o ListComboButtonOptions) Text(face *text.Face, image *ButtonImageImage, color *ButtonTextColor) ListComboButtonOpt {
+func (o ListComboButtonOptions) Text(face *text.Face, image *GraphicImage, color *ButtonTextColor) ListComboButtonOpt {
 	return o.SelectComboButtonOpts(SelectComboButtonOpts.ComboButtonOpts(ComboButtonOpts.ButtonOpts(ButtonOpts.TextAndImage("", face, image, color))))
 }
 

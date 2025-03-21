@@ -35,6 +35,7 @@ type List struct {
 	hideVerticalSlider          bool
 	allowReselect               bool
 	selectFocus                 bool
+	selectPressed               bool
 
 	init            *MultiOnce
 	container       *Container
@@ -255,6 +256,13 @@ func (o ListOptions) AllowReselect() ListOpt {
 func (o ListOptions) SelectFocus() ListOpt {
 	return func(l *List) {
 		l.selectFocus = true
+	}
+}
+
+// SelectPressed selects entries when pressing instead of releasing (the default).
+func (o ListOptions) SelectPressed() ListOpt {
+	return func(l *List) {
+		l.selectPressed = true
 	}
 }
 
@@ -632,10 +640,14 @@ func (l *List) createEntry(entry any) *Button {
 		ButtonOpts.Text(l.entryLabelFunc(entry), l.entryFace, l.entryUnselectedTextColor),
 		ButtonOpts.TextPadding(l.entryTextPadding),
 		ButtonOpts.TextPosition(l.entryTextHorizontalPosition, l.entryTextVerticalPosition),
-		ButtonOpts.ClickedHandler(func(_ *ButtonClickedEventArgs) {
-			l.setSelectedEntry(entry, true)
-		}))
-
+	)
+	events := but.ClickedEvent
+	if l.selectPressed {
+		events = but.PressedEvent
+	}
+	events.AddHandler(func(_ interface{}) {
+		l.setSelectedEntry(entry, true)
+	})
 	return but
 }
 

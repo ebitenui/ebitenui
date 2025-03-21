@@ -41,3 +41,17 @@ func Test_NewNineSliceColor(t *testing.T) {
 	n = NewNineSliceColor(color.RGBA{0, 0, 0, 0})
 	is.Equal(n.transparent, true)
 }
+
+func Test_NewNineSliceBorder(t *testing.T) {
+    is := is.New(t)
+
+    img := newImageEmptySize(20, 20, t)
+    n := NewNineSliceBorder(img, 3)
+
+    is.Equal(n.widths[0], 3)
+    is.Equal(n.widths[1], 20 - 3 * 2)
+    is.Equal(n.widths[2], 3)
+    is.Equal(n.heights[0], 3)
+    is.Equal(n.heights[1], 20 - 3 * 2)
+    is.Equal(n.heights[2], 3)
+}

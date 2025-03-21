@@ -22,6 +22,11 @@ const (
 	// The tooltip will display based on the Widget and Content anchor settings.
 	// It defaults to opening right aligned and directly under the widget.
 	TOOLTIP_POS_WIDGET
+	// The tooltip will display based on x/y (offset is required)
+	TOOLTIP_POS_ABSOLUTE
+	// The tooltip will display based on the Widget and Content anchor settings.
+	// It defaults to opening right aligned and directly under the x: 0, y: 0.
+	TOOLTIP_POS_SCREEN
 )
 
 type ToolTipAnchor int
@@ -38,9 +43,11 @@ const (
 type ToolTipDirection int
 
 type ToolTip struct {
-	Position                ToolTipPosition
-	WidgetOriginVertical    ToolTipAnchor
-	WidgetOriginHorizontal  ToolTipAnchor
+	Position ToolTipPosition
+	// WidgetOriginVertical was renamed to AnchorOriginVertical to make the it more generic and reuse it for TOOLTIP_POS_SCREEN
+	AnchorOriginVertical ToolTipAnchor
+	// WidgetOriginHorizontal was renamed to AnchorOriginHorizontal to make the it more generic and reuse it for TOOLTIP_POS_SCREEN
+	AnchorOriginHorizontal  ToolTipAnchor
 	ContentOriginVertical   ToolTipAnchor
 	ContentOriginHorizontal ToolTipAnchor
 	Delay                   time.Duration
@@ -69,8 +76,8 @@ func NewToolTip(opts ...ToolTipOpt) *ToolTip {
 		Offset: image.Point{10, 10},
 	}
 	t.state = t.idleState()
-	t.WidgetOriginHorizontal = TOOLTIP_ANCHOR_END
-	t.WidgetOriginVertical = TOOLTIP_ANCHOR_END
+	t.AnchorOriginHorizontal = TOOLTIP_ANCHOR_END
+	t.AnchorOriginVertical = TOOLTIP_ANCHOR_END
 	t.ContentOriginHorizontal = TOOLTIP_ANCHOR_END
 	t.ContentOriginVertical = TOOLTIP_ANCHOR_START
 	for _, o := range opts {
@@ -145,16 +152,16 @@ func (o ToolTipOptions) Offset(off image.Point) ToolTipOpt {
 }
 
 // The vertical position of the anchor on the widget. Only used when Postion = WIDGET.
-func (o ToolTipOptions) WidgetOriginVertical(widgetOriginVertical ToolTipAnchor) ToolTipOpt {
+func (o ToolTipOptions) AnchorOriginVertical(anchorOriginVertical ToolTipAnchor) ToolTipOpt {
 	return func(t *ToolTip) {
-		t.WidgetOriginVertical = widgetOriginVertical
+		t.AnchorOriginVertical = anchorOriginVertical
 	}
 }
 
 // The horizontal position of the anchor on the widget. Only used when Postion = WIDGET.
-func (o ToolTipOptions) WidgetOriginHorizontal(widgetOriginHorizontal ToolTipAnchor) ToolTipOpt {
+func (o ToolTipOptions) AnchorOriginHorizontal(anchorOriginHorizontal ToolTipAnchor) ToolTipOpt {
 	return func(t *ToolTip) {
-		t.WidgetOriginHorizontal = widgetOriginHorizontal
+		t.AnchorOriginHorizontal = anchorOriginHorizontal
 	}
 }
 
@@ -278,10 +285,15 @@ func (t *ToolTip) showingState(p image.Point) toolTipState {
 		sx, sy := t.content.PreferredSize()
 
 		position := p
-		if t.Position == TOOLTIP_POS_CURSOR_FOLLOW {
+		switch t.Position {
+		case TOOLTIP_POS_CURSOR_FOLLOW:
 			position = cp
-		} else if t.Position == TOOLTIP_POS_WIDGET {
+		case TOOLTIP_POS_WIDGET:
 			position = t.processWidgetPosition(parent.Rect)
+		case TOOLTIP_POS_ABSOLUTE:
+			position = image.Point{}
+		case TOOLTIP_POS_SCREEN:
+			position = t.processScreenPosition()
 		}
 		position = position.Add(t.Offset)
 		position = t.processContentPosition(position, sx, sy, parent.Rect)
@@ -304,9 +316,9 @@ func (t *ToolTip) showingState(p image.Point) toolTipState {
 
 func (t *ToolTip) processWidgetPosition(widgetRect image.Rectangle) image.Point {
 	p := image.Point{}
-	switch t.WidgetOriginVertical {
+	switch t.AnchorOriginVertical {
 	case TOOLTIP_ANCHOR_START:
-		switch t.WidgetOriginHorizontal {
+		switch t.AnchorOriginHorizontal {
 		case TOOLTIP_ANCHOR_START:
 			p.X = widgetRect.Min.X
 			p.Y = widgetRect.Min.Y
@@ -318,7 +330,7 @@ func (t *ToolTip) processWidgetPosition(widgetRect image.Rectangle) image.Point 
 			p.Y = widgetRect.Min.Y
 		}
 	case TOOLTIP_ANCHOR_MIDDLE:
-		switch t.WidgetOriginHorizontal {
+		switch t.AnchorOriginHorizontal {
 		case TOOLTIP_ANCHOR_START:
 			p.X = widgetRect.Min.X
 			p.Y = widgetRect.Min.Y + (widgetRect.Dy() / 2)
@@ -330,7 +342,7 @@ func (t *ToolTip) processWidgetPosition(widgetRect image.Rectangle) image.Point 
 			p.Y = widgetRect.Min.Y + (widgetRect.Dy() / 2)
 		}
 	case TOOLTIP_ANCHOR_END:
-		switch t.WidgetOriginHorizontal {
+		switch t.AnchorOriginHorizontal {
 		case TOOLTIP_ANCHOR_START:
 			p.X = widgetRect.Min.X
 			p.Y = widgetRect.Max.Y
@@ -345,7 +357,29 @@ func (t *ToolTip) processWidgetPosition(widgetRect image.Rectangle) image.Point 
 	return p
 }
 
-func (t *ToolTip) processContentPosition(p image.Point, sx int, sy int, widgetRect image.Rectangle) image.Point {
+func (t *ToolTip) processScreenPosition() image.Point {
+	windowSize := input.GetWindowSize()
+	p := image.Point{}
+	switch t.AnchorOriginHorizontal {
+	case TOOLTIP_ANCHOR_START:
+		p.X = 0
+	case TOOLTIP_ANCHOR_MIDDLE:
+		p.X = windowSize.X / 2
+	case TOOLTIP_ANCHOR_END:
+		p.X = windowSize.X
+	}
+	switch t.AnchorOriginVertical {
+	case TOOLTIP_ANCHOR_START:
+		p.Y = 0
+	case TOOLTIP_ANCHOR_MIDDLE:
+		p.Y = windowSize.Y / 2
+	case TOOLTIP_ANCHOR_END:
+		p.Y = windowSize.Y
+	}
+	return p
+}
+
+func (t *ToolTip) processContentPosition(p image.Point, sx, sy int, widgetRect image.Rectangle) image.Point {
 	result := processContentPositionWorker(p, sx, sy, t.ContentOriginHorizontal, t.ContentOriginVertical)
 	windowSize := input.GetWindowSize()
 	horizontalAnchor := t.ContentOriginHorizontal

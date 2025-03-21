@@ -180,7 +180,7 @@ func (o TextAreaOptions) Text(initialText string) TextAreaOpt {
 	}
 }
 
-// Set whether or not the text area should process BBCodes. e.g. [color=FF0000]red[/color].
+// Set whether or not the text area should process BBCodes. e.g. [color=#FF0000]red[/color].
 func (o TextAreaOptions) ProcessBBCode(processBBCode bool) TextAreaOpt {
 	return func(l *TextArea) {
 		l.processBBCode = processBBCode

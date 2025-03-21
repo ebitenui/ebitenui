@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/widget"
+	"github.com/ebitenui/ebitenui/event"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"golang.org/x/image/colornames"
@@ -49,18 +50,14 @@ func main() {
 	//
 	// Example 1: Configure the "Help" button to display a message in console when it's pressed.
 	//
-	toolbar.helpButton.Configure(
-		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			println("The help button was pressed!")
-		}),
-	)
+	toolbar.helpButton.ClickedEvent.AddHandler(event.WrapHandler(func(args *widget.ButtonClickedEventArgs) {
+		println("The help button was pressed!")
+	}))
 
 	// Example 2: Configure the "Quit" menu entry to end the program when it's pressed.
-	toolbar.quitButton.Configure(
-		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			game.exit = true
-		}),
-	)
+	toolbar.quitButton.ClickedEvent.AddHandler(event.WrapHandler(func(args *widget.ButtonClickedEventArgs) {
+		game.exit = true
+	}))
 
 	// Run the game.
 	if err := ebiten.RunGame(&game); err != nil {

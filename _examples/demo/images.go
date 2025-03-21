@@ -18,7 +18,7 @@ func newImageFromFile(path string) (*ebiten.Image, error) {
 	return i, err
 }
 
-func loadGraphicImages(idle string, disabled string) (*widget.ButtonImageImage, error) {
+func loadGraphicImages(idle string, disabled string) (*widget.GraphicImage, error) {
 	idleImage, err := newImageFromFile(idle)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func loadGraphicImages(idle string, disabled string) (*widget.ButtonImageImage, 
 		}
 	}
 
-	return &widget.ButtonImageImage{
+	return &widget.GraphicImage{
 		Idle:     idleImage,
 		Disabled: disabledImage,
 	}, nil

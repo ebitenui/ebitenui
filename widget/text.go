@@ -14,8 +14,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
-const bbcodeRegEx = `\[color=[0-9a-fA-F]{6}\]|\[\/color\]`
-const COLOR_OPEN = "color="
+const bbcodeRegEx = `\[color=#[0-9a-fA-F]{6}\]|\[\/color\]`
+const COLOR_OPEN = "color=#"
 const COLOR_CLOSE = "/color]"
 
 type TextParams struct {
@@ -231,8 +231,8 @@ func (t *Text) SetLocation(rect image.Rectangle) {
 func (t *Text) PreferredSize() (int, int) {
 	t.init.Do()
 	t.measure()
-	w := int(math.Ceil(t.measurements.boundingBoxWidth)) + t.computedParams.Insets.Left + t.computedParams.Insets.Right
-	h := int(math.Ceil(t.measurements.boundingBoxHeight)) + t.computedParams.Insets.Top + t.computedParams.Insets.Bottom
+	w := int(math.Ceil(t.measurements.boundingBoxWidth))  // + t.computedParams.Insets.Left + t.computedParams.Insets.Right
+	h := int(math.Ceil(t.measurements.boundingBoxHeight)) // + t.computedParams.Insets.Top + t.computedParams.Insets.Bottom
 
 	if t.widget != nil && h < t.widget.MinHeight {
 		h = t.widget.MinHeight
@@ -349,7 +349,7 @@ func (t *Text) handleBBCodeColor(word string) ([]bbCodeText, color.Color) {
 					resultStr += string(ch)
 				case tags[0][1] == idx:
 					if strings.HasPrefix(resultStr, COLOR_OPEN) {
-						c, err := colorutil.HexToColor(resultStr[6:12])
+						c, err := colorutil.HexToColor(resultStr[7:13])
 						if err == nil {
 							t.colorList.Push(&c)
 							newColor = c
@@ -380,7 +380,7 @@ func (t *Text) handleBBCodeColor(word string) ([]bbCodeText, color.Color) {
 		if len(resultStr) > 0 {
 			if isTag {
 				if strings.HasPrefix(resultStr, COLOR_OPEN) {
-					c, err := colorutil.HexToColor(resultStr[6:12])
+					c, err := colorutil.HexToColor(resultStr[7:13])
 					if err == nil {
 						t.colorList.Push(&c)
 						newColor = c

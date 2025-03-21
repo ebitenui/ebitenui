@@ -26,9 +26,9 @@ type Checkbox struct {
 type CheckboxOpt func(c *Checkbox)
 
 type CheckboxGraphicImage struct {
-	Unchecked *ButtonImageImage
-	Checked   *ButtonImageImage
-	Greyed    *ButtonImageImage
+	Unchecked *GraphicImage
+	Checked   *GraphicImage
+	Greyed    *GraphicImage
 }
 
 type CheckboxChangedEventArgs struct {
@@ -218,7 +218,7 @@ func (c *Checkbox) Click() {
 
 func (c *Checkbox) createWidget() {
 	c.button = NewButton(append(c.buttonOpts, []ButtonOpt{
-		ButtonOpts.Graphic(c.image.Unchecked.Idle),
+		ButtonOpts.Graphic(c.image.Unchecked),
 		ButtonOpts.ClickedHandler(func(_ *ButtonClickedEventArgs) {
 			c.SetState(c.state.Advance(c.triState))
 		}),
@@ -242,7 +242,7 @@ func (s WidgetState) Advance(triState bool) WidgetState {
 	return WidgetUnchecked
 }
 
-func (s WidgetState) graphicImage(i *CheckboxGraphicImage) *ButtonImageImage {
+func (s WidgetState) graphicImage(i *CheckboxGraphicImage) *GraphicImage {
 	if s == WidgetChecked {
 		return i.Checked
 	}

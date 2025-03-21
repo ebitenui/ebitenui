@@ -78,7 +78,7 @@ func newSelectComboButton(t *testing.T, opts ...SelectComboButtonOpt) *SelectCom
 					Idle:    newNineSliceEmpty(t),
 					Pressed: newNineSliceEmpty(t),
 				}),
-				ButtonOpts.TextAndImage("", loadFont(t), &ButtonImageImage{
+				ButtonOpts.TextAndImage("", loadFont(t), &GraphicImage{
 					Idle:     newImageEmpty(t),
 					Disabled: newImageEmpty(t),
 				}, &ButtonTextColor{

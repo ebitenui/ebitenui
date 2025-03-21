@@ -190,7 +190,7 @@ func newListComboButton(t *testing.T, opts ...ListComboButtonOpt) *ListComboButt
 			}),
 			ListOpts.EntryFontFace(loadFont(t)),
 		),
-		ListComboButtonOpts.Text(loadFont(t), &ButtonImageImage{
+		ListComboButtonOpts.Text(loadFont(t), &GraphicImage{
 			Idle:     newImageEmpty(t),
 			Disabled: newImageEmpty(t),
 		}, &ButtonTextColor{

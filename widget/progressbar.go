@@ -114,12 +114,6 @@ func (o ProgressBarOptions) Values(min int, max int, current int) ProgressBarOpt
 	}
 }
 
-func (s *ProgressBar) Configure(opts ...ProgressBarOpt) {
-	for _, o := range opts {
-		o(s)
-	}
-}
-
 func (s *ProgressBar) GetWidget() *Widget {
 	s.init.Do()
 	return s.widget

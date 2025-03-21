@@ -10,6 +10,7 @@ import (
 )
 
 // Game object used by ebiten.
+// Game object used by ebiten.
 type game struct {
 	ui         *ebitenui.UI
 	btn        *widget.Button
@@ -35,7 +36,7 @@ func main() {
 		// specify the button's text
 		widget.ButtonOpts.TextLabel("Hello, World!"),
 
-		// add a handler that reacts to clicking the button
+		// add a handler that reacts to clicking the button.
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			println("button clicked")
 		}),
@@ -90,6 +91,7 @@ func (g *game) Update() error {
 		g.btn.Click()
 	}
 
+	// Test that you can call Click on the focused widget.
 	// Test that you can call Click on the focused widget.
 	if inpututil.IsKeyJustPressed(ebiten.KeyF) {
 		if btn, ok := g.ui.GetFocusedWidget().(*widget.Button); ok {
