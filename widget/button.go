@@ -250,29 +250,37 @@ func (b *Button) populateComputedParams() {
 	}
 
 	if b.definedParams.Image != nil {
-		if b.definedParams.Image.Idle != nil {
-			btnParams.Image.Idle = b.definedParams.Image.Idle
-		}
-		if b.definedParams.Image.Hover != nil {
-			btnParams.Image.Hover = b.definedParams.Image.Hover
-		}
-		if b.definedParams.Image.Pressed != nil {
-			btnParams.Image.Pressed = b.definedParams.Image.Pressed
-		}
-		if b.definedParams.Image.PressedHover != nil {
-			btnParams.Image.PressedHover = b.definedParams.Image.PressedHover
-		}
-		if b.definedParams.Image.Disabled != nil {
-			btnParams.Image.Disabled = b.definedParams.Image.Disabled
+		if btnParams.Image == nil {
+			btnParams.Image = b.definedParams.Image
+		} else {
+			if b.definedParams.Image.Idle != nil {
+				btnParams.Image.Idle = b.definedParams.Image.Idle
+			}
+			if b.definedParams.Image.Hover != nil {
+				btnParams.Image.Hover = b.definedParams.Image.Hover
+			}
+			if b.definedParams.Image.Pressed != nil {
+				btnParams.Image.Pressed = b.definedParams.Image.Pressed
+			}
+			if b.definedParams.Image.PressedHover != nil {
+				btnParams.Image.PressedHover = b.definedParams.Image.PressedHover
+			}
+			if b.definedParams.Image.Disabled != nil {
+				btnParams.Image.Disabled = b.definedParams.Image.Disabled
+			}
 		}
 	}
 
 	if b.definedParams.GraphicImage != nil {
-		if b.definedParams.GraphicImage.Idle != nil {
-			btnParams.GraphicImage.Idle = b.definedParams.GraphicImage.Idle
-		}
-		if b.definedParams.GraphicImage.Disabled != nil {
-			btnParams.GraphicImage.Disabled = b.definedParams.GraphicImage.Disabled
+		if btnParams.GraphicImage == nil {
+			btnParams.GraphicImage = b.definedParams.GraphicImage
+		} else {
+			if b.definedParams.GraphicImage.Idle != nil {
+				btnParams.GraphicImage.Idle = b.definedParams.GraphicImage.Idle
+			}
+			if b.definedParams.GraphicImage.Disabled != nil {
+				btnParams.GraphicImage.Disabled = b.definedParams.GraphicImage.Disabled
+			}
 		}
 	}
 	if b.definedParams.GraphicPadding != nil {
