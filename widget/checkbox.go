@@ -8,10 +8,16 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+type CheckboxParams struct {
+	Image *CheckboxGraphicImage
+}
+
 type Checkbox struct {
+	definedParams  CheckboxParams
+	computedParams CheckboxParams
+
 	StateChangedEvent *event.Event
-	buttonOpts        []ButtonOpt
-	image             *CheckboxGraphicImage
+	widgetOpts        []WidgetOpt
 	triState          bool
 
 	init   *MultiOnce
@@ -26,9 +32,9 @@ type Checkbox struct {
 type CheckboxOpt func(c *Checkbox)
 
 type CheckboxGraphicImage struct {
-	Unchecked *GraphicImage
-	Checked   *GraphicImage
-	Greyed    *GraphicImage
+	Unchecked *ButtonImage
+	Checked   *ButtonImage
+	Greyed    *ButtonImage
 }
 
 type CheckboxChangedEventArgs struct {
@@ -52,51 +58,90 @@ func NewCheckbox(opts ...CheckboxOpt) *Checkbox {
 		focusMap: make(map[FocusDirection]Focuser),
 	}
 
-	c.init.Append(c.createWidget)
-
 	for _, o := range opts {
 		o(c)
 	}
 
-	c.Validate()
+	c.createWidget()
 
 	return c
 }
 
 func (c *Checkbox) Validate() {
-	if len(c.buttonOpts) == 0 {
-		panic("Checkbox: ButtonOpts are required.")
-	}
-	if c.image == nil {
+	c.populateComputedParams()
+
+	if c.computedParams.Image == nil {
 		panic("Checkbox: Image is required.")
 	}
-	if c.image.Checked == nil {
+	if c.computedParams.Image.Checked == nil {
 		panic("Checkbox: Image.Checked is required.")
 	}
-	if c.image.Checked.Idle == nil {
+	if c.computedParams.Image.Checked.Idle == nil {
 		panic("Checkbox: Image.Checked.Idle is required.")
 	}
 
-	if c.image.Unchecked == nil {
+	if c.computedParams.Image.Unchecked == nil {
 		panic("Checkbox: Image.Unchecked is required.")
 	}
-	if c.image.Unchecked.Idle == nil {
+	if c.computedParams.Image.Unchecked.Idle == nil {
 		panic("Checkbox: Image.Unchecked.Idle is required.")
 	}
 	if c.state == WidgetGreyed && !c.triState {
-		panic("Checkbox: non-tri state Checkbox cannot be in greyed state")
+		panic("Checkbox: non-tri state Checkbox cannot be in greyed state.")
+	}
+	if c.triState {
+		if c.computedParams.Image.Greyed == nil {
+			panic("Checkbox: Image.Greyed is required for tri-state checkboxes.")
+		} else if c.computedParams.Image.Greyed.Idle == nil {
+			panic("Checkbox: Image.Greyed.Idle is required for tri-state checkboxes.")
+		}
 	}
 }
 
-func (o CheckboxOptions) ButtonOpts(opts ...ButtonOpt) CheckboxOpt {
+func (c *Checkbox) populateComputedParams() {
+	checkboxParams := CheckboxParams{
+		Image: &CheckboxGraphicImage{},
+	}
+	theme := c.GetWidget().GetTheme()
+	// clone the theme
+	if theme != nil {
+		if theme.CheckboxTheme != nil {
+			if theme.CheckboxTheme.Image != nil {
+				checkboxParams.Image = theme.CheckboxTheme.Image
+			}
+		}
+	}
+
+	if c.definedParams.Image != nil {
+		if checkboxParams.Image == nil {
+			checkboxParams.Image = c.definedParams.Image
+		} else {
+			if c.definedParams.Image.Checked != nil {
+				checkboxParams.Image.Checked = c.definedParams.Image.Checked
+			}
+			if c.definedParams.Image.Unchecked != nil {
+				checkboxParams.Image.Unchecked = c.definedParams.Image.Unchecked
+			}
+			if c.definedParams.Image.Greyed != nil {
+				checkboxParams.Image.Greyed = c.definedParams.Image.Greyed
+			}
+
+		}
+	}
+
+	c.computedParams = checkboxParams
+	c.button.computedParams.Image = c.state.graphicImage(c.computedParams.Image)
+}
+
+func (o CheckboxOptions) WidgetOpts(opts ...WidgetOpt) CheckboxOpt {
 	return func(c *Checkbox) {
-		c.buttonOpts = append(c.buttonOpts, opts...)
+		c.widgetOpts = append(c.widgetOpts, opts...)
 	}
 }
 
 func (o CheckboxOptions) Image(i *CheckboxGraphicImage) CheckboxOpt {
 	return func(c *Checkbox) {
-		c.image = i
+		c.definedParams.Image = i
 	}
 }
 
@@ -174,7 +219,7 @@ func (c *Checkbox) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 func (c *Checkbox) Render(screen *ebiten.Image) {
 	c.init.Do()
 
-	c.button.computedParams.GraphicImage = c.state.graphicImage(c.image)
+	c.button.computedParams.Image = c.state.graphicImage(c.computedParams.Image)
 
 	c.button.Render(screen)
 }
@@ -217,13 +262,13 @@ func (c *Checkbox) Click() {
 }
 
 func (c *Checkbox) createWidget() {
-	c.button = NewButton(append(c.buttonOpts, []ButtonOpt{
-		ButtonOpts.Graphic(c.image.Unchecked),
+	c.button = NewButton([]ButtonOpt{
 		ButtonOpts.ClickedHandler(func(_ *ButtonClickedEventArgs) {
 			c.SetState(c.state.Advance(c.triState))
 		}),
-	}...)...)
-	c.buttonOpts = nil
+		ButtonOpts.WidgetOpts(c.widgetOpts...),
+	}...)
+	c.widgetOpts = nil
 }
 
 func (s WidgetState) Advance(triState bool) WidgetState {
@@ -242,7 +287,7 @@ func (s WidgetState) Advance(triState bool) WidgetState {
 	return WidgetUnchecked
 }
 
-func (s WidgetState) graphicImage(i *CheckboxGraphicImage) *GraphicImage {
+func (s WidgetState) graphicImage(i *CheckboxGraphicImage) *ButtonImage {
 	if s == WidgetChecked {
 		return i.Checked
 	}

@@ -20,9 +20,6 @@ type game struct {
 
 func main() {
 	game := game{}
-	// load images for button states: idle, hover, and pressed
-	buttonImage, _ := loadButtonImage()
-
 	// load button text font
 	// face, _ := loadFont(20)
 
@@ -35,44 +32,29 @@ func main() {
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 
-	uncheckedImage := ebiten.NewImage(20, 20)
-	uncheckedImage.Fill(color.White)
-
-	checkedImage := ebiten.NewImage(20, 20)
-	checkedImage.Fill(color.NRGBA{255, 255, 0, 255})
-
-	greyedImage := ebiten.NewImage(20, 20)
-	greyedImage.Fill(color.NRGBA{255, 0, 0, 255})
-
 	game.checkBox = widget.NewCheckbox(
-		widget.CheckboxOpts.ButtonOpts(
-			widget.ButtonOpts.WidgetOpts(
-				// Set the location of the checkbox
-				widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
-					HorizontalPosition: widget.AnchorLayoutPositionCenter,
-					VerticalPosition:   widget.AnchorLayoutPositionCenter,
-				}),
-				// Set the minimum size of the checkbox
-				widget.WidgetOpts.MinSize(30, 30),
-			),
-			// Set the background images - idle, hover, pressed
-			widget.ButtonOpts.Image(buttonImage),
-
-			// This disables space and enter triggering the checkbox
-			// widget.ButtonOpts.DisableDefaultKeys(),
+		widget.CheckboxOpts.WidgetOpts(
+			// Set the location of the checkbox
+			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				HorizontalPosition: widget.AnchorLayoutPositionCenter,
+				VerticalPosition:   widget.AnchorLayoutPositionCenter,
+			}),
+			// Set the minimum size of the checkbox
+			widget.WidgetOpts.MinSize(30, 30),
 		),
+
 		// Set the check object images
 		widget.CheckboxOpts.Image(&widget.CheckboxGraphicImage{
 			// When the checkbox is unchecked
-			Unchecked: &widget.GraphicImage{
-				Idle: uncheckedImage,
+			Unchecked: &widget.ButtonImage{
+				Idle: image.NewBorderedNineSliceColor(color.White, color.NRGBA{200, 200, 200, 255}, 5),
 			},
 			// When the checkbox is checked
-			Checked: &widget.GraphicImage{
-				Idle: checkedImage,
+			Checked: &widget.ButtonImage{
+				Idle: image.NewBorderedNineSliceColor(color.NRGBA{255, 255, 0, 255}, color.NRGBA{200, 200, 200, 255}, 5),
 			},
-			Greyed: &widget.GraphicImage{
-				Idle: greyedImage,
+			Greyed: &widget.ButtonImage{
+				Idle: image.NewBorderedNineSliceColor(color.NRGBA{255, 0, 0, 255}, color.NRGBA{200, 200, 200, 255}, 5),
 			},
 		}),
 		// Set the state change handler
@@ -83,7 +65,7 @@ func main() {
 				fmt.Println("Checkbox is Unchecked")
 			}
 		}),
-		//widget.CheckboxOpts.TriState(),
+		widget.CheckboxOpts.TriState(),
 		widget.CheckboxOpts.InitialState(widget.WidgetChecked),
 	)
 
