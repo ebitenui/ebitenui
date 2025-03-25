@@ -240,7 +240,7 @@ type WidgetScrolledEventArgs struct { //nolint:golint
 }
 
 type WidgetFocusEventArgs struct { //nolint:golint
-	Widget   HasWidget
+	Widget   Focuser
 	Focused  bool
 	Location image.Point
 }
@@ -650,7 +650,7 @@ func (w *Widget) Parent() *Widget {
 	return w.parent
 }
 
-func (widget *Widget) FireFocusEvent(w HasWidget, focused bool, location image.Point) { //nolint:golint
+func (widget *Widget) FireFocusEvent(w Focuser, focused bool, location image.Point) { //nolint:golint
 	widget.FocusEvent.Fire(&WidgetFocusEventArgs{
 		Widget:   w,
 		Focused:  focused,

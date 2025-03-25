@@ -32,7 +32,7 @@ type UI struct {
 	// but before the Windows with DrawLayer >= 0 (all by default) are drawn.
 	PostRenderHook widget.RenderFunc
 
-	focusedWidget      widget.HasWidget
+	focusedWidget      widget.Focuser
 	focusedWindow      *widget.Window
 	focusedWindowIndex int
 	inputLayerers      []input.Layerer
@@ -170,23 +170,19 @@ func (u *UI) handleContextMenu(args interface{}) {
 
 func (u *UI) handleFocusEvent(args interface{}) {
 	if a, ok := args.(*widget.WidgetFocusEventArgs); ok {
-		if u.focusedWidget != nil {
-			if fw, ok := u.focusedWidget.(widget.Focuser); ok {
-				switch {
-				case a.Focused: // New widget focused
-					if u.focusedWidget != a.Widget {
-						fw.Focus(false)
-					}
-					u.focusedWidget = a.Widget
-				case a.Widget == u.focusedWidget: // Current widget focus removed
-					u.focusedWidget = nil
-				case a.Widget == nil: // Clicked out of focusable widgets
-					// If we didnt just click on the same widget
-					if !a.Location.In(u.focusedWidget.GetWidget().Rect) {
-						fw.Focus(false)
-						u.focusedWidget = nil
-					}
-				}
+		switch {
+		case a.Focused: // New widget focused
+			if u.focusedWidget != nil && u.focusedWidget != a.Widget {
+				u.focusedWidget.Focus(false)
+			}
+			u.focusedWidget = a.Widget
+		case a.Widget == u.focusedWidget: // Current widget focus removed
+			u.focusedWidget = nil
+		case a.Widget == nil: // Clicked out of focusable widgets
+			// If we didnt just click on the same widget
+			if !a.Location.In(u.focusedWidget.GetWidget().Rect) {
+				u.focusedWidget.Focus(false)
+				u.focusedWidget = nil
 			}
 		}
 	}
@@ -248,35 +244,26 @@ func (u *UI) handleFocusChangeRequest() {
 }
 
 func (u *UI) ChangeFocus(direction widget.FocusDirection) {
-	if u.focusedWidget != nil {
-		if fw, ok := u.focusedWidget.(widget.Focuser); ok {
-			if next := fw.GetFocus(direction); next != nil {
-				if !next.GetWidget().Disabled && next.GetWidget().IsVisible() {
-					next.Focus(true)
-				}
-			}
+
+	focusableWidgets := u.Container.GetFocusers()
+	// Loop through the windows array in reverse. If we find a modal window, only loop through its focusable widgets
+	for i := len(u.windows) - 1; i >= 0; i-- {
+		if !u.windows[i].Modal {
+			focusableWidgets = append(focusableWidgets, u.windows[i].GetContainer().GetFocusers()...)
+		} else {
+			focusableWidgets = u.windows[i].GetContainer().GetFocusers()
+			break
 		}
 	}
+	fwLen := len(focusableWidgets)
 
 	if direction == widget.FOCUS_NEXT || direction == widget.FOCUS_PREVIOUS {
-		focusableWidgets := u.Container.GetFocusers()
-		// Loop through the windows array in reverse. If we find a modal window, only loop through its focusable widgets
-		for i := len(u.windows) - 1; i >= 0; i-- {
-			if !u.windows[i].Modal {
-				focusableWidgets = append(focusableWidgets, u.windows[i].GetContainer().GetFocusers()...)
-			} else {
-				focusableWidgets = u.windows[i].GetContainer().GetFocusers()
-				break
-			}
-		}
-		fwLen := len(focusableWidgets)
 		if fwLen == 1 {
-			if fw, ok := u.focusedWidget.(widget.Focuser); ok {
-				if u.focusedWidget != nil && fw != focusableWidgets[0] {
-					fw.Focus(false)
-				}
-				focusableWidgets[0].Focus(true)
+			if u.focusedWidget != nil && u.focusedWidget != focusableWidgets[0] {
+				u.focusedWidget.Focus(false)
 			}
+			focusableWidgets[0].Focus(true)
+
 		} else if fwLen > 0 {
 			sort.SliceStable(focusableWidgets, func(i, j int) bool {
 				return focusableWidgets[i].TabOrder() < focusableWidgets[j].TabOrder()
@@ -284,33 +271,39 @@ func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 			if u.focusedWidget != nil {
 				if direction == widget.FOCUS_PREVIOUS {
 					for i := 0; i < fwLen; i++ {
-						if fw, ok := u.focusedWidget.(widget.Focuser); ok {
-							if focusableWidgets[i] == fw {
-								fw.Focus(false)
-								if i == 0 {
-									focusableWidgets[fwLen-1].Focus(true)
-								} else {
-									focusableWidgets[i-1].Focus(true)
-								}
-								return
+
+						if focusableWidgets[i] == u.focusedWidget {
+							u.focusedWidget.Focus(false)
+							if i == 0 {
+								focusableWidgets[fwLen-1].Focus(true)
+							} else {
+								focusableWidgets[i-1].Focus(true)
 							}
+							return
 						}
 					}
+
 				} else {
 					for i := 0; i < fwLen-1; i++ {
-						if fw, ok := u.focusedWidget.(widget.Focuser); ok {
-							if focusableWidgets[i] == fw {
-								fw.Focus(false)
-								focusableWidgets[i+1].Focus(true)
-								return
-							}
+						if focusableWidgets[i] == u.focusedWidget {
+							u.focusedWidget.Focus(false)
+							focusableWidgets[i+1].Focus(true)
+							return
 						}
 					}
 				}
-				if fw, ok := u.focusedWidget.(widget.Focuser); ok {
-					fw.Focus(false)
+				u.focusedWidget.Focus(false)
+			}
+			focusableWidgets[0].Focus(true)
+		}
+	} else {
+		if u.focusedWidget != nil {
+			if next := u.focusedWidget.GetFocus(direction); next != nil {
+				if !next.GetWidget().Disabled && next.GetWidget().IsVisible() {
+					next.Focus(true)
 				}
 			}
+		} else if fwLen > 0 {
 			focusableWidgets[0].Focus(true)
 		}
 	}
@@ -325,9 +318,8 @@ func (u *UI) AddWindow(w *widget.Window) widget.RemoveWindowFunc {
 		w.GetContainer().GetWidget().DragAndDropEvent.AddHandler(u.handleDragAndDropEvent)
 
 		if w.Modal && u.focusedWidget != nil {
-			if fw, ok := u.focusedWidget.(widget.Focuser); ok {
-				fw.Focus(false)
-			}
+			u.focusedWidget.Focus(false)
+
 		}
 		// Close all Ephemeral Windows (tooltip/dnd/etc)
 		u.closeEphemeralWindows(0)
@@ -406,18 +398,11 @@ func (u *UI) HasFocus() bool {
 // This function will unfocus the currently focused widget
 func (u *UI) ClearFocus() {
 	if u.focusedWidget != nil {
-		if fw, ok := u.focusedWidget.(widget.Focuser); ok {
-			fw.Focus(false)
-		}
+		u.focusedWidget.Focus(false)
 	}
 }
 
 // This function will return the currently focused widget if available otherwise it returns nil
 func (u *UI) GetFocusedWidget() widget.Focuser {
-	if u.focusedWidget != nil {
-		if fw, ok := u.focusedWidget.(widget.Focuser); ok {
-			return fw
-		}
-	}
-	return nil
+	return u.focusedWidget
 }
