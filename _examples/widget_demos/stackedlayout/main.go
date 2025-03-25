@@ -21,6 +21,8 @@ type game struct {
 func main() {
 	// load images for button states: idle, hover, and pressed
 	buttonImage, _ := loadButtonImage()
+	// load images for button states: idle, hover, and pressed
+	buttonImage2, _ := loadButtonImage2()
 
 	// load button text font
 	face, _ := loadFont(20)
@@ -43,7 +45,7 @@ func main() {
 		),
 
 		// specify the images to use
-		widget.ButtonOpts.Image(buttonImage),
+		widget.ButtonOpts.Image(buttonImage2),
 
 		// specify the button's text, the font face, and the color
 		widget.ButtonOpts.Text("Centered", face, &widget.ButtonTextColor{
@@ -52,8 +54,8 @@ func main() {
 
 		// specify that the button's text needs some padding for correct display
 		widget.ButtonOpts.TextPadding(widget.Insets{
-			Left:   30,
-			Right:  30,
+			Left:   50,
+			Right:  50,
 			Top:    5,
 			Bottom: 5,
 		}),
@@ -79,8 +81,8 @@ func main() {
 		widget.ButtonOpts.WidgetOpts(
 			// instruct the container's anchor layout to center the button both horizontally and vertically
 			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
-				HorizontalPosition: widget.AnchorLayoutPositionEnd,
-				VerticalPosition:   widget.AnchorLayoutPositionEnd,
+				HorizontalPosition: widget.AnchorLayoutPositionCenter,
+				VerticalPosition:   widget.AnchorLayoutPositionCenter,
 			}),
 		),
 
@@ -94,8 +96,8 @@ func main() {
 
 		// specify that the button's text needs some padding for correct display
 		widget.ButtonOpts.TextPadding(widget.Insets{
-			Left:   30,
-			Right:  30,
+			Left:   5,
+			Right:  5,
 			Top:    5,
 			Bottom: 5,
 		}),
@@ -179,5 +181,19 @@ func loadFont(size float64) (text.Face, error) {
 	return &text.GoTextFace{
 		Source: s,
 		Size:   size,
+	}, nil
+}
+func loadButtonImage2() (*widget.ButtonImage, error) {
+
+	idle := image.NewBorderedNineSliceColor(color.NRGBA{R: 10, G: 170, B: 180, A: 255}, color.NRGBA{90, 90, 90, 255}, 3)
+
+	hover := image.NewBorderedNineSliceColor(color.NRGBA{R: 10, G: 130, B: 150, A: 255}, color.NRGBA{70, 70, 70, 255}, 3)
+
+	pressed := image.NewAdvancedNineSliceColor(color.NRGBA{R: 130, G: 130, B: 150, A: 255}, image.NewBorder(3, 2, 2, 2, color.NRGBA{70, 70, 70, 255}))
+
+	return &widget.ButtonImage{
+		Idle:    idle,
+		Hover:   hover,
+		Pressed: pressed,
 	}, nil
 }
