@@ -20,6 +20,9 @@ type CursorUpdater interface {
 	// MouseButtonJustPressed returns whether mouse button b has just been pressed.
 	// It only returns true during the first frame that the button is pressed.
 	MouseButtonJustPressed(b ebiten.MouseButton) bool
+	// MouseButtonJustReleased returns whether mouse button b has just been released.
+	// It only returns true during the first frame that the button is released.
+	MouseButtonJustReleased(b ebiten.MouseButton) bool
 	// CursorPosition returns the current cursor position.
 	// If you define a CursorPosition that doesn't align with a system cursor you will need to
 	// set the CursorDrawMode to Custom. This is because ebiten doesn't have a way to set the
@@ -98,6 +101,12 @@ func MouseButtonJustPressed(b ebiten.MouseButton) bool {
 	return currentCursorUpdater.MouseButtonJustPressed(b)
 }
 
+// MouseButtonJustPressed returns whether mouse button b has just been pressed.
+// It only returns true during the first frame that the button is pressed.
+func MouseButtonJustReleased(b ebiten.MouseButton) bool {
+	return currentCursorUpdater.MouseButtonJustReleased(b)
+}
+
 // MouseButtonPressedLayer returns whether mouse button b is currently pressed if input layer l is
 // eligible to handle it.
 func MouseButtonPressedLayer(b ebiten.MouseButton, l *Layer) bool {
@@ -113,6 +122,17 @@ func MouseButtonPressedLayer(b ebiten.MouseButton, l *Layer) bool {
 // is eligible to handle it. It only returns true during the first frame that the button is pressed.
 func MouseButtonJustPressedLayer(b ebiten.MouseButton, l *Layer) bool {
 	if !MouseButtonJustPressed(b) {
+		return false
+	}
+
+	x, y := CursorPosition()
+	return l.ActiveFor(x, y, LayerEventTypeMouseButton)
+}
+
+// MouseButtonJustPressedLayer returns whether mouse button b has just been pressed if input layer l
+// is eligible to handle it. It only returns true during the first frame that the button is pressed.
+func MouseButtonJustReleasedLayer(b ebiten.MouseButton, l *Layer) bool {
+	if !MouseButtonJustReleased(b) {
 		return false
 	}
 

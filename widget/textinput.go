@@ -57,6 +57,8 @@ type TextInput struct {
 	previousSubmittedText *string
 	tabOrder              int
 	focusMap              map[FocusDirection]Focuser
+	dragStartIndex        int
+	scrollSensitivity     int
 }
 
 type TextInputOpt func(t *TextInput)
@@ -74,6 +76,8 @@ type TextInputChangedHandlerFunc func(args *TextInputChangedEventArgs)
 type TextInputImage struct {
 	Idle     *image.NineSlice
 	Disabled *image.NineSlice
+	// Highlight defaults to image.NewNineSliceColor(color.NRGBA{6, 67, 161, 100}).
+	Highlight *image.NineSlice
 }
 
 type TextInputColor struct {
@@ -101,6 +105,7 @@ const (
 	textInputBackspace
 	textInputDelete
 	textInputEnter
+	textInputEscape
 )
 
 var textInputKeyToCommand = map[ebiten.Key]textInputControlCommand{
@@ -112,6 +117,7 @@ var textInputKeyToCommand = map[ebiten.Key]textInputControlCommand{
 	ebiten.KeyDelete:      textInputDelete,
 	ebiten.KeyEnter:       textInputEnter,
 	ebiten.KeyNumpadEnter: textInputEnter,
+	ebiten.KeyEscape:      textInputEscape,
 }
 
 func NewTextInput(opts ...TextInputOpt) *TextInput {
@@ -126,9 +132,11 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 		commandToFunc: map[textInputControlCommand]textInputCommandFunc{},
 		renderBuf:     image.NewMaskedRenderBuffer(),
 
-		mobileInputMode: jsUtil.TEXT,
-		focusMap:        make(map[FocusDirection]Focuser),
-		submitOnEnter:   true,
+		mobileInputMode:   jsUtil.TEXT,
+		focusMap:          make(map[FocusDirection]Focuser),
+		submitOnEnter:     true,
+		dragStartIndex:    -1,
+		scrollSensitivity: 15,
 	}
 	t.state = t.idleState(true)
 
@@ -139,11 +147,16 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 	t.commandToFunc[textInputBackspace] = t.Backspace
 	t.commandToFunc[textInputDelete] = t.Delete
 	t.commandToFunc[textInputEnter] = t.submitWithEnter
+	t.commandToFunc[textInputEscape] = t.DeselectText
 
 	t.init.Append(t.createWidget)
 
 	for _, o := range opts {
 		o(t)
+	}
+
+	if t.image.Highlight == nil {
+		t.image.Highlight = image.NewNineSliceColor(color.NRGBA{6, 67, 161, 100})
 	}
 
 	t.validate()
@@ -289,6 +302,15 @@ func (o TextInputOptions) MobileInputMode(mobileInputMode jsUtil.MobileInputMode
 	}
 }
 
+// Sets how many pixels from the edge the cursor must be dragged prior to it scrolling in that direction.
+//
+// Default: 15.
+func (o TextInputOptions) ScrollSensitivity(scrollSensitivity int) TextInputOpt {
+	return func(t *TextInput) {
+		t.scrollSensitivity = scrollSensitivity
+	}
+}
+
 /*********** End of Configuration *****************/
 
 func (t *TextInput) GetWidget() *Widget {
@@ -320,6 +342,14 @@ func (t *TextInput) PreferredSize() (int, int) {
 func (t *TextInput) Render(screen *ebiten.Image) {
 	t.init.Do()
 
+	t.widget.Render(screen)
+
+	t.renderImage(screen)
+	t.renderTextAndCaret(screen)
+}
+
+func (t *TextInput) Update() {
+	t.init.Do()
 	t.text.GetWidget().Disabled = t.widget.Disabled
 	if t.lastInputText != t.inputText {
 		if t.validationFunc != nil {
@@ -359,15 +389,6 @@ func (t *TextInput) Render(screen *ebiten.Image) {
 		}
 	}
 
-	t.widget.Render(screen)
-
-	t.renderImage(screen)
-	t.renderTextAndCaret(screen)
-}
-
-func (t *TextInput) Update() {
-	t.init.Do()
-
 	t.widget.Update()
 	if t.text != nil {
 		t.text.Update()
@@ -380,12 +401,18 @@ func (t *TextInput) Update() {
 func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 	return func() (textInputState, bool) {
 		if !t.focused {
+			t.dragStartIndex = -1
 			return t.idleState(true), false
 		}
 
 		chars := input.InputChars()
 		if len(chars) > 0 {
-			return t.charsInputState(chars), true
+			if !ebiten.IsKeyPressed(ebiten.KeyControl) && !ebiten.IsKeyPressed(ebiten.KeyControlLeft) && !ebiten.IsKeyPressed(ebiten.KeyControlRight) {
+				t.DeleteSelectedText()
+				return t.charsInputState(string(chars)), true
+			}
+			t.DeselectText()
+			return t.idleState(true), false
 		}
 
 		st := textInputCheckForCommand(t, newKeyOrCommand)
@@ -393,8 +420,54 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 			return st, true
 		}
 
+		x, y := input.CursorPosition()
+		p := img.Point{x, y}
+		curIdx := 0
+		tr := t.padding.Apply(t.widget.Rect)
+		if x < tr.Min.X {
+			x = tr.Min.X
+		}
+		if x > tr.Max.X {
+			x = tr.Max.X
+		}
+		if p.In(t.widget.Rect) {
+			curIdx = fontStringIndex([]rune(t.inputText), t.face, x-t.scrollOffset-tr.Min.X)
+		} else {
+			if y < tr.Min.Y {
+				curIdx = 0
+			} else {
+				curIdx = len(t.inputText)
+			}
+		}
+		textSize := tr.Dx() - fontAdvance(t.inputText, t.face)
+
 		if input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, t.widget.EffectiveInputLayer()) {
-			t.doGoXY(input.CursorPosition())
+			t.dragStartIndex = curIdx
+			t.cursorPosition = curIdx
+		} else if input.MouseButtonPressed(ebiten.MouseButtonLeft) {
+			if t.dragStartIndex == -1 {
+				t.dragStartIndex = curIdx
+			}
+			t.cursorPosition = curIdx
+			if t.scrollOffset < 0 && x < t.widget.Rect.Min.X+t.scrollSensitivity {
+				t.scrollOffset = min(0, t.scrollOffset+1)
+			} else if t.scrollOffset > textSize && x > t.widget.Rect.Max.X-t.scrollSensitivity {
+				t.scrollOffset = max(t.scrollOffset-1, textSize)
+			}
+		}
+
+		if input.MouseButtonJustReleasedLayer(ebiten.MouseButtonLeft, t.widget.EffectiveInputLayer()) {
+			t.cursorPosition = curIdx
+			t.caret.ResetBlinking()
+
+			if t.dragStartIndex == curIdx {
+				t.dragStartIndex = -1
+			}
+		}
+		if runtime.GOOS == "js" && runtime.GOARCH == "wasm" && jsUtil.IsMobileBrowser() {
+			dragStartDraw := min(t.cursorPosition, t.dragStartIndex)
+			dragEndDraw := max(t.cursorPosition, t.dragStartIndex)
+			jsUtil.SetCursorPosition(dragStartDraw, dragEndDraw)
 		}
 
 		return t.idleState(true), false
@@ -420,7 +493,7 @@ func textInputCheckForCommand(t *TextInput, newKeyOrCommand bool) textInputState
 	return nil
 }
 
-func (t *TextInput) charsInputState(c []rune) textInputState {
+func (t *TextInput) charsInputState(c string) textInputState {
 	return func() (textInputState, bool) {
 		if !t.widget.Disabled {
 			t.Insert(c)
@@ -461,8 +534,9 @@ func (t *TextInput) commandState(cmd textInputControlCommand, key ebiten.Key, de
 	}
 }
 
-func (t *TextInput) Insert(c []rune) {
-	s := string(insertChars([]rune(t.inputText), c, t.cursorPosition))
+func (t *TextInput) Insert(c string) {
+	t.DeleteSelectedText()
+	s := string(insertChars([]rune(t.inputText), []rune(c), t.cursorPosition))
 
 	if t.validationFunc != nil {
 		result, replacement := t.validationFunc(s)
@@ -507,38 +581,28 @@ func (t *TextInput) CursorMoveEnd() {
 	t.caret.ResetBlinking()
 }
 
-func (t *TextInput) doGoXY(x int, y int) {
-	p := img.Point{x, y}
-	if p.In(t.widget.Rect) {
-		tr := t.padding.Apply(t.widget.Rect)
-		if x < tr.Min.X {
-			x = tr.Min.X
-		}
-		if x > tr.Max.X {
-			x = tr.Max.X
-		}
-
-		t.cursorPosition = fontStringIndex([]rune(t.inputText), t.face, x-t.scrollOffset-tr.Min.X)
-		if runtime.GOOS == "js" && runtime.GOARCH == "wasm" && jsUtil.IsMobileBrowser() {
-			jsUtil.SetCursorPosition(t.cursorPosition)
-		}
-
-		t.caret.ResetBlinking()
-	}
-}
-
 func (t *TextInput) Backspace() {
-	if !t.widget.Disabled && t.cursorPosition > 0 {
-		t.inputText = string(removeChar([]rune(t.inputText), t.cursorPosition-1))
-		t.cursorPosition--
+	if !t.widget.Disabled {
+		if t.dragStartIndex != -1 {
+			t.DeleteSelectedText()
+		} else if t.cursorPosition > 0 {
+			t.inputText = string(removeChar([]rune(t.inputText), t.cursorPosition-1))
+			t.cursorPosition--
+		}
 	}
+	t.DeselectText()
 	t.caret.ResetBlinking()
 }
 
 func (t *TextInput) Delete() {
-	if !t.widget.Disabled && t.cursorPosition < len([]rune(t.inputText)) {
-		t.inputText = string(removeChar([]rune(t.inputText), t.cursorPosition))
+	if !t.widget.Disabled {
+		if t.dragStartIndex != -1 {
+			t.DeleteSelectedText()
+		} else if t.cursorPosition < len([]rune(t.inputText)) {
+			t.inputText = string(removeChar([]rune(t.inputText), t.cursorPosition))
+		}
 	}
+	t.DeselectText()
 	t.caret.ResetBlinking()
 }
 
@@ -562,6 +626,43 @@ func (t *TextInput) Submit() {
 	if t.clearOnSubmit {
 		t.CursorMoveStart()
 		t.inputText = ""
+	}
+
+	t.DeselectText()
+}
+
+func (t *TextInput) SelectedText() string {
+	if t.dragStartIndex != -1 {
+		start := min(t.dragStartIndex, t.cursorPosition)
+		end := max(t.dragStartIndex, t.cursorPosition)
+
+		return strings.Clone(t.inputText)[start:end]
+	}
+	return ""
+}
+
+func (t *TextInput) DeselectText() {
+	t.dragStartIndex = -1
+}
+
+func (t *TextInput) SelectAll() {
+	if len(t.inputText) > 0 {
+		t.dragStartIndex = 0
+		t.CursorMoveEnd()
+	}
+}
+
+func (t *TextInput) DeleteSelectedText() {
+	if t.dragStartIndex != -1 {
+		start := min(t.dragStartIndex, t.cursorPosition)
+		end := max(t.dragStartIndex, t.cursorPosition)
+		t.inputText = strings.Replace(t.inputText, t.inputText[start:end], "", 1)
+		if t.cursorPosition > t.dragStartIndex {
+			t.cursorPosition -= (end - start)
+		}
+
+		t.dragStartIndex = -1
+		t.caret.ResetBlinking()
 	}
 }
 
@@ -633,8 +734,21 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image) {
 		if dx < 0 {
 			t.scrollOffset -= dx
 		}
-	}
+		if t.dragStartIndex != -1 {
+			dragString := string([]rune(inputStr)[:t.dragStartIndex])
+			dragXStart := fontAdvance(dragString, t.face)
 
+			dragStartDraw := min(dragXStart, cx)
+			dragEndDraw := max(dragXStart, cx)
+
+			// Change the Dx and the tr.Min.X based on selection
+			t.image.Highlight.Draw(screen, dragEndDraw-dragStartDraw, tr.Dy(),
+				func(opts *ebiten.DrawImageOptions) {
+					opts.GeoM.Translate(float64(tr.Min.X+dragStartDraw+t.scrollOffset), float64(tr.Min.Y))
+				})
+		}
+
+	}
 	tr = tr.Add(img.Point{t.scrollOffset, 0})
 
 	t.text.SetLocation(tr)
@@ -679,6 +793,7 @@ func (t *TextInput) setJSText(text string) string {
 
 func (t *TextInput) setText(text string, isJS bool) {
 	t.init.Do()
+	t.DeselectText()
 	t.inputText = text
 	if t.validationFunc != nil {
 		result, replacement := t.validationFunc(t.inputText)
@@ -718,6 +833,9 @@ func (t *TextInput) Focus(focused bool) {
 
 	if focused && runtime.GOOS == "js" && runtime.GOARCH == "wasm" && jsUtil.IsMobileBrowser() {
 		jsUtil.Prompt(t.mobileInputMode, "Please enter a value.", t.inputText, t.cursorPosition, t.widget.Rect.Min.Y, t.setJSText)
+	}
+	if !focused {
+		t.dragStartIndex = -1
 	}
 }
 

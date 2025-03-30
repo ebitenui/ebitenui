@@ -62,9 +62,9 @@ func Prompt(mode MobileInputMode, title string, value string, cursorPos int, yPo
 	started = true
 }
 
-func SetCursorPosition(cursorPos int) {
+func SetCursorPosition(cursorPos int, cursorPos2 int) {
 	p := document.Call("getElementById", "tempInput")
-	p.Call("setSelectionRange", cursorPos, cursorPos)
+	p.Call("setSelectionRange", cursorPos, cursorPos2)
 }
 
 func GetCursorPosition() int {
@@ -95,7 +95,7 @@ func handleInput(this js.Value, args []js.Value) any {
 			p.Set("value", result)
 		}
 		if result == previousValue {
-			SetCursorPosition(previousPosition)
+			SetCursorPosition(previousPosition, previousPosition)
 		} else {
 			previousPosition = GetCursorPosition()
 			previousValue = result
