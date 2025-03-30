@@ -10,8 +10,10 @@ func IsMobileBrowser() bool {
 func Prompt(mode MobileInputMode, title string, value string, cursorPos int, yPos int, callback InsertCallBack) {
 
 }
-func SetCursorPosition(posX int) {
+
+func SetCursorPosition(cursorPos int, cursorPos2 int) {
 }
+
 func GetCursorPosition() int {
 	return 0
 }
