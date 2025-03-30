@@ -115,7 +115,7 @@ func TestTextInput_DoInsert(t *testing.T) {
 	ti.cursorPosition = 1
 	render(ti, t)
 
-	ti.Insert([]rune("ab€c"))
+	ti.Insert("ab€c")
 
 	is.Equal(ti.GetText(), "fab€coo")
 	is.Equal(ti.cursorPosition, 5)

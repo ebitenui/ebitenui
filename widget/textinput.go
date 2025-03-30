@@ -155,6 +155,9 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 		o(t)
 	}
 
+	if t.image == nil {
+		t.image = &TextInputImage{}
+	}
 	if t.image.Highlight == nil {
 		t.image.Highlight = image.NewNineSliceColor(color.NRGBA{6, 67, 161, 100})
 	}
@@ -550,7 +553,7 @@ func (t *TextInput) Insert(c string) {
 	}
 	t.inputText = s
 
-	t.cursorPosition += len(c)
+	t.cursorPosition += len([]rune(c))
 	if t.cursorPosition > len([]rune(t.inputText)) {
 		t.cursorPosition = len([]rune(t.inputText))
 	}
