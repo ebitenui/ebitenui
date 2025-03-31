@@ -7,7 +7,7 @@ func IsMobileBrowser() bool {
 	return false
 }
 
-func Prompt(mode MobileInputMode, title string, value string, cursorPos int, yPos int, callback InsertCallBack) {
+func Prompt(mode MobileInputMode, title string, value string, cursorPos int, yPos int, callback InsertCallBack, selectAll SelectAllCallback) {
 
 }
 

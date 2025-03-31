@@ -1,3 +1,7 @@
+//go:build js
+// +build js
+
+// TO RUN: go run github.com/hajimehoshi/wasmserve@latest -http :9090 ./_examples/widget_demos/cut_copy_paste_js
 package main
 
 import (
@@ -5,6 +9,8 @@ import (
 	"fmt"
 	"image/color"
 	"log"
+	"sync"
+	"syscall/js"
 
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"
@@ -14,7 +20,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
-	"golang.design/x/clipboard"
 	"golang.org/x/image/font/gofont/goregular"
 )
 
@@ -111,14 +116,8 @@ func main() {
 	}
 	game.ui = &ui
 
-	// Init returns an error if the package is not ready for use.
-	err := clipboard.Init()
-	if err != nil {
-		panic(err)
-	}
-
 	// run Ebiten main loop.
-	err = ebiten.RunGame(&game)
+	err := ebiten.RunGame(&game)
 	if err != nil {
 		log.Println(err)
 	}
@@ -131,23 +130,21 @@ func (g *game) Layout(outsideWidth int, outsideHeight int) (int, int) {
 
 // Update implements Game.
 func (g *game) Update() error {
-	// Select all
 	if input.KeyPressed(ebiten.KeyControlLeft) && inpututil.IsKeyJustPressed(ebiten.KeyA) {
 		g.standardTextInput.SelectAll()
 	}
-
-	g.HandleCCP()
+	g.HandleCCPJS()
 
 	g.ui.Update()
 	return nil
 }
 
-func (g *game) HandleCCP() {
+func (g *game) HandleCCPJS() {
 	// Copy
 	if ebiten.IsKeyPressed(ebiten.KeyControlLeft) && inpututil.IsKeyJustPressed(ebiten.KeyC) {
 		text := g.standardTextInput.SelectedText()
 		if len(text) > 0 {
-			clipboard.Write(clipboard.FmtText, []byte(text))
+			js.Global().Get("navigator").Get("clipboard").Call("writeText", text)
 		}
 	}
 
@@ -155,18 +152,37 @@ func (g *game) HandleCCP() {
 	if ebiten.IsKeyPressed(ebiten.KeyControlLeft) && inpututil.IsKeyJustPressed(ebiten.KeyX) {
 		text := g.standardTextInput.SelectedText()
 		if len(text) > 0 {
-			clipboard.Write(clipboard.FmtText, []byte(text))
+			js.Global().Get("navigator").Get("clipboard").Call("writeText", text)
 			g.standardTextInput.DeleteSelectedText()
 		}
 	}
 
 	// Paste
 	if ebiten.IsKeyPressed(ebiten.KeyControlLeft) && inpututil.IsKeyJustPressed(ebiten.KeyV) {
-		clipVal := string(clipboard.Read(clipboard.FmtText))
-		if len(clipVal) > 0 {
-			g.standardTextInput.Insert(clipVal)
+		var wg sync.WaitGroup
+		wg.Add(1)
+		var result string
+		promise := js.Global().Get("navigator").Get("clipboard").Call("readText").Call("then", js.FuncOf(func(me js.Value, args []js.Value) interface{} {
+			result = args[0].String()
+			wg.Done()
+			return nil
+		}), js.FuncOf(func(me js.Value, args []js.Value) interface{} {
+			wg.Done()
+			return nil
+		}))
+
+		if !promise.Truthy() {
+			return
+		}
+
+		// Wait for promise to resolve
+		wg.Wait()
+
+		if len(result) > 0 {
+			g.standardTextInput.Insert(result)
 		}
 	}
+
 }
 
 // Draw implements Ebiten's Draw method.
