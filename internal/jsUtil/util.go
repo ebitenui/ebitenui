@@ -2,6 +2,8 @@ package jsUtil
 
 type InsertCallBack func(t string) string
 
+type SelectAllCallback func()
+
 type MobileInputMode string
 
 const (
@@ -13,3 +15,6 @@ const (
 	EMAIL     = MobileInputMode("email")
 	URL       = MobileInputMode("url")
 )
+
+const WASM = "wasm"
+const JS = "js"

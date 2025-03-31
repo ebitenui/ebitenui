@@ -13,7 +13,9 @@ var MOBILE_BROWSER_REGEX = regexp.MustCompile("(?i)Android|webOS|iPhone|iPad|iPo
 
 var document js.Value
 
-var cb InsertCallBack
+var insertCB InsertCallBack
+
+var selectAllCB SelectAllCallback
 
 var started bool
 
@@ -30,6 +32,7 @@ func init() {
 
 	//Add a listener on the hidden html input for keystrokes
 	p.Call("addEventListener", "input", js.FuncOf(handleInput), false)
+	p.Call("addEventListener", "select", js.FuncOf(handleSelection), false)
 
 	//Get the canvas and attach an event listener for screen touches
 	requestAnimationFrame := js.Global().Get("requestAnimationFrame")
@@ -48,8 +51,9 @@ func IsMobileBrowser() bool {
 	return MOBILE_BROWSER_REGEX.Match([]byte(userAgent.String()))
 }
 
-func Prompt(mode MobileInputMode, title string, value string, cursorPos int, yPos int, callback InsertCallBack) {
-	cb = callback
+func Prompt(mode MobileInputMode, title string, value string, cursorPos int, yPos int, cb InsertCallBack, sa SelectAllCallback) {
+	insertCB = cb
+	selectAllCB = sa
 	p := document.Call("getElementById", "tempInput")
 
 	//Configure the hidden html input element based on what our library has for the input
@@ -62,6 +66,7 @@ func Prompt(mode MobileInputMode, title string, value string, cursorPos int, yPo
 	started = true
 }
 
+// TODO: fix cursor position from being called every loop
 func SetCursorPosition(cursorPos int, cursorPos2 int) {
 	p := document.Call("getElementById", "tempInput")
 	p.Call("setSelectionRange", cursorPos, cursorPos2)
@@ -88,8 +93,8 @@ var previousPosition = 0
 // Process changes on the hidden html text input
 func handleInput(this js.Value, args []js.Value) any {
 	newTextString := args[0].Get("target").Get("value").String()
-	if cb != nil {
-		result := cb(newTextString)
+	if insertCB != nil {
+		result := insertCB(newTextString)
 		if result != newTextString {
 			p := document.Call("getElementById", "tempInput")
 			p.Set("value", result)
@@ -99,6 +104,17 @@ func handleInput(this js.Value, args []js.Value) any {
 		} else {
 			previousPosition = GetCursorPosition()
 			previousValue = result
+		}
+	}
+	return nil
+}
+
+func handleSelection(this js.Value, args []js.Value) any {
+	if selectAllCB != nil {
+		start := args[0].Get("target").Get("selectionStart").Int()
+		end := args[0].Get("target").Get("selectionEnd").Int()
+		if start == 0 && end == len([]rune(args[0].Get("target").Get("value").String())) {
+			selectAllCB()
 		}
 	}
 	return nil

@@ -467,7 +467,7 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 				t.dragStartIndex = -1
 			}
 		}
-		if runtime.GOOS == "js" && runtime.GOARCH == "wasm" && jsUtil.IsMobileBrowser() {
+		if runtime.GOOS == jsUtil.JS && runtime.GOARCH == jsUtil.WASM {
 			dragStartDraw := min(t.cursorPosition, t.dragStartIndex)
 			dragEndDraw := max(t.cursorPosition, t.dragStartIndex)
 			jsUtil.SetCursorPosition(dragStartDraw, dragEndDraw)
@@ -652,6 +652,11 @@ func (t *TextInput) SelectAll() {
 	if len(t.inputText) > 0 {
 		t.dragStartIndex = 0
 		t.CursorMoveEnd()
+		if runtime.GOOS == jsUtil.JS && runtime.GOARCH == jsUtil.WASM {
+			dragStartDraw := min(t.cursorPosition, t.dragStartIndex)
+			dragEndDraw := max(t.cursorPosition, t.dragStartIndex)
+			jsUtil.SetCursorPosition(dragStartDraw, dragEndDraw)
+		}
 	}
 }
 
@@ -834,8 +839,8 @@ func (t *TextInput) Focus(focused bool) {
 	t.caret.resetBlinking()
 	t.focused = focused
 
-	if focused && runtime.GOOS == "js" && runtime.GOARCH == "wasm" && jsUtil.IsMobileBrowser() {
-		jsUtil.Prompt(t.mobileInputMode, "Please enter a value.", t.inputText, t.cursorPosition, t.widget.Rect.Min.Y, t.setJSText)
+	if focused && runtime.GOOS == jsUtil.JS && runtime.GOARCH == jsUtil.WASM {
+		jsUtil.Prompt(t.mobileInputMode, "Please enter a value.", t.inputText, t.cursorPosition, t.widget.Rect.Min.Y, t.setJSText, t.SelectAll)
 	}
 	if !focused {
 		t.dragStartIndex = -1
