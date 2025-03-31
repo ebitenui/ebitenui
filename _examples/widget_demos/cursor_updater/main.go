@@ -87,6 +87,12 @@ func (cu *cursor_updater) MouseButtonJustPressed(b ebiten.MouseButton) bool {
 	return inpututil.IsMouseButtonJustPressed(b) || inpututil.IsKeyJustPressed(ebiten.KeySpace)
 }
 
+// MouseButtonJustPressed returns whether mouse button b has just been pressed.
+// It only returns true during the first frame that the button is pressed.
+func (cu *cursor_updater) MouseButtonJustReleased(b ebiten.MouseButton) bool {
+	return inpututil.IsMouseButtonJustReleased(b)
+}
+
 // CursorPosition returns the current cursor position.
 // If you define a CursorPosition that doesn't align with a system cursor you will need to
 // set the CursorDrawMode to Custom. This is because ebiten doesn't have a way to set the
