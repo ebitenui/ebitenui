@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strconv"
 	"syscall/js"
+
+	"github.com/ebitenui/ebitenui/utilities/mobile"
 )
 
 var MOBILE_BROWSER_REGEX = regexp.MustCompile("(?i)Android|webOS|iPhone|iPad|iPod|BlackBerry|Windows Phone")
@@ -51,7 +53,7 @@ func IsMobileBrowser() bool {
 	return MOBILE_BROWSER_REGEX.Match([]byte(userAgent.String()))
 }
 
-func Prompt(mode MobileInputMode, title string, value string, cursorPos int, yPos int, cb InsertCallBack, sa SelectAllCallback) {
+func Prompt(mode mobile.InputMode, title string, value string, cursorPos int, yPos int, cb InsertCallBack, sa SelectAllCallback) {
 	insertCB = cb
 	selectAllCB = sa
 	p := document.Call("getElementById", "tempInput")
