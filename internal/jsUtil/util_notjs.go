@@ -3,11 +3,13 @@
 
 package jsUtil
 
+import "github.com/ebitenui/ebitenui/utilities/mobile"
+
 func IsMobileBrowser() bool {
 	return false
 }
 
-func Prompt(mode MobileInputMode, title string, value string, cursorPos int, yPos int, callback InsertCallBack, selectAll SelectAllCallback) {
+func Prompt(mode mobile.MobileInputMode, title string, value string, cursorPos int, yPos int, callback InsertCallBack, selectAll SelectAllCallback) {
 
 }
 

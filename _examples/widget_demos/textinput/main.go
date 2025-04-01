@@ -10,7 +10,7 @@ import (
 
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"
-	"github.com/ebitenui/ebitenui/internal/jsUtil"
+	"github.com/ebitenui/ebitenui/utilities/mobile"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -61,7 +61,7 @@ func main() {
 		),
 
 		// Set the keyboard type when opened on mobile devices.
-		widget.TextInputOpts.MobileInputMode(jsUtil.TEXT),
+		widget.TextInputOpts.MobileInputMode(mobile.TEXT),
 
 		//Set the Idle and Disabled background image for the text input
 		//If the NineSlice image has a minimum size, the widget will use that or
