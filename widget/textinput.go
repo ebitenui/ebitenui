@@ -13,6 +13,7 @@ import (
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/internal/jsUtil"
+	"github.com/ebitenui/ebitenui/utilities/mobile"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
@@ -34,7 +35,7 @@ type TextInput struct {
 	validationFunc  TextInputValidationFunc
 	placeholderText string
 
-	mobileInputMode jsUtil.MobileInputMode
+	mobileInputMode mobile.InputMode
 
 	init                  *MultiOnce
 	commandToFunc         map[textInputControlCommand]textInputCommandFunc
@@ -132,7 +133,7 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 		commandToFunc: map[textInputControlCommand]textInputCommandFunc{},
 		renderBuf:     image.NewMaskedRenderBuffer(),
 
-		mobileInputMode:   jsUtil.TEXT,
+		mobileInputMode:   mobile.TEXT,
 		focusMap:          make(map[FocusDirection]Focuser),
 		submitOnEnter:     true,
 		dragStartIndex:    -1,
@@ -299,7 +300,7 @@ func (o TextInputOptions) SubmitOnEnter(submitOnEnter bool) TextInputOpt {
 // Sets the keyboard type to use when viewed on a mobile browser.
 //
 // https://css-tricks.com/everything-you-ever-wanted-to-know-about-inputmode
-func (o TextInputOptions) MobileInputMode(mobileInputMode jsUtil.MobileInputMode) TextInputOpt {
+func (o TextInputOptions) MobileInputMode(mobileInputMode mobile.InputMode) TextInputOpt {
 	return func(t *TextInput) {
 		t.mobileInputMode = mobileInputMode
 	}
