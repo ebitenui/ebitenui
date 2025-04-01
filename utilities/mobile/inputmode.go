@@ -1,13 +1,13 @@
 package mobile
 
-type MobileInputMode string
+type InputMode string
 
 const (
-	TEXT      = MobileInputMode("text")
-	DECIMAL   = MobileInputMode("decimal")
-	NUMERIC   = MobileInputMode("numeric")
-	TELEPHONE = MobileInputMode("tel")
-	SEARCH    = MobileInputMode("search")
-	EMAIL     = MobileInputMode("email")
-	URL       = MobileInputMode("url")
+	TEXT      = InputMode("text")
+	DECIMAL   = InputMode("decimal")
+	NUMERIC   = InputMode("numeric")
+	TELEPHONE = InputMode("tel")
+	SEARCH    = InputMode("search")
+	EMAIL     = InputMode("email")
+	URL       = InputMode("url")
 )

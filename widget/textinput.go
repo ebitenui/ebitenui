@@ -35,7 +35,7 @@ type TextInput struct {
 	validationFunc  TextInputValidationFunc
 	placeholderText string
 
-	mobileInputMode mobile.MobileInputMode
+	mobileInputMode mobile.InputMode
 
 	init                  *MultiOnce
 	commandToFunc         map[textInputControlCommand]textInputCommandFunc
@@ -300,7 +300,7 @@ func (o TextInputOptions) SubmitOnEnter(submitOnEnter bool) TextInputOpt {
 // Sets the keyboard type to use when viewed on a mobile browser.
 //
 // https://css-tricks.com/everything-you-ever-wanted-to-know-about-inputmode
-func (o TextInputOptions) MobileInputMode(mobileInputMode mobile.MobileInputMode) TextInputOpt {
+func (o TextInputOptions) MobileInputMode(mobileInputMode mobile.InputMode) TextInputOpt {
 	return func(t *TextInput) {
 		t.mobileInputMode = mobileInputMode
 	}
