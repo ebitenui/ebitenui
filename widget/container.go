@@ -112,8 +112,8 @@ func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveCh
 				c.GetWidget().FireDragAndDropEvent(a.Window, a.Show, a.DnD)
 			}
 		})
-		c.RequestRelayout()
 	}
+	c.RequestRelayout()
 
 	return func() {
 		for _, child := range children {
