@@ -14,7 +14,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
-const bbcodeRegEx = `\[color=#[0-9a-fA-F]{6}\]|\[\/color\]`
+var bbcodeRegex = regexp.MustCompile(`\[color=#[0-9a-fA-F]{6}\]|\[\/color\]`)
 const COLOR_OPEN = "color=#"
 const COLOR_CLOSE = "/color]"
 
@@ -31,7 +31,6 @@ type Text struct {
 	init          *MultiOnce
 	widget        *Widget
 	measurements  textMeasurements
-	bbcodeRegex   *regexp.Regexp
 	processBBCode bool
 	colorList     *datastructures.Stack[color.Color]
 }
@@ -74,7 +73,6 @@ func NewText(opts ...TextOpt) *Text {
 	t := &Text{
 		init: &MultiOnce{},
 	}
-	t.bbcodeRegex = regexp.MustCompile(bbcodeRegEx)
 
 	t.init.Append(t.createWidget)
 
@@ -271,7 +269,7 @@ func (t *Text) draw(screen *ebiten.Image) {
 
 func (t *Text) handleBBCodeColor(word string) ([]bbCodeText, color.Color) {
 	var result []bbCodeText
-	tags := t.bbcodeRegex.FindAllStringIndex(word, -1)
+	tags := bbcodeRegex.FindAllStringIndex(word, -1)
 	var newColor = *t.colorList.Top()
 	if len(tags) > 0 {
 		resultStr := ""
@@ -370,9 +368,9 @@ func (t *Text) measure() {
 			words := strings.Split(s.Text(), " ")
 			for i, word := range words {
 				var wordWidth float64
-				if t.processBBCode && t.bbcodeRegex.MatchString(word) {
+				if t.processBBCode && bbcodeRegex.MatchString(word) {
 					// Strip out any bbcodes from size calculation
-					cleaned := t.bbcodeRegex.ReplaceAllString(word, "")
+					cleaned := bbcodeRegex.ReplaceAllString(word, "")
 					wordWidth, _ = text.Measure(cleaned, t.Face, 0)
 				} else {
 					wordWidth, _ = text.Measure(word, t.Face, 0)
