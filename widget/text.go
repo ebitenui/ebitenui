@@ -14,7 +14,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
-var bbcodeRegex = regexp.MustCompile(`\[color=#[0-9a-fA-F]{6}\]|\[\/color\]`)
+var bbcodeRegex = regexp.MustCompile(`\[color=#[0-9a-fA-F]{6}]|\[/color]`)
 const COLOR_OPEN = "color=#"
 const COLOR_CLOSE = "/color]"
 
