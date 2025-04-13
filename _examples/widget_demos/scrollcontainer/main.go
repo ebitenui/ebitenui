@@ -15,7 +15,7 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 )
 
-// Game object used by ebiten
+// Game object used by ebiten.
 type game struct {
 	ui *ebitenui.UI
 }
@@ -40,15 +40,16 @@ func main() {
 		)),
 	)
 
-	//Create the container with the content that should be scrolled
+	// Create the container with the content that should be scrolled
 	content := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewRowLayout(
 		widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 		widget.RowLayoutOpts.Spacing(20),
+		widget.RowLayoutOpts.Padding(widget.Insets{Top: 10, Bottom: 10}),
 	)))
 
-	//Add 20 buttons to the scrollable content container
+	// Add 20 buttons to the scrollable content container
 	for x := 0; x < 20; x++ {
-		//Capture x for use in callback
+		// Capture x for use in callback
 		x := x
 		// construct a button
 		button := widget.NewButton(
@@ -58,6 +59,9 @@ func main() {
 				widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 					Position: widget.RowLayoutPositionCenter,
 				}),
+				// Tells the button to not use create its own input layer.
+				// This is needed to ensure the scroll container recieves the scroll event.
+				widget.WidgetOpts.UseParentLayer(true),
 			),
 
 			// specify the images to use
@@ -86,31 +90,31 @@ func main() {
 		content.AddChild(button)
 	}
 
-	//Create the new ScrollContainer object
+	// Create the new ScrollContainer object
 	scrollContainer := widget.NewScrollContainer(
-		//Set the content that will be scrolled
+		// Set the content that will be scrolled
 		widget.ScrollContainerOpts.Content(content),
-		//Tell the container to stretch the content width to match available space
+		// Tell the container to stretch the content width to match available space
 		widget.ScrollContainerOpts.StretchContentWidth(),
-		//Set the background images for the scrollable container
+		// Set the background images for the scrollable container
 		widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
 			Idle: image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff}),
 			Mask: image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff}),
 		}),
 	)
-	//Add the scrollable container to the left side of the window
+	// Add the scrollable container to the left side of the window
 	rootContainer.AddChild(scrollContainer)
 
-	//Create a function to return the page size used by the slider
+	// Create a function to return the page size used by the slider
 	pageSizeFunc := func() int {
-		return int(math.Round(float64(scrollContainer.ViewRect().Dy()) / float64(content.GetWidget().Rect.Dy()) * 1000))
+		return int(math.Round(float64(scrollContainer.ViewRect().Dy())/float64(content.GetWidget().Rect.Dy())*1000) / 3)
 	}
-	//Create a vertical Slider bar to control the ScrollableContainer
+	// Create a vertical Slider bar to control the ScrollableContainer
 	vSlider := widget.NewSlider(
 		widget.SliderOpts.Direction(widget.DirectionVertical),
 		widget.SliderOpts.MinMax(0, 1000),
 		widget.SliderOpts.PageSizeFunc(pageSizeFunc),
-		//On change update scroll location based on the Slider's value
+		// On change update scroll location based on the Slider's value
 		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
 			scrollContainer.ScrollTop = float64(args.Slider.Current) / 1000
 		}),
@@ -128,17 +132,14 @@ func main() {
 			},
 		),
 	)
-	//Set the slider's position if the scrollContainer is scrolled by other means than the slider
+	// Set the slider's position if the scrollContainer is scrolled by other means than the slider
 	scrollContainer.GetWidget().ScrolledEvent.AddHandler(func(args interface{}) {
-		a := args.(*widget.WidgetScrolledEventArgs)
-		p := pageSizeFunc() / 3
-		if p < 1 {
-			p = 1
+		if a, ok := args.(*widget.WidgetScrolledEventArgs); ok {
+			vSlider.Current -= int(math.Round(a.Y * float64(pageSizeFunc())))
 		}
-		vSlider.Current -= int(math.Round(a.Y * float64(p)))
 	})
 
-	//Add the slider to the second slot in the root container
+	// Add the slider to the second slot in the root container
 	rootContainer.AddChild(vSlider)
 	// construct the UI
 	ui := ebitenui.UI{
@@ -196,7 +197,7 @@ func loadFont(size float64) (text.Face, error) {
 	s, err := text.NewGoTextFaceSource(bytes.NewReader(goregular.TTF))
 	if err != nil {
 		log.Fatal(err)
-		return nil, err
+		return nil, fmt.Errorf("Font Creation Error: %w", err)
 	}
 
 	return &text.GoTextFace{

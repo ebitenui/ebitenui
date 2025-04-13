@@ -475,6 +475,13 @@ func (o WidgetOptions) TrackHover(trackHover bool) WidgetOpt {
 	}
 }
 
+// This tells the system to not create a new input layer for this focusable widget.
+func (o WidgetOptions) UseParentLayer(useParentLayer bool) WidgetOpt {
+	return func(w *Widget) {
+		w.UseParentLayer = useParentLayer
+	}
+}
+
 func (w *Widget) drawImageOptions(opts *ebiten.DrawImageOptions) {
 	opts.GeoM.Translate(float64(w.Rect.Min.X), float64(w.Rect.Min.Y))
 }

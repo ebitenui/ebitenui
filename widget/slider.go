@@ -168,10 +168,10 @@ func (o SliderOptions) FixedHandleSize(s int) SliderOpt {
 	}
 }
 
-func (o SliderOptions) MinMax(min int, max int) SliderOpt {
+func (o SliderOptions) MinMax(minValue int, maxValue int) SliderOpt {
 	return func(s *Slider) {
-		s.Min = min
-		s.Max = max
+		s.Min = minValue
+		s.Max = maxValue
 	}
 }
 
@@ -372,8 +372,8 @@ func (s *Slider) handleDirection() {
 
 func (s *Slider) fireEvents() {
 	s.ChangedEvent.Fire(&SliderChangedEventArgs{
-		Slider:  s,
-		Current: s.Current,
+		Slider:   s,
+		Current:  s.Current,
 		Dragging: s.dragging,
 	})
 }
@@ -505,7 +505,7 @@ func (s *Slider) createWidget() {
 				if s.direction == DirectionHorizontal {
 					s.Current += ps * int(args.Y)
 				} else {
-					s.Current += ps * int(args.X)
+					s.Current -= ps * int(args.Y)
 				}
 				s.clampCurrentMinMax()
 			}
@@ -559,7 +559,7 @@ func (s *Slider) createWidget() {
 				if s.direction == DirectionHorizontal {
 					s.Current += ps * int(args.Y)
 				} else {
-					s.Current += ps * int(args.X)
+					s.Current -= ps * int(args.Y)
 				}
 				s.clampCurrentMinMax()
 			}

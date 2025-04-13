@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"image/color"
 	"log"
 
@@ -13,7 +14,7 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 )
 
-// Game object used by ebiten
+// Game object used by ebiten.
 type game struct {
 	ui *ebitenui.UI
 }
@@ -28,13 +29,13 @@ func main() {
 	face, _ := loadFont(20)
 
 	// construct a new container that serves as the root of the UI hierarchy
-	btnContainer := widget.NewContainer(
+	underneathContainer := widget.NewContainer(
 		// the container will use an anchor layout to layout its single child widget
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 
-	// construct a button
-	button := widget.NewButton(
+	// construct a underneathButton
+	underneathButton := widget.NewButton(
 		// set general widget options
 		widget.ButtonOpts.WidgetOpts(
 			// instruct the container's anchor layout to center the button both horizontally and vertically
@@ -48,7 +49,7 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage2),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Centered", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Hidden", face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
@@ -62,21 +63,21 @@ func main() {
 
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			println("centered button clicked")
+			println("Bottom button clicked")
 		}),
 	)
 
 	// add the button as a child of the container
-	btnContainer.AddChild(button)
+	underneathContainer.AddChild(underneathButton)
 
 	// construct a new container that serves as the root of the UI hierarchy
-	bottomRightContainer := widget.NewContainer(
+	onTopContainer := widget.NewContainer(
 		// the container will use an anchor layout to layout its single child widget
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 
 	// construct a button
-	bottomRightButton := widget.NewButton(
+	onTopButton := widget.NewButton(
 		// set general widget options
 		widget.ButtonOpts.WidgetOpts(
 			// instruct the container's anchor layout to center the button both horizontally and vertically
@@ -90,7 +91,7 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Bottom Right", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Top Button", face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
@@ -104,10 +105,10 @@ func main() {
 
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			println("bottom right button clicked")
+			println("Top button clicked")
 		}),
 	)
-	bottomRightContainer.AddChild(bottomRightButton)
+	onTopContainer.AddChild(onTopButton)
 
 	rootContainer := widget.NewContainer(
 		// the container will use a plain color as its background
@@ -115,8 +116,8 @@ func main() {
 		widget.ContainerOpts.Layout(widget.NewStackedLayout(widget.StackedLayoutOpts.Padding(widget.NewInsetsSimple(25)))),
 	)
 
-	rootContainer.AddChild(btnContainer)
-	rootContainer.AddChild(bottomRightContainer)
+	rootContainer.AddChild(underneathContainer)
+	rootContainer.AddChild(onTopContainer)
 
 	// construct the UI
 	ui := ebitenui.UI{
@@ -171,18 +172,6 @@ func loadButtonImage() (*widget.ButtonImage, error) {
 	}, nil
 }
 
-func loadFont(size float64) (text.Face, error) {
-	s, err := text.NewGoTextFaceSource(bytes.NewReader(goregular.TTF))
-	if err != nil {
-		log.Fatal(err)
-		return nil, err
-	}
-
-	return &text.GoTextFace{
-		Source: s,
-		Size:   size,
-	}, nil
-}
 func loadButtonImage2() (*widget.ButtonImage, error) {
 
 	idle := image.NewBorderedNineSliceColor(color.NRGBA{R: 10, G: 170, B: 180, A: 255}, color.NRGBA{90, 90, 90, 255}, 3)
@@ -195,5 +184,18 @@ func loadButtonImage2() (*widget.ButtonImage, error) {
 		Idle:    idle,
 		Hover:   hover,
 		Pressed: pressed,
+	}, nil
+}
+
+func loadFont(size float64) (text.Face, error) {
+	s, err := text.NewGoTextFaceSource(bytes.NewReader(goregular.TTF))
+	if err != nil {
+		log.Fatal(err)
+		return nil, fmt.Errorf("Font Creation Error: %w", err)
+	}
+
+	return &text.GoTextFace{
+		Source: s,
+		Size:   size,
 	}, nil
 }
