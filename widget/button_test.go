@@ -32,7 +32,8 @@ func TestButton_ReleasedEvent_User(t *testing.T) {
 			eventArgs = args
 		}))
 
-	leftMouseButtonClick(b, t)
+	leftMouseButtonPress(b, t)
+	leftMouseButtonRelease(b, t)
 
 	is.True(eventArgs != nil)
 }
