@@ -187,8 +187,8 @@ func (l *LabeledCheckbox) createWidget() {
 			Position: RowLayoutPositionCenter,
 		}),
 
-		WidgetOpts.MouseButtonReleasedHandler(func(args *WidgetMouseButtonReleasedEventArgs) {
-			if !args.Widget.Disabled && args.Button == ebiten.MouseButtonLeft && args.Inside {
+		WidgetOpts.MouseButtonClickedHandler(func(args *WidgetMouseButtonClickedEventArgs) {
+			if !args.Widget.Disabled && args.Button == ebiten.MouseButtonLeft {
 				l.checkbox.SetState(l.checkbox.state.Advance(l.checkbox.triState))
 			}
 		}),
