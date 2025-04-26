@@ -334,7 +334,7 @@ func (c *Checkbox) Update() {
 }
 
 func (c *Checkbox) handleDefaultInput() {
-	if !c.DisableDefaultKeys &&
+	if !c.DisableDefaultKeys && c.focused &&
 		(inpututil.IsKeyJustPressed(ebiten.KeyEnter) || inpututil.IsKeyJustPressed(ebiten.KeySpace)) {
 		c.Click()
 	}
