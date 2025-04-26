@@ -36,6 +36,7 @@ type Button struct {
 	vTextPosition            TextPosition
 	hTextPosition            TextPosition
 	textPadding              Insets
+	textInset                Insets
 	graphicPadding           Insets
 
 	init              *MultiOnce
@@ -259,6 +260,9 @@ func (o ButtonOptions) TextAndImage(label string, face text.Face, image *Graphic
 				})),
 				TextOpts.Text(label, face, color.Idle),
 				TextOpts.ProcessBBCode(b.textProcessBBCode),
+				TextOpts.Padding(b.textPadding),
+				TextOpts.Insets(b.textInset),
+				TextOpts.Position(b.hTextPosition, b.vTextPosition),
 			)
 
 			b.graphic = NewGraphic(
@@ -292,6 +296,12 @@ func (o ButtonOptions) TextPosition(h TextPosition, v TextPosition) ButtonOpt {
 func (o ButtonOptions) TextPadding(p Insets) ButtonOpt {
 	return func(b *Button) {
 		b.textPadding = p
+	}
+}
+
+func (o ButtonOptions) TextInsets(p Insets) ButtonOpt {
+	return func(b *Button) {
+		b.textInset = p
 	}
 }
 
@@ -751,17 +761,19 @@ func (b *Button) initText() {
 	// Even if users use a Text() 3-in-one API, they can pass nil or something.
 
 	b.container = NewContainer(
-		ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(b.textPadding))),
+		ContainerOpts.Layout(NewAnchorLayout()),
 		ContainerOpts.AutoDisableChildren(),
 	)
 
 	b.text = NewText(
 		TextOpts.WidgetOpts(WidgetOpts.LayoutData(AnchorLayoutData{
-			HorizontalPosition: AnchorLayoutPosition(b.hTextPosition),
-			VerticalPosition:   AnchorLayoutPosition(b.vTextPosition),
+			HorizontalPosition: AnchorLayoutPositionCenter,
+			VerticalPosition:   AnchorLayoutPositionCenter,
 		})),
 		TextOpts.Text(b.textLabel, b.textFace, b.TextColor.Idle),
 		TextOpts.ProcessBBCode(b.textProcessBBCode),
+		TextOpts.Padding(b.textPadding),
+		TextOpts.Insets(b.textInset),
 		TextOpts.Position(b.hTextPosition, b.vTextPosition),
 	)
 	b.container.AddChild(b.text)
