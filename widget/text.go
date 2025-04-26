@@ -20,19 +20,19 @@ const COLOR_OPEN = "color=#"
 const COLOR_CLOSE = "/color]"
 
 type TextParams struct {
-	Face   *text.Face
-	Color  color.Color
-	Insets *Insets
+	Face    *text.Face
+	Color   color.Color
+	Insets  *Insets
+	Padding *Insets
 }
 
 type Text struct {
 	definedParams  TextParams
 	computedParams TextParams
 
-	Label    string
-	MaxWidth float64
+	Label         string
+	MaxWidth      float64
 	ProcessBBCode bool
-
 
 	widgetOpts         []WidgetOpt
 	horizontalPosition TextPosition
@@ -111,6 +111,7 @@ func (t *Text) populateComputedParams() {
 			txtParams.Color = theme.TextTheme.Color
 			txtParams.Face = theme.TextTheme.Face
 			txtParams.Insets = theme.TextTheme.Insets
+			txtParams.Padding = theme.TextTheme.Padding
 		}
 	}
 	if t.definedParams.Face != nil {
@@ -119,12 +120,18 @@ func (t *Text) populateComputedParams() {
 	if t.definedParams.Insets != nil {
 		txtParams.Insets = t.definedParams.Insets
 	}
+	if t.definedParams.Padding != nil {
+		txtParams.Padding = t.definedParams.Padding
+	}
 	if t.definedParams.Color != nil {
 		txtParams.Color = t.definedParams.Color
 	}
 
 	if txtParams.Insets == nil {
 		txtParams.Insets = &Insets{}
+	}
+	if txtParams.Padding == nil {
+		txtParams.Padding = &Insets{}
 	}
 
 	t.computedParams = txtParams
@@ -168,6 +175,11 @@ func (o TextOptions) TextColor(color color.Color) TextOpt {
 func (o TextOptions) Insets(inset *Insets) TextOpt {
 	return func(t *Text) {
 		t.definedParams.Insets = inset
+	}
+}
+func (o TextOptions) Padding(padding *Insets) TextOpt {
+	return func(t *Text) {
+		t.definedParams.Padding = padding
 	}
 }
 
@@ -231,8 +243,8 @@ func (t *Text) SetLocation(rect image.Rectangle) {
 func (t *Text) PreferredSize() (int, int) {
 	t.init.Do()
 	t.measure()
-	w := int(math.Ceil(t.measurements.boundingBoxWidth))  // + t.computedParams.Insets.Left + t.computedParams.Insets.Right
-	h := int(math.Ceil(t.measurements.boundingBoxHeight)) // + t.computedParams.Insets.Top + t.computedParams.Insets.Bottom
+	w := int(math.Ceil(t.measurements.boundingBoxWidth)) + t.computedParams.Padding.Left + t.computedParams.Padding.Right
+	h := int(math.Ceil(t.measurements.boundingBoxHeight)) + t.computedParams.Padding.Top + t.computedParams.Padding.Bottom
 
 	if t.widget != nil && h < t.widget.MinHeight {
 		h = t.widget.MinHeight

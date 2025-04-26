@@ -24,6 +24,7 @@ type ButtonParams struct {
 
 	TextPosition   *TextPositioning
 	TextPadding    *Insets
+	TextInset      *Insets
 	TextFace       *text.Face
 	GraphicPadding *Insets
 }
@@ -197,6 +198,7 @@ func (b *Button) populateComputedParams() {
 		},
 		GraphicPadding: &Insets{},
 		TextPadding:    &Insets{},
+		TextInset:      &Insets{},
 	}
 	theme := b.widget.GetTheme()
 	// clone the theme
@@ -231,8 +233,12 @@ func (b *Button) populateComputedParams() {
 				btnParams.TextPosition.HTextPosition = theme.ButtonTheme.TextPosition.HTextPosition
 				btnParams.TextPosition.VTextPosition = theme.ButtonTheme.TextPosition.VTextPosition
 			}
-			btnParams.TextPadding = theme.ButtonTheme.TextPadding
-
+			if theme.ButtonTheme.TextPadding != nil {
+				btnParams.TextPadding = theme.ButtonTheme.TextPadding
+			}
+			if theme.ButtonTheme.TextInset != nil {
+				btnParams.TextInset = theme.ButtonTheme.TextInset
+			}
 			if theme.ButtonTheme.TextFace != nil {
 				btnParams.TextFace = theme.ButtonTheme.TextFace
 			}
@@ -304,6 +310,9 @@ func (b *Button) populateComputedParams() {
 	}
 	if b.definedParams.TextPadding != nil {
 		btnParams.TextPadding = b.definedParams.TextPadding
+	}
+	if b.definedParams.TextInset != nil {
+		btnParams.TextInset = b.definedParams.TextInset
 	}
 	if b.definedParams.TextColor != nil {
 		if btnParams.TextColor == nil {
@@ -444,6 +453,12 @@ func (o ButtonOptions) TextPosition(h TextPosition, v TextPosition) ButtonOpt {
 func (o ButtonOptions) TextPadding(p Insets) ButtonOpt {
 	return func(b *Button) {
 		b.definedParams.TextPadding = &p
+	}
+}
+
+func (o ButtonOptions) TextInsets(p Insets) ButtonOpt {
+	return func(b *Button) {
+		b.definedParams.TextInset = &p
 	}
 }
 
@@ -924,17 +939,19 @@ func (b *Button) initText() {
 		// Even if users use a Text() 3-in-one API, they can pass nil or something.
 
 		b.container = NewContainer(
-			ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(*b.computedParams.TextPadding))),
+			ContainerOpts.Layout(NewAnchorLayout()),
 			ContainerOpts.AutoDisableChildren(),
 		)
 
 		b.text = NewText(
 			TextOpts.WidgetOpts(WidgetOpts.LayoutData(AnchorLayoutData{
-				HorizontalPosition: AnchorLayoutPosition(b.computedParams.TextPosition.HTextPosition),
-				VerticalPosition:   AnchorLayoutPosition(b.computedParams.TextPosition.VTextPosition),
+				HorizontalPosition: AnchorLayoutPositionCenter,
+				VerticalPosition:   AnchorLayoutPositionCenter,
 			})),
 			TextOpts.Text(b.textLabel, b.computedParams.TextFace, b.computedParams.TextColor.Idle),
 			TextOpts.ProcessBBCode(b.textProcessBBCode),
+			TextOpts.Padding(b.computedParams.TextPadding),
+			TextOpts.Insets(b.computedParams.TextInset),
 			TextOpts.Position(b.computedParams.TextPosition.HTextPosition, b.computedParams.TextPosition.VTextPosition),
 		)
 		b.container.AddChild(b.text)
