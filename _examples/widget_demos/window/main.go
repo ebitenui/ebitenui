@@ -95,7 +95,7 @@ func createButton(ui *ebitenui.UI, win *widget.Window, label string, winPos imag
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Open "+label, face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Open "+label, &face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
@@ -141,7 +141,7 @@ func createWindow(ui *ebitenui.UI, label string) *widget.Window {
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 	windowContainer.AddChild(widget.NewText(
-		widget.TextOpts.Text("Hello from "+label, face, color.NRGBA{254, 255, 255, 255}),
+		widget.TextOpts.Text("Hello from "+label, &face, color.NRGBA{254, 255, 255, 255}),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			HorizontalPosition: widget.AnchorLayoutPositionCenter,
 			VerticalPosition:   widget.AnchorLayoutPositionCenter,
@@ -154,7 +154,7 @@ func createWindow(ui *ebitenui.UI, label string) *widget.Window {
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 	titleContainer.AddChild(widget.NewText(
-		widget.TextOpts.Text(label+" Title", titleFace, color.NRGBA{254, 255, 255, 255}),
+		widget.TextOpts.Text(label+" Title", &titleFace, color.NRGBA{254, 255, 255, 255}),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			HorizontalPosition: widget.AnchorLayoutPositionCenter,
 			VerticalPosition:   widget.AnchorLayoutPositionCenter,
