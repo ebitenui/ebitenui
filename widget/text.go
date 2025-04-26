@@ -15,24 +15,26 @@ import (
 )
 
 var bbcodeRegex = regexp.MustCompile(`\[color=#[0-9a-fA-F]{6}]|\[/color]`)
+
 const COLOR_OPEN = "color=#"
 const COLOR_CLOSE = "/color]"
 
 type Text struct {
-	Label              string
-	Face               text.Face
-	Color              color.Color
-	MaxWidth           float64
-	Inset              Insets
+	Label         string
+	Face          text.Face
+	Color         color.Color
+	MaxWidth      float64
+	Inset         Insets
+	ProcessBBCode bool
+
 	widgetOpts         []WidgetOpt
 	horizontalPosition TextPosition
 	verticalPosition   TextPosition
 
-	init          *MultiOnce
-	widget        *Widget
-	measurements  textMeasurements
-	processBBCode bool
-	colorList     *datastructures.Stack[color.Color]
+	init         *MultiOnce
+	widget       *Widget
+	measurements textMeasurements
+	colorList    *datastructures.Stack[color.Color]
 }
 
 type TextOpt func(t *Text)
@@ -52,7 +54,7 @@ type textMeasurements struct {
 	label         string
 	face          text.Face
 	maxWidth      float64
-	processBBCode bool
+	ProcessBBCode bool
 
 	lines             [][]string
 	lineWidths        []float64
@@ -144,7 +146,7 @@ func (o TextOptions) Position(h TextPosition, v TextPosition) TextOpt {
 
 func (o TextOptions) ProcessBBCode(processBBCode bool) TextOpt {
 	return func(t *Text) {
-		t.processBBCode = processBBCode
+		t.ProcessBBCode = processBBCode
 	}
 }
 
@@ -240,7 +242,7 @@ func (t *Text) draw(screen *ebiten.Image) {
 			lx += float64(t.Inset.Left)
 		}
 
-		if t.processBBCode {
+		if t.ProcessBBCode {
 
 			for _, word := range line {
 				pieces, updatedColor := t.handleBBCodeColor(word)
@@ -340,7 +342,7 @@ func (t *Text) handleBBCodeColor(word string) ([]bbCodeText, color.Color) {
 }
 
 func (t *Text) measure() {
-	if t.Label == t.measurements.label && t.Face == t.measurements.face && t.MaxWidth == t.measurements.maxWidth && t.processBBCode == t.measurements.processBBCode {
+	if t.Label == t.measurements.label && t.Face == t.measurements.face && t.MaxWidth == t.measurements.maxWidth && t.ProcessBBCode == t.measurements.ProcessBBCode {
 		return
 	}
 	m := t.Face.Metrics()
@@ -348,7 +350,7 @@ func (t *Text) measure() {
 	t.measurements = textMeasurements{
 		label:         t.Label,
 		face:          t.Face,
-		processBBCode: t.processBBCode,
+		ProcessBBCode: t.ProcessBBCode,
 		ascent:        m.HAscent,
 		maxWidth:      t.MaxWidth,
 	}
@@ -361,14 +363,14 @@ func (t *Text) measure() {
 
 	s := bufio.NewScanner(strings.NewReader(t.Label))
 	for s.Scan() {
-		if t.MaxWidth > 0 || t.processBBCode {
+		if t.MaxWidth > 0 || t.ProcessBBCode {
 			var newLine []string
 			newLineWidth := float64(t.Inset.Left + t.Inset.Right)
 
 			words := strings.Split(s.Text(), " ")
 			for i, word := range words {
 				var wordWidth float64
-				if t.processBBCode && bbcodeRegex.MatchString(word) {
+				if t.ProcessBBCode && bbcodeRegex.MatchString(word) {
 					// Strip out any bbcodes from size calculation
 					cleaned := bbcodeRegex.ReplaceAllString(word, "")
 					wordWidth, _ = text.Measure(cleaned, t.Face, 0)

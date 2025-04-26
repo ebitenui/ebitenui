@@ -82,13 +82,12 @@ func checkboxPage(res *uiResources) *page {
 	cb1 := newCheckbox("Two-State Checkbox", nil, res)
 	c.AddChild(cb1)
 
-	cb2 := widget.NewLabeledCheckbox(
-		widget.LabeledCheckboxOpts.Spacing(res.checkbox.spacing),
-		widget.LabeledCheckboxOpts.CheckboxOpts(
-			widget.CheckboxOpts.ButtonOpts(widget.ButtonOpts.Image(res.checkbox.image)),
-			widget.CheckboxOpts.Image(res.checkbox.graphic),
-			widget.CheckboxOpts.TriState()),
-		widget.LabeledCheckboxOpts.LabelOpts(widget.LabelOpts.Text("Tri-State Checkbox", res.label.face, res.label.text)))
+	cb2 := widget.NewCheckbox(
+		widget.CheckboxOpts.Spacing(res.checkbox.spacing),
+		widget.CheckboxOpts.Image(res.checkbox.image),
+		widget.CheckboxOpts.TriState(),
+		widget.CheckboxOpts.Text("Tri-State Checkbox", res.label.face, res.label.text))
+
 	c.AddChild(cb2)
 
 	c.AddChild(newSeparator(res, widget.RowLayoutData{
@@ -599,7 +598,7 @@ func toolTipPage(res *uiResources) *page {
 			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.ToolTip(widget.NewToolTip(
 				widget.ToolTipOpts.Content(tt),
 				widget.ToolTipOpts.ToolTipUpdater(func(c *widget.Container) {
-					if showTimeCheckbox.Checkbox().State() == widget.WidgetChecked {
+					if showTimeCheckbox.State() == widget.WidgetChecked {
 						c.Children()[1].(*widget.Text).Label = time.Now().Local().Format("2006-01-02 15:04:05")
 					} else {
 						c.Children()[1].(*widget.Text).Label = ""
@@ -784,7 +783,7 @@ func radioGroupPage(res *uiResources) *page {
 	for i := 0; i < 5; i++ {
 		cb := newCheckbox(fmt.Sprintf("Checkbox %d", i+1), nil, res)
 		c.AddChild(cb)
-		cbs = append(cbs, cb.Checkbox())
+		cbs = append(cbs, cb)
 	}
 
 	elements := []widget.RadioGroupElement{}
@@ -1030,7 +1029,7 @@ func anchorLayoutPage(res *uiResources) *page {
 	for _, l := range labels {
 		cb := newCheckbox(l, nil, res)
 		hPosC.AddChild(cb)
-		hCBs = append(hCBs, cb.Checkbox())
+		hCBs = append(hCBs, cb)
 	}
 	elements := []widget.RadioGroupElement{}
 	for _, cb := range hCBs {
@@ -1061,7 +1060,7 @@ func anchorLayoutPage(res *uiResources) *page {
 	for _, l := range labels {
 		cb := newCheckbox(l, nil, res)
 		vPosC.AddChild(cb)
-		vCBs = append(vCBs, cb.Checkbox())
+		vCBs = append(vCBs, cb)
 	}
 	vElements := []widget.RadioGroupElement{}
 	for _, cb := range vCBs {
