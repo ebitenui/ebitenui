@@ -88,7 +88,7 @@ func NewCheckbox(opts ...CheckboxOpt) *Checkbox {
 	return c
 }
 
-func (c *Checkbox) validate() {
+func (c *Checkbox) Validate() {
 
 	if c.image == nil {
 		panic("Checkbox: Image is required.")
@@ -98,7 +98,7 @@ func (c *Checkbox) validate() {
 		panic("Checkbox: Image.Checked is required.")
 	}
 
-	if c.computedParams.Image.Unchecked == nil {
+	if c.image.Unchecked == nil {
 		panic("Checkbox: Image.Unchecked is required.")
 	}
 
@@ -117,7 +117,7 @@ func (o CheckboxOptions) WidgetOpts(opts ...WidgetOpt) CheckboxOpt {
 }
 
 // This option allows you to specify a label to be shown before or after the checkbox.
-func (o CheckboxOptions) Text(label string, face text.Face, color *LabelColor) CheckboxOpt {
+func (o CheckboxOptions) Text(label string, face *text.Face, color *LabelColor) CheckboxOpt {
 	return func(l *Checkbox) {
 		l.labelOpt = LabelOpts.Text(label, face, color)
 	}
@@ -141,7 +141,7 @@ func (o CheckboxOptions) LabelFirst() CheckboxOpt {
 // i.Checked and i.Unchecked are required.
 func (o CheckboxOptions) Image(i *CheckboxImage) CheckboxOpt {
 	return func(c *Checkbox) {
-		c.definedParams.Image = i
+		c.image = i
 	}
 }
 
