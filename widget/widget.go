@@ -568,49 +568,49 @@ func (w *Widget) fireEvents() {
 	p := image.Point{x, y}
 	layer := w.EffectiveInputLayer()
 	inside := w.In(x, y)
+	if !input.MouseButtonPressed(ebiten.MouseButtonLeft) {
+		entered := inside && layer.ActiveFor(x, y, input.LayerEventTypeAny)
+		if entered != w.lastUpdateCursorEntered {
+			if entered {
+				off := p.Sub(w.Rect.Min)
+				w.CursorEnterEvent.Fire(&WidgetCursorEnterEventArgs{
+					Widget:  w,
+					OffsetX: off.X,
+					OffsetY: off.Y,
+				})
+			} else {
+				off := p.Sub(w.Rect.Min)
+				w.CursorExitEvent.Fire(&WidgetCursorExitEventArgs{
+					Widget:  w,
+					OffsetX: off.X,
+					OffsetY: off.Y,
+				})
+			}
 
-	entered := inside && layer.ActiveFor(x, y, input.LayerEventTypeAny)
-	if entered != w.lastUpdateCursorEntered {
-		if entered {
-			off := p.Sub(w.Rect.Min)
-			w.CursorEnterEvent.Fire(&WidgetCursorEnterEventArgs{
-				Widget:  w,
-				OffsetX: off.X,
-				OffsetY: off.Y,
-			})
-		} else {
-			off := p.Sub(w.Rect.Min)
-			w.CursorExitEvent.Fire(&WidgetCursorExitEventArgs{
-				Widget:  w,
-				OffsetX: off.X,
-				OffsetY: off.Y,
-			})
+			w.lastUpdateCursorEntered = entered
 		}
 
-		w.lastUpdateCursorEntered = entered
+		if entered && w.lastUpdateCursorPosition != p {
+			off := p.Sub(w.Rect.Min)
+			w.CursorMoveEvent.Fire(&WidgetCursorMoveEventArgs{
+				Widget:  w,
+				OffsetX: off.X,
+				OffsetY: off.Y,
+				DiffX:   p.X - w.lastUpdateCursorPosition.X,
+				DiffY:   p.Y - w.lastUpdateCursorPosition.Y,
+			})
+
+			w.lastUpdateCursorPosition = p
+		}
+
+		if entered && len(w.CursorHovered) > 0 {
+			input.SetCursorShape(w.CursorHovered)
+		}
+
+		if entered && len(w.CursorPressed) > 0 && input.MouseButtonPressedLayer(ebiten.MouseButtonLeft, layer) {
+			input.SetCursorShape(w.CursorPressed)
+		}
 	}
-
-	if entered && w.lastUpdateCursorPosition != p {
-		off := p.Sub(w.Rect.Min)
-		w.CursorMoveEvent.Fire(&WidgetCursorMoveEventArgs{
-			Widget:  w,
-			OffsetX: off.X,
-			OffsetY: off.Y,
-			DiffX:   p.X - w.lastUpdateCursorPosition.X,
-			DiffY:   p.Y - w.lastUpdateCursorPosition.Y,
-		})
-
-		w.lastUpdateCursorPosition = p
-	}
-
-	if entered && len(w.CursorHovered) > 0 {
-		input.SetCursorShape(w.CursorHovered)
-	}
-
-	if entered && len(w.CursorPressed) > 0 && input.MouseButtonPressedLayer(ebiten.MouseButtonLeft, layer) {
-		input.SetCursorShape(w.CursorPressed)
-	}
-
 	if input.MouseButtonJustPressedLayer(ebiten.MouseButtonRight, layer) {
 		w.lastUpdateMouseRightPressed = true
 		if inside {
