@@ -51,6 +51,14 @@ func NewNineSlice(i *ebiten.Image, w [3]int, h [3]int) *NineSlice {
 	}
 }
 
+func NewFixedNineSlice(i *ebiten.Image) *NineSlice {
+	return &NineSlice{
+		image:   i,
+		widths:  [3]int{i.Bounds().Dx(), 0, 0},
+		heights: [3]int{i.Bounds().Dy(), 0, 0},
+	}
+}
+
 // NewNineSliceSimple constructs a new NineSlice from image. borderWidthHeight specifies the width of the
 // left and right column and the height of the top and bottom row. centerWidthHeight specifies the width
 // of the center column and row.

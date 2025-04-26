@@ -142,20 +142,12 @@ func newCheckbox(t *testing.T, opts ...CheckboxOpt) *Checkbox {
 	t.Helper()
 
 	c := NewCheckbox(append(opts, []CheckboxOpt{
-		CheckboxOpts.ButtonOpts(ButtonOpts.Image(&ButtonImage{
-			Idle:    newNineSliceEmpty(t),
-			Pressed: newNineSliceEmpty(t),
-		})),
+		CheckboxOpts.Image(&CheckboxImage{
+			Unchecked: newNineSliceEmpty(t),
+			Checked:   newNineSliceEmpty(t),
+			Greyed:    newNineSliceEmpty(t),
+		})}...)...)
 
-		CheckboxOpts.Image(&CheckboxGraphicImage{
-			Unchecked: &GraphicImage{
-				Idle: newImageEmpty(t),
-			},
-			Checked: &GraphicImage{
-				Idle: newImageEmpty(t),
-			},
-		}),
-	}...)...)
 	event.ExecuteDeferred()
 	render(c, t)
 	return c
