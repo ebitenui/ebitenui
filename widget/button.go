@@ -12,13 +12,17 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
+type TextPositioning struct {
+	VTextPosition TextPosition
+	HTextPosition TextPosition
+}
+
 type ButtonParams struct {
 	Image        *ButtonImage
 	GraphicImage *GraphicImage
 	TextColor    *ButtonTextColor
 
-	VTextPosition  TextPosition
-	HTextPosition  TextPosition
+	TextPosition   *TextPositioning
 	TextPadding    *Insets
 	TextFace       *text.Face
 	GraphicPadding *Insets
@@ -187,8 +191,12 @@ func (b *Button) Validate() {
 
 func (b *Button) populateComputedParams() {
 	btnParams := ButtonParams{
-		HTextPosition: TextPositionCenter,
-		VTextPosition: TextPositionCenter,
+		TextPosition: &TextPositioning{
+			HTextPosition: TextPositionCenter,
+			VTextPosition: TextPositionCenter,
+		},
+		GraphicPadding: &Insets{},
+		TextPadding:    &Insets{},
 	}
 	theme := b.widget.GetTheme()
 	// clone the theme
@@ -219,8 +227,10 @@ func (b *Button) populateComputedParams() {
 				}
 			}
 			btnParams.GraphicPadding = theme.ButtonTheme.GraphicPadding
-			btnParams.HTextPosition = theme.ButtonTheme.HTextPosition
-			btnParams.VTextPosition = theme.ButtonTheme.VTextPosition
+			if theme.ButtonTheme.TextPosition != nil {
+				btnParams.TextPosition.HTextPosition = theme.ButtonTheme.TextPosition.HTextPosition
+				btnParams.TextPosition.VTextPosition = theme.ButtonTheme.TextPosition.VTextPosition
+			}
 			btnParams.TextPadding = theme.ButtonTheme.TextPadding
 
 			if theme.ButtonTheme.TextFace != nil {
@@ -285,11 +295,9 @@ func (b *Button) populateComputedParams() {
 	if b.definedParams.GraphicPadding != nil {
 		btnParams.GraphicPadding = b.definedParams.GraphicPadding
 	}
-	if b.definedParams.HTextPosition != TextPositionCenter {
-		btnParams.HTextPosition = b.definedParams.HTextPosition
-	}
-	if b.definedParams.VTextPosition != TextPositionCenter {
-		btnParams.VTextPosition = b.definedParams.VTextPosition
+	if b.definedParams.TextPosition != nil {
+		btnParams.TextPosition.HTextPosition = b.definedParams.TextPosition.HTextPosition
+		btnParams.TextPosition.VTextPosition = b.definedParams.TextPosition.VTextPosition
 	}
 	if b.definedParams.TextFace != nil {
 		btnParams.TextFace = b.definedParams.TextFace
@@ -426,8 +434,10 @@ func (o ButtonOptions) TextAndImage(label string, face *text.Face, image *Graphi
 // Default is TextPositionCenter for both.
 func (o ButtonOptions) TextPosition(h TextPosition, v TextPosition) ButtonOpt {
 	return func(b *Button) {
-		b.definedParams.HTextPosition = h
-		b.definedParams.VTextPosition = v
+		b.definedParams.TextPosition = &TextPositioning{
+			VTextPosition: v,
+			HTextPosition: h,
+		}
 	}
 }
 
@@ -898,11 +908,11 @@ func (b *Button) initText() {
 	if b.text != nil {
 		b.text.SetFace(b.computedParams.TextFace)
 		b.text.SetColor(b.computedParams.TextColor.Idle)
-		b.text.horizontalPosition = b.computedParams.HTextPosition
-		b.text.verticalPosition = b.computedParams.VTextPosition
+		b.text.horizontalPosition = b.computedParams.TextPosition.HTextPosition
+		b.text.verticalPosition = b.computedParams.TextPosition.VTextPosition
 		b.text.widget.LayoutData = AnchorLayoutData{
-			HorizontalPosition: AnchorLayoutPosition(b.computedParams.HTextPosition),
-			VerticalPosition:   AnchorLayoutPosition(b.computedParams.VTextPosition),
+			HorizontalPosition: AnchorLayoutPosition(b.computedParams.TextPosition.HTextPosition),
+			VerticalPosition:   AnchorLayoutPosition(b.computedParams.TextPosition.VTextPosition),
 		}
 		if aLayout, ok := b.container.layout.(*AnchorLayout); ok {
 			aLayout.padding = *b.computedParams.TextPadding
@@ -920,12 +930,12 @@ func (b *Button) initText() {
 
 		b.text = NewText(
 			TextOpts.WidgetOpts(WidgetOpts.LayoutData(AnchorLayoutData{
-				HorizontalPosition: AnchorLayoutPosition(b.computedParams.HTextPosition),
-				VerticalPosition:   AnchorLayoutPosition(b.computedParams.VTextPosition),
+				HorizontalPosition: AnchorLayoutPosition(b.computedParams.TextPosition.HTextPosition),
+				VerticalPosition:   AnchorLayoutPosition(b.computedParams.TextPosition.VTextPosition),
 			})),
 			TextOpts.Text(b.textLabel, b.computedParams.TextFace, b.computedParams.TextColor.Idle),
 			TextOpts.ProcessBBCode(b.textProcessBBCode),
-			TextOpts.Position(b.computedParams.HTextPosition, b.computedParams.VTextPosition),
+			TextOpts.Position(b.computedParams.TextPosition.HTextPosition, b.computedParams.TextPosition.VTextPosition),
 		)
 		b.container.AddChild(b.text)
 		b.container.Validate()

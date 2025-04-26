@@ -118,7 +118,7 @@ func (g *Game) getEbitenUI() *ebitenui.UI {
 	)
 
 	g.headerLbl = widget.NewText(
-		widget.TextOpts.Text("Game Demo!", face, color.White),
+		widget.TextOpts.Text("Game Demo!", &face, color.White),
 		widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter),
 		widget.TextOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
@@ -173,7 +173,7 @@ func (g *Game) getEbitenUI() *ebitenui.UI {
 
 	// Create a label to show the percentage on top of the progress bar
 	label2 := widget.NewText(
-		widget.TextOpts.Text("70%", face, color.Black),
+		widget.TextOpts.Text("70%", &face, color.Black),
 		widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter),
 		widget.TextOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{

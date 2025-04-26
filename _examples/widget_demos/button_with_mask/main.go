@@ -56,7 +56,7 @@ func main() {
 		widget.ButtonOpts.IgnoreTransparentPixels(true),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Hello!", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Hello!", &face, &widget.ButtonTextColor{
 			Idle:  color.NRGBA{255, 255, 255, 255},
 			Hover: color.NRGBA{0, 0, 0, 255},
 		}),

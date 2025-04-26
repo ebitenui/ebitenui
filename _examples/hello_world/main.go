@@ -36,13 +36,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fontFace := &text.GoTextFace{
+	var fontFace text.Face = &text.GoTextFace{
 		Source: s,
 		Size:   32,
 	}
+
 	// This creates a text widget that says "Hello World!"
 	helloWorldLabel := widget.NewText(
-		widget.TextOpts.Text("Hello World!", fontFace, color.White),
+		widget.TextOpts.Text("Hello World!", &fontFace, color.White),
 	)
 
 	// To display the text widget, we have to add it to the root container.
