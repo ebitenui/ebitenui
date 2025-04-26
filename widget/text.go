@@ -25,6 +25,7 @@ type Text struct {
 	Color         color.Color
 	MaxWidth      float64
 	Inset         Insets
+	Padding       Insets
 	ProcessBBCode bool
 
 	widgetOpts         []WidgetOpt
@@ -136,7 +137,11 @@ func (o TextOptions) Insets(inset Insets) TextOpt {
 		t.Inset = inset
 	}
 }
-
+func (o TextOptions) Padding(padding Insets) TextOpt {
+	return func(t *Text) {
+		t.Padding = padding
+	}
+}
 func (o TextOptions) Position(h TextPosition, v TextPosition) TextOpt {
 	return func(t *Text) {
 		t.horizontalPosition = h
@@ -170,8 +175,8 @@ func (t *Text) SetLocation(rect image.Rectangle) {
 func (t *Text) PreferredSize() (int, int) {
 	t.init.Do()
 	t.measure()
-	w := int(math.Ceil(t.measurements.boundingBoxWidth))  // + t.Inset.Left + t.Inset.Right
-	h := int(math.Ceil(t.measurements.boundingBoxHeight)) // + t.Inset.Top + t.Inset.Bottom
+	w := int(math.Ceil(t.measurements.boundingBoxWidth)) + t.Padding.Left + t.Padding.Right
+	h := int(math.Ceil(t.measurements.boundingBoxHeight)) + t.Padding.Top + t.Padding.Bottom
 
 	if t.widget != nil && h < t.widget.MinHeight {
 		h = t.widget.MinHeight
