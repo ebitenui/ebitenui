@@ -74,7 +74,7 @@ func main() {
 	)
 
 	redBtn := widget.NewText(
-		widget.TextOpts.Text("Red Tab Button", face, color.White),
+		widget.TextOpts.Text("Red Tab Button", &face, color.White),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			HorizontalPosition: widget.AnchorLayoutPositionCenter,
 			VerticalPosition:   widget.AnchorLayoutPositionCenter,
@@ -96,7 +96,7 @@ func main() {
 			})),
 	)
 	greenBtn := widget.NewText(
-		widget.TextOpts.Text("Green Tab Button\nThis is configured as the initial tab.", face, color.Black),
+		widget.TextOpts.Text("Green Tab Button\nThis is configured as the initial tab.", &face, color.Black),
 		widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			HorizontalPosition: widget.AnchorLayoutPositionCenter,
@@ -122,14 +122,14 @@ func main() {
 			})),
 	)
 	blueBtn1 := widget.NewText(
-		widget.TextOpts.Text("Blue Tab Button 1", face, color.White),
+		widget.TextOpts.Text("Blue Tab Button 1", &face, color.White),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Position: widget.RowLayoutPositionCenter,
 		})),
 	)
 	tabBlue.AddChild(blueBtn1)
 	blueBtn2 := widget.NewText(
-		widget.TextOpts.Text("Blue Tab Button 2", face, color.White),
+		widget.TextOpts.Text("Blue Tab Button 2", &face, color.White),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Position: widget.RowLayoutPositionCenter,
 		})),
@@ -157,7 +157,7 @@ func main() {
 				widget.ComboButtonOpts.ButtonOpts(
 					widget.ButtonOpts.Image(buttonImage),
 					widget.ButtonOpts.TextPadding(widget.NewInsetsSimple(5)),
-					widget.ButtonOpts.Text("", face, &widget.ButtonTextColor{
+					widget.ButtonOpts.Text("", &face, &widget.ButtonTextColor{
 						Idle:     color.White,
 						Disabled: color.White,
 					}),

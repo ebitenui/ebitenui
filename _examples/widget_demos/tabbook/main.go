@@ -49,7 +49,7 @@ func main() {
 	)
 
 	redBtn := widget.NewText(
-		widget.TextOpts.Text("Red Tab Button\nPress 'R' to select this tab.", face, color.White),
+		widget.TextOpts.Text("Red Tab Button\nPress 'R' to select this tab.", &face, color.White),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			HorizontalPosition: widget.AnchorLayoutPositionCenter,
 			VerticalPosition:   widget.AnchorLayoutPositionCenter,
@@ -62,7 +62,7 @@ func main() {
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 	greenBtn := widget.NewText(
-		widget.TextOpts.Text("Green Tab Button\nThis is configured as the initial tab.\nPress 'G' to select this tab.", face, color.Black),
+		widget.TextOpts.Text("Green Tab Button\nThis is configured as the initial tab.\nPress 'G' to select this tab.", &face, color.Black),
 		widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			HorizontalPosition: widget.AnchorLayoutPositionCenter,
@@ -79,14 +79,14 @@ func main() {
 		)),
 	)
 	blueBtn1 := widget.NewText(
-		widget.TextOpts.Text("Blue Tab Button 1", face, color.White),
+		widget.TextOpts.Text("Blue Tab Button 1", &face, color.White),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Position: widget.RowLayoutPositionCenter,
 		})),
 	)
 	game.TabBlue.AddChild(blueBtn1)
 	blueBtn2 := widget.NewText(
-		widget.TextOpts.Text("Press 'B' to select this tab.", face, color.White),
+		widget.TextOpts.Text("Press 'B' to select this tab.", &face, color.White),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Position: widget.RowLayoutPositionCenter,
 		})),

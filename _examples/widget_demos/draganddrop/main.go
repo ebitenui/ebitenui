@@ -43,7 +43,7 @@ func (dnd *dndWidget) Create(parent widget.HasWidget) (*widget.Container, interf
 			widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0, 200, 100, 255})),
 		)
 
-		dnd.text = widget.NewText(widget.TextOpts.Text("Cannot Drop", face, color.Black), widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+		dnd.text = widget.NewText(widget.TextOpts.Text("Cannot Drop", &face, color.Black), widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			HorizontalPosition: widget.AnchorLayoutPositionCenter,
 			VerticalPosition:   widget.AnchorLayoutPositionCenter,
 		})))
@@ -141,7 +141,7 @@ func main() {
 		),
 	)
 
-	leftSide.AddChild(widget.NewText(widget.TextOpts.Text("Drag from Here\nOr Ctrl-Click", face, color.Black), widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+	leftSide.AddChild(widget.NewText(widget.TextOpts.Text("Drag from Here\nOr Ctrl-Click", &face, color.Black), widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 		HorizontalPosition: widget.AnchorLayoutPositionCenter,
 		VerticalPosition:   widget.AnchorLayoutPositionCenter,
 	}))))
@@ -172,7 +172,7 @@ func main() {
 			}),
 		),
 	)
-	rightTopText = widget.NewText(widget.TextOpts.Text(fmt.Sprintf("Drag to here\n(allowed)\n%d", count), face, color.Black), widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+	rightTopText = widget.NewText(widget.TextOpts.Text(fmt.Sprintf("Drag to here\n(allowed)\n%d", count), &face, color.Black), widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 		HorizontalPosition: widget.AnchorLayoutPositionCenter,
 		VerticalPosition:   widget.AnchorLayoutPositionCenter,
 	})))
@@ -198,7 +198,7 @@ func main() {
 		),
 	)
 
-	rightBottom.AddChild(widget.NewText(widget.TextOpts.Text("Drag to here\n(not allowed)", face, color.Black), widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+	rightBottom.AddChild(widget.NewText(widget.TextOpts.Text("Drag to here\n(not allowed)", &face, color.Black), widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 		HorizontalPosition: widget.AnchorLayoutPositionCenter,
 		VerticalPosition:   widget.AnchorLayoutPositionCenter,
 	}))))

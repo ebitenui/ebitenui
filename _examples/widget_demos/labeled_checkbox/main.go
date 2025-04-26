@@ -64,7 +64,7 @@ func main() {
 		widget.CheckboxOpts.Image(checkboxImage),
 
 		// Set the label
-		widget.CheckboxOpts.Text("Labeled Checkbox1", face, &widget.LabelColor{
+		widget.CheckboxOpts.Text("Labeled Checkbox1", &face, &widget.LabelColor{
 			Idle:     color.White,
 			Disabled: color.White,
 		}),
@@ -102,7 +102,7 @@ func main() {
 		widget.CheckboxOpts.Image(checkboxImage),
 
 		// Set the label
-		widget.CheckboxOpts.Text("Labeled Checkbox2", face, &widget.LabelColor{
+		widget.CheckboxOpts.Text("Labeled Checkbox2", &face, &widget.LabelColor{
 			Idle:     color.White,
 			Disabled: color.White,
 		}),

@@ -35,7 +35,10 @@ func GetLightTheme() *widget.Theme {
 				Top:    5,
 				Bottom: 5,
 			},
-			HTextPosition: widget.TextPositionStart,
+			TextPosition: &widget.TextPositioning{
+				VTextPosition: widget.TextPositionCenter,
+				HTextPosition: widget.TextPositionStart,
+			},
 		},
 		PanelTheme: &widget.PanelParams{
 			BackgroundImage: image.NewNineSliceColor(color.NRGBA{212, 208, 200, 255}),
@@ -81,7 +84,10 @@ func GetDarkTheme() *widget.Theme {
 				Top:    5,
 				Bottom: 5,
 			},
-			HTextPosition: widget.TextPositionStart,
+			TextPosition: &widget.TextPositioning{
+				VTextPosition: widget.TextPositionCenter,
+				HTextPosition: widget.TextPositionStart,
+			},
 		},
 		PanelTheme: &widget.PanelParams{
 			BackgroundImage: image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff}),
