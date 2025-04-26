@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"image/color"
 	"log"
@@ -9,10 +10,14 @@ import (
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// Game object used by ebiten
+//go:embed assets
+var embeddedAssets embed.FS
+
+// Game object used by ebiten.
 type game struct {
 	ui       *ebitenui.UI
 	checkBox *widget.Checkbox
@@ -20,8 +25,8 @@ type game struct {
 
 func main() {
 	game := game{}
-	// load button text font
-	// face, _ := loadFont(20)
+	// load images for button states: idle, hover, and pressed
+	checkboxImage, _ := loadCheckboxImage()
 
 	// construct a new container that serves as the root of the UI hierarchy
 	rootContainer := widget.NewContainer(
@@ -39,29 +44,17 @@ func main() {
 				HorizontalPosition: widget.AnchorLayoutPositionCenter,
 				VerticalPosition:   widget.AnchorLayoutPositionCenter,
 			}),
-			// Set the minimum size of the checkbox
-			widget.WidgetOpts.MinSize(30, 30),
 		),
-
 		// Set the check object images
-		widget.CheckboxOpts.Image(&widget.CheckboxGraphicImage{
-			// When the checkbox is unchecked
-			Unchecked: &widget.ButtonImage{
-				Idle: image.NewBorderedNineSliceColor(color.White, color.NRGBA{200, 200, 200, 255}, 5),
-			},
-			// When the checkbox is checked
-			Checked: &widget.ButtonImage{
-				Idle: image.NewBorderedNineSliceColor(color.NRGBA{255, 255, 0, 255}, color.NRGBA{200, 200, 200, 255}, 5),
-			},
-			Greyed: &widget.ButtonImage{
-				Idle: image.NewBorderedNineSliceColor(color.NRGBA{255, 0, 0, 255}, color.NRGBA{200, 200, 200, 255}, 5),
-			},
-		}),
+		widget.CheckboxOpts.Image(checkboxImage),
 		// Set the state change handler
 		widget.CheckboxOpts.StateChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
-			if args.State == widget.WidgetChecked {
+			switch args.State {
+			case widget.WidgetChecked:
 				fmt.Println("Checkbox is Checked")
-			} else {
+			case widget.WidgetGreyed:
+				fmt.Println("Checkbox is Greyed")
+			case widget.WidgetUnchecked:
 				fmt.Println("Checkbox is Unchecked")
 			}
 		}),
@@ -100,6 +93,11 @@ func (g *game) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyC) {
 		g.checkBox.Click()
 	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyD) {
+		g.checkBox.GetWidget().Disabled = !g.checkBox.GetWidget().Disabled
+	}
+
 	return nil
 }
 
@@ -109,16 +107,79 @@ func (g *game) Draw(screen *ebiten.Image) {
 	g.ui.Draw(screen)
 }
 
-func loadButtonImage() (*widget.ButtonImage, error) {
-	idle := image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 180, A: 255})
+func loadCheckboxImage() (*widget.CheckboxImage, error) {
+	f1, err := embeddedAssets.Open("assets/checkbox-idle.png")
+	if err != nil {
+		return nil, err
+	}
+	defer f1.Close()
+	idle, _, _ := ebitenutil.NewImageFromReader(f1)
 
-	hover := image.NewNineSliceColor(color.NRGBA{R: 130, G: 130, B: 150, A: 255})
+	f2, err := embeddedAssets.Open("assets/checkbox-checked.png")
+	if err != nil {
+		return nil, err
+	}
+	defer f2.Close()
+	checked, _, _ := ebitenutil.NewImageFromReader(f2)
 
-	pressed := image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 120, A: 255})
+	f3, err := embeddedAssets.Open("assets/checkbox-greyed.png")
+	if err != nil {
+		return nil, err
+	}
+	defer f3.Close()
+	greyed, _, _ := ebitenutil.NewImageFromReader(f3)
 
-	return &widget.ButtonImage{
-		Idle:    idle,
-		Hover:   hover,
-		Pressed: pressed,
+	f4, err := embeddedAssets.Open("assets/checkbox-hover.png")
+	if err != nil {
+		return nil, err
+	}
+	defer f4.Close()
+	idle_hovered, _, _ := ebitenutil.NewImageFromReader(f4)
+
+	f5, err := embeddedAssets.Open("assets/checkbox-checked-hover.png")
+	if err != nil {
+		return nil, err
+	}
+	defer f5.Close()
+	checked_hovered, _, _ := ebitenutil.NewImageFromReader(f5)
+
+	f6, err := embeddedAssets.Open("assets/checkbox-greyed-hover.png")
+	if err != nil {
+		return nil, err
+	}
+	defer f6.Close()
+	greyed_hovered, _, _ := ebitenutil.NewImageFromReader(f6)
+
+	f7, err := embeddedAssets.Open("assets/checkbox-disabled.png")
+	if err != nil {
+		return nil, err
+	}
+	defer f7.Close()
+	idle_disabled, _, _ := ebitenutil.NewImageFromReader(f7)
+
+	f8, err := embeddedAssets.Open("assets/checkbox-checked-disabled.png")
+	if err != nil {
+		return nil, err
+	}
+	defer f8.Close()
+	checked_disabled, _, _ := ebitenutil.NewImageFromReader(f8)
+
+	f9, err := embeddedAssets.Open("assets/checkbox-greyed-disabled.png")
+	if err != nil {
+		return nil, err
+	}
+	defer f9.Close()
+	greyed_disabled, _, _ := ebitenutil.NewImageFromReader(f9)
+
+	return &widget.CheckboxImage{
+		Unchecked:         image.NewFixedNineSlice(idle),
+		Checked:           image.NewFixedNineSlice(checked),
+		Greyed:            image.NewFixedNineSlice(greyed),
+		UncheckedHovered:  image.NewFixedNineSlice(idle_hovered),
+		CheckedHovered:    image.NewFixedNineSlice(checked_hovered),
+		GreyedHovered:     image.NewFixedNineSlice(greyed_hovered),
+		UncheckedDisabled: image.NewFixedNineSlice(idle_disabled),
+		CheckedDisabled:   image.NewFixedNineSlice(checked_disabled),
+		GreyedDisabled:    image.NewFixedNineSlice(greyed_disabled),
 	}, nil
 }

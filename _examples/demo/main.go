@@ -35,7 +35,7 @@ func main() {
 	ebiten.SetWindowTitle("Ebiten UI Demo")
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	ebiten.SetScreenClearedEveryFrame(false)
-	ebiten.SetVsyncEnabled(false)
+	ebiten.SetVsyncEnabled(true)
 
 	ui, err := createUI()
 	if err != nil {
@@ -258,18 +258,16 @@ func (p *pageContainer) setPage(page *page) {
 	p.flipBook.RequestRelayout()
 }
 
-func newCheckbox(label string, changedHandler widget.CheckboxChangedHandlerFunc, res *uiResources) *widget.LabeledCheckbox {
-	return widget.NewLabeledCheckbox(
-		widget.LabeledCheckboxOpts.Spacing(res.checkbox.spacing),
-		widget.LabeledCheckboxOpts.CheckboxOpts(
-			widget.CheckboxOpts.ButtonOpts(widget.ButtonOpts.Image(res.checkbox.image)),
-			widget.CheckboxOpts.Image(res.checkbox.graphic),
-			widget.CheckboxOpts.StateChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
-				if changedHandler != nil {
-					changedHandler(args)
-				}
-			})),
-		widget.LabeledCheckboxOpts.LabelOpts(widget.LabelOpts.Text(label, res.label.face, res.label.text)))
+func newCheckbox(label string, changedHandler widget.CheckboxChangedHandlerFunc, res *uiResources) *widget.Checkbox {
+	return widget.NewCheckbox(
+		widget.CheckboxOpts.Spacing(res.checkbox.spacing),
+		widget.CheckboxOpts.Image(res.checkbox.image),
+		widget.CheckboxOpts.StateChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
+			if changedHandler != nil {
+				changedHandler(args)
+			}
+		}),
+		widget.CheckboxOpts.Text(label, res.label.face, res.label.text))
 }
 
 func newPageContentContainer() *widget.Container {

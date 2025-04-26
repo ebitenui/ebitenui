@@ -21,6 +21,10 @@ type DefaultInternalHandler struct {
 	MiddleMouseButtonJustPressed bool
 	RightMouseButtonJustPressed  bool
 
+	LeftMouseButtonJustReleased   bool
+	MiddleMouseButtonJustReleased bool
+	RightMouseButtonJustReleased  bool
+
 	LastLeftMouseButtonPressed   bool
 	LastMiddleMouseButtonPressed bool
 	LastRightMouseButtonPressed  bool
@@ -100,6 +104,10 @@ func (handler *DefaultInternalHandler) Update() {
 	handler.MiddleMouseButtonJustPressed = handler.MiddleMouseButtonPressed && handler.MiddleMouseButtonPressed != handler.LastMiddleMouseButtonPressed
 	handler.RightMouseButtonJustPressed = handler.RightMouseButtonPressed && handler.RightMouseButtonPressed != handler.LastRightMouseButtonPressed
 
+	handler.LeftMouseButtonJustReleased = !handler.LeftMouseButtonPressed && handler.LeftMouseButtonPressed != handler.LastLeftMouseButtonPressed
+	handler.MiddleMouseButtonJustReleased = !handler.MiddleMouseButtonPressed && handler.MiddleMouseButtonPressed != handler.LastMiddleMouseButtonPressed
+	handler.RightMouseButtonJustReleased = !handler.RightMouseButtonPressed && handler.RightMouseButtonPressed != handler.LastRightMouseButtonPressed
+
 	handler.LastLeftMouseButtonPressed = handler.LeftMouseButtonPressed
 	handler.LastMiddleMouseButtonPressed = handler.MiddleMouseButtonPressed
 	handler.LastRightMouseButtonPressed = handler.RightMouseButtonPressed
@@ -135,6 +143,19 @@ func (handler *DefaultInternalHandler) MouseButtonJustPressed(b ebiten.MouseButt
 		return handler.MiddleMouseButtonJustPressed
 	case ebiten.MouseButtonRight:
 		return handler.RightMouseButtonJustPressed
+	default:
+		return false
+	}
+}
+
+func (handler *DefaultInternalHandler) MouseButtonJustReleased(b ebiten.MouseButton) bool {
+	switch b {
+	case ebiten.MouseButtonLeft:
+		return handler.LeftMouseButtonJustReleased
+	case ebiten.MouseButtonMiddle:
+		return handler.MiddleMouseButtonJustReleased
+	case ebiten.MouseButtonRight:
+		return handler.RightMouseButtonJustReleased
 	default:
 		return false
 	}

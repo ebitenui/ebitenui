@@ -14,7 +14,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
-const bbcodeRegEx = `\[color=#[0-9a-fA-F]{6}\]|\[\/color\]`
+var bbcodeRegex = regexp.MustCompile(`\[color=#[0-9a-fA-F]{6}]|\[/color]`)
+
 const COLOR_OPEN = "color=#"
 const COLOR_CLOSE = "/color]"
 
@@ -30,17 +31,17 @@ type Text struct {
 
 	Label    string
 	MaxWidth float64
+	ProcessBBCode bool
+
 
 	widgetOpts         []WidgetOpt
 	horizontalPosition TextPosition
 	verticalPosition   TextPosition
 
-	init          *MultiOnce
-	widget        *Widget
-	measurements  textMeasurements
-	bbcodeRegex   *regexp.Regexp
-	processBBCode bool
-	colorList     *datastructures.Stack[color.Color]
+	init         *MultiOnce
+	widget       *Widget
+	measurements textMeasurements
+	colorList    *datastructures.Stack[color.Color]
 }
 
 type TextOpt func(t *Text)
@@ -60,7 +61,7 @@ type textMeasurements struct {
 	label         string
 	face          *text.Face
 	maxWidth      float64
-	processBBCode bool
+	ProcessBBCode bool
 
 	lines             [][]string
 	lineWidths        []float64
@@ -81,7 +82,6 @@ func NewText(opts ...TextOpt) *Text {
 	t := &Text{
 		init: &MultiOnce{},
 	}
-	t.bbcodeRegex = regexp.MustCompile(bbcodeRegEx)
 
 	t.init.Append(t.createWidget)
 
@@ -180,7 +180,7 @@ func (o TextOptions) Position(h TextPosition, v TextPosition) TextOpt {
 
 func (o TextOptions) ProcessBBCode(processBBCode bool) TextOpt {
 	return func(t *Text) {
-		t.processBBCode = processBBCode
+		t.ProcessBBCode = processBBCode
 	}
 }
 
@@ -303,7 +303,7 @@ func (t *Text) draw(screen *ebiten.Image) {
 			lx += float64(t.computedParams.Insets.Left)
 		}
 
-		if t.processBBCode {
+		if t.ProcessBBCode {
 
 			for _, word := range line {
 				pieces, updatedColor := t.handleBBCodeColor(word)
@@ -332,7 +332,7 @@ func (t *Text) draw(screen *ebiten.Image) {
 
 func (t *Text) handleBBCodeColor(word string) ([]bbCodeText, color.Color) {
 	var result []bbCodeText
-	tags := t.bbcodeRegex.FindAllStringIndex(word, -1)
+	tags := bbcodeRegex.FindAllStringIndex(word, -1)
 	var newColor = *t.colorList.Top()
 	if len(tags) > 0 {
 		resultStr := ""
@@ -403,7 +403,7 @@ func (t *Text) handleBBCodeColor(word string) ([]bbCodeText, color.Color) {
 }
 
 func (t *Text) measure() {
-	if t.Label == t.measurements.label && t.computedParams.Face == t.measurements.face && t.MaxWidth == t.measurements.maxWidth && t.processBBCode == t.measurements.processBBCode {
+	if t.Label == t.measurements.label && t.computedParams.Face == t.measurements.face && t.MaxWidth == t.measurements.maxWidth && t.ProcessBBCode == t.measurements.ProcessBBCode {
 		return
 	}
 	t.populateComputedParams()
@@ -412,7 +412,7 @@ func (t *Text) measure() {
 	t.measurements = textMeasurements{
 		label:         t.Label,
 		face:          t.computedParams.Face,
-		processBBCode: t.processBBCode,
+		ProcessBBCode: t.ProcessBBCode,
 		ascent:        m.HAscent,
 		maxWidth:      t.MaxWidth,
 	}
@@ -425,16 +425,16 @@ func (t *Text) measure() {
 
 	s := bufio.NewScanner(strings.NewReader(t.Label))
 	for s.Scan() {
-		if t.MaxWidth > 0 || t.processBBCode {
+		if t.MaxWidth > 0 || t.ProcessBBCode {
 			var newLine []string
 			newLineWidth := float64(t.computedParams.Insets.Left + t.computedParams.Insets.Right)
 
 			words := strings.Split(s.Text(), " ")
 			for i, word := range words {
 				var wordWidth float64
-				if t.processBBCode && t.bbcodeRegex.MatchString(word) {
+				if t.ProcessBBCode && bbcodeRegex.MatchString(word) {
 					// Strip out any bbcodes from size calculation
-					cleaned := t.bbcodeRegex.ReplaceAllString(word, "")
+					cleaned := bbcodeRegex.ReplaceAllString(word, "")
 					wordWidth, _ = text.Measure(cleaned, *t.computedParams.Face, 0)
 				} else {
 					wordWidth, _ = text.Measure(word, *t.computedParams.Face, 0)

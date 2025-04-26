@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"image/color"
 	"log"
 
@@ -13,7 +14,7 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 )
 
-// Game object used by ebiten
+// Game object used by ebiten.
 type game struct {
 	ui *ebitenui.UI
 }
@@ -21,18 +22,62 @@ type game struct {
 func main() {
 	// load images for button states: idle, hover, and pressed
 	buttonImage, _ := loadButtonImage()
+	// load images for button states: idle, hover, and pressed
+	buttonImage2, _ := loadButtonImage2()
 
 	// load button text font
 	face, _ := loadFont(20)
 
 	// construct a new container that serves as the root of the UI hierarchy
-	btnContainer := widget.NewContainer(
+	underneathContainer := widget.NewContainer(
+		// the container will use an anchor layout to layout its single child widget
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+	)
+
+	// construct a underneathButton
+	underneathButton := widget.NewButton(
+		// set general widget options
+		widget.ButtonOpts.WidgetOpts(
+			// instruct the container's anchor layout to center the button both horizontally and vertically
+			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				HorizontalPosition: widget.AnchorLayoutPositionCenter,
+				VerticalPosition:   widget.AnchorLayoutPositionCenter,
+			}),
+		),
+
+		// specify the images to use
+		widget.ButtonOpts.Image(buttonImage2),
+
+		// specify the button's text, the font face, and the color
+		widget.ButtonOpts.Text("Hidden", face, &widget.ButtonTextColor{
+			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
+		}),
+
+		// specify that the button's text needs some padding for correct display
+		widget.ButtonOpts.TextPadding(widget.Insets{
+			Left:   50,
+			Right:  50,
+			Top:    5,
+			Bottom: 5,
+		}),
+
+		// add a handler that reacts to clicking the button
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			println("Bottom button clicked")
+		}),
+	)
+
+	// add the button as a child of the container
+	underneathContainer.AddChild(underneathButton)
+
+	// construct a new container that serves as the root of the UI hierarchy
+	onTopContainer := widget.NewContainer(
 		// the container will use an anchor layout to layout its single child widget
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 
 	// construct a button
-	button := widget.NewButton(
+	onTopButton := widget.NewButton(
 		// set general widget options
 		widget.ButtonOpts.WidgetOpts(
 			// instruct the container's anchor layout to center the button both horizontally and vertically
@@ -46,66 +91,24 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Centered", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Top Button", face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
 		// specify that the button's text needs some padding for correct display
 		widget.ButtonOpts.TextPadding(widget.Insets{
-			Left:   30,
-			Right:  30,
+			Left:   5,
+			Right:  5,
 			Top:    5,
 			Bottom: 5,
 		}),
 
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			println("centered button clicked")
+			println("Top button clicked")
 		}),
 	)
-
-	// add the button as a child of the container
-	btnContainer.AddChild(button)
-
-	// construct a new container that serves as the root of the UI hierarchy
-	bottomRightContainer := widget.NewContainer(
-		// the container will use an anchor layout to layout its single child widget
-		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
-	)
-
-	// construct a button
-	bottomRightButton := widget.NewButton(
-		// set general widget options
-		widget.ButtonOpts.WidgetOpts(
-			// instruct the container's anchor layout to center the button both horizontally and vertically
-			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
-				HorizontalPosition: widget.AnchorLayoutPositionEnd,
-				VerticalPosition:   widget.AnchorLayoutPositionEnd,
-			}),
-		),
-
-		// specify the images to use
-		widget.ButtonOpts.Image(buttonImage),
-
-		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Bottom Right", face, &widget.ButtonTextColor{
-			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
-		}),
-
-		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
-			Left:   30,
-			Right:  30,
-			Top:    5,
-			Bottom: 5,
-		}),
-
-		// add a handler that reacts to clicking the button
-		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			println("bottom right button clicked")
-		}),
-	)
-	bottomRightContainer.AddChild(bottomRightButton)
+	onTopContainer.AddChild(onTopButton)
 
 	rootContainer := widget.NewContainer(
 		// the container will use a plain color as its background
@@ -113,8 +116,8 @@ func main() {
 		widget.ContainerOpts.Layout(widget.NewStackedLayout(widget.StackedLayoutOpts.Padding(widget.NewInsetsSimple(25)))),
 	)
 
-	rootContainer.AddChild(btnContainer)
-	rootContainer.AddChild(bottomRightContainer)
+	rootContainer.AddChild(underneathContainer)
+	rootContainer.AddChild(onTopContainer)
 
 	// construct the UI
 	ui := ebitenui.UI{
@@ -169,11 +172,26 @@ func loadButtonImage() (*widget.ButtonImage, error) {
 	}, nil
 }
 
+func loadButtonImage2() (*widget.ButtonImage, error) {
+
+	idle := image.NewBorderedNineSliceColor(color.NRGBA{R: 10, G: 170, B: 180, A: 255}, color.NRGBA{90, 90, 90, 255}, 3)
+
+	hover := image.NewBorderedNineSliceColor(color.NRGBA{R: 10, G: 130, B: 150, A: 255}, color.NRGBA{70, 70, 70, 255}, 3)
+
+	pressed := image.NewAdvancedNineSliceColor(color.NRGBA{R: 130, G: 130, B: 150, A: 255}, image.NewBorder(3, 2, 2, 2, color.NRGBA{70, 70, 70, 255}))
+
+	return &widget.ButtonImage{
+		Idle:    idle,
+		Hover:   hover,
+		Pressed: pressed,
+	}, nil
+}
+
 func loadFont(size float64) (text.Face, error) {
 	s, err := text.NewGoTextFaceSource(bytes.NewReader(goregular.TTF))
 	if err != nil {
 		log.Fatal(err)
-		return nil, err
+		return nil, fmt.Errorf("Font Creation Error: %w", err)
 	}
 
 	return &text.GoTextFace{

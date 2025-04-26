@@ -86,8 +86,14 @@ func newNineSliceEmpty(t *testing.T) *image.NineSlice {
 
 func leftMouseButtonClick(w HasWidget, t *testing.T) {
 	t.Helper()
-	leftMouseButtonPress(w, t)
-	leftMouseButtonRelease(w, t)
+	w.GetWidget().MouseButtonClickedEvent.Fire(&WidgetMouseButtonClickedEventArgs{
+		Widget:  w.GetWidget(),
+		Button:  ebiten.MouseButtonLeft,
+		OffsetX: 0,
+		OffsetY: 0,
+	})
+
+	event.ExecuteDeferred()
 }
 
 func leftMouseButtonPress(w HasWidget, t *testing.T) {

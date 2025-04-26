@@ -648,6 +648,7 @@ func (l *List) createEntry(entry any) *Button {
 	events.AddHandler(func(_ interface{}) {
 		l.setSelectedEntry(entry, true)
 	})
+	but.GetWidget().UseParentLayer = true
 	return but
 }
 

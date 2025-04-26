@@ -1,6 +1,7 @@
 package widget
 
 import (
+	"fmt"
 	img "image"
 
 	"github.com/ebitenui/ebitenui/image"
@@ -306,7 +307,20 @@ func (c *Container) doLayout() {
 func (c *Container) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 	c.init.Do()
 
-	for _, ch := range c.children {
+	for idx, ch := range c.children {
+		if v, ok := ch.(Focuser); ok {
+			if !ch.GetWidget().UseParentLayer {
+				ch.GetWidget().ElevateToNewInputLayer(&input.Layer{
+					DebugLabel: fmt.Sprintf("Container %p - Widget %d", &c, idx),
+					EventTypes: input.LayerEventTypeAll,
+					BlockLower: true,
+					FullScreen: false,
+					RectFunc: func() img.Rectangle {
+						return v.GetWidget().Rect
+					},
+				})
+			}
+		}
 		if il, ok := ch.(input.Layerer); ok {
 			il.SetupInputLayer(def)
 		}
