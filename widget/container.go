@@ -207,6 +207,9 @@ func (c *Container) PreferredSize() (int, int) {
 	c.init.Do()
 	w, h := 0, 0
 
+	if !c.validated {
+		c.Validate()
+	}
 	// Start with the background image min size if one is set
 	if c.computedParams.BackgroundImage != nil {
 		w, h = c.computedParams.BackgroundImage.MinSize()
