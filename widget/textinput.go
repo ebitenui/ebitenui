@@ -870,6 +870,7 @@ func (t *TextInput) createWidget() {
 	t.widget = NewWidget(append([]WidgetOpt{WidgetOpts.TrackHover(true)}, t.widgetOpts...)...)
 	t.widget.focusable = t
 	t.widgetOpts = nil
+	t.widget.self = t
 
 	t.caret = NewCaret(append(t.caretOpts, CaretOpts.Color(t.color.Caret))...)
 	t.caretOpts = nil

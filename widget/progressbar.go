@@ -217,4 +217,5 @@ func (s *ProgressBar) GetCurrent() int {
 
 func (s *ProgressBar) createWidget() {
 	s.widget = NewWidget(append([]WidgetOpt{WidgetOpts.TrackHover(true)}, s.widgetOpts...)...)
+	s.widget.self = s
 }

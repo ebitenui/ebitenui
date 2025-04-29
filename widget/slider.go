@@ -565,4 +565,6 @@ func (s *Slider) createWidget() {
 			}
 		})),
 	}...)...)
+
+	s.widget.self = s
 }

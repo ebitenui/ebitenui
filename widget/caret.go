@@ -152,4 +152,5 @@ func (c *Caret) createWidget() {
 	_, height := text.Measure(" ", c.face, 0)
 	c.height = int(math.Round(height))
 	c.face = nil
+	c.widget.self = c
 }

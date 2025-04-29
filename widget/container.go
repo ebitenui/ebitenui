@@ -315,6 +315,7 @@ func (c *Container) draw(screen *ebiten.Image) {
 func (c *Container) createWidget() {
 	c.widget = NewWidget(append([]WidgetOpt{WidgetOpts.TrackHover(c.BackgroundImage != nil)}, c.widgetOpts...)...)
 	c.widgetOpts = nil
+	c.widget.self = c
 }
 
 func (c *Container) GetFocusers() []Focuser {
