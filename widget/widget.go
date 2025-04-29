@@ -518,7 +518,7 @@ func (o WidgetOptions) UseParentLayer(useParentLayer bool) WidgetOpt {
 	}
 }
 
-// This tells the system to not create a new input layer for this focusable widget.
+// This specifies a function to be called each update loop for this widget.
 func (o WidgetOptions) OnUpdate(updateFunc UpdateFunc) WidgetOpt {
 	return func(w *Widget) {
 		w.OnUpdate = updateFunc
