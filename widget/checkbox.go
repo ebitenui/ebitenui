@@ -405,7 +405,6 @@ func (c *Checkbox) createWidget() {
 			),
 		)}...)
 	}
-	c.widget.self = c
 }
 
 func (s WidgetState) Advance(triState bool) WidgetState {

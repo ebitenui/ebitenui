@@ -434,5 +434,4 @@ func (t *Text) measure() {
 func (t *Text) createWidget() {
 	t.widget = NewWidget(t.widgetOpts...)
 	t.widgetOpts = nil
-	t.widget.self = t
 }

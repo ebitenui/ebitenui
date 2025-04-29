@@ -329,4 +329,5 @@ func (s *ScrollContainer) createWidget() {
 	s.widget = NewWidget(s.widgetOpts...)
 	s.widgetOpts = nil
 	s.widget.self = s
+	s.content.GetWidget().self = s.content
 }

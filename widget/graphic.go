@@ -223,5 +223,4 @@ func (g *Graphic) draw(screen *ebiten.Image) {
 func (g *Graphic) createWidget() {
 	g.widget = NewWidget(g.widgetOpts...)
 	g.widgetOpts = nil
-	g.widget.self = g
 }

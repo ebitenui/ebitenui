@@ -877,6 +877,5 @@ func (b *Button) createWidget() {
 		}),
 	}, b.widgetOpts...)...)
 	b.widgetOpts = nil
-	b.widget.self = b
 	b.initText()
 }
