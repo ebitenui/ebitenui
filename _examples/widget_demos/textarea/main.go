@@ -59,7 +59,7 @@ func main() {
 		//Set the initial text for the textarea
 		//It will automatically line wrap and process newlines characters
 		//If ProcessBBCode is true it will parse out bbcode
-		widget.TextAreaOpts.Text("Hello World\nTest1\nTest2\n[color=#ff0000]Red[/color]\n[color=#00ff00]Green[/color]\n[color=#0000ff]Blue[/color]\nTest3\nTest4"),
+		widget.TextAreaOpts.Text("Test4\nTest4\nTest4\nTest4\nTest4\nTest4\nbefore[link]Test3[/link]after\nTest4"),
 		//Tell the TextArea to show the vertical scrollbar
 		widget.TextAreaOpts.ShowVerticalScrollbar(),
 		//Set padding between edge of the widget and where the text is drawn
@@ -89,9 +89,9 @@ func main() {
 		),
 	)
 	//Add text to the end of the textarea
-	textarea.AppendText("\nLast Row")
+	//textarea.AppendText("\nLast Row")
 	//Add text to the beginning of the textarea
-	textarea.PrependText("First Row\n")
+	//textarea.PrependText("First Row\n")
 	//Replace the current text with the new value
 	//textarea.SetText("New Value!")
 	//Retrieve the current value of the text area text

@@ -2,22 +2,27 @@ package widget
 
 import (
 	"bufio"
+	"fmt"
 	"image"
 	"image/color"
 	"math"
 	"regexp"
 	"strings"
 
+	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/utilities/colorutil"
 	"github.com/ebitenui/ebitenui/utilities/datastructures"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
-var bbcodeRegex = regexp.MustCompile(`\[color=#[0-9a-fA-F]{6}]|\[/color]`)
+var bbcodeRegex = regexp.MustCompile(`\[color=#[0-9a-fA-F]{6}]|\[/color]|\[link]|\[/link]`)
 
 const COLOR_OPEN = "color=#"
 const COLOR_CLOSE = "/color]"
+
+const LINK_OPEN = "link]"
+const LINK_CLOSE = "/link]"
 
 type Text struct {
 	Label         string
@@ -36,6 +41,8 @@ type Text struct {
 	widget       *Widget
 	measurements textMeasurements
 	colorList    *datastructures.Stack[color.Color]
+
+	currentLink *bbCodeText
 }
 
 type TextOpt func(t *Text)
@@ -66,8 +73,9 @@ type textMeasurements struct {
 }
 
 type bbCodeText struct {
-	text  string
-	color color.Color
+	text   string
+	color  color.Color
+	isLink bool
 }
 
 var TextOpts TextOptions
@@ -197,6 +205,10 @@ func (t *Text) Update() {
 	t.init.Do()
 
 	t.widget.Update()
+	if t.currentLink != nil && input.MouseButtonJustPressed(ebiten.MouseButton0) {
+		fmt.Println("Clicked Text: ", t.currentLink.text)
+	}
+	t.currentLink = nil
 }
 
 func (t *Text) draw(screen *ebiten.Image) {
@@ -248,15 +260,32 @@ func (t *Text) draw(screen *ebiten.Image) {
 		}
 
 		if t.ProcessBBCode {
-
+			cursorX, cursorY := input.CursorPosition()
+			cursorPoint := image.Point{X: cursorX, Y: cursorY}
+			drawnRectangle := t.widget.Rect
+			if t.widget.parent != nil {
+				drawnRectangle = t.widget.parent.Rect
+			}
 			for _, word := range line {
 				pieces, updatedColor := t.handleBBCodeColor(word)
 				for _, piece := range pieces {
+					wordWidth, _ := text.Measure(piece.text, t.Face, 0)
+
 					op := &text.DrawOptions{}
 					op.GeoM.Translate(lx, ly)
-					op.ColorScale.ScaleWithColor(piece.color)
+					if piece.isLink {
+
+						if cursorPoint.In(drawnRectangle) && cursorPoint.In(image.Rect(int(lx), int(ly), int(lx+wordWidth), int(ly+t.measurements.lineHeight))) {
+							op.ColorScale.ScaleWithColor(color.NRGBA{R: 255, G: 0, B: 250, A: 255})
+							input.SetCursorShape(input.CURSOR_POINTER)
+							t.currentLink = &piece
+						} else {
+							op.ColorScale.ScaleWithColor(color.NRGBA{R: 0, G: 0, B: 250, A: 255})
+						}
+					} else {
+						op.ColorScale.ScaleWithColor(piece.color)
+					}
 					text.Draw(screen, piece.text, t.Face, op)
-					wordWidth, _ := text.Measure(piece.text, t.Face, 0)
 					lx += float64(wordWidth)
 				}
 				op := &text.DrawOptions{}
@@ -278,6 +307,8 @@ func (t *Text) handleBBCodeColor(word string) ([]bbCodeText, color.Color) {
 	var result []bbCodeText
 	tags := bbcodeRegex.FindAllStringIndex(word, -1)
 	var newColor = *t.colorList.Top()
+	linkOpened := false
+	linkClosed := false
 	if len(tags) > 0 {
 		resultStr := ""
 		isTag := false
@@ -303,6 +334,11 @@ func (t *Text) handleBBCodeColor(word string) ([]bbCodeText, color.Color) {
 							t.colorList.Pop()
 						}
 						newColor = *t.colorList.Top()
+					} else if resultStr == LINK_CLOSE {
+						linkClosed = true
+					} else if strings.HasPrefix(resultStr, LINK_OPEN) {
+						linkOpened = true
+						linkClosed = false
 					}
 					tags = tags[1:]
 					if len(tags) > 0 && tags[0][0] == idx {
@@ -313,7 +349,7 @@ func (t *Text) handleBBCodeColor(word string) ([]bbCodeText, color.Color) {
 						isTag = false
 					}
 				default:
-					result = append(result, bbCodeText{text: resultStr, color: newColor})
+					result = append(result, bbCodeText{text: resultStr, color: newColor, isLink: linkOpened && !linkClosed})
 					resultStr = ""
 					isTag = true
 				}
@@ -322,6 +358,9 @@ func (t *Text) handleBBCodeColor(word string) ([]bbCodeText, color.Color) {
 			}
 		}
 		if len(resultStr) > 0 {
+			if resultStr == LINK_CLOSE {
+				linkClosed = true
+			}
 			if isTag {
 				if strings.HasPrefix(resultStr, COLOR_OPEN) {
 					c, err := colorutil.HexToColor(resultStr[7:13])
@@ -336,11 +375,11 @@ func (t *Text) handleBBCodeColor(word string) ([]bbCodeText, color.Color) {
 					newColor = *t.colorList.Top()
 				}
 			} else {
-				result = append(result, bbCodeText{text: resultStr, color: newColor})
+				result = append(result, bbCodeText{text: resultStr, color: newColor, isLink: linkOpened && !linkClosed})
 			}
 		}
 	} else {
-		result = append(result, bbCodeText{text: word, color: newColor})
+		result = append(result, bbCodeText{text: word, color: newColor, isLink: linkOpened && !linkClosed})
 	}
 
 	return result, newColor
