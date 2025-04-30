@@ -77,8 +77,10 @@ type Widget struct {
 
 	DragAndDropEvent *event.Event
 
+	OnUpdate UpdateFunc
+
 	// Custom Data is a field to allow users to attach data to any widget
-	CustomData interface{}
+	CustomData any
 	// This allows for non-focusable widgets (Containers) to report hover.
 	TrackHover bool
 
@@ -168,6 +170,8 @@ const (
 )
 
 type RenderFunc func(screen *ebiten.Image)
+
+type UpdateFunc func(w HasWidget)
 
 // PreferredSizer may be implemented by concrete widget types that can report a preferred size.
 type PreferredSizer interface {
@@ -434,7 +438,7 @@ func (o WidgetOptions) ScrolledHandler(f WidgetScrolledHandlerFunc) WidgetOpt {
 }
 
 // CustomData configures a Widget with custom data cd.
-func (o WidgetOptions) CustomData(cd interface{}) WidgetOpt {
+func (o WidgetOptions) CustomData(cd any) WidgetOpt {
 	return func(w *Widget) {
 		w.CustomData = cd
 	}
@@ -514,6 +518,13 @@ func (o WidgetOptions) UseParentLayer(useParentLayer bool) WidgetOpt {
 	}
 }
 
+// This specifies a function to be called each update loop for this widget.
+func (o WidgetOptions) OnUpdate(updateFunc UpdateFunc) WidgetOpt {
+	return func(w *Widget) {
+		w.OnUpdate = updateFunc
+	}
+}
+
 func (w *Widget) drawImageOptions(opts *ebiten.DrawImageOptions) {
 	opts.GeoM.Translate(float64(w.Rect.Min.X), float64(w.Rect.Min.Y))
 }
@@ -550,6 +561,9 @@ func (w *Widget) Update() {
 	}
 	if w.ToolTip != nil {
 		w.ToolTip.Update(w)
+	}
+	if w.OnUpdate != nil {
+		w.OnUpdate(w.self)
 	}
 }
 
@@ -777,7 +791,7 @@ func AppendToDeferredRenderQueue(r RenderFunc) {
 }
 
 // In checks if the x and y are inside of the widget
-// even if they have a mask
+// even if they have a mask.
 func (widget *Widget) In(x, y int) bool {
 	p := image.Point{x, y}
 	in := p.In(widget.Rect)
