@@ -82,8 +82,8 @@ type Widget struct {
 	// This allows for non-focusable widgets (Containers) to report hover.
 	TrackHover bool
 
-	// This determines if the widget should use it's parent's layer.
-	UseParentLayer bool
+	// This determines if the widget should use it's own layer.
+	ElevateLayer bool
 
 	canDrop CanDropFunc
 	drop    DropFunc
@@ -507,10 +507,10 @@ func (o WidgetOptions) TrackHover(trackHover bool) WidgetOpt {
 	}
 }
 
-// This tells the system to not create a new input layer for this focusable widget.
-func (o WidgetOptions) UseParentLayer(useParentLayer bool) WidgetOpt {
+// This tells the system to create a new input layer for this focusable widget.
+func (o WidgetOptions) ElevateLayer(elevate bool) WidgetOpt {
 	return func(w *Widget) {
-		w.UseParentLayer = useParentLayer
+		w.ElevateLayer = elevate
 	}
 }
 
