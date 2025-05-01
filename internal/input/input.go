@@ -113,13 +113,17 @@ func (handler *DefaultInternalHandler) Update() {
 	handler.LastRightMouseButtonPressed = handler.RightMouseButtonPressed
 }
 
+func (handler *DefaultInternalHandler) AfterUpdate() {
+	handler.InputChars = handler.InputChars[:0]
+	handler.WheelX, handler.WheelY = 0, 0
+}
+
 func (handler *DefaultInternalHandler) Draw(screen *ebiten.Image) {
 
 }
 
 func (handler *DefaultInternalHandler) AfterDraw(screen *ebiten.Image) {
-	handler.InputChars = handler.InputChars[:0]
-	handler.WheelX, handler.WheelY = 0, 0
+
 }
 
 func (handler *DefaultInternalHandler) MouseButtonPressed(b ebiten.MouseButton) bool {

@@ -24,7 +24,6 @@ type Text struct {
 	Face          text.Face
 	Color         color.Color
 	MaxWidth      float64
-	Inset         Insets
 	Padding       Insets
 	ProcessBBCode bool
 
@@ -132,16 +131,12 @@ func (o TextOptions) TextColor(color color.Color) TextOpt {
 	}
 }
 
-func (o TextOptions) Insets(inset Insets) TextOpt {
-	return func(t *Text) {
-		t.Inset = inset
-	}
-}
 func (o TextOptions) Padding(padding Insets) TextOpt {
 	return func(t *Text) {
 		t.Padding = padding
 	}
 }
+
 func (o TextOptions) Position(h TextPosition, v TextPosition) TextOpt {
 	return func(t *Text) {
 		t.horizontalPosition = h
@@ -175,7 +170,7 @@ func (t *Text) SetLocation(rect image.Rectangle) {
 func (t *Text) PreferredSize() (int, int) {
 	t.init.Do()
 	t.measure()
-	w := int(math.Ceil(t.measurements.boundingBoxWidth)) + t.Padding.Left + t.Padding.Right
+	w := int(math.Ceil(t.measurements.boundingBoxWidth))
 	h := int(math.Ceil(t.measurements.boundingBoxHeight)) + t.Padding.Top + t.Padding.Bottom
 
 	if t.widget != nil && h < t.widget.MinHeight {
@@ -208,11 +203,11 @@ func (t *Text) draw(screen *ebiten.Image) {
 
 	switch t.verticalPosition {
 	case TextPositionStart:
-		p = p.Add(image.Point{0, t.Inset.Top})
+		p = p.Add(image.Point{0, t.Padding.Top})
 	case TextPositionCenter:
-		p = p.Add(image.Point{0, int((float64(r.Dy())-t.measurements.boundingBoxHeight)/2 + float64(t.Inset.Top))})
+		p = p.Add(image.Point{0, int((float64(r.Dy())-t.measurements.boundingBoxHeight)/2 + float64(t.Padding.Top))})
 	case TextPositionEnd:
-		p = p.Add(image.Point{0, int(float64(r.Dy())-t.measurements.boundingBoxHeight) - t.Inset.Bottom})
+		p = p.Add(image.Point{0, int(float64(r.Dy())-t.measurements.boundingBoxHeight) - t.Padding.Bottom})
 	}
 
 	t.colorList = &datastructures.Stack[color.Color]{}
@@ -240,11 +235,11 @@ func (t *Text) draw(screen *ebiten.Image) {
 		lx := float64(p.X)
 		switch t.horizontalPosition {
 		case TextPositionCenter:
-			lx += ((float64(w) - t.measurements.lineWidths[i]) / 2) + float64(t.Inset.Left)
+			lx += ((float64(w) - t.measurements.lineWidths[i]) / 2) + float64(t.Padding.Left)
 		case TextPositionEnd:
-			lx += float64(w) - t.measurements.lineWidths[i] - float64(t.Inset.Right)
+			lx += float64(w) - t.measurements.lineWidths[i] - float64(t.Padding.Right)
 		case TextPositionStart:
-			lx += float64(t.Inset.Left)
+			lx += float64(t.Padding.Left)
 		}
 
 		if t.ProcessBBCode {
@@ -370,7 +365,7 @@ func (t *Text) measure() {
 	for s.Scan() {
 		if t.MaxWidth > 0 || t.ProcessBBCode {
 			var newLine []string
-			newLineWidth := float64(t.Inset.Left + t.Inset.Right)
+			newLineWidth := float64(t.Padding.Left + t.Padding.Right)
 
 			words := strings.Split(s.Text(), " ")
 			for i, word := range words {
@@ -403,7 +398,7 @@ func (t *Text) measure() {
 						}
 					}
 					newLine = []string{word}
-					newLineWidth = wordWidth + float64(t.Inset.Left+t.Inset.Right)
+					newLineWidth = wordWidth + float64(t.Padding.Left+t.Padding.Right)
 				}
 			}
 			// Save the final line
@@ -419,7 +414,7 @@ func (t *Text) measure() {
 			line := s.Text()
 			t.measurements.lines = append(t.measurements.lines, []string{line})
 			lw, _ := text.Measure(line, t.Face, 0)
-			lw += float64(t.Inset.Left + t.Inset.Right)
+			lw += float64(t.Padding.Left + t.Padding.Right)
 			t.measurements.lineWidths = append(t.measurements.lineWidths, lw)
 
 			if lw > t.measurements.boundingBoxWidth {
