@@ -288,7 +288,7 @@ func (c *Container) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 
 	for idx, ch := range c.children {
 		if v, ok := ch.(Focuser); ok {
-			if !ch.GetWidget().UseParentLayer {
+			if ch.GetWidget().ElevateLayer {
 				ch.GetWidget().ElevateToNewInputLayer(&input.Layer{
 					DebugLabel: fmt.Sprintf("Container %p - Widget %d", &c, idx),
 					EventTypes: input.LayerEventTypeAll,
