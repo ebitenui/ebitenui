@@ -36,7 +36,6 @@ type Button struct {
 	vTextPosition            TextPosition
 	hTextPosition            TextPosition
 	textPadding              Insets
-	textInset                Insets
 	graphicPadding           Insets
 
 	init              *MultiOnce
@@ -246,8 +245,8 @@ func (o ButtonOptions) TextAndImage(label string, face text.Face, image *Graphic
 
 			c := NewContainer(
 				ContainerOpts.WidgetOpts(WidgetOpts.LayoutData(AnchorLayoutData{
-					HorizontalPosition: AnchorLayoutPositionCenter,
-					VerticalPosition:   AnchorLayoutPositionCenter,
+					HorizontalPosition: AnchorLayoutPosition(b.hTextPosition),
+					VerticalPosition:   AnchorLayoutPosition(b.vTextPosition),
 				})),
 				ContainerOpts.Layout(NewRowLayout(RowLayoutOpts.Spacing(10))),
 				ContainerOpts.AutoDisableChildren(),
@@ -260,8 +259,6 @@ func (o ButtonOptions) TextAndImage(label string, face text.Face, image *Graphic
 				})),
 				TextOpts.Text(label, face, color.Idle),
 				TextOpts.ProcessBBCode(b.textProcessBBCode),
-				TextOpts.Padding(b.textPadding),
-				TextOpts.Insets(b.textInset),
 				TextOpts.Position(b.hTextPosition, b.vTextPosition),
 			)
 
@@ -296,12 +293,6 @@ func (o ButtonOptions) TextPosition(h TextPosition, v TextPosition) ButtonOpt {
 func (o ButtonOptions) TextPadding(p Insets) ButtonOpt {
 	return func(b *Button) {
 		b.textPadding = p
-	}
-}
-
-func (o ButtonOptions) TextInsets(p Insets) ButtonOpt {
-	return func(b *Button) {
-		b.textInset = p
 	}
 }
 
@@ -726,6 +717,14 @@ func (b *Button) Release() {
 		OffsetX: offx,
 		OffsetY: offy,
 	})
+	if b.justSubmitted {
+		b.widget.MouseButtonClickedEvent.Fire(&WidgetMouseButtonClickedEventArgs{
+			Widget:  b.widget,
+			Button:  ebiten.MouseButtonLeft,
+			OffsetX: offx,
+			OffsetY: offy,
+		})
+	}
 }
 
 func (b *Button) handleSubmit() {
@@ -761,19 +760,17 @@ func (b *Button) initText() {
 	// Even if users use a Text() 3-in-one API, they can pass nil or something.
 
 	b.container = NewContainer(
-		ContainerOpts.Layout(NewAnchorLayout()),
+		ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(b.textPadding))),
 		ContainerOpts.AutoDisableChildren(),
 	)
 
 	b.text = NewText(
 		TextOpts.WidgetOpts(WidgetOpts.LayoutData(AnchorLayoutData{
-			HorizontalPosition: AnchorLayoutPositionCenter,
-			VerticalPosition:   AnchorLayoutPositionCenter,
+			HorizontalPosition: AnchorLayoutPosition(b.hTextPosition),
+			VerticalPosition:   AnchorLayoutPosition(b.vTextPosition),
 		})),
 		TextOpts.Text(b.textLabel, b.textFace, b.TextColor.Idle),
 		TextOpts.ProcessBBCode(b.textProcessBBCode),
-		TextOpts.Padding(b.textPadding),
-		TextOpts.Insets(b.textInset),
 		TextOpts.Position(b.hTextPosition, b.vTextPosition),
 	)
 	b.container.AddChild(b.text)

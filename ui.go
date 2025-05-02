@@ -45,6 +45,8 @@ type UI struct {
 // Update updates u. This method should be called in the Ebiten Update function.
 func (u *UI) Update() {
 	input.Update()
+	defer input.AfterUpdate()
+
 	if u.previousContainer == nil || u.previousContainer != u.Container {
 		u.Container.GetWidget().ContextMenuEvent.AddHandler(u.handleContextMenu)
 		u.Container.GetWidget().FocusEvent.AddHandler(u.handleFocusEvent)

@@ -66,12 +66,14 @@ func main() {
 		}),
 		// Move the text down and right on press
 		widget.ButtonOpts.PressedHandler(func(args *widget.ButtonPressedEventArgs) {
-			button.Text().Inset.Top = 1
+			button.Text().Padding.Top = 1
+			button.Text().Padding.Bottom = -1
 			button.GetWidget().CustomData = true
 		}),
 		// Move the text back to start on press released
 		widget.ButtonOpts.ReleasedHandler(func(args *widget.ButtonReleasedEventArgs) {
-			button.Text().Inset.Top = 0
+			button.Text().Padding.Top = 0
+			button.Text().Padding.Bottom = 0
 			button.GetWidget().CustomData = false
 		}),
 
@@ -85,7 +87,8 @@ func main() {
 			println("cursor entered button: entered =", args.Entered, "offsetX =", args.OffsetX, "offsetY =", args.OffsetY)
 			// If we moved the Text because we clicked on this button previously, move the text down and right
 			if button.GetWidget().CustomData == true {
-				button.Text().Inset.Top = 1
+				button.Text().Padding.Top = 1
+				button.Text().Padding.Bottom = -1
 			}
 		}),
 
@@ -103,7 +106,8 @@ func main() {
 		widget.ButtonOpts.CursorExitedHandler(func(args *widget.ButtonHoverEventArgs) {
 			println("cursor exited button: entered =", args.Entered, "offsetX =", args.OffsetX, "offsetY =", args.OffsetY)
 			// Reset the Text inset if the cursor is no longer over the button
-			button.Text().Inset.Top = 0
+			button.Text().Padding.Top = 0
+			button.Text().Padding.Bottom = 0
 		}),
 
 		// Indicate that this button should not be submitted when enter or space are pressed

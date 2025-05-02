@@ -11,6 +11,8 @@ type CursorUpdater interface {
 	// Called every Update call from Ebiten
 	// Note that before this is called the current cursor shape is reset to DEFAULT every cycle
 	Update()
+	// Called at the end of every Update call
+	AfterUpdate()
 	// Called at the beginning of every Draw call.
 	Draw(screen *ebiten.Image)
 	// Called at the end of every Draw call
@@ -191,6 +193,10 @@ func Update() {
 	SetCursorShape(CURSOR_DEFAULT)
 	currentCursorUpdater.Update()
 	internalinput.InternalUIHovered = false
+}
+
+func AfterUpdate() {
+	currentCursorUpdater.AfterUpdate()
 }
 
 func Draw(screen *ebiten.Image) {
