@@ -40,9 +40,10 @@ func main() {
 				//Set the layout data for the textarea
 				//including a max height to ensure the scroll bar is visible
 				widget.WidgetOpts.LayoutData(widget.RowLayoutData{
-					Position:  widget.RowLayoutPositionCenter,
-					MaxWidth:  300,
+					Position: widget.RowLayoutPositionCenter,
+					//MaxWidth:  300,
 					MaxHeight: 100,
+					Stretch:   true,
 				}),
 				//Set the minimum size for the widget
 				widget.WidgetOpts.MinSize(300, 100),
@@ -59,11 +60,11 @@ func main() {
 		//Set the initial text for the textarea
 		//It will automatically line wrap and process newlines characters
 		//If ProcessBBCode is true it will parse out bbcode
-		widget.TextAreaOpts.Text("Test4\nTest4\nTest4\nTest4\nTest4\nTest4\nbefore[link]Test3[/link]after\nTest4"),
+		widget.TextAreaOpts.Text("Hello [link=1 arg1=test arg2=test2 arg3=test3 arg4=test4 arg5=test5 arg6=test6 arg7=test7 arg8=test8 arg9=test9 arg10=test10]World  arg1=test arg2=test2 arg3=test3 arg4=test4 arg5=test5 arg6=test6 arg7=test7 arg8=test8 arg9=test9 arg10=test10[/link]Test1\nTest2\n[color=#ff0000]Red [link=2]Wor[link=3]ld[/color] [color=#00ff00]Gr[color=ffff00][/link]ee[/color]n[/color]\n[color=#0000ff]Blue[/color]\nTe[/link]st3\nTest4"),
 		//Tell the TextArea to show the vertical scrollbar
 		widget.TextAreaOpts.ShowVerticalScrollbar(),
 		//Set padding between edge of the widget and where the text is drawn
-		widget.TextAreaOpts.TextPadding(widget.NewInsetsSimple(10)),
+		//widget.TextAreaOpts.TextPadding(widget.NewInsetsSimple(20)),
 		//This sets the background images for the scroll container
 		widget.TextAreaOpts.ScrollContainerOpts(
 			widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
@@ -87,7 +88,11 @@ func main() {
 				},
 			),
 		),
+		widget.TextAreaOpts.LinkClickedEvent(func(args *widget.LinkClickedEventArgs) {
+			fmt.Println("Clicked Id: ", args.Id, " value: ", args.Value, " args: ", args.Args)
+		}),
 	)
+
 	//Add text to the end of the textarea
 	//textarea.AppendText("\nLast Row")
 	//Add text to the beginning of the textarea
@@ -107,7 +112,7 @@ func main() {
 	// Ebiten setup
 	ebiten.SetWindowSize(400, 400)
 	ebiten.SetWindowTitle("Ebiten UI - TextArea")
-
+	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	game := game{
 		ui: &ui,
 	}

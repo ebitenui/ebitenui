@@ -3,9 +3,11 @@ package colorutil
 import (
 	"image/color"
 	"strconv"
+	"strings"
 )
 
 func HexToColor(h string) (color.Color, error) {
+	h, _ = strings.CutPrefix(h, "#")
 	u, err := strconv.ParseUint(h, 16, 0)
 	if err != nil {
 		return nil, err
