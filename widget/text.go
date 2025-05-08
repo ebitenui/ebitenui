@@ -42,8 +42,11 @@ type Text struct {
 	colorList    *datastructures.Stack[color.Color]
 	linkStack    *datastructures.Stack[linkData]
 	currentLink  *bbCodeText
+	previousLink *bbCodeText
 
-	LinkClickedEvent *event.Event
+	LinkClickedEvent       *event.Event
+	LinkCursorEnteredEvent *event.Event
+	LinkCursorExitedEvent  *event.Event
 }
 
 type textMeasurements struct {
@@ -79,7 +82,7 @@ type TextLinkColor struct {
 	Hover color.Color
 }
 
-type LinkClickedEventArgs struct {
+type LinkEventArgs struct {
 	Text    *Text
 	Id      string
 	Value   string
@@ -87,7 +90,7 @@ type LinkClickedEventArgs struct {
 	OffsetX int
 	OffsetY int
 }
-type LinkClickedHandlerFunc func(args *LinkClickedEventArgs)
+type LinkHandlerFunc func(args *LinkEventArgs)
 
 type TextOpt func(t *Text)
 
@@ -106,10 +109,12 @@ var TextOpts TextOptions
 
 func NewText(opts ...TextOpt) *Text {
 	t := &Text{
-		init:             &MultiOnce{},
-		LinkClickedEvent: &event.Event{},
-		colorList:        &datastructures.Stack[color.Color]{},
-		linkStack:        &datastructures.Stack[linkData]{},
+		init:                   &MultiOnce{},
+		LinkClickedEvent:       &event.Event{},
+		LinkCursorEnteredEvent: &event.Event{},
+		LinkCursorExitedEvent:  &event.Event{},
+		colorList:              &datastructures.Stack[color.Color]{},
+		linkStack:              &datastructures.Stack[linkData]{},
 		LinkColor: TextLinkColor{
 			Idle:  color.NRGBA{R: 0, G: 0, B: 250, A: 255},
 			Hover: color.NRGBA{R: 255, G: 0, B: 250, A: 255},
@@ -220,10 +225,36 @@ func (o TextOptions) MaxWidth(maxWidth float64) TextOpt {
 // Defines the handler to be called when a BBCode defined link is clicked.
 //
 // Note: this is only used if ProcessBBCode is true.
-func (o TextOptions) LinkClickedHandler(f LinkClickedHandlerFunc) TextOpt {
+func (o TextOptions) LinkClickedHandler(f LinkHandlerFunc) TextOpt {
 	return func(b *Text) {
 		b.LinkClickedEvent.AddHandler(func(args any) {
-			if arg, ok := args.(*LinkClickedEventArgs); ok {
+			if arg, ok := args.(*LinkEventArgs); ok {
+				f(arg)
+			}
+		})
+	}
+}
+
+// Defines the handler to be called when the cursor enters a BBCode defined link.
+//
+// Note: this is only used if ProcessBBCode is true.
+func (o TextOptions) LinkCursorEnteredHandler(f LinkHandlerFunc) TextOpt {
+	return func(b *Text) {
+		b.LinkCursorEnteredEvent.AddHandler(func(args any) {
+			if arg, ok := args.(*LinkEventArgs); ok {
+				f(arg)
+			}
+		})
+	}
+}
+
+// Defines the handler to be called when the cursor enters a BBCode defined link.
+//
+// Note: this is only used if ProcessBBCode is true.
+func (o TextOptions) LinkCursorExitedHandler(f LinkHandlerFunc) TextOpt {
+	return func(b *Text) {
+		b.LinkCursorExitedEvent.AddHandler(func(args any) {
+			if arg, ok := args.(*LinkEventArgs); ok {
 				f(arg)
 			}
 		})
@@ -265,16 +296,55 @@ func (t *Text) Update() {
 	t.init.Do()
 
 	t.widget.Update()
-	if t.currentLink != nil && input.MouseButtonJustPressed(ebiten.MouseButton0) {
-		if t.LinkClickedEvent != nil {
-			t.LinkClickedEvent.Fire(&LinkClickedEventArgs{
-				Text:  t,
-				Value: t.currentLink.linkValue.text,
-				Id:    t.currentLink.linkValue.id,
-				Args:  t.currentLink.linkValue.args,
+	if t.ProcessBBCode {
+		t.handleLinkEvents()
+	}
+}
+
+func (t *Text) handleLinkEvents() {
+	if t.previousLink != nil && (t.currentLink == nil || t.currentLink.linkValue != t.previousLink.linkValue) {
+		if t.LinkCursorExitedEvent != nil {
+			off := t.getCursorOffset()
+			t.LinkCursorExitedEvent.Fire(&LinkEventArgs{
+				Text:    t,
+				Value:   t.previousLink.linkValue.text,
+				Id:      t.previousLink.linkValue.id,
+				Args:    t.previousLink.linkValue.args,
+				OffsetX: off.X,
+				OffsetY: off.Y,
 			})
 		}
 	}
+
+	if t.currentLink != nil && (t.previousLink == nil || t.currentLink.linkValue != t.previousLink.linkValue) {
+		if t.LinkCursorEnteredEvent != nil {
+			off := t.getCursorOffset()
+			t.LinkCursorEnteredEvent.Fire(&LinkEventArgs{
+				Text:    t,
+				Value:   t.currentLink.linkValue.text,
+				Id:      t.currentLink.linkValue.id,
+				Args:    t.currentLink.linkValue.args,
+				OffsetX: off.X,
+				OffsetY: off.Y,
+			})
+		}
+	}
+
+	if t.currentLink != nil && input.MouseButtonJustPressed(ebiten.MouseButton0) {
+		if t.LinkClickedEvent != nil {
+			off := t.getCursorOffset()
+			t.LinkClickedEvent.Fire(&LinkEventArgs{
+				Text:    t,
+				Value:   t.currentLink.linkValue.text,
+				Id:      t.currentLink.linkValue.id,
+				Args:    t.currentLink.linkValue.args,
+				OffsetX: off.X,
+				OffsetY: off.Y,
+			})
+		}
+	}
+
+	t.previousLink = t.currentLink
 	t.currentLink = nil
 }
 
@@ -584,6 +654,12 @@ func (t *Text) measure() {
 	}
 
 	t.measurements.boundingBoxHeight = float64(len(t.measurements.processedLines))*t.measurements.lineHeight - ld
+}
+
+func (t *Text) getCursorOffset() image.Point {
+	x, y := input.CursorPosition()
+	p := image.Point{x, y}
+	return p.Sub(t.widget.Rect.Min)
 }
 
 func (t *Text) createWidget() {

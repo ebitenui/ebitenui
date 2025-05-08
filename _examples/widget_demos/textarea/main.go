@@ -14,7 +14,7 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 )
 
-// Game object used by ebiten
+// Game object used by ebiten,
 type game struct {
 	ui *ebitenui.UI
 }
@@ -37,42 +37,42 @@ func main() {
 	textarea := widget.NewTextArea(
 		widget.TextAreaOpts.ContainerOpts(
 			widget.ContainerOpts.WidgetOpts(
-				//Set the layout data for the textarea
+				// Set the layout data for the textarea
 				//including a max height to ensure the scroll bar is visible
 				widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 					Position: widget.RowLayoutPositionCenter,
-					//MaxWidth:  300,
+					// MaxWidth:  300,
 					MaxHeight: 100,
 					Stretch:   true,
 				}),
-				//Set the minimum size for the widget
+				// Set the minimum size for the widget
 				widget.WidgetOpts.MinSize(300, 100),
 			),
 		),
-		//Set gap between scrollbar and text
+		// Set gap between scrollbar and text
 		widget.TextAreaOpts.ControlWidgetSpacing(2),
-		//Tell the textarea to display bbcodes
+		// Tell the textarea to display bbcodes
 		widget.TextAreaOpts.ProcessBBCode(true),
-		//Set the font color
+		// Set the font color
 		widget.TextAreaOpts.FontColor(color.Black),
-		//Set the font face (size) to use
+		// Set the font face (size) to use
 		widget.TextAreaOpts.FontFace(face),
-		//Set the initial text for the textarea
-		//It will automatically line wrap and process newlines characters
-		//If ProcessBBCode is true it will parse out bbcode
+		// Set the initial text for the textarea
+		// It will automatically line wrap and process newlines characters
+		// If ProcessBBCode is true it will parse out bbcode
 		widget.TextAreaOpts.Text("Hello [link=1 arg1=test arg2=test2 arg3=test3 arg4=test4 arg5=test5 arg6=test6 arg7=test7 arg8=test8 arg9=test9 arg10=test10]World  arg1=test arg2=test2 arg3=test3 arg4=test4 arg5=test5 arg6=test6 arg7=test7 arg8=test8 arg9=test9 arg10=test10[/link]Test1\nTest2\n[color=#ff0000]Red [link=2]Wor[link=3]ld[/color] [color=#00ff00]Gr[color=ffff00][/link]ee[/color]n[/color]\n[color=#0000ff]Blue[/color]\nTe[/link]st3\nTest4"),
-		//Tell the TextArea to show the vertical scrollbar
+		// Tell the TextArea to show the vertical scrollbar
 		widget.TextAreaOpts.ShowVerticalScrollbar(),
-		//Set padding between edge of the widget and where the text is drawn
-		//widget.TextAreaOpts.TextPadding(widget.NewInsetsSimple(20)),
-		//This sets the background images for the scroll container
+		// Set padding between edge of the widget and where the text is drawn
+		// widget.TextAreaOpts.TextPadding(widget.NewInsetsSimple(20)),
+		// This sets the background images for the scroll container
 		widget.TextAreaOpts.ScrollContainerOpts(
 			widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
 				Idle: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
 				Mask: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
 			}),
 		),
-		//This sets the images to use for the sliders
+		// This sets the images to use for the sliders
 		widget.TextAreaOpts.SliderOpts(
 			widget.SliderOpts.Images(
 				// Set the track images
@@ -88,18 +88,27 @@ func main() {
 				},
 			),
 		),
-		widget.TextAreaOpts.LinkClickedEvent(func(args *widget.LinkClickedEventArgs) {
-			fmt.Println("Clicked Id: ", args.Id, " value: ", args.Value, " args: ", args.Args)
+		widget.TextAreaOpts.LinkClickedEvent(func(args *widget.LinkEventArgs) {
+			fmt.Println("Link Clicked Id: ", args.Id, " value: ", args.Value, " args: ", args.Args,
+				" offsetX/offsetY ", args.OffsetX, "/", args.OffsetY)
+		}),
+		widget.TextAreaOpts.LinkCursorEnteredEvent(func(args *widget.LinkEventArgs) {
+			fmt.Println("Link Entered Id: ", args.Id, " value: ", args.Value, " args: ", args.Args,
+				" offsetX/offsetY ", args.OffsetX, "/", args.OffsetY)
+		}),
+		widget.TextAreaOpts.LinkCursorExitedEvent(func(args *widget.LinkEventArgs) {
+			fmt.Println("Link Exited Id: ", args.Id, " value: ", args.Value, " args: ", args.Args,
+				" offsetX/offsetY ", args.OffsetX, "/", args.OffsetY)
 		}),
 	)
 
-	//Add text to the end of the textarea
-	//textarea.AppendText("\nLast Row")
-	//Add text to the beginning of the textarea
-	//textarea.PrependText("First Row\n")
-	//Replace the current text with the new value
-	//textarea.SetText("New Value!")
-	//Retrieve the current value of the text area text
+	// Add text to the end of the textarea
+	// textarea.AppendText("\nLast Row")
+	// Add text to the beginning of the textarea
+	// textarea.PrependText("First Row\n")
+	// Replace the current text with the new value
+	// textarea.SetText("New Value!")
+	// Retrieve the current value of the text area text
 	fmt.Println(textarea.GetText())
 	// add the textarea as a child of the container
 	rootContainer.AddChild(textarea)

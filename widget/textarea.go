@@ -26,7 +26,9 @@ type TextArea struct {
 	verticalScrollMode   ScrollMode
 	horizontalScrollMode ScrollMode
 
-	linkClickedFunc LinkClickedHandlerFunc
+	linkClickedFunc       LinkHandlerFunc
+	linkCursorEnteredFunc LinkHandlerFunc
+	linkCursorExitedFunc  LinkHandlerFunc
 
 	init            *MultiOnce
 	container       *Container
@@ -189,9 +191,21 @@ func (o TextAreaOptions) ProcessBBCode(processBBCode bool) TextAreaOpt {
 	}
 }
 
-func (o TextAreaOptions) LinkClickedEvent(linkClickedFunc LinkClickedHandlerFunc) TextAreaOpt {
+func (o TextAreaOptions) LinkClickedEvent(linkClickedFunc LinkHandlerFunc) TextAreaOpt {
 	return func(l *TextArea) {
 		l.linkClickedFunc = linkClickedFunc
+	}
+}
+
+func (o TextAreaOptions) LinkCursorEnteredEvent(linkCursorEnteredFunc LinkHandlerFunc) TextAreaOpt {
+	return func(l *TextArea) {
+		l.linkCursorEnteredFunc = linkCursorEnteredFunc
+	}
+}
+
+func (o TextAreaOptions) LinkCursorExitedEvent(linkCursorExitedFunc LinkHandlerFunc) TextAreaOpt {
+	return func(l *TextArea) {
+		l.linkCursorExitedFunc = linkCursorExitedFunc
 	}
 }
 
@@ -292,6 +306,8 @@ func (l *TextArea) createWidget() {
 		TextOpts.Insets(l.textPadding),
 		TextOpts.ProcessBBCode(l.processBBCode),
 		TextOpts.LinkClickedHandler(l.linkClickedFunc),
+		TextOpts.LinkCursorEnteredHandler(l.linkCursorEnteredFunc),
+		TextOpts.LinkCursorExitedHandler(l.linkCursorExitedFunc),
 	)
 	content.AddChild(l.text)
 	l.text.widget.parent = l.container.GetWidget()
