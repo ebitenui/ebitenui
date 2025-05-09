@@ -228,11 +228,13 @@ func (o TextOptions) MaxWidth(maxWidth float64) TextOpt {
 // Note: this is only used if ProcessBBCode is true.
 func (o TextOptions) LinkClickedHandler(f LinkHandlerFunc) TextOpt {
 	return func(b *Text) {
-		b.LinkClickedEvent.AddHandler(func(args any) {
-			if arg, ok := args.(*LinkEventArgs); ok {
-				f(arg)
-			}
-		})
+		if f != nil {
+			b.LinkClickedEvent.AddHandler(func(args any) {
+				if arg, ok := args.(*LinkEventArgs); ok {
+					f(arg)
+				}
+			})
+		}
 	}
 }
 
@@ -241,11 +243,13 @@ func (o TextOptions) LinkClickedHandler(f LinkHandlerFunc) TextOpt {
 // Note: this is only used if ProcessBBCode is true.
 func (o TextOptions) LinkCursorEnteredHandler(f LinkHandlerFunc) TextOpt {
 	return func(b *Text) {
-		b.LinkCursorEnteredEvent.AddHandler(func(args any) {
-			if arg, ok := args.(*LinkEventArgs); ok {
-				f(arg)
-			}
-		})
+		if f != nil {
+			b.LinkCursorEnteredEvent.AddHandler(func(args any) {
+				if arg, ok := args.(*LinkEventArgs); ok {
+					f(arg)
+				}
+			})
+		}
 	}
 }
 
@@ -254,11 +258,13 @@ func (o TextOptions) LinkCursorEnteredHandler(f LinkHandlerFunc) TextOpt {
 // Note: this is only used if ProcessBBCode is true.
 func (o TextOptions) LinkCursorExitedHandler(f LinkHandlerFunc) TextOpt {
 	return func(b *Text) {
-		b.LinkCursorExitedEvent.AddHandler(func(args any) {
-			if arg, ok := args.(*LinkEventArgs); ok {
-				f(arg)
-			}
-		})
+		if f != nil {
+			b.LinkCursorExitedEvent.AddHandler(func(args any) {
+				if arg, ok := args.(*LinkEventArgs); ok {
+					f(arg)
+				}
+			})
+		}
 	}
 }
 
