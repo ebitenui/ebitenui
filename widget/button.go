@@ -36,7 +36,6 @@ type Button struct {
 	vTextPosition            TextPosition
 	hTextPosition            TextPosition
 	textPadding              Insets
-	textInset                Insets
 	graphicPadding           Insets
 
 	init              *MultiOnce
@@ -246,8 +245,8 @@ func (o ButtonOptions) TextAndImage(label string, face text.Face, image *Graphic
 
 			c := NewContainer(
 				ContainerOpts.WidgetOpts(WidgetOpts.LayoutData(AnchorLayoutData{
-					HorizontalPosition: AnchorLayoutPositionCenter,
-					VerticalPosition:   AnchorLayoutPositionCenter,
+					HorizontalPosition: AnchorLayoutPosition(b.hTextPosition),
+					VerticalPosition:   AnchorLayoutPosition(b.vTextPosition),
 				})),
 				ContainerOpts.Layout(NewRowLayout(RowLayoutOpts.Spacing(10))),
 				ContainerOpts.AutoDisableChildren(),
@@ -260,8 +259,6 @@ func (o ButtonOptions) TextAndImage(label string, face text.Face, image *Graphic
 				})),
 				TextOpts.Text(label, face, color.Idle),
 				TextOpts.ProcessBBCode(b.textProcessBBCode),
-				TextOpts.Padding(b.textPadding),
-				TextOpts.Insets(b.textInset),
 				TextOpts.Position(b.hTextPosition, b.vTextPosition),
 			)
 
@@ -296,12 +293,6 @@ func (o ButtonOptions) TextPosition(h TextPosition, v TextPosition) ButtonOpt {
 func (o ButtonOptions) TextPadding(p Insets) ButtonOpt {
 	return func(b *Button) {
 		b.textPadding = p
-	}
-}
-
-func (o ButtonOptions) TextInsets(p Insets) ButtonOpt {
-	return func(b *Button) {
-		b.textInset = p
 	}
 }
 
@@ -567,12 +558,6 @@ func (b *Button) Render(screen *ebiten.Image) {
 	b.widget.Render(screen)
 	b.draw(screen)
 
-	if !b.DisableDefaultKeys {
-		b.handleSubmit()
-	} else {
-		b.justSubmitted = false
-	}
-
 	if b.autoUpdateTextAndGraphic {
 
 		// We set the defaults first and then if needed
@@ -622,6 +607,13 @@ func (b *Button) Update() {
 	if b.container != nil {
 		b.container.Update()
 	}
+
+	if !b.DisableDefaultKeys {
+		b.handleSubmit()
+	} else {
+		b.justSubmitted = false
+	}
+
 }
 
 func (b *Button) draw(screen *ebiten.Image) {
@@ -662,9 +654,10 @@ func (b *Button) draw(screen *ebiten.Image) {
 func (b *Button) Click() {
 	b.init.Do()
 
-	b.justSubmitted = true
-	b.ClickedEvent.Fire(&ButtonClickedEventArgs{
-		Button:  b,
+	b.pressing = true
+	b.widget.MouseButtonClickedEvent.Fire(&WidgetMouseButtonClickedEventArgs{
+		Widget:  b.widget,
+		Button:  ebiten.MouseButtonLeft,
 		OffsetX: -1,
 		OffsetY: -1,
 	})
@@ -696,6 +689,7 @@ func (b *Button) Press() {
 		offy /= 2
 	}
 	b.hovering = true
+	b.pressing = true
 	b.widget.MouseButtonPressedEvent.Fire(&WidgetMouseButtonPressedEventArgs{
 		Widget:  b.widget,
 		Button:  ebiten.MouseButtonLeft,
@@ -726,6 +720,15 @@ func (b *Button) Release() {
 		OffsetX: offx,
 		OffsetY: offy,
 	})
+	if b.pressing {
+		b.widget.MouseButtonClickedEvent.Fire(&WidgetMouseButtonClickedEventArgs{
+			Widget:  b.widget,
+			Button:  ebiten.MouseButtonLeft,
+			OffsetX: offx,
+			OffsetY: offy,
+		})
+		b.pressing = false
+	}
 }
 
 func (b *Button) handleSubmit() {
@@ -761,19 +764,17 @@ func (b *Button) initText() {
 	// Even if users use a Text() 3-in-one API, they can pass nil or something.
 
 	b.container = NewContainer(
-		ContainerOpts.Layout(NewAnchorLayout()),
+		ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(b.textPadding))),
 		ContainerOpts.AutoDisableChildren(),
 	)
 
 	b.text = NewText(
 		TextOpts.WidgetOpts(WidgetOpts.LayoutData(AnchorLayoutData{
-			HorizontalPosition: AnchorLayoutPositionCenter,
-			VerticalPosition:   AnchorLayoutPositionCenter,
+			HorizontalPosition: AnchorLayoutPosition(b.hTextPosition),
+			VerticalPosition:   AnchorLayoutPosition(b.vTextPosition),
 		})),
 		TextOpts.Text(b.textLabel, b.textFace, b.TextColor.Idle),
 		TextOpts.ProcessBBCode(b.textProcessBBCode),
-		TextOpts.Padding(b.textPadding),
-		TextOpts.Insets(b.textInset),
 		TextOpts.Position(b.hTextPosition, b.vTextPosition),
 	)
 	b.container.AddChild(b.text)
@@ -877,6 +878,5 @@ func (b *Button) createWidget() {
 		}),
 	}, b.widgetOpts...)...)
 	b.widgetOpts = nil
-
 	b.initText()
 }

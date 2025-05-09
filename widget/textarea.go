@@ -303,7 +303,7 @@ func (l *TextArea) createWidget() {
 
 	l.text = NewText(
 		TextOpts.Text(l.initialText, l.face, l.foregroundColor),
-		TextOpts.Insets(l.textPadding),
+		TextOpts.Padding(l.textPadding),
 		TextOpts.ProcessBBCode(l.processBBCode),
 		TextOpts.LinkClickedHandler(l.linkClickedFunc),
 		TextOpts.LinkCursorEnteredHandler(l.linkCursorEnteredFunc),
