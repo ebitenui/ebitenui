@@ -558,12 +558,6 @@ func (b *Button) Render(screen *ebiten.Image) {
 	b.widget.Render(screen)
 	b.draw(screen)
 
-	if !b.DisableDefaultKeys {
-		b.handleSubmit()
-	} else {
-		b.justSubmitted = false
-	}
-
 	if b.autoUpdateTextAndGraphic {
 
 		// We set the defaults first and then if needed
@@ -613,6 +607,13 @@ func (b *Button) Update() {
 	if b.container != nil {
 		b.container.Update()
 	}
+
+	if !b.DisableDefaultKeys {
+		b.handleSubmit()
+	} else {
+		b.justSubmitted = false
+	}
+
 }
 
 func (b *Button) draw(screen *ebiten.Image) {
@@ -653,9 +654,10 @@ func (b *Button) draw(screen *ebiten.Image) {
 func (b *Button) Click() {
 	b.init.Do()
 
-	b.justSubmitted = true
-	b.ClickedEvent.Fire(&ButtonClickedEventArgs{
-		Button:  b,
+	b.pressing = true
+	b.widget.MouseButtonClickedEvent.Fire(&WidgetMouseButtonClickedEventArgs{
+		Widget:  b.widget,
+		Button:  ebiten.MouseButtonLeft,
 		OffsetX: -1,
 		OffsetY: -1,
 	})
@@ -687,6 +689,7 @@ func (b *Button) Press() {
 		offy /= 2
 	}
 	b.hovering = true
+	b.pressing = true
 	b.widget.MouseButtonPressedEvent.Fire(&WidgetMouseButtonPressedEventArgs{
 		Widget:  b.widget,
 		Button:  ebiten.MouseButtonLeft,
@@ -717,13 +720,14 @@ func (b *Button) Release() {
 		OffsetX: offx,
 		OffsetY: offy,
 	})
-	if b.justSubmitted {
+	if b.pressing {
 		b.widget.MouseButtonClickedEvent.Fire(&WidgetMouseButtonClickedEventArgs{
 			Widget:  b.widget,
 			Button:  ebiten.MouseButtonLeft,
 			OffsetX: offx,
 			OffsetY: offy,
 		})
+		b.pressing = false
 	}
 }
 
