@@ -57,10 +57,13 @@ func main() {
 		widget.TextAreaOpts.FontColor(color.Black),
 		// Set the font face (size) to use
 		widget.TextAreaOpts.FontFace(face),
+		widget.TextAreaOpts.TextPadding(widget.Insets{
+			Right: 16,
+		}),
 		// Set the initial text for the textarea
 		// It will automatically line wrap and process newlines characters
 		// If ProcessBBCode is true it will parse out bbcode
-		widget.TextAreaOpts.Text("Hello [link=1 arg1=test arg2=test2 arg3=test3 arg4=test4 arg5=test5 arg6=test6 arg7=test7 arg8=test8 arg9=test9 arg10=test10]World  arg1=test arg2=test2 arg3=test3 arg4=test4 arg5=test5 arg6=test6 arg7=test7 arg8=test8 arg9=test9 arg10=test10[/link]Test1\nTest2\n[color=#ff0000]Red [link=2]Wor[link=3]ld[/color] [color=#00ff00]Gr[color=ffff00][/link]ee[/color]n[/color]\n[color=#0000ff]Blue[/color]\nTe[/link]st3\nTest4"),
+		widget.TextAreaOpts.Text("Hello [color=#FFF000]World[/color] Hello [b]World[/b] Hello [b]World[/b] Hello [b]World[/b] Hello [b]World[/b] Hello [b]World[/b]"),
 		// Tell the TextArea to show the vertical scrollbar
 		widget.TextAreaOpts.ShowVerticalScrollbar(),
 		// Set padding between edge of the widget and where the text is drawn

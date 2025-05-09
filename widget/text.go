@@ -31,6 +31,7 @@ type Text struct {
 	Padding       Insets
 	ProcessBBCode bool
 	LinkColor     TextLinkColor
+	StripBBCode   bool
 
 	widgetOpts         []WidgetOpt
 	horizontalPosition TextPosition
@@ -504,15 +505,24 @@ func (t *Text) processTree(node *bbcode.BBCodeNode, newColor color.Color, linkVa
 	case bbcode.CLOSING_TAG:
 		// Handle changing color back.
 		if nodeVal, ok := node.Value.(bbcode.BBClosingTag); ok {
-			switch nodeVal.Name {
-			case COLOR_TAG:
+			switch {
+			case nodeVal.Name == COLOR_TAG && (t.StripBBCode || t.ProcessBBCode):
 				if t.colorList.Size() > 1 {
 					t.colorList.Pop()
 				}
 				newColor = *t.colorList.Top()
-			case LINK_TAG:
+			case nodeVal.Name == LINK_TAG && (t.StripBBCode || t.ProcessBBCode):
 				t.linkStack.Pop()
 				linkVal = t.linkStack.Top()
+			case !t.StripBBCode:
+				if nodeVal, ok := node.Value.(bbcode.BBClosingTag); ok {
+					tb := bbCodeText{text: nodeVal.Raw, color: newColor, linkValue: linkVal}
+					if linkVal != nil {
+						linkVal.textBlocks = append(linkVal.textBlocks, &tb)
+						linkVal.text += nodeVal.Raw
+					}
+					result = append(result, &tb)
+				}
 			}
 		}
 		for _, child := range node.Children {
@@ -522,16 +532,25 @@ func (t *Text) processTree(node *bbcode.BBCodeNode, newColor color.Color, linkVa
 		}
 	default:
 		if node.GetOpeningTag() != nil {
-			switch node.GetOpeningTag().Name {
-			case COLOR_TAG:
+			switch {
+			case node.GetOpeningTag().Name == COLOR_TAG && (t.StripBBCode || t.ProcessBBCode):
 				c, err := colorutil.HexToColor(node.GetOpeningTag().Value)
 				if err == nil {
 					t.colorList.Push(&c)
 					newColor = c
 				}
-			case LINK_TAG:
+			case node.GetOpeningTag().Name == LINK_TAG && (t.StripBBCode || t.ProcessBBCode):
 				linkVal = &linkData{id: node.GetOpeningTag().Value, args: node.GetOpeningTag().Args, textBlocks: []*bbCodeText{}}
 				t.linkStack.Push(linkVal)
+			case !t.StripBBCode:
+				if nodeVal, ok := node.Value.(bbcode.BBOpeningTag); ok {
+					tb := bbCodeText{text: nodeVal.Raw, color: newColor, linkValue: linkVal}
+					if linkVal != nil {
+						linkVal.textBlocks = append(linkVal.textBlocks, &tb)
+						linkVal.text += nodeVal.Raw
+					}
+					result = append(result, &tb)
+				}
 			}
 		}
 
@@ -541,15 +560,22 @@ func (t *Text) processTree(node *bbcode.BBCodeNode, newColor color.Color, linkVa
 			result = append(result, iresult...)
 		}
 		if node.ClosingTag != nil {
-			switch node.ClosingTag.Name {
-			case COLOR_TAG:
+			switch {
+			case node.ClosingTag.Name == COLOR_TAG && (t.StripBBCode || t.ProcessBBCode):
 				if t.colorList.Size() > 1 {
 					t.colorList.Pop()
 				}
 				newColor = *t.colorList.Top()
-			case LINK_TAG:
+			case node.ClosingTag.Name == LINK_TAG && (t.StripBBCode || t.ProcessBBCode):
 				t.linkStack.Pop()
 				linkVal = t.linkStack.Top()
+			case !t.StripBBCode:
+				tb := bbCodeText{text: node.ClosingTag.Raw, color: newColor, linkValue: linkVal}
+				if linkVal != nil {
+					linkVal.textBlocks = append(linkVal.textBlocks, &tb)
+					linkVal.text += node.ClosingTag.Raw
+				}
+				result = append(result, &tb)
 			}
 		}
 
