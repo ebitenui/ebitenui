@@ -149,6 +149,7 @@ func (g *game) Update() error {
 	g.ui.Update()
 	if inpututil.IsKeyJustPressed(ebiten.KeyB) {
 		g.btn.Click()
+		fmt.Println("Click B")
 	}
 
 	// Test that you can call Click on the focused widget.
