@@ -29,6 +29,8 @@ type TextArea struct {
 	linkClickedFunc       LinkHandlerFunc
 	linkCursorEnteredFunc LinkHandlerFunc
 	linkCursorExitedFunc  LinkHandlerFunc
+	stripBBCode           bool
+	linkColor             *TextLinkColor
 
 	init            *MultiOnce
 	container       *Container
@@ -184,25 +186,56 @@ func (o TextAreaOptions) Text(initialText string) TextAreaOpt {
 	}
 }
 
-// Set whether or not the text area should process BBCodes. e.g. [color=#FF0000]red[/color].
+// This option tells the textarea object to process BBCodes.
+//
+// Currently the system supports the following BBCodes:
+//   - color - [color=#FFFFFF] text [/color] - defines a color code for the enclosed text
+//   - link - [link=id arg1:value1 ... argX:valueX] text [/link] - defines a clickable section of text,
+//     that will trigger a callback.
 func (o TextAreaOptions) ProcessBBCode(processBBCode bool) TextAreaOpt {
 	return func(l *TextArea) {
 		l.processBBCode = processBBCode
 	}
 }
 
+// Set whether or not the text area should automatically strip out BBCodes from being displayed.
+func (o TextAreaOptions) StripBBCode(stripBBCode bool) TextAreaOpt {
+	return func(l *TextArea) {
+		l.stripBBCode = stripBBCode
+	}
+}
+
+// This option sets the idle and hover color for text that is wrapped in a
+// [link][/link] bbcode.
+//
+// Note: this is only used if ProcessBBCode is true.
+func (o TextAreaOptions) LinkColor(linkColor *TextLinkColor) TextAreaOpt {
+	return func(t *TextArea) {
+		t.linkColor = linkColor
+	}
+}
+
+// Defines the handler to be called when a BBCode defined link is clicked.
+//
+// Note: this is only used if ProcessBBCode is true.
 func (o TextAreaOptions) LinkClickedEvent(linkClickedFunc LinkHandlerFunc) TextAreaOpt {
 	return func(l *TextArea) {
 		l.linkClickedFunc = linkClickedFunc
 	}
 }
 
+// Defines the handler to be called when the cursor enters a BBCode defined link.
+//
+// Note: this is only used if ProcessBBCode is true.
 func (o TextAreaOptions) LinkCursorEnteredEvent(linkCursorEnteredFunc LinkHandlerFunc) TextAreaOpt {
 	return func(l *TextArea) {
 		l.linkCursorEnteredFunc = linkCursorEnteredFunc
 	}
 }
 
+// Defines the handler to be called when the cursor enters a BBCode defined link.
+//
+// Note: this is only used if ProcessBBCode is true.
 func (o TextAreaOptions) LinkCursorExitedEvent(linkCursorExitedFunc LinkHandlerFunc) TextAreaOpt {
 	return func(l *TextArea) {
 		l.linkCursorExitedFunc = linkCursorExitedFunc
@@ -305,6 +338,8 @@ func (l *TextArea) createWidget() {
 		TextOpts.Text(l.initialText, l.face, l.foregroundColor),
 		TextOpts.Padding(l.textPadding),
 		TextOpts.ProcessBBCode(l.processBBCode),
+		TextOpts.StripBBCode(l.stripBBCode),
+		TextOpts.LinkColor(l.linkColor),
 		TextOpts.LinkClickedHandler(l.linkClickedFunc),
 		TextOpts.LinkCursorEnteredHandler(l.linkCursorEnteredFunc),
 		TextOpts.LinkCursorExitedHandler(l.linkCursorExitedFunc),

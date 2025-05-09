@@ -53,6 +53,8 @@ func main() {
 		widget.TextAreaOpts.ControlWidgetSpacing(2),
 		// Tell the textarea to display bbcodes
 		widget.TextAreaOpts.ProcessBBCode(true),
+		// Tell the textarea to remove any unknown BBCodes
+		widget.TextAreaOpts.StripBBCode(true),
 		// Set the font color
 		widget.TextAreaOpts.FontColor(color.Black),
 		// Set the font face (size) to use
@@ -63,7 +65,7 @@ func main() {
 		// Set the initial text for the textarea
 		// It will automatically line wrap and process newlines characters
 		// If ProcessBBCode is true it will parse out bbcode
-		widget.TextAreaOpts.Text("Hello [color=#FFF000]World[/color] Hello [b]World[/b] Hello [b]World[/b] Hello [b]World[/b] Hello [b]World[/b] Hello [b]World[/b]"),
+		widget.TextAreaOpts.Text("[link=a]Hello[/link] [color=#FFF000]World[/color] Hello [b]World[/b] Hello [b]World[/b] Hello [b]World[/b] Hello [b]World[/b] Hello [b]World[/b]"),
 		// Tell the TextArea to show the vertical scrollbar
 		widget.TextAreaOpts.ShowVerticalScrollbar(),
 		// Set padding between edge of the widget and where the text is drawn

@@ -201,13 +201,22 @@ func (o TextOptions) ProcessBBCode(processBBCode bool) TextOpt {
 	}
 }
 
+// Set whether or not the text area should automatically strip out BBCodes from being displayed.
+func (o TextOptions) StripBBCode(stripBBCode bool) TextOpt {
+	return func(t *Text) {
+		t.StripBBCode = stripBBCode
+	}
+}
+
 // This option sets the idle and hover color for text that is wrapped in a
 // [link][/link] bbcode.
 //
 // Note: this is only used if ProcessBBCode is true.
-func (o TextOptions) LinkColor(linkColor TextLinkColor) TextOpt {
+func (o TextOptions) LinkColor(linkColor *TextLinkColor) TextOpt {
 	return func(t *Text) {
-		t.LinkColor = linkColor
+		if linkColor != nil {
+			t.LinkColor = *linkColor
+		}
 	}
 }
 
