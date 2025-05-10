@@ -49,12 +49,12 @@ func GetLightTheme() *widget.Theme {
 				Idle:     color.Black,
 				Disabled: color.NRGBA{222, 222, 222, 255},
 			},
-			Insets: &widget.Insets{Top: 10},
+			Padding: &widget.Insets{Top: 10},
 		},
 		TextTheme: &widget.TextParams{
-			Face:   &face,
-			Color:  color.NRGBA{0, 255, 0, 255},
-			Insets: &widget.Insets{Top: 10},
+			Face:    &face,
+			Color:   color.NRGBA{0, 255, 0, 255},
+			Padding: &widget.Insets{Left: 10, Top: 20},
 		},
 	}
 }
@@ -98,12 +98,12 @@ func GetDarkTheme() *widget.Theme {
 				Idle:     color.White,
 				Disabled: color.NRGBA{222, 222, 222, 255},
 			},
-			Insets: &widget.Insets{Top: 5},
+			Padding: &widget.Insets{Top: 5},
 		},
 		TextTheme: &widget.TextParams{
-			Face:   &face,
-			Color:  color.NRGBA{255, 0, 0, 255},
-			Insets: &widget.Insets{Top: 5},
+			Face:    &face,
+			Color:   color.NRGBA{255, 0, 0, 255},
+			Padding: &widget.Insets{Top: 5},
 		},
 	}
 }

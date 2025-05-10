@@ -9,9 +9,9 @@ import (
 )
 
 type LabelParams struct {
-	Face   *text.Face
-	Color  *LabelColor
-	Insets *Insets
+	Face    *text.Face
+	Color   *LabelColor
+	Padding *Insets
 }
 
 type Label struct {
@@ -75,7 +75,7 @@ func (l *Label) populateComputedParams() {
 		if theme.LabelTheme != nil {
 			lblParams.Face = theme.LabelTheme.Face
 			lblParams.Color = theme.LabelTheme.Color
-			lblParams.Insets = theme.LabelTheme.Insets
+			lblParams.Padding = theme.LabelTheme.Padding
 		}
 	}
 	if l.definedParams.Color != nil {
@@ -93,8 +93,8 @@ func (l *Label) populateComputedParams() {
 	if l.definedParams.Face != nil {
 		lblParams.Face = l.definedParams.Face
 	}
-	if l.definedParams.Insets != nil {
-		lblParams.Insets = l.definedParams.Insets
+	if l.definedParams.Padding != nil {
+		lblParams.Padding = l.definedParams.Padding
 	}
 
 	l.computedParams = lblParams
@@ -139,9 +139,9 @@ func (o LabelOptions) LabelColor(color *LabelColor) LabelOpt {
 }
 
 // Set the label padding.
-func (o LabelOptions) LabelInsets(insets *Insets) LabelOpt {
+func (o LabelOptions) LabelPadding(padding *Insets) LabelOpt {
 	return func(l *Label) {
-		l.definedParams.Insets = insets
+		l.definedParams.Padding = padding
 	}
 }
 
@@ -185,7 +185,7 @@ func (l *Label) createWidget() {
 
 func (l *Label) setComputedParams() {
 	l.text.SetFace(l.computedParams.Face)
-	if l.computedParams.Insets != nil {
-		l.text.SetInset(l.computedParams.Insets)
+	if l.computedParams.Padding != nil {
+		l.text.SetPadding(l.computedParams.Padding)
 	}
 }

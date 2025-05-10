@@ -25,7 +25,6 @@ const LINK_TAG = "link"
 type TextParams struct {
 	Face    *text.Face
 	Color   color.Color
-	Insets  *Insets
 	Padding *Insets
 }
 
@@ -157,16 +156,13 @@ func (t *Text) populateComputedParams() {
 		if theme.TextTheme != nil {
 			txtParams.Color = theme.TextTheme.Color
 			txtParams.Face = theme.TextTheme.Face
-			txtParams.Insets = theme.TextTheme.Insets
 			txtParams.Padding = theme.TextTheme.Padding
 		}
 	}
 	if t.definedParams.Face != nil {
 		txtParams.Face = t.definedParams.Face
 	}
-	if t.definedParams.Insets != nil {
-		txtParams.Insets = t.definedParams.Insets
-	}
+
 	if t.definedParams.Padding != nil {
 		txtParams.Padding = t.definedParams.Padding
 	}
@@ -174,9 +170,6 @@ func (t *Text) populateComputedParams() {
 		txtParams.Color = t.definedParams.Color
 	}
 
-	if txtParams.Insets == nil {
-		txtParams.Insets = &Insets{}
-	}
 	if txtParams.Padding == nil {
 		txtParams.Padding = &Insets{}
 	}
@@ -333,11 +326,8 @@ func (t *Text) SetFace(face *text.Face) {
 	}
 }
 
-func (t *Text) SetInset(inset *Insets) {
-	t.definedParams.Insets = inset
-	if t.definedParams.Insets != nil {
-		t.computedParams.Insets = inset
-	}
+func (t *Text) SetPadding(padding *Insets) {
+	t.definedParams.Padding = padding
 	t.Validate()
 }
 
