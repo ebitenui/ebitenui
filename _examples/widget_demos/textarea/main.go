@@ -14,7 +14,7 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 )
 
-// Game object used by ebiten
+// Game object used by ebiten,
 type game struct {
 	ui *ebitenui.UI
 }
@@ -37,41 +37,47 @@ func main() {
 	textarea := widget.NewTextArea(
 		widget.TextAreaOpts.ContainerOpts(
 			widget.ContainerOpts.WidgetOpts(
-				//Set the layout data for the textarea
+				// Set the layout data for the textarea
 				//including a max height to ensure the scroll bar is visible
 				widget.WidgetOpts.LayoutData(widget.RowLayoutData{
-					Position:  widget.RowLayoutPositionCenter,
-					MaxWidth:  300,
+					Position: widget.RowLayoutPositionCenter,
+					// MaxWidth:  300,
 					MaxHeight: 100,
+					Stretch:   true,
 				}),
-				//Set the minimum size for the widget
+				// Set the minimum size for the widget
 				widget.WidgetOpts.MinSize(300, 100),
 			),
 		),
-		//Set gap between scrollbar and text
+		// Set gap between scrollbar and text
 		widget.TextAreaOpts.ControlWidgetSpacing(2),
-		//Tell the textarea to display bbcodes
+		// Tell the textarea to display bbcodes
 		widget.TextAreaOpts.ProcessBBCode(true),
-		//Set the font color
+		// Tell the textarea to remove any unknown BBCodes
+		widget.TextAreaOpts.StripBBCode(true),
+		// Set the font color
 		widget.TextAreaOpts.FontColor(color.Black),
-		//Set the font face (size) to use
+		// Set the font face (size) to use
 		widget.TextAreaOpts.FontFace(face),
-		//Set the initial text for the textarea
-		//It will automatically line wrap and process newlines characters
-		//If ProcessBBCode is true it will parse out bbcode
-		widget.TextAreaOpts.Text("Hello World\nTest1\nTest2\n[color=#ff0000]Red[/color]\n[color=#00ff00]Green[/color]\n[color=#0000ff]Blue[/color]\nTest3\nTest4"),
-		//Tell the TextArea to show the vertical scrollbar
+		widget.TextAreaOpts.TextPadding(widget.Insets{
+			Right: 16,
+		}),
+		// Set the initial text for the textarea
+		// It will automatically line wrap and process newlines characters
+		// If ProcessBBCode is true it will parse out bbcode
+		widget.TextAreaOpts.Text("[link=a]Hello[/link] [color=#FFF000]World[/color] Hello [b]World[/b] Hello [b]World[/b] Hello [b]World[/b] Hello [b]World[/b] Hello [b]World[/b]"),
+		// Tell the TextArea to show the vertical scrollbar
 		widget.TextAreaOpts.ShowVerticalScrollbar(),
-		//Set padding between edge of the widget and where the text is drawn
-		widget.TextAreaOpts.TextPadding(widget.NewInsetsSimple(10)),
-		//This sets the background images for the scroll container
+		// Set padding between edge of the widget and where the text is drawn
+		// widget.TextAreaOpts.TextPadding(widget.NewInsetsSimple(20)),
+		// This sets the background images for the scroll container
 		widget.TextAreaOpts.ScrollContainerOpts(
 			widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
 				Idle: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
 				Mask: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
 			}),
 		),
-		//This sets the images to use for the sliders
+		// This sets the images to use for the sliders
 		widget.TextAreaOpts.SliderOpts(
 			widget.SliderOpts.Images(
 				// Set the track images
@@ -87,14 +93,27 @@ func main() {
 				},
 			),
 		),
+		widget.TextAreaOpts.LinkClickedEvent(func(args *widget.LinkEventArgs) {
+			fmt.Println("Link Clicked Id: ", args.Id, " value: ", args.Value, " args: ", args.Args,
+				" offsetX/offsetY ", args.OffsetX, "/", args.OffsetY)
+		}),
+		widget.TextAreaOpts.LinkCursorEnteredEvent(func(args *widget.LinkEventArgs) {
+			fmt.Println("Link Entered Id: ", args.Id, " value: ", args.Value, " args: ", args.Args,
+				" offsetX/offsetY ", args.OffsetX, "/", args.OffsetY)
+		}),
+		widget.TextAreaOpts.LinkCursorExitedEvent(func(args *widget.LinkEventArgs) {
+			fmt.Println("Link Exited Id: ", args.Id, " value: ", args.Value, " args: ", args.Args,
+				" offsetX/offsetY ", args.OffsetX, "/", args.OffsetY)
+		}),
 	)
-	//Add text to the end of the textarea
-	textarea.AppendText("\nLast Row")
-	//Add text to the beginning of the textarea
-	textarea.PrependText("First Row\n")
-	//Replace the current text with the new value
-	//textarea.SetText("New Value!")
-	//Retrieve the current value of the text area text
+
+	// Add text to the end of the textarea
+	// textarea.AppendText("\nLast Row")
+	// Add text to the beginning of the textarea
+	// textarea.PrependText("First Row\n")
+	// Replace the current text with the new value
+	// textarea.SetText("New Value!")
+	// Retrieve the current value of the text area text
 	fmt.Println(textarea.GetText())
 	// add the textarea as a child of the container
 	rootContainer.AddChild(textarea)
@@ -107,7 +126,7 @@ func main() {
 	// Ebiten setup
 	ebiten.SetWindowSize(400, 400)
 	ebiten.SetWindowTitle("Ebiten UI - TextArea")
-
+	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	game := game{
 		ui: &ui,
 	}
