@@ -99,6 +99,7 @@ func (l *Label) populateComputedParams() {
 
 	l.computedParams = lblParams
 	l.setComputedParams()
+	l.text.Validate()
 }
 
 func (o LabelOptions) TextOpts(opts ...TextOpt) LabelOpt {

@@ -302,6 +302,9 @@ func (c *Container) Update() {
 
 func (c *Container) doLayout() {
 	if c.layout != nil && c.layoutDirty {
+		if !c.validated {
+			c.Validate()
+		}
 		c.layout.Layout(c.children, c.widget.Rect)
 		c.layoutDirty = false
 	}
@@ -312,7 +315,7 @@ func (c *Container) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 
 	for idx, ch := range c.children {
 		if v, ok := ch.(Focuser); ok {
-			if !ch.GetWidget().UseParentLayer {
+			if ch.GetWidget().ElevateLayer {
 				ch.GetWidget().ElevateToNewInputLayer(&input.Layer{
 					DebugLabel: fmt.Sprintf("Container %p - Widget %d", &c, idx),
 					EventTypes: input.LayerEventTypeAll,
@@ -339,6 +342,7 @@ func (c *Container) draw(screen *ebiten.Image) {
 func (c *Container) createWidget() {
 	c.widget = NewWidget(append([]WidgetOpt{WidgetOpts.TrackHover(c.computedParams.BackgroundImage != nil)}, c.widgetOpts...)...)
 	c.widgetOpts = nil
+	c.widget.self = c
 }
 
 func (c *Container) GetFocusers() []Focuser {

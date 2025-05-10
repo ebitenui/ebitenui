@@ -59,9 +59,6 @@ func main() {
 				widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 					Position: widget.RowLayoutPositionCenter,
 				}),
-				// Tells the button to not use create its own input layer.
-				// This is needed to ensure the scroll container recieves the scroll event.
-				widget.WidgetOpts.UseParentLayer(true),
 			),
 
 			// specify the images to use
