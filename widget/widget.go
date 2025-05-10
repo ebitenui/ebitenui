@@ -619,8 +619,13 @@ func (w *Widget) fireEvents() {
 			input.SetCursorShape(w.CursorPressed)
 		}
 	}
-	if input.MouseButtonJustPressedLayer(ebiten.MouseButtonRight, layer) {
+
+	if input.MouseButtonJustPressed(ebiten.MouseButtonRight) {
 		w.lastUpdateMouseRightPressed = true
+	}
+
+	if input.MouseButtonJustPressedLayer(ebiten.MouseButtonRight, layer) {
+
 		if inside {
 			w.mouseRightPressedInside = true
 			off := p.Sub(w.Rect.Min)
@@ -657,8 +662,11 @@ func (w *Widget) fireEvents() {
 		w.mouseRightPressedInside = false
 	}
 
-	if input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, layer) {
+	if input.MouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		w.lastUpdateMouseLeftPressed = true
+	}
+
+	if input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, layer) {
 		if inside {
 			w.mouseLeftPressedInside = inside
 
