@@ -23,9 +23,11 @@ const COLOR_TAG = "color"
 const LINK_TAG = "link"
 
 type TextParams struct {
-	Face    *text.Face
-	Color   color.Color
-	Padding *Insets
+	Face      *text.Face
+	Color     color.Color
+	Padding   *Insets
+	LinkColor *TextLinkColor
+	Position  *TextPositioning
 }
 
 type Text struct {
@@ -34,12 +36,9 @@ type Text struct {
 	Label          string
 	MaxWidth       float64
 	ProcessBBCode  bool
-	LinkColor      TextLinkColor
 	StripBBCode    bool
 
-	widgetOpts         []WidgetOpt
-	horizontalPosition TextPosition
-	verticalPosition   TextPosition
+	widgetOpts []WidgetOpt
 
 	init         *MultiOnce
 	widget       *Widget
@@ -98,8 +97,6 @@ type LinkEventArgs struct {
 
 type LinkHandlerFunc func(args *LinkEventArgs)
 
-type TextOpt func(t *Text)
-
 type TextPosition int
 
 const (
@@ -107,6 +104,13 @@ const (
 	TextPositionCenter
 	TextPositionEnd
 )
+
+type TextPositioning struct {
+	VTextPosition TextPosition
+	HTextPosition TextPosition
+}
+
+type TextOpt func(t *Text)
 
 type TextOptions struct {
 }
@@ -121,10 +125,6 @@ func NewText(opts ...TextOpt) *Text {
 		LinkCursorExitedEvent:  &event.Event{},
 		colorList:              &datastructures.Stack[color.Color]{},
 		linkStack:              &datastructures.Stack[linkData]{},
-		LinkColor: TextLinkColor{
-			Idle:  color.NRGBA{R: 0, G: 0, B: 250, A: 255},
-			Hover: color.NRGBA{R: 255, G: 0, B: 250, A: 255},
-		},
 	}
 
 	t.init.Append(t.createWidget)
@@ -158,6 +158,8 @@ func (t *Text) populateComputedParams() {
 			txtParams.Color = theme.TextTheme.Color
 			txtParams.Face = theme.TextTheme.Face
 			txtParams.Padding = theme.TextTheme.Padding
+			txtParams.LinkColor = theme.TextTheme.LinkColor
+			txtParams.Position = theme.TextTheme.Position
 		}
 	}
 	if t.definedParams.Face != nil {
@@ -173,6 +175,17 @@ func (t *Text) populateComputedParams() {
 
 	if txtParams.Padding == nil {
 		txtParams.Padding = &Insets{}
+	}
+
+	if txtParams.LinkColor == nil {
+		txtParams.LinkColor = &TextLinkColor{
+			Idle:  color.NRGBA{R: 0, G: 0, B: 250, A: 255},
+			Hover: color.NRGBA{R: 255, G: 0, B: 250, A: 255},
+		}
+	}
+
+	if txtParams.Position == nil {
+		txtParams.Position = &TextPositioning{}
 	}
 
 	t.computedParams = txtParams
@@ -221,8 +234,10 @@ func (o TextOptions) Padding(padding *Insets) TextOpt {
 
 func (o TextOptions) Position(h TextPosition, v TextPosition) TextOpt {
 	return func(t *Text) {
-		t.horizontalPosition = h
-		t.verticalPosition = v
+		t.definedParams.Position = &TextPositioning{
+			HTextPosition: h,
+			VTextPosition: v,
+		}
 	}
 }
 
@@ -252,7 +267,7 @@ func (o TextOptions) StripBBCode(stripBBCode bool) TextOpt {
 func (o TextOptions) LinkColor(linkColor *TextLinkColor) TextOpt {
 	return func(t *Text) {
 		if linkColor != nil {
-			t.LinkColor = *linkColor
+			t.definedParams.LinkColor = linkColor
 		}
 	}
 }
@@ -311,24 +326,22 @@ func (o TextOptions) LinkCursorExitedHandler(f LinkHandlerFunc) TextOpt {
 
 func (t *Text) SetColor(color color.Color) {
 	t.definedParams.Color = color
-	if t.definedParams.Color == nil {
-		t.Validate()
-	} else {
-		t.computedParams.Color = color
-	}
+	t.Validate()
 }
 
 func (t *Text) SetFace(face *text.Face) {
 	t.definedParams.Face = face
-	if t.definedParams.Face == nil {
-		t.Validate()
-	} else {
-		t.computedParams.Face = face
-	}
+	t.Validate()
+
 }
 
 func (t *Text) SetPadding(padding *Insets) {
 	t.definedParams.Padding = padding
+	t.Validate()
+}
+
+func (t *Text) SetPosition(position *TextPositioning) {
+	t.definedParams.Position = position
 	t.Validate()
 }
 
@@ -426,7 +439,7 @@ func (t *Text) draw(screen *ebiten.Image) {
 	w := r.Dx()
 	p := r.Min
 
-	switch t.verticalPosition {
+	switch t.computedParams.Position.VTextPosition {
 	case TextPositionStart:
 		p = p.Add(image.Point{0, t.computedParams.Padding.Top})
 	case TextPositionCenter:
@@ -455,7 +468,7 @@ func (t *Text) draw(screen *ebiten.Image) {
 			for linesIdx := range t.measurements.processedLines {
 				ly := float64(p.Y) + t.measurements.lineHeight*float64(linesIdx)
 				lx := float64(p.X)
-				switch t.horizontalPosition {
+				switch t.computedParams.Position.HTextPosition {
 				case TextPositionCenter:
 					lx += ((float64(w) - t.measurements.processedLineWidths[linesIdx]) / 2) + float64(t.computedParams.Padding.Left)
 				case TextPositionEnd:
@@ -502,7 +515,7 @@ func (t *Text) draw(screen *ebiten.Image) {
 		}
 
 		lx := float64(p.X)
-		switch t.horizontalPosition {
+		switch t.computedParams.Position.HTextPosition {
 		case TextPositionCenter:
 			lx += ((float64(w) - t.measurements.processedLineWidths[linesIdx]) / 2) + float64(t.computedParams.Padding.Left)
 		case TextPositionEnd:
@@ -518,10 +531,10 @@ func (t *Text) draw(screen *ebiten.Image) {
 				op := &text.DrawOptions{}
 				op.GeoM.Translate(lx, ly)
 				if piece.linkValue != nil {
-					if piece.hovered {
-						op.ColorScale.ScaleWithColor(t.LinkColor.Hover)
+					if piece.hovered && t.computedParams.LinkColor.Hover != nil {
+						op.ColorScale.ScaleWithColor(t.computedParams.LinkColor.Hover)
 					} else {
-						op.ColorScale.ScaleWithColor(t.LinkColor.Idle)
+						op.ColorScale.ScaleWithColor(t.computedParams.LinkColor.Idle)
 					}
 				} else {
 					op.ColorScale.ScaleWithColor(piece.color)

@@ -12,11 +12,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
-type TextPositioning struct {
-	VTextPosition TextPosition
-	HTextPosition TextPosition
-}
-
 type ButtonParams struct {
 	Image        *ButtonImage
 	GraphicImage *GraphicImage
@@ -921,8 +916,7 @@ func (b *Button) initText() {
 	if b.text != nil {
 		b.text.SetFace(b.computedParams.TextFace)
 		b.text.SetColor(b.computedParams.TextColor.Idle)
-		b.text.horizontalPosition = b.computedParams.TextPosition.HTextPosition
-		b.text.verticalPosition = b.computedParams.TextPosition.VTextPosition
+		b.text.SetPosition(b.computedParams.TextPosition)
 		b.text.widget.LayoutData = AnchorLayoutData{
 			HorizontalPosition: AnchorLayoutPosition(b.computedParams.TextPosition.HTextPosition),
 			VerticalPosition:   AnchorLayoutPosition(b.computedParams.TextPosition.VTextPosition),
