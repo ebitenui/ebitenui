@@ -89,7 +89,7 @@ func NewCheckbox(opts ...CheckboxOpt) *Checkbox {
 }
 
 func (c *Checkbox) Validate() {
-
+	c.init.Do()
 	if c.image == nil {
 		panic("Checkbox: Image is required.")
 	}
@@ -107,6 +107,9 @@ func (c *Checkbox) Validate() {
 	}
 	if c.state == WidgetGreyed && !c.triState {
 		panic("Checkbox: non-tri state Checkbox cannot be in greyed state.")
+	}
+	if c.label != nil {
+		c.label.Validate()
 	}
 }
 

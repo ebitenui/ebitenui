@@ -107,8 +107,6 @@ func NewList(opts ...ListOpt) *List {
 
 	l.resetFocusIndex()
 
-	l.Validate()
-
 	return l
 }
 
@@ -648,6 +646,7 @@ func (l *List) createEntry(entry any) *Button {
 	events.AddHandler(func(_ interface{}) {
 		l.setSelectedEntry(entry, true)
 	})
+	but.Validate()
 	return but
 }
 

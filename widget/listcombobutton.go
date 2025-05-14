@@ -54,12 +54,11 @@ func NewListComboButton(opts ...ListComboButtonOpt) *ListComboButton {
 		o(l)
 	}
 
-	l.Validate()
-
 	return l
 }
 
 func (l *ListComboButton) Validate() {
+	l.init.Do()
 	if len(l.buttonOpts) == 0 {
 		panic("ListComboButton: ButtonOpts are required.")
 	}
@@ -208,12 +207,12 @@ func (l *ListComboButton) createWidget() {
 		ListOpts.AllowReselect(),
 		ListOpts.DisableDefaultKeys(l.disableDefaultKeys),
 	}...)...)
-	l.listOpts = nil
+	l.list.Validate()
 
 	l.button = NewSelectComboButton(append(l.buttonOpts,
 		SelectComboButtonOpts.ComboButtonOpts(ComboButtonOpts.Content(l.list)),
 	)...)
-	l.buttonOpts = nil
+	l.button.Validate()
 
 	if len(l.list.entries) > 0 {
 		firstEntry := l.list.entries[0]

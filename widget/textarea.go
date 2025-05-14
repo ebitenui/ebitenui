@@ -82,12 +82,11 @@ func NewTextArea(opts ...TextAreaOpt) *TextArea {
 		o(l)
 	}
 
-	l.Validate()
-
 	return l
 }
 
 func (t *TextArea) Validate() {
+	t.init.Do()
 	if t.foregroundColor == nil {
 		panic("TextArea: FontColor is required.")
 	}
@@ -327,7 +326,6 @@ func (l *TextArea) createWidget() {
 				GridLayoutOpts.Spacing(l.controlWidgetSpacing, l.controlWidgetSpacing))),
 		}, l.containerOpts...,
 		)...)
-	l.containerOpts = nil
 
 	content := NewContainer(
 		ContainerOpts.Layout(NewRowLayout(
@@ -351,7 +349,6 @@ func (l *TextArea) createWidget() {
 		ScrollContainerOpts.Content(content),
 		ScrollContainerOpts.StretchContentWidth(),
 	}...)...)
-	l.scrollContainerOpts = nil
 	l.container.AddChild(l.scrollContainer)
 
 	if l.showVerticalSlider {
@@ -416,7 +413,6 @@ func (l *TextArea) createWidget() {
 		l.container.AddChild(l.hSlider)
 	}
 
-	l.sliderOpts = nil
 }
 
 func (l *TextArea) PrependText(value string) {

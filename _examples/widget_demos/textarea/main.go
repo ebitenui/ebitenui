@@ -58,7 +58,7 @@ func main() {
 		// Set the font color
 		widget.TextAreaOpts.FontColor(color.Black),
 		// Set the font face (size) to use
-		widget.TextAreaOpts.FontFace(face),
+		widget.TextAreaOpts.FontFace(&face),
 		widget.TextAreaOpts.TextPadding(widget.Insets{
 			Right: 16,
 		}),

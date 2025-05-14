@@ -64,13 +64,13 @@ func (dnd *dndWidget) Update(canDrop bool, targetWidget widget.HasWidget, dragDa
 	if canDrop {
 		dnd.text.Label = "* Can Drop *"
 		if targetWidget != nil {
-			targetWidget.(*widget.Container).BackgroundImage = image.NewNineSliceColor(color.NRGBA{100, 100, 255, 255})
+			targetWidget.(*widget.Container).SetBackgroundImage(image.NewNineSliceColor(color.NRGBA{100, 100, 255, 255}))
 			dnd.targetedWidget = targetWidget
 		}
 	} else {
 		dnd.text.Label = "Cannot Drop"
 		if dnd.targetedWidget != nil {
-			dnd.targetedWidget.(*widget.Container).BackgroundImage = image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255})
+			dnd.targetedWidget.(*widget.Container).SetBackgroundImage(image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}))
 			dnd.targetedWidget = nil
 		}
 	}
@@ -166,7 +166,7 @@ func main() {
 			}),
 			//This function is called if the client 'drops' the dragged element on this widget and CanDrop returns true
 			widget.WidgetOpts.Dropped(func(args *widget.DragAndDropDroppedEventArgs) {
-				rightTop.BackgroundImage = image.NewNineSliceColor(color.NRGBA{255, 100, 100, 255})
+				rightTop.SetBackgroundImage(image.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}))
 				count = count + 1
 				rightTopText.Label = fmt.Sprintf("Drag to here\n(allowed)\n%d", count)
 			}),
@@ -193,7 +193,7 @@ func main() {
 			}),
 			//This function is called if the client 'drops' the dragged element on this widget and CanDrop returns true
 			widget.WidgetOpts.Dropped(func(args *widget.DragAndDropDroppedEventArgs) {
-				rightBottom.BackgroundImage = image.NewNineSliceColor(color.NRGBA{255, 100, 100, 255})
+				rightBottom.SetBackgroundImage(image.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}))
 			}),
 		),
 	)

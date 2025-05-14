@@ -65,12 +65,11 @@ func NewTabBook(opts ...TabBookOpt) *TabBook {
 		o(t)
 	}
 
-	t.Validate()
-
 	return t
 }
 
 func (t *TabBook) Validate() {
+	t.init.Do()
 	if len(t.tabs) == 0 {
 		panic("TabBook: At least one tab is required.")
 	}
@@ -279,13 +278,9 @@ func (t *TabBook) createWidget() {
 			}
 		}))
 
-	t.buttonOpts = nil
-	t.buttonImages = nil
-
 	t.flipBook = NewFlipBook(append(t.flipBookOpts,
 		FlipBookOpts.ContainerOpts(ContainerOpts.AutoDisableChildren()))...)
 	t.container.AddChild(t.flipBook)
-	t.flipBookOpts = nil
 
 }
 

@@ -72,7 +72,7 @@ func main() {
 		}),
 
 		//Set the font face and size for the widget
-		widget.TextInputOpts.Face(face),
+		widget.TextInputOpts.Face(&face),
 
 		//Set the colors for the text and caret
 		widget.TextInputOpts.Color(&widget.TextInputColor{
@@ -87,7 +87,7 @@ func main() {
 
 		//Set the font and width of the caret
 		widget.TextInputOpts.CaretOpts(
-			widget.CaretOpts.Size(face, 2),
+			widget.CaretOpts.Size(&face, 2),
 		),
 
 		//This text is displayed if the input is empty
@@ -125,7 +125,7 @@ func main() {
 		}),
 
 		//Set the font face and size for the widget
-		widget.TextInputOpts.Face(face),
+		widget.TextInputOpts.Face(&face),
 
 		//Set the colors for the text and caret
 		widget.TextInputOpts.Color(&widget.TextInputColor{
@@ -140,7 +140,7 @@ func main() {
 
 		//Set the font and width of the caret
 		widget.TextInputOpts.CaretOpts(
-			widget.CaretOpts.Size(face, 2),
+			widget.CaretOpts.Size(&face, 2),
 		),
 
 		//This text is displayed if the input is empty
@@ -172,7 +172,7 @@ func main() {
 			Idle:     image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
 			Disabled: image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
 		}),
-		widget.TextInputOpts.Face(face),
+		widget.TextInputOpts.Face(&face),
 		widget.TextInputOpts.Color(&widget.TextInputColor{
 			Idle:          color.NRGBA{254, 255, 255, 255},
 			Disabled:      color.NRGBA{R: 200, G: 200, B: 200, A: 255},
@@ -181,7 +181,7 @@ func main() {
 		}),
 		widget.TextInputOpts.Padding(widget.NewInsetsSimple(5)),
 		widget.TextInputOpts.CaretOpts(
-			widget.CaretOpts.Size(face, 2),
+			widget.CaretOpts.Size(&face, 2),
 		),
 		//This parameter indicates that the inputted text should be hidden
 		widget.TextInputOpts.Secure(true),
@@ -208,7 +208,7 @@ func main() {
 			Idle:     image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
 			Disabled: image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
 		}),
-		widget.TextInputOpts.Face(face),
+		widget.TextInputOpts.Face(&face),
 		widget.TextInputOpts.Color(&widget.TextInputColor{
 			Idle:          color.NRGBA{254, 255, 255, 255},
 			Disabled:      color.NRGBA{R: 200, G: 200, B: 200, A: 255},
@@ -217,7 +217,7 @@ func main() {
 		}),
 		widget.TextInputOpts.Padding(widget.NewInsetsSimple(5)),
 		widget.TextInputOpts.CaretOpts(
-			widget.CaretOpts.Size(face, 2),
+			widget.CaretOpts.Size(&face, 2),
 		),
 		widget.TextInputOpts.Placeholder("Max length (5) Textbox"),
 
@@ -254,7 +254,7 @@ func main() {
 			Idle:     image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
 			Disabled: image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
 		}),
-		widget.TextInputOpts.Face(face),
+		widget.TextInputOpts.Face(&face),
 		widget.TextInputOpts.Color(&widget.TextInputColor{
 			Idle:          color.NRGBA{254, 255, 255, 255},
 			Disabled:      color.NRGBA{R: 200, G: 200, B: 200, A: 255},
@@ -263,7 +263,7 @@ func main() {
 		}),
 		widget.TextInputOpts.Padding(widget.NewInsetsSimple(5)),
 		widget.TextInputOpts.CaretOpts(
-			widget.CaretOpts.Size(face, 2),
+			widget.CaretOpts.Size(&face, 2),
 		),
 		widget.TextInputOpts.Placeholder("All Caps Textbox"),
 

@@ -87,7 +87,7 @@ func main() {
 		// Hide the horizontal slider
 		widget.ListOpts.HideHorizontalSlider(),
 		// Set the font for the list options
-		widget.ListOpts.EntryFontFace(face),
+		widget.ListOpts.EntryFontFace(&face),
 		// Set the colors for the list
 		widget.ListOpts.EntryColor(&widget.ListEntryColor{
 			Selected:                   color.NRGBA{R: 0, G: 255, B: 0, A: 255},     // Foreground color for the unfocused selected entry
