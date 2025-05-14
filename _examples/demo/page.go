@@ -693,11 +693,11 @@ func dragAndDropPage(res *uiResources) *page {
 			}),
 			widget.WidgetOpts.Dropped(func(args *widget.DragAndDropDroppedEventArgs) {
 				targetText.Label = "Thanks!"
-				targetText.Color = res.text.idleColor
+				targetText.SetColor(res.text.idleColor)
 
 				time.AfterFunc(2500*time.Millisecond, func() {
 					targetText.Label = "Drop\nHere"
-					targetText.Color = res.text.disabledColor
+					targetText.SetColor(res.text.disabledColor)
 				})
 			}),
 		),

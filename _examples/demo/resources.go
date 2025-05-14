@@ -63,16 +63,16 @@ type uiResources struct {
 type textResources struct {
 	idleColor     color.Color
 	disabledColor color.Color
-	face          text.Face
-	titleFace     text.Face
-	bigTitleFace  text.Face
-	smallFace     text.Face
+	face          *text.Face
+	titleFace     *text.Face
+	bigTitleFace  *text.Face
+	smallFace     *text.Face
 }
 
 type buttonResources struct {
 	image   *widget.ButtonImage
 	text    *widget.ButtonTextColor
-	face    text.Face
+	face    *text.Face
 	padding widget.Insets
 }
 
@@ -83,13 +83,13 @@ type checkboxResources struct {
 
 type labelResources struct {
 	text *widget.LabelColor
-	face text.Face
+	face *text.Face
 }
 
 type comboButtonResources struct {
 	image   *widget.ButtonImage
 	text    *widget.ButtonTextColor
-	face    text.Face
+	face    *text.Face
 	graphic *widget.GraphicImage
 	padding widget.Insets
 }
@@ -100,7 +100,7 @@ type listResources struct {
 	trackPadding widget.Insets
 	handle       *widget.ButtonImage
 	handleSize   int
-	face         text.Face
+	face         *text.Face
 	entry        *widget.ListEntryColor
 	entryPadding widget.Insets
 }
@@ -123,7 +123,7 @@ type panelResources struct {
 }
 
 type tabBookResources struct {
-	buttonFace    text.Face
+	buttonFace    *text.Face
 	buttonText    *widget.ButtonTextColor
 	buttonPadding widget.Insets
 }
@@ -131,14 +131,14 @@ type tabBookResources struct {
 type headerResources struct {
 	background *image.NineSlice
 	padding    widget.Insets
-	face       text.Face
+	face       *text.Face
 	color      color.Color
 }
 
 type textInputResources struct {
 	image   *widget.TextInputImage
 	padding widget.Insets
-	face    text.Face
+	face    *text.Face
 	color   *widget.TextInputColor
 }
 
@@ -148,14 +148,14 @@ type textAreaResources struct {
 	trackPadding widget.Insets
 	handle       *widget.ButtonImage
 	handleSize   int
-	face         text.Face
+	face         *text.Face
 	entryPadding widget.Insets
 }
 
 type toolTipResources struct {
 	background *image.NineSlice
 	padding    widget.Insets
-	face       text.Face
+	face       *text.Face
 	color      color.Color
 }
 
