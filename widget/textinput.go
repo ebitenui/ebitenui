@@ -163,12 +163,11 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 		t.image.Highlight = image.NewNineSliceColor(color.NRGBA{6, 67, 161, 100})
 	}
 
-	t.Validate()
-
 	return t
 }
 
 func (t *TextInput) Validate() {
+	t.init.Do()
 	if len(t.caretOpts) == 0 {
 		panic("TextInput: CaretOpts are required.")
 	}
@@ -869,12 +868,12 @@ func (t *TextInput) AddFocus(direction FocusDirection, focus Focuser) {
 func (t *TextInput) createWidget() {
 	t.widget = NewWidget(append([]WidgetOpt{WidgetOpts.TrackHover(true)}, t.widgetOpts...)...)
 	t.widget.focusable = t
-	t.widgetOpts = nil
 
 	t.caret = NewCaret(append(t.caretOpts, CaretOpts.Color(t.color.Caret))...)
-	t.caretOpts = nil
+	t.caret.Validate()
 
 	t.text = NewText(TextOpts.Text("", t.face, color.White))
+	t.text.Validate()
 
 	t.mask = image.NewNineSliceColor(color.NRGBA{255, 0, 255, 255})
 }

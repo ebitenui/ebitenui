@@ -160,7 +160,7 @@ func NewButton(opts ...ButtonOpt) *Button {
 }
 
 func (b *Button) Validate() {
-
+	b.init.Do()
 	b.populateComputedParams()
 
 	if b.computedParams.Image == nil {

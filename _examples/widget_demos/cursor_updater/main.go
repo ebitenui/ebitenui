@@ -71,6 +71,9 @@ func (cu *cursor_updater) Update() {
 	cu.systemPosition = image.Point{X, Y}
 
 }
+
+func (cu *cursor_updater) AfterUpdate() {
+}
 func (cu *cursor_updater) Draw(screen *ebiten.Image) {
 }
 func (cu *cursor_updater) AfterDraw(screen *ebiten.Image) {

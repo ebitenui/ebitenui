@@ -52,7 +52,7 @@ func NewLabel(opts ...LabelOpt) *Label {
 }
 
 func (l *Label) Validate() {
-
+	l.init.Do()
 	l.populateComputedParams()
 
 	if l.computedParams.Color == nil {

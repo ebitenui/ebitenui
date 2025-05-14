@@ -137,6 +137,7 @@ func NewText(opts ...TextOpt) *Text {
 }
 
 func (t *Text) Validate() {
+	t.init.Do()
 	t.populateComputedParams()
 
 	if t.computedParams.Color == nil {

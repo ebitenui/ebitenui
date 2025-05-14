@@ -70,7 +70,7 @@ func main() {
 		}),
 
 		// Set the font face and size for the widget.
-		widget.TextInputOpts.Face(face),
+		widget.TextInputOpts.Face(&face),
 
 		// Set the colors for the text and caret.
 		widget.TextInputOpts.Color(&widget.TextInputColor{
@@ -85,7 +85,7 @@ func main() {
 
 		// Set the font and width of the caret.
 		widget.TextInputOpts.CaretOpts(
-			widget.CaretOpts.Size(face, 2),
+			widget.CaretOpts.Size(&face, 2),
 		),
 
 		// This text is displayed if the input is empty.
