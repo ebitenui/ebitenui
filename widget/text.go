@@ -313,6 +313,55 @@ func (t *Text) Update() {
 }
 
 func (t *Text) handleLinkEvents() {
+	r := t.widget.Rect
+	w := r.Dx()
+	p := r.Min
+	// Reset Hovered
+	for linesIdx := range t.measurements.processedLines {
+		for idx := range t.measurements.processedLines[linesIdx] {
+			t.measurements.processedLines[linesIdx][idx].hovered = false
+		}
+	}
+
+	// Process Hovered
+	cursorX, cursorY := input.CursorPosition()
+	cursorPoint := image.Point{X: cursorX, Y: cursorY}
+	drawnRectangle := t.widget.Rect
+	if t.widget.parent != nil {
+		drawnRectangle = t.widget.parent.Rect
+	}
+
+	if cursorPoint.In(drawnRectangle) {
+		for linesIdx := range t.measurements.processedLines {
+			ly := float64(p.Y) + t.measurements.lineHeight*float64(linesIdx)
+			lx := float64(p.X)
+			switch t.horizontalPosition {
+			case TextPositionCenter:
+				lx += ((float64(w) - t.measurements.processedLineWidths[linesIdx]) / 2) + float64(t.Padding.Left)
+			case TextPositionEnd:
+				lx += float64(w) - t.measurements.processedLineWidths[linesIdx] - float64(t.Padding.Right)
+			case TextPositionStart:
+				lx += float64(t.Padding.Left)
+			}
+			hoverLX := lx
+			for idx := range t.measurements.processedLines[linesIdx] {
+				wordWidth, _ := text.Measure(t.measurements.processedLines[linesIdx][idx].text, t.Face, 0)
+
+				if t.measurements.processedLines[linesIdx][idx].linkValue != nil {
+					if cursorPoint.In(image.Rect(int(hoverLX), int(ly), int(hoverLX+wordWidth), int(ly+t.measurements.lineHeight))) {
+						input.SetCursorShape(input.CURSOR_POINTER)
+						t.currentLink = t.measurements.processedLines[linesIdx][idx]
+						t.measurements.processedLines[linesIdx][idx].hovered = true
+						for additionalIdx := range t.measurements.processedLines[linesIdx][idx].linkValue.textBlocks {
+							t.measurements.processedLines[linesIdx][idx].linkValue.textBlocks[additionalIdx].hovered = true
+						}
+					}
+				}
+				hoverLX += float64(wordWidth)
+			}
+		}
+	}
+
 	if t.previousLink != nil && (t.currentLink == nil || t.currentLink.linkValue != t.previousLink.linkValue) {
 		if t.LinkCursorExitedEvent != nil {
 			off := t.getCursorOffset()
@@ -373,54 +422,6 @@ func (t *Text) draw(screen *ebiten.Image) {
 		p = p.Add(image.Point{0, int((float64(r.Dy())-t.measurements.boundingBoxHeight)/2 + float64(t.Padding.Top))})
 	case TextPositionEnd:
 		p = p.Add(image.Point{0, int(float64(r.Dy())-t.measurements.boundingBoxHeight) - t.Padding.Bottom})
-	}
-
-	if t.ProcessBBCode {
-		// Reset Hovered
-		for linesIdx := range t.measurements.processedLines {
-			for idx := range t.measurements.processedLines[linesIdx] {
-				t.measurements.processedLines[linesIdx][idx].hovered = false
-			}
-		}
-
-		// Process Hovered
-		cursorX, cursorY := input.CursorPosition()
-		cursorPoint := image.Point{X: cursorX, Y: cursorY}
-		drawnRectangle := t.widget.Rect
-		if t.widget.parent != nil {
-			drawnRectangle = t.widget.parent.Rect
-		}
-
-		if cursorPoint.In(drawnRectangle) {
-			for linesIdx := range t.measurements.processedLines {
-				ly := float64(p.Y) + t.measurements.lineHeight*float64(linesIdx)
-				lx := float64(p.X)
-				switch t.horizontalPosition {
-				case TextPositionCenter:
-					lx += ((float64(w) - t.measurements.processedLineWidths[linesIdx]) / 2) + float64(t.Padding.Left)
-				case TextPositionEnd:
-					lx += float64(w) - t.measurements.processedLineWidths[linesIdx] - float64(t.Padding.Right)
-				case TextPositionStart:
-					lx += float64(t.Padding.Left)
-				}
-				hoverLX := lx
-				for idx := range t.measurements.processedLines[linesIdx] {
-					wordWidth, _ := text.Measure(t.measurements.processedLines[linesIdx][idx].text, t.Face, 0)
-
-					if t.measurements.processedLines[linesIdx][idx].linkValue != nil {
-						if cursorPoint.In(image.Rect(int(hoverLX), int(ly), int(hoverLX+wordWidth), int(ly+t.measurements.lineHeight))) {
-							input.SetCursorShape(input.CURSOR_POINTER)
-							t.currentLink = t.measurements.processedLines[linesIdx][idx]
-							t.measurements.processedLines[linesIdx][idx].hovered = true
-							for additionalIdx := range t.measurements.processedLines[linesIdx][idx].linkValue.textBlocks {
-								t.measurements.processedLines[linesIdx][idx].linkValue.textBlocks[additionalIdx].hovered = true
-							}
-						}
-					}
-					hoverLX += float64(wordWidth)
-				}
-			}
-		}
 	}
 
 	// Draw text

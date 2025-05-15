@@ -65,7 +65,7 @@ func main() {
 		// Set the initial text for the textarea
 		// It will automatically line wrap and process newlines characters
 		// If ProcessBBCode is true it will parse out bbcode
-		widget.TextAreaOpts.Text("[link=a]Hello[/link] [color=#FFF000]World[/color] Hello [b]World[/b] Hello [b]World[/b] Hello [b]World[/b] Hello [b]World[/b] Hello [b]World[/b]"),
+		widget.TextAreaOpts.Text("[link=a]Hello[/link] [color=#FFF000]World[/color] Hello [b]World[/b]\n Hello [b]World[/b]\n Hello [b]World[/b]\n Hello [b]World[/b]\n Hello \n[b]World[/b]\n[link=b]Hello[/link] \n[link=c]Hello[/link] "),
 		// Tell the TextArea to show the vertical scrollbar
 		widget.TextAreaOpts.ShowVerticalScrollbar(),
 		// Set padding between edge of the widget and where the text is drawn
@@ -127,6 +127,7 @@ func main() {
 	ebiten.SetWindowSize(400, 400)
 	ebiten.SetWindowTitle("Ebiten UI - TextArea")
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+
 	game := game{
 		ui: &ui,
 	}
