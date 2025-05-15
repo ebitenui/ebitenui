@@ -13,11 +13,11 @@ type Theme struct {
 	PanelTheme       *PanelParams
 	LabelTheme       *LabelParams
 	TextTheme        *TextParams
+	CheckboxTheme    *CheckboxParams
 }
 
 /*
 TO DO:
-Checkbox
 Combobox
 list
 progressbar

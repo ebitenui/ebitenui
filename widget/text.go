@@ -165,12 +165,14 @@ func (t *Text) populateComputedParams() {
 	if t.definedParams.Face != nil {
 		txtParams.Face = t.definedParams.Face
 	}
-
 	if t.definedParams.Padding != nil {
 		txtParams.Padding = t.definedParams.Padding
 	}
 	if t.definedParams.Color != nil {
 		txtParams.Color = t.definedParams.Color
+	}
+	if t.definedParams.Position != nil {
+		txtParams.Position = t.definedParams.Position
 	}
 
 	if txtParams.Padding == nil {

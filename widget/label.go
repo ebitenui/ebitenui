@@ -64,7 +64,8 @@ func (l *Label) Validate() {
 	if l.computedParams.Face == nil {
 		panic("Label: Font Face is required.")
 	}
-	l.text.Validate()
+
+	l.setComputedParams()
 }
 
 func (l *Label) populateComputedParams() {
@@ -99,7 +100,6 @@ func (l *Label) populateComputedParams() {
 	}
 
 	l.computedParams = lblParams
-	l.setComputedParams()
 }
 
 func (o LabelOptions) TextOpts(opts ...TextOpt) LabelOpt {
@@ -184,9 +184,10 @@ func (l *Label) createWidget() {
 }
 
 func (l *Label) setComputedParams() {
-	l.text.SetFace(l.computedParams.Face)
+	l.text.definedParams.Color = l.computedParams.Color.Idle
+	l.text.definedParams.Face = l.computedParams.Face
 	if l.computedParams.Padding != nil {
-		l.text.SetPadding(l.computedParams.Padding)
+		l.text.definedParams.Padding = l.computedParams.Padding
 	}
-	l.text.SetColor(l.computedParams.Color.Idle)
+	l.text.Validate()
 }
