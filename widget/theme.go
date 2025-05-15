@@ -14,14 +14,14 @@ type Theme struct {
 	LabelTheme       *LabelParams
 	TextTheme        *TextParams
 	CheckboxTheme    *CheckboxParams
+	ProgressBarTheme *ProgressBarParams
 }
 
 /*
 TO DO:
+slider
 Combobox
 list
-progressbar
-slider
 tabbook
 textarea
 textinput

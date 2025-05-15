@@ -508,7 +508,7 @@ func progressBarPage(res *uiResources) *page {
 			widget.WidgetOpts.MinSize(200, 30),
 		),
 		widget.ProgressBarOpts.Values(0, 20, 20),
-		widget.ProgressBarOpts.TrackPadding(widget.Insets{
+		widget.ProgressBarOpts.TrackPadding(&widget.Insets{
 			Top:    3,
 			Bottom: 3,
 			Left:   2,
