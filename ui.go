@@ -38,8 +38,9 @@ type UI struct {
 	inputLayerers      []input.Layerer
 	windows            []*widget.Window
 
-	previousContainer *widget.Container
-	tabWasPressed     bool
+	previousContainer          *widget.Container
+	previousRemoveHandlerFuncs []event.RemoveHandlerFunc
+	tabWasPressed              bool
 }
 
 // Update updates u. This method should be called in the Ebiten Update function.
@@ -48,11 +49,15 @@ func (u *UI) Update() {
 	defer input.AfterUpdate()
 
 	if u.previousContainer == nil || u.previousContainer != u.Container {
-		u.Container.GetWidget().ContextMenuEvent.AddHandler(u.handleContextMenu)
-		u.Container.GetWidget().FocusEvent.AddHandler(u.handleFocusEvent)
-		u.Container.GetWidget().ToolTipEvent.AddHandler(u.handleToolTipEvent)
-		u.Container.GetWidget().DragAndDropEvent.AddHandler(u.handleDragAndDropEvent)
-
+		for _, removeHandler := range u.previousRemoveHandlerFuncs {
+			removeHandler()
+		}
+		u.previousRemoveHandlerFuncs = []event.RemoveHandlerFunc{
+			u.Container.GetWidget().ContextMenuEvent.AddHandler(u.handleContextMenu),
+			u.Container.GetWidget().FocusEvent.AddHandler(u.handleFocusEvent),
+			u.Container.GetWidget().ToolTipEvent.AddHandler(u.handleToolTipEvent),
+			u.Container.GetWidget().DragAndDropEvent.AddHandler(u.handleDragAndDropEvent),
+		}
 		u.previousContainer = u.Container
 		// Close all Ephemeral Windows (tooltip/dnd/etc)
 		u.closeEphemeralWindows(0)
