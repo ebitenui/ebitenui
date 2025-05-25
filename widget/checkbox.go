@@ -117,7 +117,7 @@ func (c *Checkbox) Validate() {
 		panic("Checkbox: non-tri state Checkbox cannot be in greyed state.")
 	}
 	if c.label != nil {
-		c.setComputedParams()
+		c.setChildComputedParams()
 	}
 }
 
@@ -562,7 +562,7 @@ func (c *Checkbox) currentImage() *image.NineSlice {
 	return c.computedParams.Image.Unchecked
 }
 
-func (c *Checkbox) setComputedParams() {
+func (c *Checkbox) setChildComputedParams() {
 	c.label.definedParams.Color = c.computedParams.Label.Color
 	c.label.definedParams.Face = c.computedParams.Label.Face
 	c.label.definedParams.Padding = c.computedParams.Label.Padding

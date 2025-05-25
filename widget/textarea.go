@@ -357,7 +357,7 @@ func (l *TextArea) createWidget() {
 		}
 
 		l.vSlider = NewSlider(append(l.sliderOpts, []SliderOpt{
-			SliderOpts.Direction(DirectionVertical),
+			SliderOpts.Orientation(DirectionVertical),
 			SliderOpts.MinMax(0, 1000),
 			SliderOpts.PageSizeFunc(pageSizeFunc),
 			SliderOpts.ChangedHandler(func(args *SliderChangedEventArgs) {
@@ -393,7 +393,7 @@ func (l *TextArea) createWidget() {
 		}
 
 		l.hSlider = NewSlider(append(l.sliderOpts, []SliderOpt{
-			SliderOpts.Direction(DirectionHorizontal),
+			SliderOpts.Orientation(DirectionHorizontal),
 			SliderOpts.MinMax(0, 1000),
 			SliderOpts.PageSizeFunc(pageSizeFunc),
 			SliderOpts.ChangedHandler(func(args *SliderChangedEventArgs) {

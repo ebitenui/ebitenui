@@ -15,11 +15,11 @@ type Theme struct {
 	TextTheme        *TextParams
 	CheckboxTheme    *CheckboxParams
 	ProgressBarTheme *ProgressBarParams
+	SliderTheme      *SliderParams
 }
 
 /*
 TO DO:
-slider
 Combobox
 list
 tabbook

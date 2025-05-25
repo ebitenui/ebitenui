@@ -65,7 +65,7 @@ func (l *Label) Validate() {
 		panic("Label: Font Face is required.")
 	}
 
-	l.setComputedParams()
+	l.setChildComputedParams()
 }
 
 func (l *Label) populateComputedParams() {
@@ -74,9 +74,30 @@ func (l *Label) populateComputedParams() {
 	theme := l.text.GetWidget().GetTheme()
 
 	if theme != nil {
+		lblParams.Face = theme.DefaultFace
+		if theme.DefaultTextColor != nil {
+			lblParams.Color = &LabelColor{
+				Idle:     theme.DefaultTextColor,
+				Disabled: theme.DefaultTextColor,
+			}
+		}
+
 		if theme.LabelTheme != nil {
-			lblParams.Face = theme.LabelTheme.Face
-			lblParams.Color = theme.LabelTheme.Color
+			if theme.LabelTheme.Face != nil {
+				lblParams.Face = theme.LabelTheme.Face
+			}
+			if theme.LabelTheme.Color != nil {
+				if lblParams.Color == nil {
+					lblParams.Color = theme.LabelTheme.Color
+				} else {
+					if theme.LabelTheme.Color.Idle != nil {
+						lblParams.Color.Idle = theme.LabelTheme.Color.Idle
+					}
+					if theme.LabelTheme.Color.Disabled != nil {
+						lblParams.Color.Disabled = theme.LabelTheme.Color.Disabled
+					}
+				}
+			}
 			lblParams.Padding = theme.LabelTheme.Padding
 		}
 	}
@@ -183,7 +204,7 @@ func (l *Label) createWidget() {
 	l.text = NewText(append(l.textOpts, TextOpts.TextLabel(l.Label))...)
 }
 
-func (l *Label) setComputedParams() {
+func (l *Label) setChildComputedParams() {
 	l.text.definedParams.Color = l.computedParams.Color.Idle
 	l.text.definedParams.Face = l.computedParams.Face
 	if l.computedParams.Padding != nil {
