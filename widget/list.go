@@ -116,7 +116,7 @@ func (l *List) validate() {
 	if len(l.scrollContainerOpts) == 0 {
 		panic("List: ScrollContainerOpts are required.")
 	}
-	if len(l.sliderOpts) == 0 {
+	if len(l.sliderOpts) == 0 && !(l.hideHorizontalSlider && l.hideVerticalSlider) {
 		panic("List: SliderOpts are required.")
 	}
 	if l.entryFace == nil {
