@@ -16,13 +16,13 @@ type Theme struct {
 	CheckboxTheme    *CheckboxParams
 	ProgressBarTheme *ProgressBarParams
 	SliderTheme      *SliderParams
+	TabbookTheme     *TabBookParams
 }
 
 /*
 TO DO:
 Combobox
 list
-tabbook
 textarea
 textinput
 */

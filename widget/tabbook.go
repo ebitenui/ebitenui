@@ -9,6 +9,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
+type TabBookParams struct {
+	TabButton      *ButtonParams
+	TabSpacing     int
+	ContentSpacing int
+}
+
 type TabBook struct {
 	TabSelectedEvent *event.Event
 
