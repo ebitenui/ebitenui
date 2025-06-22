@@ -54,7 +54,7 @@ func main() {
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   50,
 			Right:  50,
 			Top:    5,
@@ -97,7 +97,7 @@ func main() {
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   5,
 			Right:  5,
 			Top:    5,

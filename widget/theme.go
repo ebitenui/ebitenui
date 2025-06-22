@@ -20,10 +20,10 @@ type Theme struct {
 	TabbookTheme     *TabBookParams
 	TextInputTheme   *TextInputParams
 	TextAreaTheme    *TextAreaParams
+	ListTheme        *ListParams
 }
 
 /*
 TO DO:
-list
 Combobox
 */

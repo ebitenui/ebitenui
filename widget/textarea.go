@@ -210,10 +210,17 @@ func (o TextAreaOptions) ContainerOpts(opts ...ContainerOpt) TextAreaOpt {
 	}
 }
 
-// Specify the options for the scroll container.
+// Specify the images for the scroll container.
 func (o TextAreaOptions) ScrollContainerImage(image *ScrollContainerImage) TextAreaOpt {
 	return func(l *TextArea) {
 		l.definedParams.ScrollContainerImage = image
+	}
+}
+
+// Specify the padding for the scroll container.
+func (o TextAreaOptions) ScrollContainerPadding(padding *Insets) TextAreaOpt {
+	return func(l *TextArea) {
+		l.definedParams.ScrollContainerPadding = padding
 	}
 }
 
@@ -458,7 +465,7 @@ func (l *TextArea) initWidget() {
 		ScrollContainerOpts.Content(content),
 		ScrollContainerOpts.StretchContentWidth(),
 		ScrollContainerOpts.Image(l.computedParams.ScrollContainerImage),
-		ScrollContainerOpts.Padding(*l.computedParams.ScrollContainerPadding),
+		ScrollContainerOpts.Padding(l.computedParams.ScrollContainerPadding),
 	)
 	l.container.AddChild(l.scrollContainer)
 

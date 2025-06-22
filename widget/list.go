@@ -8,50 +8,62 @@ import (
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
+	"github.com/ebitenui/ebitenui/utilities/constantutil"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"golang.org/x/exp/slices"
 )
 
+type ListParams struct {
+	EntryFace                   *text.Face
+	EntryUnselectedColor        *ButtonImage
+	EntrySelectedColor          *ButtonImage
+	EntryUnselectedTextColor    *ButtonTextColor
+	EntryTextColor              *ButtonTextColor
+	EntryTextPadding            *Insets
+	EntryTextHorizontalPosition *TextPosition
+	EntryTextVerticalPosition   *TextPosition
+	ControlWidgetSpacing        *int
+
+	AllowReselect      *bool
+	SelectFocus        *bool
+	SelectPressed      *bool
+	DisableDefaultKeys *bool
+
+	Slider                 *SliderParams
+	ScrollContainerImage   *ScrollContainerImage
+	ScrollContainerPadding *Insets
+}
+
 type List struct {
+	definedParams  ListParams
+	computedParams ListParams
+
 	EntrySelectedEvent *event.Event
 
-	containerOpts               []ContainerOpt
-	scrollContainerOpts         []ScrollContainerOpt
-	sliderOpts                  []SliderOpt
-	entries                     []any
-	entryLabelFunc              ListEntryLabelFunc
-	entryFace                   *text.Face
-	entryUnselectedColor        *ButtonImage
-	entrySelectedColor          *ButtonImage
-	entryUnselectedTextColor    *ButtonTextColor
-	entryTextColor              *ButtonTextColor
-	entryTextPadding            Insets
-	entryTextHorizontalPosition TextPosition
-	entryTextVerticalPosition   TextPosition
-	controlWidgetSpacing        int
-	hideHorizontalSlider        bool
-	hideVerticalSlider          bool
-	allowReselect               bool
-	selectFocus                 bool
-	selectPressed               bool
+	containerOpts        []ContainerOpt
+	hideHorizontalSlider bool
+	hideVerticalSlider   bool
+
+	entries        []any
+	entryLabelFunc ListEntryLabelFunc
 
 	init            *MultiOnce
 	container       *Container
 	listContent     *Container
 	scrollContainer *ScrollContainer
+	layout          *GridLayout
 	vSlider         *Slider
 	hSlider         *Slider
 	buttons         []*Button
 	selectedEntry   any
 
-	disableDefaultKeys bool
-	focused            bool
-	tabOrder           int
-	justMoved          bool
-	focusIndex         int
-	prevFocusIndex     int
+	focused        bool
+	tabOrder       int
+	justMoved      bool
+	focusIndex     int
+	prevFocusIndex int
 
 	focusMap map[FocusDirection]Focuser
 }
@@ -90,9 +102,6 @@ func NewList(opts ...ListOpt) *List {
 	l := &List{
 		EntrySelectedEvent: &event.Event{},
 
-		entryTextHorizontalPosition: TextPositionCenter,
-		entryTextVerticalPosition:   TextPositionCenter,
-
 		init:           &MultiOnce{},
 		focusIndex:     0,
 		prevFocusIndex: -1,
@@ -111,24 +120,158 @@ func NewList(opts ...ListOpt) *List {
 }
 
 func (l *List) Validate() {
-	if len(l.scrollContainerOpts) == 0 {
-		panic("List: ScrollContainerOpts are required.")
-	}
-	if len(l.sliderOpts) == 0 {
-		panic("List: SliderOpts are required.")
-	}
-	if l.entryFace == nil {
+	l.init.Do()
+	l.populateComputedParams()
+
+	if l.computedParams.EntryFace == nil {
 		panic("List: EntryFontFace is required.")
 	}
 	if l.entryLabelFunc == nil {
 		panic("List: EntryLabelFunc is required.")
 	}
-	if l.entryTextColor == nil || l.entryTextColor.Idle == nil {
+	if l.computedParams.EntryTextColor == nil || l.computedParams.EntryTextColor.Idle == nil {
 		panic("List: ListEntryColor.Selected is required.")
 	}
-	if l.entryUnselectedTextColor == nil || l.entryUnselectedTextColor.Idle == nil {
+	if l.computedParams.EntryUnselectedTextColor == nil || l.computedParams.EntryUnselectedTextColor.Idle == nil {
 		panic("List: ListEntryColor.Unselected is required.")
 	}
+	l.initWidget()
+}
+
+func (t *List) populateComputedParams() {
+	params := ListParams{}
+
+	theme := t.GetWidget().GetTheme()
+
+	// Set theme values
+	if theme != nil {
+		if theme.ListTheme != nil {
+			params.AllowReselect = theme.ListTheme.AllowReselect
+			params.ControlWidgetSpacing = theme.ListTheme.ControlWidgetSpacing
+			params.DisableDefaultKeys = theme.ListTheme.DisableDefaultKeys
+			if theme.ListTheme.EntryFace != nil {
+				params.EntryFace = theme.ListTheme.EntryFace
+			} else {
+				params.EntryFace = theme.DefaultFace
+			}
+			params.EntrySelectedColor = theme.ListTheme.EntrySelectedColor
+			params.EntryTextColor = theme.ListTheme.EntryTextColor
+			params.EntryTextHorizontalPosition = theme.ListTheme.EntryTextHorizontalPosition
+			params.EntryTextPadding = theme.ListTheme.EntryTextPadding
+			params.EntryTextVerticalPosition = theme.ListTheme.EntryTextVerticalPosition
+			params.EntryUnselectedColor = theme.ListTheme.EntryUnselectedColor
+			params.EntryUnselectedTextColor = theme.ListTheme.EntryUnselectedTextColor
+			params.ScrollContainerImage = theme.ListTheme.ScrollContainerImage
+			params.ScrollContainerPadding = theme.ListTheme.ScrollContainerPadding
+			params.SelectFocus = theme.ListTheme.SelectFocus
+			params.SelectPressed = theme.ListTheme.SelectPressed
+			params.Slider = theme.ListTheme.Slider
+		}
+	}
+
+	// Set definedParam values
+	if t.definedParams.AllowReselect != nil {
+		params.AllowReselect = t.definedParams.AllowReselect
+	}
+	if t.definedParams.ControlWidgetSpacing != nil {
+		params.ControlWidgetSpacing = t.definedParams.ControlWidgetSpacing
+	}
+	if t.definedParams.DisableDefaultKeys != nil {
+		params.DisableDefaultKeys = t.definedParams.DisableDefaultKeys
+	}
+	if t.definedParams.EntryFace != nil {
+		params.EntryFace = t.definedParams.EntryFace
+	}
+	if t.definedParams.EntrySelectedColor != nil {
+		params.EntrySelectedColor = t.definedParams.EntrySelectedColor
+	}
+	if t.definedParams.EntryTextColor != nil {
+		params.EntryTextColor = t.definedParams.EntryTextColor
+	}
+	if t.definedParams.EntryTextHorizontalPosition != nil {
+		params.EntryTextHorizontalPosition = t.definedParams.EntryTextHorizontalPosition
+	}
+	if t.definedParams.EntryTextPadding != nil {
+		params.EntryTextPadding = t.definedParams.EntryTextPadding
+	}
+	if t.definedParams.EntryTextVerticalPosition != nil {
+		params.EntryTextVerticalPosition = t.definedParams.EntryTextVerticalPosition
+	}
+	if t.definedParams.EntryUnselectedColor != nil {
+		params.EntryUnselectedColor = t.definedParams.EntryUnselectedColor
+	}
+	if t.definedParams.EntryUnselectedTextColor != nil {
+		params.EntryUnselectedTextColor = t.definedParams.EntryUnselectedTextColor
+	}
+	if t.definedParams.ScrollContainerImage != nil {
+		params.ScrollContainerImage = t.definedParams.ScrollContainerImage
+	}
+	if t.definedParams.ScrollContainerPadding != nil {
+		params.ScrollContainerPadding = t.definedParams.ScrollContainerPadding
+	}
+	if t.definedParams.SelectFocus != nil {
+		params.SelectFocus = t.definedParams.SelectFocus
+	}
+	if t.definedParams.SelectPressed != nil {
+		params.SelectPressed = t.definedParams.SelectPressed
+	}
+	if t.definedParams.Slider != nil {
+		if params.Slider == nil {
+			params.Slider = &SliderParams{}
+		}
+		if t.definedParams.Slider.FixedHandleSize != nil {
+			params.Slider.FixedHandleSize = t.definedParams.Slider.FixedHandleSize
+		}
+		if t.definedParams.Slider.HandleImage != nil {
+			params.Slider.HandleImage = t.definedParams.Slider.HandleImage
+		}
+		if t.definedParams.Slider.MinHandleSize != nil {
+			params.Slider.MinHandleSize = t.definedParams.Slider.MinHandleSize
+		}
+		if t.definedParams.Slider.TrackImage != nil {
+			params.Slider.TrackImage = t.definedParams.Slider.TrackImage
+		}
+		if t.definedParams.Slider.TrackOffset != nil {
+			params.Slider.TrackOffset = t.definedParams.Slider.TrackOffset
+		}
+		if t.definedParams.Slider.TrackPadding != nil {
+			params.Slider.TrackPadding = t.definedParams.Slider.TrackPadding
+		}
+	}
+
+	// Set defaults
+	if params.EntryTextPadding == nil {
+		params.EntryTextPadding = &Insets{}
+	}
+	if params.EntryTextHorizontalPosition == nil {
+		pos := TextPositionCenter
+		params.EntryTextHorizontalPosition = &pos
+	}
+	if params.EntryTextVerticalPosition == nil {
+		pos := TextPositionCenter
+		params.EntryTextVerticalPosition = &pos
+	}
+	if params.ControlWidgetSpacing == nil {
+		spacing := 0
+		params.ControlWidgetSpacing = &spacing
+	}
+	FALSE := false
+	if params.AllowReselect == nil {
+		params.AllowReselect = &FALSE
+	}
+	if params.SelectFocus == nil {
+		params.SelectFocus = &FALSE
+	}
+	if params.SelectPressed == nil {
+		params.SelectPressed = &FALSE
+	}
+	if params.DisableDefaultKeys == nil {
+		params.DisableDefaultKeys = &FALSE
+	}
+	if params.ScrollContainerPadding == nil {
+		params.ScrollContainerPadding = &Insets{}
+	}
+	t.computedParams = params
 }
 
 func (o ListOptions) ContainerOpts(opts ...ContainerOpt) ListOpt {
@@ -137,21 +280,30 @@ func (o ListOptions) ContainerOpts(opts ...ContainerOpt) ListOpt {
 	}
 }
 
-func (o ListOptions) ScrollContainerOpts(opts ...ScrollContainerOpt) ListOpt {
+// Specify the images for the scroll container.
+func (o ListOptions) ScrollContainerImage(image *ScrollContainerImage) ListOpt {
 	return func(l *List) {
-		l.scrollContainerOpts = append(l.scrollContainerOpts, opts...)
+		l.definedParams.ScrollContainerImage = image
 	}
 }
 
-func (o ListOptions) SliderOpts(opts ...SliderOpt) ListOpt {
+// Specify the padding for the scroll container.
+func (o ListOptions) ScrollContainerPadding(padding *Insets) ListOpt {
 	return func(l *List) {
-		l.sliderOpts = append(l.sliderOpts, opts...)
+		l.definedParams.ScrollContainerPadding = padding
+	}
+}
+
+// Specify the options for the scroll bars.
+func (o ListOptions) SliderParams(sliderParams *SliderParams) ListOpt {
+	return func(l *List) {
+		l.definedParams.Slider = sliderParams
 	}
 }
 
 func (o ListOptions) ControlWidgetSpacing(s int) ListOpt {
 	return func(l *List) {
-		l.controlWidgetSpacing = s
+		l.definedParams.ControlWidgetSpacing = &s
 	}
 }
 
@@ -181,47 +333,47 @@ func (o ListOptions) EntryLabelFunc(f ListEntryLabelFunc) ListOpt {
 
 func (o ListOptions) EntryFontFace(f *text.Face) ListOpt {
 	return func(l *List) {
-		l.entryFace = f
+		l.definedParams.EntryFace = f
 	}
 }
 
 func (o ListOptions) DisableDefaultKeys(val bool) ListOpt {
 	return func(l *List) {
-		l.disableDefaultKeys = val
+		l.definedParams.DisableDefaultKeys = &val
 	}
 }
 
 func (o ListOptions) EntryColor(c *ListEntryColor) ListOpt {
 	return func(l *List) {
-		l.entryUnselectedColor = &ButtonImage{
+		l.definedParams.EntryUnselectedColor = &ButtonImage{
 			Idle:     image.NewNineSliceColor(color.Transparent),
 			Disabled: image.NewNineSliceColor(color.Transparent),
 			Hover:    image.NewNineSliceColor(c.FocusedBackground),
 			Pressed:  image.NewNineSliceColor(c.SelectingBackground),
 		}
 
-		l.entrySelectedColor = &ButtonImage{
+		l.definedParams.EntrySelectedColor = &ButtonImage{
 			Idle:     image.NewNineSliceColor(c.SelectedBackground),
 			Disabled: image.NewNineSliceColor(c.DisabledSelectedBackground),
 			Hover:    image.NewNineSliceColor(c.SelectedFocusedBackground),
 			Pressed:  image.NewNineSliceColor(c.SelectingFocusedBackground),
 		}
 
-		l.entryUnselectedTextColor = &ButtonTextColor{
+		l.definedParams.EntryUnselectedTextColor = &ButtonTextColor{
 			Idle:     c.Unselected,
 			Disabled: c.DisabledUnselected,
 		}
 
-		l.entryTextColor = &ButtonTextColor{
+		l.definedParams.EntryTextColor = &ButtonTextColor{
 			Idle:     c.Selected,
 			Disabled: c.DisabledSelected,
 		}
 	}
 }
 
-func (o ListOptions) EntryTextPadding(i Insets) ListOpt {
+func (o ListOptions) EntryTextPadding(i *Insets) ListOpt {
 	return func(l *List) {
-		l.entryTextPadding = i
+		l.definedParams.EntryTextPadding = i
 	}
 }
 
@@ -229,8 +381,8 @@ func (o ListOptions) EntryTextPadding(i Insets) ListOpt {
 // Defaults to both TextPositionCenter.
 func (o ListOptions) EntryTextPosition(h TextPosition, v TextPosition) ListOpt {
 	return func(l *List) {
-		l.entryTextHorizontalPosition = h
-		l.entryTextVerticalPosition = v
+		l.definedParams.EntryTextHorizontalPosition = &h
+		l.definedParams.EntryTextVerticalPosition = &v
 	}
 }
 
@@ -246,21 +398,21 @@ func (o ListOptions) EntrySelectedHandler(f ListEntrySelectedHandlerFunc) ListOp
 
 func (o ListOptions) AllowReselect() ListOpt {
 	return func(l *List) {
-		l.allowReselect = true
+		l.definedParams.AllowReselect = constantutil.ConstantToPointer(true)
 	}
 }
 
 // SelectFocus automatically selects each focused entry.
 func (o ListOptions) SelectFocus() ListOpt {
 	return func(l *List) {
-		l.selectFocus = true
+		l.definedParams.SelectFocus = constantutil.ConstantToPointer(true)
 	}
 }
 
 // SelectPressed selects entries when pressing instead of releasing (the default).
 func (o ListOptions) SelectPressed() ListOpt {
 	return func(l *List) {
-		l.selectPressed = true
+		l.definedParams.SelectPressed = constantutil.ConstantToPointer(true)
 	}
 }
 
@@ -311,7 +463,7 @@ func (l *List) Render(screen *ebiten.Image) {
 		l.scrollVisible(l.buttons[l.focusIndex])
 	}
 
-	if l.selectFocus {
+	if *l.computedParams.SelectFocus {
 		l.SelectFocused()
 	}
 
@@ -353,7 +505,7 @@ func (l *List) AddFocus(direction FocusDirection, focus Focuser) {
 
 func (l *List) handleInput() {
 	if l.focused && !l.GetWidget().Disabled && len(l.buttons) > 0 {
-		if !l.disableDefaultKeys && (input.KeyPressed(ebiten.KeyUp) || input.KeyPressed(ebiten.KeyDown)) {
+		if !*l.computedParams.DisableDefaultKeys && (input.KeyPressed(ebiten.KeyUp) || input.KeyPressed(ebiten.KeyDown)) {
 			if !l.justMoved {
 				if input.KeyPressed(ebiten.KeyDown) {
 					l.FocusNext()
@@ -436,16 +588,21 @@ func (l *List) createWidget() {
 	} else {
 		cols = 2
 	}
+	l.layout = NewGridLayout(
+		GridLayoutOpts.Columns(cols),
+		GridLayoutOpts.Stretch([]bool{true, false}, []bool{true, false}))
 
 	l.container = NewContainer(
 		append([]ContainerOpt{
 			ContainerOpts.WidgetOpts(WidgetOpts.TrackHover(true)),
-			ContainerOpts.Layout(NewGridLayout(
-				GridLayoutOpts.Columns(cols),
-				GridLayoutOpts.Stretch([]bool{true, false}, []bool{true, false}),
-				GridLayoutOpts.Spacing(l.controlWidgetSpacing, l.controlWidgetSpacing),
-			))}, l.containerOpts...)...,
+			ContainerOpts.Layout(l.layout)}, l.containerOpts...)...,
 	)
+
+}
+
+func (l *List) initWidget() {
+	l.layout.columnSpacing = *l.computedParams.ControlWidgetSpacing
+	l.layout.rowSpacing = *l.computedParams.ControlWidgetSpacing
 
 	l.listContent = NewContainer(
 		ContainerOpts.Layout(NewRowLayout(
@@ -462,23 +619,49 @@ func (l *List) createWidget() {
 		l.listContent.AddChild(but)
 	}
 
-	l.scrollContainer = NewScrollContainer(append(l.scrollContainerOpts, []ScrollContainerOpt{
+	l.scrollContainer = NewScrollContainer(
 		ScrollContainerOpts.Content(l.listContent),
 		ScrollContainerOpts.StretchContentWidth(),
-	}...)...)
+		ScrollContainerOpts.Image(l.computedParams.ScrollContainerImage),
+		ScrollContainerOpts.Padding(l.computedParams.ScrollContainerPadding),
+	)
 
 	l.container.AddChild(l.scrollContainer)
+
+	var sliderOpts []SliderOpt
+	if l.computedParams.Slider != nil {
+		if l.computedParams.Slider.FixedHandleSize != nil {
+			sliderOpts = append(sliderOpts, SliderOpts.FixedHandleSize(*l.computedParams.Slider.FixedHandleSize))
+		}
+		if l.computedParams.Slider.HandleImage != nil {
+			sliderOpts = append(sliderOpts, SliderOpts.HandleImage(l.computedParams.Slider.HandleImage))
+		}
+		if l.computedParams.Slider.TrackImage != nil {
+			sliderOpts = append(sliderOpts, SliderOpts.TrackImage(l.computedParams.Slider.TrackImage))
+		}
+		if l.computedParams.Slider.MinHandleSize != nil {
+			sliderOpts = append(sliderOpts, SliderOpts.MinHandleSize(*l.computedParams.Slider.MinHandleSize))
+		}
+		if l.computedParams.Slider.TrackOffset != nil {
+			sliderOpts = append(sliderOpts, SliderOpts.TrackOffset(*l.computedParams.Slider.TrackOffset))
+		}
+		if l.computedParams.Slider.TrackPadding != nil {
+			sliderOpts = append(sliderOpts, SliderOpts.TrackPadding(l.computedParams.Slider.TrackPadding))
+		}
+	}
+	if l.computedParams.DisableDefaultKeys != nil {
+		sliderOpts = append(sliderOpts, SliderOpts.DisableDefaultKeys(*l.computedParams.DisableDefaultKeys))
+	}
 
 	if !l.hideVerticalSlider {
 		pageSizeFunc := func() int {
 			return int(math.Round(float64(l.scrollContainer.ViewRect().Dy()) / float64(l.listContent.GetWidget().Rect.Dy()) * 1000))
 		}
 
-		l.vSlider = NewSlider(append(l.sliderOpts, []SliderOpt{
+		l.vSlider = NewSlider(append(sliderOpts, []SliderOpt{
 			SliderOpts.Direction(DirectionVertical),
 			SliderOpts.MinMax(0, 1000),
 			SliderOpts.PageSizeFunc(pageSizeFunc),
-			SliderOpts.DisableDefaultKeys(l.disableDefaultKeys),
 			SliderOpts.ChangedHandler(func(args *SliderChangedEventArgs) {
 				current := args.Slider.Current
 				if pageSizeFunc() >= 1000 {
@@ -501,7 +684,7 @@ func (l *List) createWidget() {
 	}
 
 	if !l.hideHorizontalSlider {
-		l.hSlider = NewSlider(append(l.sliderOpts, []SliderOpt{
+		l.hSlider = NewSlider(append(sliderOpts, []SliderOpt{
 			SliderOpts.Direction(DirectionHorizontal),
 			SliderOpts.MinMax(0, 1000),
 			SliderOpts.PageSizeFunc(func() int {
@@ -600,7 +783,7 @@ func (l *List) SetSelectedEntry(entry any) {
 }
 
 func (l *List) setSelectedEntry(e any, user bool) {
-	if e != l.selectedEntry || (user && l.allowReselect) {
+	if e != l.selectedEntry || (user && *l.computedParams.AllowReselect) {
 		l.init.Do()
 
 		prev := l.selectedEntry
@@ -608,11 +791,11 @@ func (l *List) setSelectedEntry(e any, user bool) {
 		l.resetFocusIndex()
 		for i, b := range l.buttons {
 			if l.entries[i] == e {
-				b.computedParams.Image = l.entrySelectedColor
-				b.computedParams.TextColor = l.entryTextColor
+				b.computedParams.Image = l.computedParams.EntrySelectedColor
+				b.computedParams.TextColor = l.computedParams.EntryTextColor
 			} else {
-				b.computedParams.Image = l.entryUnselectedColor
-				b.computedParams.TextColor = l.entryUnselectedTextColor
+				b.computedParams.Image = l.computedParams.EntryUnselectedColor
+				b.computedParams.TextColor = l.computedParams.EntryUnselectedTextColor
 			}
 		}
 
@@ -634,13 +817,13 @@ func (l *List) createEntry(entry any) *Button {
 		ButtonOpts.WidgetOpts(WidgetOpts.LayoutData(RowLayoutData{
 			Stretch: true,
 		})),
-		ButtonOpts.Image(l.entryUnselectedColor),
-		ButtonOpts.Text(l.entryLabelFunc(entry), l.entryFace, l.entryUnselectedTextColor),
-		ButtonOpts.TextPadding(l.entryTextPadding),
-		ButtonOpts.TextPosition(l.entryTextHorizontalPosition, l.entryTextVerticalPosition),
+		ButtonOpts.Image(l.computedParams.EntryUnselectedColor),
+		ButtonOpts.Text(l.entryLabelFunc(entry), l.computedParams.EntryFace, l.computedParams.EntryUnselectedTextColor),
+		ButtonOpts.TextPadding(l.computedParams.EntryTextPadding),
+		ButtonOpts.TextPosition(*l.computedParams.EntryTextHorizontalPosition, *l.computedParams.EntryTextVerticalPosition),
 	)
 	events := but.ClickedEvent
-	if l.selectPressed {
+	if *l.computedParams.SelectPressed {
 		events = but.PressedEvent
 	}
 	events.AddHandler(func(_ interface{}) {

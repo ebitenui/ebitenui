@@ -391,7 +391,7 @@ func (o ButtonOptions) TextAndImage(label string, face *text.Face, image *Graphi
 	return func(b *Button) {
 		b.init.Append(func() {
 			b.container = NewContainer(
-				ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(*b.computedParams.TextPadding))),
+				ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(b.computedParams.TextPadding))),
 				ContainerOpts.AutoDisableChildren(),
 			)
 
@@ -444,9 +444,9 @@ func (o ButtonOptions) TextPosition(h TextPosition, v TextPosition) ButtonOpt {
 	}
 }
 
-func (o ButtonOptions) TextPadding(p Insets) ButtonOpt {
+func (o ButtonOptions) TextPadding(p *Insets) ButtonOpt {
 	return func(b *Button) {
-		b.definedParams.TextPadding = &p
+		b.definedParams.TextPadding = p
 	}
 }
 
@@ -462,7 +462,7 @@ func (o ButtonOptions) withGraphic(opt GraphicOpt) ButtonOpt {
 	return func(b *Button) {
 		b.init.Append(func() {
 			b.container = NewContainer(
-				ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(*b.computedParams.GraphicPadding))),
+				ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(b.computedParams.GraphicPadding))),
 				ContainerOpts.AutoDisableChildren())
 
 			b.graphic = NewGraphic(
@@ -934,7 +934,7 @@ func (b *Button) initText() {
 			VerticalPosition:   AnchorLayoutPosition(b.computedParams.TextPosition.VTextPosition),
 		}
 		if aLayout, ok := b.container.layout.(*AnchorLayout); ok {
-			aLayout.padding = *b.computedParams.TextPadding
+			aLayout.padding = b.computedParams.TextPadding
 		}
 	} else {
 
@@ -943,7 +943,7 @@ func (b *Button) initText() {
 		// Even if users use a Text() 3-in-one API, they can pass nil or something.
 
 		b.container = NewContainer(
-			ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(*b.computedParams.TextPadding))),
+			ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(b.computedParams.TextPadding))),
 			ContainerOpts.AutoDisableChildren(),
 		)
 

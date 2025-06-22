@@ -98,14 +98,13 @@ func main() {
 		widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{R: 80, G: 80, B: 140, A: 255})),
 	)
 	tabDisabled.Disabled = true
-	insets := widget.NewInsetsSimple(5)
 	game.TabBook = widget.NewTabBook(
 		widget.TabBookOpts.TabButtonImage(buttonImage),
 		widget.TabBookOpts.TabButtonText(&face, &widget.ButtonTextColor{Idle: color.White, Disabled: color.White}),
 		widget.TabBookOpts.TabButtonSpacing(5),
-		widget.TabBookOpts.ContentPadding(&insets),
+		widget.TabBookOpts.ContentPadding(widget.NewInsetsSimple(5)),
 		widget.TabBookOpts.ContentSpacing(10),
-		widget.TabBookOpts.TabButtonMinSize(&image.Point{98, 0}),
+		widget.TabBookOpts.TabButtonMinSize(&image.Point{98, 40}),
 		widget.TabBookOpts.ContainerOpts(
 			widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 				StretchHorizontal:  true,

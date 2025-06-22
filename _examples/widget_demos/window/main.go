@@ -100,7 +100,7 @@ func createButton(ui *ebitenui.UI, win *widget.Window, label string, winPos imag
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   30,
 			Right:  30,
 			Top:    5,

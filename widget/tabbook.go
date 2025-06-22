@@ -393,7 +393,7 @@ func (t *TabBook) initTabBook() {
 			btnOpts = append(btnOpts, ButtonOpts.WidgetOpts(WidgetOpts.MinSize(t.computedParams.TabButton.MinSize.X, t.computedParams.TabButton.MinSize.Y)))
 		}
 		if t.computedParams.TabButton.TextPadding != nil {
-			btnOpts = append(btnOpts, ButtonOpts.TextPadding(*t.computedParams.TabButton.TextPadding))
+			btnOpts = append(btnOpts, ButtonOpts.TextPadding(t.computedParams.TabButton.TextPadding))
 		}
 		btn := NewButton(append(btnOpts, ButtonOpts.WidgetOpts(WidgetOpts.CustomData(tab)))...)
 		btnElements = append(btnElements, btn)
@@ -425,7 +425,7 @@ func (t *TabBook) initTabBook() {
 
 	t.flipBook = NewFlipBook(
 		FlipBookOpts.ContainerOpts(ContainerOpts.AutoDisableChildren()),
-		FlipBookOpts.Padding(*t.computedParams.ContentPadding),
+		FlipBookOpts.Padding(t.computedParams.ContentPadding),
 	)
 	t.container.AddChild(t.flipBook)
 }

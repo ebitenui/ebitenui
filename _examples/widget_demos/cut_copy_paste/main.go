@@ -83,11 +83,6 @@ func main() {
 		// Set how much padding there is between the edge of the input and the text.
 		widget.TextInputOpts.Padding(widget.NewInsetsSimple(5)),
 
-		// Set the font and width of the caret.
-		widget.TextInputOpts.CaretOpts(
-			widget.CaretOpts.Size(&face, 2),
-		),
-
 		// This text is displayed if the input is empty.
 		widget.TextInputOpts.Placeholder("Standard Textbox"),
 

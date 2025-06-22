@@ -119,7 +119,7 @@ func main() {
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   5,
 			Right:  5,
 			Top:    5,
@@ -144,7 +144,7 @@ func main() {
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   5,
 			Right:  5,
 			Top:    5,
@@ -166,7 +166,7 @@ func main() {
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   5,
 			Right:  5,
 			Top:    5,
@@ -192,7 +192,7 @@ func main() {
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   5,
 			Right:  5,
 			Top:    5,
@@ -217,7 +217,7 @@ func main() {
 			// specify the Stretch for each row and column.
 			widget.GridLayoutOpts.Stretch([]bool{true, true}, []bool{false, true}),
 			// Padding between elements
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Top:    10,
 				Bottom: 10,
 				Left:   10,

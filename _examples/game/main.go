@@ -163,7 +163,7 @@ func (g *Game) getEbitenUI() *ebitenui.UI {
 		// Set the min, max, and current values.
 		widget.ProgressBarOpts.Values(0, 10, 7),
 		// Set how much of the track is displayed when the bar is overlayed.
-		widget.ProgressBarOpts.TrackPadding(widget.Insets{
+		widget.ProgressBarOpts.TrackPadding(&widget.Insets{
 			Top:    2,
 			Bottom: 2,
 		}),

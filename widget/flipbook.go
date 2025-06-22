@@ -50,7 +50,7 @@ func (o FlipBookOptions) ContainerOpts(opts ...ContainerOpt) FlipBookOpt {
 }
 
 // WithPadding configures a FlipBook with padding i.
-func (o FlipBookOptions) Padding(i Insets) FlipBookOpt {
+func (o FlipBookOptions) Padding(i *Insets) FlipBookOpt {
 	return func(f *FlipBook) {
 		f.anchorLayoutOpts = append(f.anchorLayoutOpts, AnchorLayoutOpts.Padding(i))
 	}

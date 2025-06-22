@@ -10,7 +10,7 @@ import "image"
 //
 // Widget.LayoutData of widgets being layouted by AnchorLayout need to be of type AnchorLayoutData.
 type AnchorLayout struct {
-	padding Insets
+	padding *Insets
 }
 
 // AnchorLayoutOpt is a function that configures a.
@@ -37,7 +37,7 @@ type AnchorLayoutData struct {
 	StretchVertical bool
 
 	// Sets the padding for the child.
-	Padding Insets
+	Padding *Insets
 }
 
 const (
@@ -62,11 +62,15 @@ func NewAnchorLayout(opts ...AnchorLayoutOpt) *AnchorLayout {
 		o(a)
 	}
 
+	if a.padding == nil {
+		a.padding = &Insets{}
+	}
+
 	return a
 }
 
 // Padding configures an anchor layout to use padding i. This affects all children.
-func (o AnchorLayoutOptions) Padding(i Insets) AnchorLayoutOpt {
+func (o AnchorLayoutOptions) Padding(i *Insets) AnchorLayoutOpt {
 	return func(a *AnchorLayout) {
 		a.padding = i
 	}
@@ -101,7 +105,9 @@ func (a *AnchorLayout) Layout(widgets []PreferredSizeLocateableWidget, rect imag
 		wy := 0
 
 		if ald, ok := widget.GetWidget().LayoutData.(AnchorLayoutData); ok {
-			wrect = ald.Padding.Apply(wrect)
+			if ald.Padding != nil {
+				wrect = ald.Padding.Apply(wrect)
+			}
 			wx, wy, ww, wh = a.applyLayoutData(ald, wx, wy, ww, wh, wrect)
 		}
 

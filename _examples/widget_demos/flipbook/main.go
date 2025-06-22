@@ -8,6 +8,7 @@ import (
 
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"
+	"github.com/ebitenui/ebitenui/utilities/constantutil"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -181,23 +182,22 @@ func main() {
 			)),
 			//Set the entries in the list
 			widget.ListOpts.Entries(entries),
-			widget.ListOpts.ScrollContainerOpts(
-				//Set the background images/color for the dropdown list
-				widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
-					Idle:     image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
-					Disabled: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
-					Mask:     image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
-				}),
-			),
-			widget.ListOpts.SliderOpts(
+			widget.ListOpts.ScrollContainerImage(&widget.ScrollContainerImage{
+				Idle:     image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+				Disabled: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+				Mask:     image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+			}),
+			widget.ListOpts.SliderParams(&widget.SliderParams{
 				//Set the background images/color for the background of the slider track
-				widget.SliderOpts.Images(&widget.SliderTrackImage{
+				TrackImage: &widget.SliderTrackImage{
 					Idle:  image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
 					Hover: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
-				}, buttonImage),
-				widget.SliderOpts.MinHandleSize(5),
+				},
+				HandleImage:   buttonImage,
+				MinHandleSize: constantutil.ConstantToPointer(5),
 				//Set how wide the track should be
-				widget.SliderOpts.TrackPadding(widget.NewInsetsSimple(2))),
+				TrackPadding: widget.NewInsetsSimple(2),
+			}),
 			//Set the font for the list options
 			widget.ListOpts.EntryFontFace(&face),
 			//Set the colors for the list

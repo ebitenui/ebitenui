@@ -11,7 +11,7 @@ import (
 func TestAnchorLayout_PreferredSize(t *testing.T) {
 	is := is.New(t)
 
-	padding := Insets{
+	padding := &Insets{
 		Top:    10,
 		Left:   20,
 		Right:  30,
@@ -32,7 +32,7 @@ func TestAnchorLayout_Layout(t *testing.T) {
 	ww, wh := 25, 35
 	wrect := image.Rect(0, 0, ww, wh)
 	rect := image.Rect(45, 55, 200, 200)
-	padding := Insets{
+	padding := &Insets{
 		Top:    10,
 		Left:   20,
 		Right:  30,

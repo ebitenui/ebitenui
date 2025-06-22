@@ -44,7 +44,7 @@ func main() {
 	content := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewRowLayout(
 		widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 		widget.RowLayoutOpts.Spacing(20),
-		widget.RowLayoutOpts.Padding(widget.Insets{Top: 10, Bottom: 10}),
+		widget.RowLayoutOpts.Padding(&widget.Insets{Top: 10, Bottom: 10}),
 	)))
 
 	// Add 20 buttons to the scrollable content container
@@ -70,7 +70,7 @@ func main() {
 			}),
 
 			// specify that the button's text needs some padding for correct display
-			widget.ButtonOpts.TextPadding(widget.Insets{
+			widget.ButtonOpts.TextPadding(&widget.Insets{
 				Left:   30,
 				Right:  30,
 				Top:    5,

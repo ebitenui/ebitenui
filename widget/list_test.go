@@ -133,16 +133,18 @@ func newList(t *testing.T, opts ...ListOpt) *List {
 	t.Helper()
 
 	l := NewList(append(opts, []ListOpt{
-		ListOpts.ScrollContainerOpts(ScrollContainerOpts.Image(&ScrollContainerImage{
+		ListOpts.ScrollContainerImage(&ScrollContainerImage{
 			Idle:     newNineSliceEmpty(t),
 			Disabled: newNineSliceEmpty(t),
 			Mask:     newNineSliceEmpty(t),
-		})),
+		}),
 
-		ListOpts.SliderOpts(SliderOpts.Images(&SliderTrackImage{}, &ButtonImage{
-			Idle:    newNineSliceEmpty(t),
-			Pressed: newNineSliceEmpty(t),
-		})),
+		ListOpts.SliderParams(&SliderParams{
+			TrackImage: &SliderTrackImage{},
+			HandleImage: &ButtonImage{
+				Idle:    newNineSliceEmpty(t),
+				Pressed: newNineSliceEmpty(t),
+			}}),
 
 		ListOpts.EntryFontFace(loadFont(t)),
 

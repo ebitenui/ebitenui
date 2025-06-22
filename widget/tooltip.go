@@ -118,7 +118,7 @@ func NewTextToolTip(label string, face *text.Face, color color.Color, background
 	c := NewContainer(
 		ContainerOpts.BackgroundImage(background),
 		ContainerOpts.AutoDisableChildren(),
-		ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(Insets{
+		ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(&Insets{
 			Top:    5,
 			Bottom: 5,
 			Left:   10,

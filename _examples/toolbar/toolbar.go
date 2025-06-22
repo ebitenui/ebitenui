@@ -124,7 +124,7 @@ func newToolbarButton(res *resources, label string) *widget.Button {
 			Hover:    color.White,
 			Pressed:  color.Black,
 		}),
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Top:    4,
 			Left:   4,
 			Right:  32,
@@ -148,7 +148,7 @@ func newToolbarMenuEntry(res *resources, label string) *widget.Button {
 			Pressed:  color.Black,
 		}),
 		widget.ButtonOpts.TextPosition(widget.TextPositionStart, widget.TextPositionCenter),
-		widget.ButtonOpts.TextPadding(widget.Insets{Left: 16, Right: 64}),
+		widget.ButtonOpts.TextPadding(&widget.Insets{Left: 16, Right: 64}),
 		widget.ButtonOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Stretch: true,
@@ -167,7 +167,7 @@ func openToolbarMenu(opener *widget.Widget, ui *ebitenui.UI, entries ...*widget.
 			widget.NewRowLayout(
 				widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 				widget.RowLayoutOpts.Spacing(4),
-				widget.RowLayoutOpts.Padding(widget.Insets{Top: 1, Bottom: 1}),
+				widget.RowLayoutOpts.Padding(&widget.Insets{Top: 1, Bottom: 1}),
 			),
 		),
 

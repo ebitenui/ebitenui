@@ -17,7 +17,7 @@ type ScrollContainer struct {
 	widgetOpts          []WidgetOpt
 	image               *ScrollContainerImage
 	content             HasWidget
-	padding             Insets
+	padding             *Insets
 	stretchContentWidth bool
 
 	init      *MultiOnce
@@ -49,6 +49,10 @@ func NewScrollContainer(opts ...ScrollContainerOpt) *ScrollContainer {
 
 	for _, o := range opts {
 		o(s)
+	}
+
+	if s.padding == nil {
+		s.padding = &Insets{}
 	}
 
 	s.Validate()
@@ -109,7 +113,7 @@ func (o ScrollContainerOptions) Content(c HasWidget) ScrollContainerOpt {
 	}
 }
 
-func (o ScrollContainerOptions) Padding(p Insets) ScrollContainerOpt {
+func (o ScrollContainerOptions) Padding(p *Insets) ScrollContainerOpt {
 	return func(s *ScrollContainer) {
 		s.padding = p
 	}

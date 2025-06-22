@@ -364,9 +364,9 @@ func (o TextInputOptions) Color(c *TextInputColor) TextInputOpt {
 	}
 }
 
-func (o TextInputOptions) Padding(i Insets) TextInputOpt {
+func (o TextInputOptions) Padding(i *Insets) TextInputOpt {
 	return func(t *TextInput) {
-		t.definedParams.Padding = &i
+		t.definedParams.Padding = i
 	}
 }
 
