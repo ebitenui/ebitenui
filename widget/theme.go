@@ -19,11 +19,11 @@ type Theme struct {
 	SliderTheme      *SliderParams
 	TabbookTheme     *TabBookParams
 	TextInputTheme   *TextInputParams
+	TextAreaTheme    *TextAreaParams
 }
 
 /*
 TO DO:
-textarea
 list
 Combobox
 */

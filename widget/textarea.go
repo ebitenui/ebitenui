@@ -11,29 +11,38 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
+type TextAreaParams struct {
+	Face                   *text.Face
+	ForegroundColor        *color.Color
+	TextPadding            *Insets
+	ControlWidgetSpacing   *int
+	StripBBCode            *bool
+	LinkColor              *TextLinkColor
+	Slider                 *SliderParams
+	ScrollContainerImage   *ScrollContainerImage
+	ScrollContainerPadding *Insets
+}
+
 type TextArea struct {
-	containerOpts        []ContainerOpt
-	scrollContainerOpts  []ScrollContainerOpt
-	sliderOpts           []SliderOpt
-	face                 *text.Face
-	foregroundColor      color.Color
-	textPadding          Insets
-	controlWidgetSpacing int
-	showHorizontalSlider bool
-	showVerticalSlider   bool
+	definedParams  TextAreaParams
+	computedParams TextAreaParams
+
+	containerOpts []ContainerOpt
+
 	processBBCode        bool
 	initialText          string
 	verticalScrollMode   ScrollMode
 	horizontalScrollMode ScrollMode
+	showHorizontalSlider bool
+	showVerticalSlider   bool
 
 	linkClickedFunc       LinkHandlerFunc
 	linkCursorEnteredFunc LinkHandlerFunc
 	linkCursorExitedFunc  LinkHandlerFunc
-	stripBBCode           bool
-	linkColor             *TextLinkColor
 
 	init            *MultiOnce
 	container       *Container
+	layout          *GridLayout
 	scrollContainer *ScrollContainer
 	vSlider         *Slider
 	hSlider         *Slider
@@ -87,18 +96,111 @@ func NewTextArea(opts ...TextAreaOpt) *TextArea {
 
 func (t *TextArea) Validate() {
 	t.init.Do()
-	if t.foregroundColor == nil {
+	t.populateComputedParams()
+	if t.computedParams.ForegroundColor == nil {
 		panic("TextArea: FontColor is required.")
 	}
-	if t.face == nil {
+	if t.computedParams.Face == nil {
 		panic("TextArea: FontFace is required.")
 	}
-	if len(t.scrollContainerOpts) == 0 {
-		panic("TextArea: ScrollContainerOpts are required.")
+	t.initWidget()
+}
+
+func (t *TextArea) populateComputedParams() {
+	params := TextAreaParams{}
+
+	theme := t.GetWidget().GetTheme()
+
+	// Set theme values
+	if theme != nil {
+		if theme.TextAreaTheme != nil {
+			params.ControlWidgetSpacing = theme.TextAreaTheme.ControlWidgetSpacing
+			if theme.TextAreaTheme.Face != nil {
+				params.Face = theme.TextAreaTheme.Face
+			} else {
+				params.Face = theme.DefaultFace
+			}
+			if theme.TextAreaTheme.ForegroundColor != nil {
+				params.ForegroundColor = theme.TextAreaTheme.ForegroundColor
+			} else {
+				params.ForegroundColor = &theme.DefaultTextColor
+			}
+			params.LinkColor = theme.TextAreaTheme.LinkColor
+			params.ScrollContainerImage = theme.TextAreaTheme.ScrollContainerImage
+			params.ScrollContainerPadding = theme.TextAreaTheme.ScrollContainerPadding
+			params.Slider = theme.TextAreaTheme.Slider
+			params.StripBBCode = theme.TextAreaTheme.StripBBCode
+			params.TextPadding = theme.TextAreaTheme.TextPadding
+		}
 	}
-	if len(t.sliderOpts) == 0 {
-		panic("TextArea: SliderOpts are required.")
+
+	// Set definedParam values
+	if t.definedParams.ControlWidgetSpacing != nil {
+		params.ControlWidgetSpacing = t.definedParams.ControlWidgetSpacing
 	}
+	if t.definedParams.Face != nil {
+		params.Face = t.definedParams.Face
+	}
+	if t.definedParams.ForegroundColor != nil {
+		params.ForegroundColor = t.definedParams.ForegroundColor
+	}
+	if t.definedParams.LinkColor != nil {
+		params.LinkColor = t.definedParams.LinkColor
+	}
+	if t.definedParams.ScrollContainerImage != nil {
+		params.ScrollContainerImage = t.definedParams.ScrollContainerImage
+	}
+	if t.definedParams.ScrollContainerPadding != nil {
+		params.ScrollContainerPadding = t.definedParams.ScrollContainerPadding
+	}
+	if t.definedParams.Slider != nil {
+		if params.Slider == nil {
+			params.Slider = &SliderParams{}
+		}
+		if t.definedParams.Slider.FixedHandleSize != nil {
+			params.Slider.FixedHandleSize = t.definedParams.Slider.FixedHandleSize
+		}
+		if t.definedParams.Slider.HandleImage != nil {
+			params.Slider.HandleImage = t.definedParams.Slider.HandleImage
+		}
+		if t.definedParams.Slider.MinHandleSize != nil {
+			params.Slider.MinHandleSize = t.definedParams.Slider.MinHandleSize
+		}
+		if t.definedParams.Slider.TrackImage != nil {
+			params.Slider.TrackImage = t.definedParams.Slider.TrackImage
+		}
+		if t.definedParams.Slider.TrackOffset != nil {
+			params.Slider.TrackOffset = t.definedParams.Slider.TrackOffset
+		}
+		if t.definedParams.Slider.TrackPadding != nil {
+			params.Slider.TrackPadding = t.definedParams.Slider.TrackPadding
+		}
+	}
+	if t.definedParams.StripBBCode != nil {
+		params.StripBBCode = t.definedParams.StripBBCode
+	}
+	if t.definedParams.TextPadding != nil {
+		params.TextPadding = t.definedParams.TextPadding
+	}
+
+	// Set defaults
+
+	if params.TextPadding == nil {
+		params.TextPadding = &Insets{}
+	}
+	if params.ControlWidgetSpacing == nil {
+		spacing := 0
+		params.ControlWidgetSpacing = &spacing
+	}
+	if params.StripBBCode == nil {
+		FALSE := false
+		params.StripBBCode = &FALSE
+	}
+	if params.ScrollContainerPadding == nil {
+		params.ScrollContainerPadding = &Insets{}
+	}
+
+	t.computedParams = params
 }
 
 // Specify the Container options for the text area.
@@ -109,23 +211,23 @@ func (o TextAreaOptions) ContainerOpts(opts ...ContainerOpt) TextAreaOpt {
 }
 
 // Specify the options for the scroll container.
-func (o TextAreaOptions) ScrollContainerOpts(opts ...ScrollContainerOpt) TextAreaOpt {
+func (o TextAreaOptions) ScrollContainerImage(image *ScrollContainerImage) TextAreaOpt {
 	return func(l *TextArea) {
-		l.scrollContainerOpts = append(l.scrollContainerOpts, opts...)
+		l.definedParams.ScrollContainerImage = image
 	}
 }
 
 // Specify the options for the scroll bars.
-func (o TextAreaOptions) SliderOpts(opts ...SliderOpt) TextAreaOpt {
+func (o TextAreaOptions) SliderParams(sliderParams *SliderParams) TextAreaOpt {
 	return func(l *TextArea) {
-		l.sliderOpts = append(l.sliderOpts, opts...)
+		l.definedParams.Slider = sliderParams
 	}
 }
 
 // Specify spacing between the text container and scrollbars.
 func (o TextAreaOptions) ControlWidgetSpacing(s int) TextAreaOpt {
 	return func(l *TextArea) {
-		l.controlWidgetSpacing = s
+		l.definedParams.ControlWidgetSpacing = &s
 	}
 }
 
@@ -160,21 +262,21 @@ func (o TextAreaOptions) HorizontalScrollMode(scrollMode ScrollMode) TextAreaOpt
 // Set the font face for this text area.
 func (o TextAreaOptions) FontFace(f *text.Face) TextAreaOpt {
 	return func(l *TextArea) {
-		l.face = f
+		l.definedParams.Face = f
 	}
 }
 
 // Set the default color for the text area.
 func (o TextAreaOptions) FontColor(color color.Color) TextAreaOpt {
 	return func(l *TextArea) {
-		l.foregroundColor = color
+		l.definedParams.ForegroundColor = &color
 	}
 }
 
 // Set how far from the edges of the textarea the text should be set.
 func (o TextAreaOptions) TextPadding(i Insets) TextAreaOpt {
 	return func(l *TextArea) {
-		l.textPadding = i
+		l.definedParams.TextPadding = &i
 	}
 }
 
@@ -200,7 +302,7 @@ func (o TextAreaOptions) ProcessBBCode(processBBCode bool) TextAreaOpt {
 // Set whether or not the text area should automatically strip out BBCodes from being displayed.
 func (o TextAreaOptions) StripBBCode(stripBBCode bool) TextAreaOpt {
 	return func(l *TextArea) {
-		l.stripBBCode = stripBBCode
+		l.definedParams.StripBBCode = &stripBBCode
 	}
 }
 
@@ -210,7 +312,7 @@ func (o TextAreaOptions) StripBBCode(stripBBCode bool) TextAreaOpt {
 // Note: this is only used if ProcessBBCode is true.
 func (o TextAreaOptions) LinkColor(linkColor *TextLinkColor) TextAreaOpt {
 	return func(t *TextArea) {
-		t.linkColor = linkColor
+		t.definedParams.LinkColor = linkColor
 	}
 }
 
@@ -316,16 +418,23 @@ func (l *TextArea) createWidget() {
 	} else {
 		cols = 1
 	}
+	l.layout = NewGridLayout(
+		GridLayoutOpts.Columns(cols),
+		GridLayoutOpts.Stretch([]bool{true, false}, []bool{true, false}))
 
 	l.container = NewContainer(
 		append([]ContainerOpt{
 			ContainerOpts.WidgetOpts(WidgetOpts.TrackHover(true)),
-			ContainerOpts.Layout(NewGridLayout(
-				GridLayoutOpts.Columns(cols),
-				GridLayoutOpts.Stretch([]bool{true, false}, []bool{true, false}),
-				GridLayoutOpts.Spacing(l.controlWidgetSpacing, l.controlWidgetSpacing))),
+			ContainerOpts.Layout(l.layout),
 		}, l.containerOpts...,
 		)...)
+
+	l.text = NewText(TextOpts.TextLabel(l.initialText))
+}
+
+func (l *TextArea) initWidget() {
+	l.layout.columnSpacing = *l.computedParams.ControlWidgetSpacing
+	l.layout.rowSpacing = *l.computedParams.ControlWidgetSpacing
 
 	content := NewContainer(
 		ContainerOpts.Layout(NewRowLayout(
@@ -333,11 +442,11 @@ func (l *TextArea) createWidget() {
 		ContainerOpts.AutoDisableChildren())
 
 	l.text = NewText(
-		TextOpts.Text(l.initialText, l.face, l.foregroundColor),
-		TextOpts.Padding(&l.textPadding),
+		TextOpts.Text(l.initialText, l.computedParams.Face, *l.computedParams.ForegroundColor),
+		TextOpts.Padding(l.computedParams.TextPadding),
 		TextOpts.ProcessBBCode(l.processBBCode),
-		TextOpts.StripBBCode(l.stripBBCode),
-		TextOpts.LinkColor(l.linkColor),
+		TextOpts.StripBBCode(*l.computedParams.StripBBCode),
+		TextOpts.LinkColor(l.computedParams.LinkColor),
 		TextOpts.LinkClickedHandler(l.linkClickedFunc),
 		TextOpts.LinkCursorEnteredHandler(l.linkCursorEnteredFunc),
 		TextOpts.LinkCursorExitedHandler(l.linkCursorExitedFunc),
@@ -345,18 +454,42 @@ func (l *TextArea) createWidget() {
 	content.AddChild(l.text)
 	l.text.widget.parent = l.container.GetWidget()
 
-	l.scrollContainer = NewScrollContainer(append(l.scrollContainerOpts, []ScrollContainerOpt{
+	l.scrollContainer = NewScrollContainer(
 		ScrollContainerOpts.Content(content),
 		ScrollContainerOpts.StretchContentWidth(),
-	}...)...)
+		ScrollContainerOpts.Image(l.computedParams.ScrollContainerImage),
+		ScrollContainerOpts.Padding(*l.computedParams.ScrollContainerPadding),
+	)
 	l.container.AddChild(l.scrollContainer)
+
+	var sliderOpts []SliderOpt
+	if l.computedParams.Slider != nil {
+		if l.computedParams.Slider.FixedHandleSize != nil {
+			sliderOpts = append(sliderOpts, SliderOpts.FixedHandleSize(*l.computedParams.Slider.FixedHandleSize))
+		}
+		if l.computedParams.Slider.HandleImage != nil {
+			sliderOpts = append(sliderOpts, SliderOpts.HandleImage(l.computedParams.Slider.HandleImage))
+		}
+		if l.computedParams.Slider.TrackImage != nil {
+			sliderOpts = append(sliderOpts, SliderOpts.TrackImage(l.computedParams.Slider.TrackImage))
+		}
+		if l.computedParams.Slider.MinHandleSize != nil {
+			sliderOpts = append(sliderOpts, SliderOpts.MinHandleSize(*l.computedParams.Slider.MinHandleSize))
+		}
+		if l.computedParams.Slider.TrackOffset != nil {
+			sliderOpts = append(sliderOpts, SliderOpts.TrackOffset(*l.computedParams.Slider.TrackOffset))
+		}
+		if l.computedParams.Slider.TrackPadding != nil {
+			sliderOpts = append(sliderOpts, SliderOpts.TrackPadding(l.computedParams.Slider.TrackPadding))
+		}
+	}
 
 	if l.showVerticalSlider {
 		pageSizeFunc := func() int {
 			return int(math.Round(float64(l.scrollContainer.ViewRect().Dy()) / float64(content.GetWidget().Rect.Dy()) * 1000))
 		}
 
-		l.vSlider = NewSlider(append(l.sliderOpts, []SliderOpt{
+		l.vSlider = NewSlider(append(sliderOpts,
 			SliderOpts.Orientation(DirectionVertical),
 			SliderOpts.MinMax(0, 1000),
 			SliderOpts.PageSizeFunc(pageSizeFunc),
@@ -370,7 +503,8 @@ func (l *TextArea) createWidget() {
 				}
 				l.scrollContainer.ScrollTop = float64(current) / 1000
 			}),
-		}...)...)
+		)...)
+
 		if l.verticalScrollMode == ScrollEnd || l.verticalScrollMode == PositionAtEnd {
 			l.vSlider.Current = l.vSlider.Max
 		}
@@ -392,7 +526,7 @@ func (l *TextArea) createWidget() {
 			return int(math.Round(float64(l.scrollContainer.ViewRect().Dx()) / float64(content.GetWidget().Rect.Dx()) * 1000))
 		}
 
-		l.hSlider = NewSlider(append(l.sliderOpts, []SliderOpt{
+		l.hSlider = NewSlider(append(sliderOpts,
 			SliderOpts.Orientation(DirectionHorizontal),
 			SliderOpts.MinMax(0, 1000),
 			SliderOpts.PageSizeFunc(pageSizeFunc),
@@ -406,7 +540,8 @@ func (l *TextArea) createWidget() {
 				}
 				l.scrollContainer.ScrollLeft = float64(current) / 1000
 			}),
-		}...)...)
+		)...)
+
 		if l.horizontalScrollMode == ScrollEnd || l.horizontalScrollMode == PositionAtEnd {
 			l.hSlider.Current = l.hSlider.Max
 		}

@@ -18,6 +18,11 @@ import (
 //go:embed testdata/fonts/notosans-regular.ttf
 var data []byte
 
+type ValidatedRenderer interface {
+	Validate()
+	Render(screen *ebiten.Image)
+}
+
 type simpleWidget struct {
 	widget          *Widget
 	preferredWidth  int
@@ -123,9 +128,9 @@ func leftMouseButtonRelease(w HasWidget, t *testing.T) {
 	event.ExecuteDeferred()
 }
 
-func render(r Renderer, t *testing.T) {
+func render(r ValidatedRenderer, t *testing.T) {
 	t.Helper()
-
+	r.Validate()
 	screen := ebiten.NewImage(1, 1)
 	r.Render(screen)
 	event.ExecuteDeferred()
