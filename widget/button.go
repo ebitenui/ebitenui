@@ -21,6 +21,7 @@ type ButtonParams struct {
 	TextPadding    *Insets
 	TextFace       *text.Face
 	GraphicPadding *Insets
+	MinSize        *img.Point
 }
 
 type Button struct {
@@ -231,6 +232,9 @@ func (b *Button) populateComputedParams() {
 			if theme.ButtonTheme.TextFace != nil {
 				btnParams.TextFace = theme.ButtonTheme.TextFace
 			}
+			if theme.ButtonTheme.MinSize != nil {
+				btnParams.MinSize = theme.ButtonTheme.MinSize
+			}
 
 			if theme.ButtonTheme.TextColor != nil {
 				if btnParams.TextColor == nil {
@@ -299,6 +303,9 @@ func (b *Button) populateComputedParams() {
 	}
 	if b.definedParams.TextPadding != nil {
 		btnParams.TextPadding = b.definedParams.TextPadding
+	}
+	if b.definedParams.MinSize != nil {
+		btnParams.MinSize = b.definedParams.MinSize
 	}
 	if b.definedParams.TextColor != nil {
 		if btnParams.TextColor == nil {
@@ -911,6 +918,11 @@ func (b *Button) Text() *Text {
 func (b *Button) initText() {
 	if b.computedParams.TextColor == nil {
 		return // Nothing to do.
+	}
+
+	if b.computedParams.MinSize != nil {
+		b.widget.MinWidth = b.computedParams.MinSize.X
+		b.widget.MinHeight = b.computedParams.MinSize.Y
 	}
 
 	if b.text != nil {

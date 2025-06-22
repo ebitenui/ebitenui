@@ -21,8 +21,8 @@ type Theme struct {
 
 /*
 TO DO:
-Combobox
-list
-textarea
 textinput
+textarea
+list
+Combobox
 */
