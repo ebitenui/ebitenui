@@ -18,11 +18,11 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 )
 
-// Game object used by ebiten
+// Game object used by ebiten.
 type game struct {
 	ui *ebitenui.UI
-	//This parameter is so you can keep track of the textInput widget to update and retrieve
-	//its values in other parts of your game
+	// This parameter is so you can keep track of the textInput widget to update and retrieve
+	// its values in other parts of your game.
 	standardTextInput *widget.TextInput
 }
 
@@ -53,7 +53,7 @@ func main() {
 	// construct a standard textinput widget
 	game.standardTextInput = widget.NewTextInput(
 		widget.TextInputOpts.WidgetOpts(
-			//Set the layout information to center the textbox in the parent
+			// Set the layout information to center the textbox in the parent
 			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Position: widget.RowLayoutPositionCenter,
 				Stretch:  true,
@@ -63,18 +63,18 @@ func main() {
 		// Set the keyboard type when opened on mobile devices.
 		widget.TextInputOpts.MobileInputMode(mobile.TEXT),
 
-		//Set the Idle and Disabled background image for the text input
-		//If the NineSlice image has a minimum size, the widget will use that or
-		// widget.WidgetOpts.MinSize; whichever is greater
+		// Set the Idle and Disabled background image for the text input.
+		// If the NineSlice image has a minimum size, the widget will use that or
+		// widget.WidgetOpts.MinSize; whichever is greater.
 		widget.TextInputOpts.Image(&widget.TextInputImage{
 			Idle:     image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
 			Disabled: image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
 		}),
 
-		//Set the font face and size for the widget
+		// Set the font face and size for the widget
 		widget.TextInputOpts.Face(&face),
 
-		//Set the colors for the text and caret
+		// Set the colors for the text and caret
 		widget.TextInputOpts.Color(&widget.TextInputColor{
 			Idle:          color.NRGBA{254, 255, 255, 255},
 			Disabled:      color.NRGBA{R: 200, G: 200, B: 200, A: 255},
@@ -82,24 +82,19 @@ func main() {
 			DisabledCaret: color.NRGBA{R: 200, G: 200, B: 200, A: 255},
 		}),
 
-		//Set how much padding there is between the edge of the input and the text
+		// Set how much padding there is between the edge of the input and the text
 		widget.TextInputOpts.Padding(widget.NewInsetsSimple(5)),
 
-		//Set the font and width of the caret
-		widget.TextInputOpts.CaretOpts(
-			widget.CaretOpts.Size(&face, 2),
-		),
-
-		//This text is displayed if the input is empty
+		// This text is displayed if the input is empty
 		widget.TextInputOpts.Placeholder("Standard Textbox"),
 
-		//This is called when the user hits the "Enter" key.
-		//There are other options that can configure this behavior
+		// This is called when the user hits the "Enter" key.
+		// There are other options that can configure this behavior.
 		widget.TextInputOpts.SubmitHandler(func(args *widget.TextInputChangedEventArgs) {
 			fmt.Println("Text Submitted: ", args.InputText)
 		}),
 
-		//This is called whenver there is a change to the text
+		// This is called whenver there is a change to the text
 		widget.TextInputOpts.ChangedHandler(func(args *widget.TextInputChangedEventArgs) {
 			fmt.Println("Text Changed: ", args.InputText)
 		}),
@@ -110,24 +105,24 @@ func main() {
 	// construct a disabled textinput widget
 	disabledTextInput := widget.NewTextInput(
 		widget.TextInputOpts.WidgetOpts(
-			//Set the layout information to center the textbox in the parent
+			// Set the layout information to center the textbox in the parent
 			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Position: widget.RowLayoutPositionCenter,
 				Stretch:  true,
 			}),
 		),
-		//Set the Idle and Disabled background image for the text input
-		//If the NineSlice image has a minimum size, the widget will use that or
-		// widget.WidgetOpts.MinSize; whichever is greater
+		// Set the Idle and Disabled background image for the text input.
+		// If the NineSlice image has a minimum size, the widget will use that or
+		// widget.WidgetOpts.MinSize; whichever is greater.
 		widget.TextInputOpts.Image(&widget.TextInputImage{
 			Idle:     image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
 			Disabled: image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
 		}),
 
-		//Set the font face and size for the widget
+		// Set the font face and size for the widget
 		widget.TextInputOpts.Face(&face),
 
-		//Set the colors for the text and caret
+		// Set the colors for the text and caret
 		widget.TextInputOpts.Color(&widget.TextInputColor{
 			Idle:          color.NRGBA{254, 255, 255, 255},
 			Disabled:      color.NRGBA{R: 255, G: 200, B: 200, A: 255},
@@ -135,24 +130,19 @@ func main() {
 			DisabledCaret: color.NRGBA{R: 255, G: 200, B: 200, A: 255},
 		}),
 
-		//Set how much padding there is between the edge of the input and the text
+		// Set how much padding there is between the edge of the input and the text
 		widget.TextInputOpts.Padding(widget.NewInsetsSimple(5)),
 
-		//Set the font and width of the caret
-		widget.TextInputOpts.CaretOpts(
-			widget.CaretOpts.Size(&face, 2),
-		),
-
-		//This text is displayed if the input is empty
+		// This text is displayed if the input is empty
 		widget.TextInputOpts.Placeholder("Disabled Textbox"),
 
-		//This is called when the user hits the "Enter" key.
-		//There are other options that can configure this behavior
+		// This is called when the user hits the "Enter" key.
+		// There are other options that can configure this behavior.
 		widget.TextInputOpts.SubmitHandler(func(args *widget.TextInputChangedEventArgs) {
 			fmt.Println("Text Submitted: ", args.InputText)
 		}),
 
-		//This is called whenver there is a change to the text
+		// This is called whenver there is a change to the text
 		widget.TextInputOpts.ChangedHandler(func(args *widget.TextInputChangedEventArgs) {
 			fmt.Println("Text Changed: ", args.InputText)
 		}),
@@ -179,11 +169,8 @@ func main() {
 			Caret:         color.NRGBA{254, 255, 255, 255},
 			DisabledCaret: color.NRGBA{R: 200, G: 200, B: 200, A: 255},
 		}),
-		widget.TextInputOpts.Padding(widget.NewInsetsSimple(5)),
-		widget.TextInputOpts.CaretOpts(
-			widget.CaretOpts.Size(&face, 2),
-		),
-		//This parameter indicates that the inputted text should be hidden
+
+		// This parameter indicates that the inputted text should be hidden
 		widget.TextInputOpts.Secure(true),
 
 		widget.TextInputOpts.Placeholder("Password Textbox"),
@@ -216,16 +203,14 @@ func main() {
 			DisabledCaret: color.NRGBA{R: 200, G: 200, B: 200, A: 255},
 		}),
 		widget.TextInputOpts.Padding(widget.NewInsetsSimple(5)),
-		widget.TextInputOpts.CaretOpts(
-			widget.CaretOpts.Size(&face, 2),
-		),
+
 		widget.TextInputOpts.Placeholder("Max length (5) Textbox"),
 
-		//This method is called whenever there is a text change.
-		//It allows the developer to allow or deny a change.
-		//In this case we are limiting the string to 5 runes.
-		//The first return parameter is whether or not to accept the text as is.
-		//The second return parameter is what to replace the text with if it is not accepted (optional)
+		// This method is called whenever there is a text change.
+		// It allows the developer to allow or deny a change.
+		// In this case we are limiting the string to 5 runes.
+		// The first return parameter is whether or not to accept the text as is.
+		// The second return parameter is what to replace the text with if it is not accepted (optional)
 		widget.TextInputOpts.Validation(func(newInputText string) (bool, *string) {
 			if utf8.RuneCountInString(newInputText) > 5 {
 				return false, nil
@@ -239,7 +224,7 @@ func main() {
 			fmt.Println("Text Changed: ", args.InputText)
 		}),
 	)
-	//This will do nothing because the validation above prevents this from being set.
+	// This will do nothing because the validation above prevents this from being set.
 	maxLenTextInput.SetText("123456")
 	rootContainer.AddChild(maxLenTextInput)
 
@@ -262,16 +247,14 @@ func main() {
 			DisabledCaret: color.NRGBA{R: 200, G: 200, B: 200, A: 255},
 		}),
 		widget.TextInputOpts.Padding(widget.NewInsetsSimple(5)),
-		widget.TextInputOpts.CaretOpts(
-			widget.CaretOpts.Size(&face, 2),
-		),
+
 		widget.TextInputOpts.Placeholder("All Caps Textbox"),
 
-		//This method is called whenever there is a text change.
-		//It allows the developer to allow or deny a change.
-		//In this case we are forcing the string to be all caps.
-		//The first return parameter is whether or not to accept the text as is.
-		//The second return parameter is what to replace the text with if it is not accepted (optional)
+		// This method is called whenever there is a text change.
+		// It allows the developer to allow or deny a change.
+		// In this case we are forcing the string to be all caps.
+		// The first return parameter is whether or not to accept the text as is.
+		// The second return parameter is what to replace the text with if it is not accepted (optional)
 		widget.TextInputOpts.Validation(func(newInputText string) (bool, *string) {
 			newInputText = strings.ToUpper(newInputText)
 			return false, &newInputText
@@ -283,7 +266,7 @@ func main() {
 			fmt.Println("Text Changed: ", args.InputText)
 		}),
 	)
-	//This will show in all caps due to validation function above
+	// This will show in all caps due to validation function above
 	allCapsTextInput.SetText("Hello World")
 	rootContainer.AddChild(allCapsTextInput)
 
@@ -316,13 +299,13 @@ func main() {
 
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			//This will replace all text with caps per validation function
+			// This will replace all text with caps per validation function
 			allCapsTextInput.SetText("This is a test")
-			//This will do nothing since it fails the validation function
+			// This will do nothing since it fails the validation function
 			maxLenTextInput.SetText("This is a test")
-			//This will show as secured ***
+			// This will show as secured ***
 			secureTextInput.SetText("This is a test")
-			//This will show the text as is
+			// This will show the text as is
 			game.standardTextInput.SetText("This is a test")
 		}),
 	)
@@ -378,7 +361,7 @@ func loadFont(size float64) (text.Face, error) {
 	s, err := text.NewGoTextFaceSource(bytes.NewReader(goregular.TTF))
 	if err != nil {
 		log.Fatal(err)
-		return nil, err
+		return nil, fmt.Errorf("%w", err)
 	}
 
 	return &text.GoTextFace{

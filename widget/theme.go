@@ -9,6 +9,7 @@ import (
 type Theme struct {
 	DefaultFace      *text.Face
 	DefaultTextColor color.Color
+
 	ButtonTheme      *ButtonParams
 	PanelTheme       *PanelParams
 	LabelTheme       *LabelParams
@@ -17,11 +18,11 @@ type Theme struct {
 	ProgressBarTheme *ProgressBarParams
 	SliderTheme      *SliderParams
 	TabbookTheme     *TabBookParams
+	TextInputTheme   *TextInputParams
 }
 
 /*
 TO DO:
-textinput
 textarea
 list
 Combobox
