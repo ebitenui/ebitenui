@@ -400,6 +400,12 @@ func (o TextInputOptions) Secure(b bool) TextInputOpt {
 	}
 }
 
+func (o TextInputOptions) CaretWidth(caretWidth int) TextInputOpt {
+	return func(t *TextInput) {
+		t.definedParams.CaretWidth = &caretWidth
+	}
+}
+
 func (o TextInputOptions) TabOrder(to int) TextInputOpt {
 	return func(t *TextInput) {
 		t.tabOrder = to

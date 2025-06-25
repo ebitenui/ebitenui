@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/ebitenui/ebitenui/image"
+	"github.com/ebitenui/ebitenui/utilities/constantutil"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -73,7 +74,7 @@ type buttonResources struct {
 	image   *widget.ButtonImage
 	text    *widget.ButtonTextColor
 	face    *text.Face
-	padding widget.Insets
+	padding *widget.Insets
 }
 
 type checkboxResources struct {
@@ -91,24 +92,24 @@ type comboButtonResources struct {
 	text    *widget.ButtonTextColor
 	face    *text.Face
 	graphic *widget.GraphicImage
-	padding widget.Insets
+	padding *widget.Insets
 }
 
 type listResources struct {
 	image        *widget.ScrollContainerImage
 	track        *widget.SliderTrackImage
-	trackPadding widget.Insets
+	trackPadding *widget.Insets
 	handle       *widget.ButtonImage
-	handleSize   int
+	handleSize   *int
 	face         *text.Face
 	entry        *widget.ListEntryColor
-	entryPadding widget.Insets
+	entryPadding *widget.Insets
 }
 
 type sliderResources struct {
 	trackImage *widget.SliderTrackImage
 	handle     *widget.ButtonImage
-	handleSize int
+	handleSize *int
 }
 
 type progressBarResources struct {
@@ -119,25 +120,25 @@ type progressBarResources struct {
 type panelResources struct {
 	image    *image.NineSlice
 	titleBar *image.NineSlice
-	padding  widget.Insets
+	padding  *widget.Insets
 }
 
 type tabBookResources struct {
 	buttonFace    *text.Face
 	buttonText    *widget.ButtonTextColor
-	buttonPadding widget.Insets
+	buttonPadding *widget.Insets
 }
 
 type headerResources struct {
 	background *image.NineSlice
-	padding    widget.Insets
+	padding    *widget.Insets
 	face       *text.Face
 	color      color.Color
 }
 
 type textInputResources struct {
 	image   *widget.TextInputImage
-	padding widget.Insets
+	padding *widget.Insets
 	face    *text.Face
 	color   *widget.TextInputColor
 }
@@ -145,16 +146,16 @@ type textInputResources struct {
 type textAreaResources struct {
 	image        *widget.ScrollContainerImage
 	track        *widget.SliderTrackImage
-	trackPadding widget.Insets
+	trackPadding *widget.Insets
 	handle       *widget.ButtonImage
-	handleSize   int
+	handleSize   *int
 	face         *text.Face
-	entryPadding widget.Insets
+	entryPadding *widget.Insets
 }
 
 type toolTipResources struct {
 	background *image.NineSlice
-	padding    widget.Insets
+	padding    *widget.Insets
 	face       *text.Face
 	color      color.Color
 }
@@ -299,7 +300,7 @@ func newButtonResources(fonts *fonts) (*buttonResources, error) {
 
 		face: fonts.face,
 
-		padding: widget.Insets{
+		padding: &widget.Insets{
 			Left:  30,
 			Right: 30,
 		},
@@ -442,7 +443,7 @@ func newComboButtonResources(fonts *fonts) (*comboButtonResources, error) {
 		face:    fonts.face,
 		graphic: arrowDown,
 
-		padding: widget.Insets{
+		padding: &widget.Insets{
 			Left:  30,
 			Right: 30,
 		},
@@ -498,7 +499,7 @@ func newListResources(fonts *fonts) (*listResources, error) {
 			Disabled: image.NewNineSlice(trackDisabled, [3]int{0, 5, 0}, [3]int{25, 12, 25}),
 		},
 
-		trackPadding: widget.Insets{
+		trackPadding: &widget.Insets{
 			Top:    5,
 			Bottom: 24,
 		},
@@ -510,7 +511,7 @@ func newListResources(fonts *fonts) (*listResources, error) {
 			Disabled: image.NewNineSliceSimple(handleIdle, 0, 5),
 		},
 
-		handleSize: 5,
+		handleSize: constantutil.ConstantToPointer(5),
 		face:       fonts.face,
 
 		entry: &widget.ListEntryColor{
@@ -527,7 +528,7 @@ func newListResources(fonts *fonts) (*listResources, error) {
 			SelectedFocusedBackground: hexToColor(listSelectedBackground),
 		},
 
-		entryPadding: widget.Insets{
+		entryPadding: &widget.Insets{
 			Left:   30,
 			Right:  30,
 			Top:    2,
@@ -576,7 +577,7 @@ func newSliderResources() (*sliderResources, error) {
 			Disabled: image.NewNineSliceSimple(handleDisabled, 0, 5),
 		},
 
-		handleSize: 6,
+		handleSize: constantutil.ConstantToPointer(6),
 	}, nil
 }
 
@@ -620,7 +621,7 @@ func newPanelResources() (*panelResources, error) {
 	return &panelResources{
 		image:    i,
 		titleBar: t,
-		padding: widget.Insets{
+		padding: &widget.Insets{
 			Left:   30,
 			Right:  30,
 			Top:    20,
@@ -639,7 +640,7 @@ func newTabBookResources(fonts *fonts) (*tabBookResources, error) {
 			Disabled: hexToColor(buttonDisabledColor),
 		},
 
-		buttonPadding: widget.Insets{
+		buttonPadding: &widget.Insets{
 			Left:  30,
 			Right: 30,
 		},
@@ -655,7 +656,7 @@ func newHeaderResources(fonts *fonts) (*headerResources, error) {
 	return &headerResources{
 		background: bg,
 
-		padding: widget.Insets{
+		padding: &widget.Insets{
 			Left:   25,
 			Right:  25,
 			Top:    4,
@@ -684,7 +685,7 @@ func newTextInputResources(fonts *fonts) (*textInputResources, error) {
 			Disabled: image.NewNineSlice(disabled, [3]int{9, 14, 6}, [3]int{9, 14, 6}),
 		},
 
-		padding: widget.Insets{
+		padding: &widget.Insets{
 			Left:   8,
 			Right:  8,
 			Top:    4,
@@ -751,7 +752,7 @@ func newTextAreaResources(fonts *fonts) (*textAreaResources, error) {
 			Disabled: image.NewNineSlice(trackDisabled, [3]int{0, 5, 0}, [3]int{25, 12, 25}),
 		},
 
-		trackPadding: widget.Insets{
+		trackPadding: &widget.Insets{
 			Top:    5,
 			Bottom: 24,
 		},
@@ -763,10 +764,10 @@ func newTextAreaResources(fonts *fonts) (*textAreaResources, error) {
 			Disabled: image.NewNineSliceSimple(handleIdle, 0, 5),
 		},
 
-		handleSize: 5,
+		handleSize: constantutil.ConstantToPointer(5),
 		face:       fonts.face,
 
-		entryPadding: widget.Insets{
+		entryPadding: &widget.Insets{
 			Left:   30,
 			Right:  30,
 			Top:    2,
@@ -784,7 +785,7 @@ func newToolTipResources(fonts *fonts) (*toolTipResources, error) {
 	return &toolTipResources{
 		background: image.NewNineSlice(bg, [3]int{19, 6, 13}, [3]int{19, 5, 13}),
 
-		padding: widget.Insets{
+		padding: &widget.Insets{
 			Left:   15,
 			Right:  15,
 			Top:    10,
