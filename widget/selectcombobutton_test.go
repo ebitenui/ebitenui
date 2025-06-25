@@ -1,37 +1,44 @@
 package widget
 
-/*
-	func TestSelectComboButton_SetSelectedEntry(t *testing.T) {
-		is := is.New(t)
+import (
+	"image/color"
+	"testing"
 
-		var eventArgs *SelectComboButtonEntrySelectedEventArgs
-		numEvents := 0
+	"github.com/ebitenui/ebitenui/event"
+	"github.com/matryer/is"
+)
 
-		b := newSelectComboButton(t,
-			SelectComboButtonOpts.EntrySelectedHandler(func(args *SelectComboButtonEntrySelectedEventArgs) {
-				eventArgs = args
-				numEvents++
-			}))
+func TestSelectComboButton_SetSelectedEntry(t *testing.T) {
+	is := is.New(t)
 
-		entry := "foo"
-		b.SetSelectedEntry(entry)
-		event.ExecuteDeferred()
+	var eventArgs *SelectComboButtonEntrySelectedEventArgs
+	numEvents := 0
 
-		is.Equal(b.SelectedEntry(), entry)
-		is.Equal(eventArgs.Entry, entry)
-		is.Equal(b.Label(), "label foo")
+	b := newSelectComboButton(t,
+		SelectComboButtonOpts.EntrySelectedHandler(func(args *SelectComboButtonEntrySelectedEventArgs) {
+			eventArgs = args
+			numEvents++
+		}))
 
-		b.SetSelectedEntry(entry)
-		event.ExecuteDeferred()
+	entry := "foo"
+	b.SetSelectedEntry(entry)
+	event.ExecuteDeferred()
 
-		is.Equal(numEvents, 1)
+	is.Equal(b.SelectedEntry(), entry)
+	is.Equal(eventArgs.Entry, entry)
+	is.Equal(b.Label(), "label foo")
 
-		entry2 := "bar"
-		b.SetSelectedEntry(entry2)
-		event.ExecuteDeferred()
+	b.SetSelectedEntry(entry)
+	event.ExecuteDeferred()
 
-		is.Equal(eventArgs.PreviousEntry, entry)
-	}
+	is.Equal(numEvents, 1)
+
+	entry2 := "bar"
+	b.SetSelectedEntry(entry2)
+	event.ExecuteDeferred()
+
+	is.Equal(eventArgs.PreviousEntry, entry)
+}
 
 func TestSelectComboButton_ContentVisible_Click(t *testing.T) {
 	is := is.New(t)
@@ -91,4 +98,3 @@ func newSelectComboButton(t *testing.T, opts ...SelectComboButtonOpt) *SelectCom
 	render(b, t)
 	return b
 }
-*/

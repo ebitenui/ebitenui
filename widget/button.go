@@ -181,7 +181,7 @@ func (b *Button) Validate() {
 		}
 	}
 
-	b.initText()
+	b.initWidget()
 }
 
 func (b *Button) populateComputedParams() {
@@ -221,7 +221,9 @@ func (b *Button) populateComputedParams() {
 					Disabled: theme.ButtonTheme.GraphicImage.Disabled,
 				}
 			}
-			btnParams.GraphicPadding = theme.ButtonTheme.GraphicPadding
+			if theme.ButtonTheme.GraphicPadding != nil {
+				btnParams.GraphicPadding = theme.ButtonTheme.GraphicPadding
+			}
 			if theme.ButtonTheme.TextPosition != nil {
 				btnParams.TextPosition.HTextPosition = theme.ButtonTheme.TextPosition.HTextPosition
 				btnParams.TextPosition.VTextPosition = theme.ButtonTheme.TextPosition.VTextPosition
@@ -390,43 +392,9 @@ func (o ButtonOptions) TextProcessBBCode(enabled bool) ButtonOpt {
 func (o ButtonOptions) TextAndImage(label string, face *text.Face, image *GraphicImage, color *ButtonTextColor) ButtonOpt {
 	return func(b *Button) {
 		b.init.Append(func() {
-			b.container = NewContainer(
-				ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(b.computedParams.TextPadding))),
-				ContainerOpts.AutoDisableChildren(),
-			)
-
-			c := NewContainer(
-				ContainerOpts.WidgetOpts(WidgetOpts.LayoutData(AnchorLayoutData{
-					HorizontalPosition: AnchorLayoutPosition(b.computedParams.TextPosition.HTextPosition),
-					VerticalPosition:   AnchorLayoutPosition(b.computedParams.TextPosition.VTextPosition),
-				})),
-				ContainerOpts.Layout(NewRowLayout(RowLayoutOpts.Spacing(10))),
-				ContainerOpts.AutoDisableChildren(),
-			)
-			b.container.AddChild(c)
-
-			b.text = NewText(
-				TextOpts.WidgetOpts(WidgetOpts.LayoutData(RowLayoutData{
-					Stretch: true,
-				})),
-				TextOpts.Text(label, face, color.Idle),
-				TextOpts.ProcessBBCode(b.textProcessBBCode),
-				TextOpts.Position(b.computedParams.TextPosition.HTextPosition, b.computedParams.TextPosition.VTextPosition),
-			)
-
-			b.graphic = NewGraphic(
-				GraphicOpts.WidgetOpts(WidgetOpts.LayoutData(RowLayoutData{
-					Stretch: true,
-				})),
-				GraphicOpts.Image(image.Idle),
-			)
-
-			c.AddChild(
-				b.text,
-				b.graphic,
-			)
-
 			b.autoUpdateTextAndGraphic = true
+			b.definedParams.TextFace = face
+			b.definedParams.TextColor = color
 			b.definedParams.GraphicImage = image
 			b.definedParams.TextColor = color
 		})
@@ -451,38 +419,8 @@ func (o ButtonOptions) TextPadding(p *Insets) ButtonOpt {
 }
 
 func (o ButtonOptions) Graphic(image *GraphicImage) ButtonOpt {
-	return o.withGraphic(GraphicOpts.Images(image))
-}
-
-func (o ButtonOptions) GraphicNineSlice(i *image.NineSlice) ButtonOpt {
-	return o.withGraphic(GraphicOpts.ImageNineSlice(i))
-}
-
-func (o ButtonOptions) withGraphic(opt GraphicOpt) ButtonOpt {
 	return func(b *Button) {
-		b.init.Append(func() {
-			b.container = NewContainer(
-				ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(b.computedParams.GraphicPadding))),
-				ContainerOpts.AutoDisableChildren())
-
-			b.graphic = NewGraphic(
-				opt,
-				GraphicOpts.WidgetOpts(WidgetOpts.LayoutData(AnchorLayoutData{
-					HorizontalPosition: AnchorLayoutPositionCenter,
-					VerticalPosition:   AnchorLayoutPositionCenter,
-				})),
-			)
-			b.container.AddChild(b.graphic)
-
-			b.autoUpdateTextAndGraphic = true
-			if b.graphic.images != nil {
-				b.GraphicImage = b.graphic.images
-				// To control the state we set just an Image to the
-				// Graphic and remove the Images
-				b.graphic.Image = b.graphic.images.Idle
-				b.graphic.images = nil
-			}
-		})
+		b.definedParams.GraphicImage = image
 	}
 }
 
@@ -915,52 +853,69 @@ func (b *Button) Text() *Text {
 	return b.text
 }
 
-func (b *Button) initText() {
-	if b.computedParams.TextColor == nil {
-		return // Nothing to do.
-	}
+func (b *Button) initWidget() {
 
 	if b.computedParams.MinSize != nil {
 		b.widget.MinWidth = b.computedParams.MinSize.X
 		b.widget.MinHeight = b.computedParams.MinSize.Y
 	}
 
-	if b.text != nil {
-		b.text.SetFace(b.computedParams.TextFace)
-		b.text.SetColor(b.computedParams.TextColor.Idle)
-		b.text.SetPosition(b.computedParams.TextPosition)
-		b.text.widget.LayoutData = AnchorLayoutData{
-			HorizontalPosition: AnchorLayoutPosition(b.computedParams.TextPosition.HTextPosition),
-			VerticalPosition:   AnchorLayoutPosition(b.computedParams.TextPosition.VTextPosition),
+	b.container = NewContainer(
+		ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(b.computedParams.TextPadding))),
+		ContainerOpts.AutoDisableChildren(),
+	)
+	var textLayoutData any = AnchorLayoutData{
+		StretchHorizontal: true,
+		StretchVertical:   true,
+		Padding:           b.computedParams.TextPadding,
+	}
+	if b.computedParams.GraphicImage != nil {
+		textLayoutData = RowLayoutData{Stretch: true}
+	}
+	if b.computedParams.TextColor != nil {
+		if b.text != nil {
+			b.text.SetFace(b.computedParams.TextFace)
+			b.text.SetColor(b.computedParams.TextColor.Idle)
+			b.text.SetPosition(b.computedParams.TextPosition)
+			b.text.widget.LayoutData = textLayoutData
+		} else {
+			b.text = NewText(
+				TextOpts.WidgetOpts(WidgetOpts.LayoutData(textLayoutData)),
+				TextOpts.Text(b.textLabel, b.computedParams.TextFace, b.computedParams.TextColor.Idle),
+				TextOpts.ProcessBBCode(b.textProcessBBCode),
+				TextOpts.Position(b.computedParams.TextPosition.HTextPosition, b.computedParams.TextPosition.VTextPosition),
+			)
 		}
-		if aLayout, ok := b.container.layout.(*AnchorLayout); ok {
-			aLayout.padding = b.computedParams.TextPadding
-		}
-	} else {
-
-		// We're expecting all 3 options to be present: label, font face and color.
-		// TODO: add some sort of the error checking/reporting here.
-		// Even if users use a Text() 3-in-one API, they can pass nil or something.
-
-		b.container = NewContainer(
-			ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(b.computedParams.TextPadding))),
-			ContainerOpts.AutoDisableChildren(),
-		)
-
-		b.text = NewText(
-			TextOpts.WidgetOpts(WidgetOpts.LayoutData(AnchorLayoutData{
-				HorizontalPosition: AnchorLayoutPosition(b.computedParams.TextPosition.HTextPosition),
-				VerticalPosition:   AnchorLayoutPosition(b.computedParams.TextPosition.VTextPosition),
-			})),
-			TextOpts.Text(b.textLabel, b.computedParams.TextFace, b.computedParams.TextColor.Idle),
-			TextOpts.ProcessBBCode(b.textProcessBBCode),
-			TextOpts.Position(b.computedParams.TextPosition.HTextPosition, b.computedParams.TextPosition.VTextPosition),
-		)
-		b.container.AddChild(b.text)
-		b.container.Validate()
-
 		b.autoUpdateTextAndGraphic = true
 	}
+	if b.computedParams.GraphicImage != nil {
+		c := NewContainer(
+			ContainerOpts.WidgetOpts(WidgetOpts.LayoutData(AnchorLayoutData{
+				StretchHorizontal: true,
+				StretchVertical:   true,
+			})),
+			ContainerOpts.Layout(NewRowLayout(
+				RowLayoutOpts.Spacing(10),
+				RowLayoutOpts.Padding(b.computedParams.GraphicPadding),
+				RowLayoutOpts.Direction(DirectionHorizontal),
+			)),
+			ContainerOpts.AutoDisableChildren(),
+		)
+		b.container.AddChild(c)
+		b.graphic = NewGraphic(
+			GraphicOpts.WidgetOpts(WidgetOpts.LayoutData(RowLayoutData{
+				Stretch: false,
+			})),
+			GraphicOpts.Image(b.computedParams.GraphicImage.Idle),
+		)
+		if b.text != nil {
+			c.AddChild(b.text)
+		}
+		c.AddChild(b.graphic)
+	} else if b.text != nil {
+		b.container.AddChild(b.text)
+	}
+	b.container.Validate()
 }
 
 func (b *Button) createWidget() {
@@ -1059,5 +1014,4 @@ func (b *Button) createWidget() {
 		}),
 	}, b.widgetOpts...)...)
 	b.widgetOpts = nil
-	b.initText()
 }

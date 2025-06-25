@@ -593,6 +593,8 @@ func (l *List) createWidget() {
 }
 
 func (l *List) initWidget() {
+	l.container.RemoveChildren()
+
 	l.layout.columnSpacing = *l.computedParams.ControlWidgetSpacing
 	l.layout.rowSpacing = *l.computedParams.ControlWidgetSpacing
 

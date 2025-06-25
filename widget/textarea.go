@@ -440,6 +440,7 @@ func (l *TextArea) createWidget() {
 }
 
 func (l *TextArea) initWidget() {
+	l.container.RemoveChildren()
 	l.layout.columnSpacing = *l.computedParams.ControlWidgetSpacing
 	l.layout.rowSpacing = *l.computedParams.ControlWidgetSpacing
 

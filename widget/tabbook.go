@@ -375,6 +375,8 @@ func (t *TabBook) createWidget() {
 
 func (t *TabBook) initTabBook() {
 	t.init.Do()
+	t.container.RemoveChildren()
+
 	t.gridLayout.rowSpacing = *t.computedParams.ContentSpacing
 	buttonsContainer := NewContainer(
 		ContainerOpts.Layout(NewRowLayout(
