@@ -694,6 +694,11 @@ func (l *List) initWidget() {
 		l.container.AddChild(l.hSlider)
 	}
 
+	if l.selectedEntry != nil {
+		se := l.selectedEntry
+		l.selectedEntry = nil
+		l.SetSelectedEntry(se)
+	}
 }
 
 // Updates the entries in the list.
