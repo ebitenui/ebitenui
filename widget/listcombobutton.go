@@ -5,8 +5,8 @@ import (
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
-	"golang.org/x/exp/slices"
 	"github.com/ebitenui/ebitenui/utilities/constantutil"
+	"golang.org/x/exp/slices"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -370,6 +370,7 @@ func (l *ListComboButton) Render(screen *ebiten.Image) {
 func (l *ListComboButton) Update() {
 	l.init.Do()
 
+	l.button.GetWidget().Disabled = l.widget.Disabled
 	l.button.Update()
 
 	if l.button.button.button.focused {

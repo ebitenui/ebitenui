@@ -117,8 +117,6 @@ func NewList(opts ...ListOpt) *List {
 		o(l)
 	}
 
-	l.resetFocusIndex()
-
 	return l
 }
 
@@ -133,6 +131,7 @@ func (l *List) Validate() {
 		panic("List: EntryLabelFunc is required.")
 	}
 	l.initWidget()
+	l.resetFocusIndex()
 }
 
 func (t *List) populateComputedParams() {
