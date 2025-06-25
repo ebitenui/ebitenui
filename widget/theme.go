@@ -10,20 +10,16 @@ type Theme struct {
 	DefaultFace      *text.Face
 	DefaultTextColor color.Color
 
-	ButtonTheme      *ButtonParams
-	PanelTheme       *PanelParams
-	LabelTheme       *LabelParams
-	TextTheme        *TextParams
-	CheckboxTheme    *CheckboxParams
-	ProgressBarTheme *ProgressBarParams
-	SliderTheme      *SliderParams
-	TabbookTheme     *TabBookParams
-	TextInputTheme   *TextInputParams
-	TextAreaTheme    *TextAreaParams
-	ListTheme        *ListParams
+	ButtonTheme          *ButtonParams
+	PanelTheme           *PanelParams
+	LabelTheme           *LabelParams
+	TextTheme            *TextParams
+	CheckboxTheme        *CheckboxParams
+	ProgressBarTheme     *ProgressBarParams
+	SliderTheme          *SliderParams
+	TabbookTheme         *TabBookParams
+	TextInputTheme       *TextInputParams
+	TextAreaTheme        *TextAreaParams
+	ListTheme            *ListParams
+	ListComboButtonTheme *ListComboButtonParams
 }
-
-/*
-TO DO:
-Combobox
-*/

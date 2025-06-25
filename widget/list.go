@@ -17,14 +17,12 @@ import (
 
 type ListParams struct {
 	EntryFace                   *text.Face
-	EntryUnselectedColor        *ButtonImage
-	EntrySelectedColor          *ButtonImage
-	EntryUnselectedTextColor    *ButtonTextColor
-	EntryTextColor              *ButtonTextColor
+	EntryColor                  *ListEntryColor
 	EntryTextPadding            *Insets
 	EntryTextHorizontalPosition *TextPosition
 	EntryTextVerticalPosition   *TextPosition
 	ControlWidgetSpacing        *int
+	MinSize                     *img.Point
 
 	AllowReselect      *bool
 	SelectFocus        *bool
@@ -34,6 +32,11 @@ type ListParams struct {
 	Slider                 *SliderParams
 	ScrollContainerImage   *ScrollContainerImage
 	ScrollContainerPadding *Insets
+
+	entryUnselectedColor     *ButtonImage
+	entrySelectedColor       *ButtonImage
+	entryUnselectedTextColor *ButtonTextColor
+	entryTextColor           *ButtonTextColor
 }
 
 type List struct {
@@ -129,12 +132,6 @@ func (l *List) Validate() {
 	if l.entryLabelFunc == nil {
 		panic("List: EntryLabelFunc is required.")
 	}
-	if l.computedParams.EntryTextColor == nil || l.computedParams.EntryTextColor.Idle == nil {
-		panic("List: ListEntryColor.Selected is required.")
-	}
-	if l.computedParams.EntryUnselectedTextColor == nil || l.computedParams.EntryUnselectedTextColor.Idle == nil {
-		panic("List: ListEntryColor.Unselected is required.")
-	}
 	l.initWidget()
 }
 
@@ -154,18 +151,16 @@ func (t *List) populateComputedParams() {
 			} else {
 				params.EntryFace = theme.DefaultFace
 			}
-			params.EntrySelectedColor = theme.ListTheme.EntrySelectedColor
-			params.EntryTextColor = theme.ListTheme.EntryTextColor
+			params.EntryColor = theme.ListTheme.EntryColor
 			params.EntryTextHorizontalPosition = theme.ListTheme.EntryTextHorizontalPosition
 			params.EntryTextPadding = theme.ListTheme.EntryTextPadding
 			params.EntryTextVerticalPosition = theme.ListTheme.EntryTextVerticalPosition
-			params.EntryUnselectedColor = theme.ListTheme.EntryUnselectedColor
-			params.EntryUnselectedTextColor = theme.ListTheme.EntryUnselectedTextColor
 			params.ScrollContainerImage = theme.ListTheme.ScrollContainerImage
 			params.ScrollContainerPadding = theme.ListTheme.ScrollContainerPadding
 			params.SelectFocus = theme.ListTheme.SelectFocus
 			params.SelectPressed = theme.ListTheme.SelectPressed
 			params.Slider = theme.ListTheme.Slider
+			params.MinSize = theme.ListTheme.MinSize
 		}
 	}
 
@@ -182,11 +177,8 @@ func (t *List) populateComputedParams() {
 	if t.definedParams.EntryFace != nil {
 		params.EntryFace = t.definedParams.EntryFace
 	}
-	if t.definedParams.EntrySelectedColor != nil {
-		params.EntrySelectedColor = t.definedParams.EntrySelectedColor
-	}
-	if t.definedParams.EntryTextColor != nil {
-		params.EntryTextColor = t.definedParams.EntryTextColor
+	if t.definedParams.EntryColor != nil {
+		params.EntryColor = t.definedParams.EntryColor
 	}
 	if t.definedParams.EntryTextHorizontalPosition != nil {
 		params.EntryTextHorizontalPosition = t.definedParams.EntryTextHorizontalPosition
@@ -196,12 +188,6 @@ func (t *List) populateComputedParams() {
 	}
 	if t.definedParams.EntryTextVerticalPosition != nil {
 		params.EntryTextVerticalPosition = t.definedParams.EntryTextVerticalPosition
-	}
-	if t.definedParams.EntryUnselectedColor != nil {
-		params.EntryUnselectedColor = t.definedParams.EntryUnselectedColor
-	}
-	if t.definedParams.EntryUnselectedTextColor != nil {
-		params.EntryUnselectedTextColor = t.definedParams.EntryUnselectedTextColor
 	}
 	if t.definedParams.ScrollContainerImage != nil {
 		params.ScrollContainerImage = t.definedParams.ScrollContainerImage
@@ -215,6 +201,10 @@ func (t *List) populateComputedParams() {
 	if t.definedParams.SelectPressed != nil {
 		params.SelectPressed = t.definedParams.SelectPressed
 	}
+	if t.definedParams.MinSize != nil {
+		params.MinSize = t.definedParams.MinSize
+	}
+
 	if t.definedParams.Slider != nil {
 		if params.Slider == nil {
 			params.Slider = &SliderParams{}
@@ -271,6 +261,31 @@ func (t *List) populateComputedParams() {
 	if params.ScrollContainerPadding == nil {
 		params.ScrollContainerPadding = &Insets{}
 	}
+
+	params.entryUnselectedColor = &ButtonImage{
+		Idle:     image.NewNineSliceColor(color.Transparent),
+		Disabled: image.NewNineSliceColor(color.Transparent),
+		Hover:    image.NewNineSliceColor(params.EntryColor.FocusedBackground),
+		Pressed:  image.NewNineSliceColor(params.EntryColor.SelectingBackground),
+	}
+
+	params.entrySelectedColor = &ButtonImage{
+		Idle:     image.NewNineSliceColor(params.EntryColor.SelectedBackground),
+		Disabled: image.NewNineSliceColor(params.EntryColor.DisabledSelectedBackground),
+		Hover:    image.NewNineSliceColor(params.EntryColor.SelectedFocusedBackground),
+		Pressed:  image.NewNineSliceColor(params.EntryColor.SelectingFocusedBackground),
+	}
+
+	params.entryUnselectedTextColor = &ButtonTextColor{
+		Idle:     params.EntryColor.Unselected,
+		Disabled: params.EntryColor.DisabledUnselected,
+	}
+
+	params.entryTextColor = &ButtonTextColor{
+		Idle:     params.EntryColor.Selected,
+		Disabled: params.EntryColor.DisabledSelected,
+	}
+
 	t.computedParams = params
 }
 
@@ -345,29 +360,7 @@ func (o ListOptions) DisableDefaultKeys(val bool) ListOpt {
 
 func (o ListOptions) EntryColor(c *ListEntryColor) ListOpt {
 	return func(l *List) {
-		l.definedParams.EntryUnselectedColor = &ButtonImage{
-			Idle:     image.NewNineSliceColor(color.Transparent),
-			Disabled: image.NewNineSliceColor(color.Transparent),
-			Hover:    image.NewNineSliceColor(c.FocusedBackground),
-			Pressed:  image.NewNineSliceColor(c.SelectingBackground),
-		}
-
-		l.definedParams.EntrySelectedColor = &ButtonImage{
-			Idle:     image.NewNineSliceColor(c.SelectedBackground),
-			Disabled: image.NewNineSliceColor(c.DisabledSelectedBackground),
-			Hover:    image.NewNineSliceColor(c.SelectedFocusedBackground),
-			Pressed:  image.NewNineSliceColor(c.SelectingFocusedBackground),
-		}
-
-		l.definedParams.EntryUnselectedTextColor = &ButtonTextColor{
-			Idle:     c.Unselected,
-			Disabled: c.DisabledUnselected,
-		}
-
-		l.definedParams.EntryTextColor = &ButtonTextColor{
-			Idle:     c.Selected,
-			Disabled: c.DisabledSelected,
-		}
+		l.definedParams.EntryColor = c
 	}
 }
 
@@ -604,6 +597,11 @@ func (l *List) initWidget() {
 	l.layout.columnSpacing = *l.computedParams.ControlWidgetSpacing
 	l.layout.rowSpacing = *l.computedParams.ControlWidgetSpacing
 
+	if l.computedParams.MinSize != nil {
+		l.container.GetWidget().MinWidth = l.computedParams.MinSize.X
+		l.container.GetWidget().MinHeight = l.computedParams.MinSize.Y
+	}
+
 	l.listContent = NewContainer(
 		ContainerOpts.Layout(NewRowLayout(
 			RowLayoutOpts.Direction(DirectionVertical))),
@@ -789,13 +787,17 @@ func (l *List) setSelectedEntry(e any, user bool) {
 		prev := l.selectedEntry
 		l.selectedEntry = e
 		l.resetFocusIndex()
-		for i, b := range l.buttons {
+		for i := range l.buttons {
 			if l.entries[i] == e {
-				b.computedParams.Image = l.computedParams.EntrySelectedColor
-				b.computedParams.TextColor = l.computedParams.EntryTextColor
+				l.buttons[i].definedParams.Image = l.computedParams.entrySelectedColor
+				l.buttons[i].definedParams.TextColor = l.computedParams.entryTextColor
+				l.buttons[i].computedParams.Image = l.computedParams.entrySelectedColor
+				l.buttons[i].computedParams.TextColor = l.computedParams.entryTextColor
 			} else {
-				b.computedParams.Image = l.computedParams.EntryUnselectedColor
-				b.computedParams.TextColor = l.computedParams.EntryUnselectedTextColor
+				l.buttons[i].definedParams.Image = l.computedParams.entryUnselectedColor
+				l.buttons[i].definedParams.TextColor = l.computedParams.entryUnselectedTextColor
+				l.buttons[i].computedParams.Image = l.computedParams.entryUnselectedColor
+				l.buttons[i].computedParams.TextColor = l.computedParams.entryUnselectedTextColor
 			}
 		}
 
@@ -817,8 +819,8 @@ func (l *List) createEntry(entry any) *Button {
 		ButtonOpts.WidgetOpts(WidgetOpts.LayoutData(RowLayoutData{
 			Stretch: true,
 		})),
-		ButtonOpts.Image(l.computedParams.EntryUnselectedColor),
-		ButtonOpts.Text(l.entryLabelFunc(entry), l.computedParams.EntryFace, l.computedParams.EntryUnselectedTextColor),
+		ButtonOpts.Image(l.computedParams.entryUnselectedColor),
+		ButtonOpts.Text(l.entryLabelFunc(entry), l.computedParams.EntryFace, l.computedParams.entryUnselectedTextColor),
 		ButtonOpts.TextPadding(l.computedParams.EntryTextPadding),
 		ButtonOpts.TextPosition(*l.computedParams.EntryTextHorizontalPosition, *l.computedParams.EntryTextVerticalPosition),
 	)
