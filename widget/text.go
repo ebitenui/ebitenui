@@ -328,23 +328,23 @@ func (o TextOptions) LinkCursorExitedHandler(f LinkHandlerFunc) TextOpt {
 
 func (t *Text) SetColor(color color.Color) {
 	t.definedParams.Color = color
-	t.Validate()
+	t.computedParams.Color = color
 }
 
 func (t *Text) SetFace(face *text.Face) {
 	t.definedParams.Face = face
-	t.Validate()
+	t.computedParams.Face = face
 
 }
 
 func (t *Text) SetPadding(padding *Insets) {
 	t.definedParams.Padding = padding
-	t.Validate()
+	t.computedParams.Padding = padding
 }
 
 func (t *Text) SetPosition(position *TextPositioning) {
 	t.definedParams.Position = position
-	t.Validate()
+	t.computedParams.Position = position
 }
 
 func (t *Text) GetWidget() *Widget {
@@ -440,6 +440,7 @@ func (t *Text) draw(screen *ebiten.Image) {
 	r := t.widget.Rect
 	w := r.Dx()
 	p := r.Min
+	//ebitenutil.DrawRect(screen, float64(p.X), float64(p.Y), float64(r.Dx()), float64(r.Dy()), color.NRGBA{100, 0, 0, 100})
 
 	switch t.computedParams.Position.VTextPosition {
 	case TextPositionStart:

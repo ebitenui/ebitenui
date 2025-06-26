@@ -1,9 +1,12 @@
 package main
 
 import (
+	"image/color"
 	"log"
 
 	"github.com/ebitenui/ebitenui"
+	"github.com/ebitenui/ebitenui/image"
+	"github.com/ebitenui/ebitenui/themes"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -21,39 +24,62 @@ type game struct {
 func main() {
 	// construct a new container that serves as the root of the UI hierarchy
 	rootContainer := widget.NewPanel(
-		// the container will use a plain color as its background
-		// widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
-
 		// the container will use an anchor layout to layout its single child widget
-		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-			widget.RowLayoutOpts.Spacing(10),
-			widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(5)))),
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 
-	// construct a button
-	button := widget.NewButton(
-		// specify the button's text
-		widget.ButtonOpts.TextLabel("Hello, World!"),
-
-		// add a handler that reacts to clicking the button.
-		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			println("button clicked")
-		}),
+	buttonTab := widget.NewTabBookTab("Button",
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{255, 255, 255, 20})),
+		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Direction(widget.DirectionVertical))),
 	)
-	// add the button as a child of the container
-	rootContainer.AddChild(button)
+	labelTab := widget.NewTabBookTab("Label",
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{255, 255, 255, 20})),
+		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Direction(widget.DirectionVertical))),
+	)
 
-	rootContainer.AddChild(widget.NewLabel(
-		widget.LabelOpts.LabelText("Label"),
-	))
+	tabBook := widget.NewTabBook(
+		widget.TabBookOpts.ContainerOpts(
+			widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				StretchHorizontal:  true,
+				StretchVertical:    true,
+				HorizontalPosition: widget.AnchorLayoutPositionCenter,
+				VerticalPosition:   widget.AnchorLayoutPositionCenter,
+			}),
+			),
+		),
 
-	rootContainer.AddChild(widget.NewText(
-		widget.TextOpts.TextLabel("Text"),
-	))
+		//Set the current Tabs
+		widget.TabBookOpts.Tabs(buttonTab, labelTab),
+		// Set the Initial Tab
+		widget.TabBookOpts.InitialTab(buttonTab),
+	)
+	/*
 
-	lightTheme := GetLightTheme()
-	darkTheme := GetDarkTheme()
+		// construct a button
+		button := widget.NewButton(
+			// specify the button's text
+			widget.ButtonOpts.TextLabel("Hello, World!"),
+
+			// add a handler that reacts to clicking the button.
+			widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+				println("button clicked")
+			}),
+		)
+		// add the button as a child of the container
+		rootContainer.AddChild(button)
+
+		rootContainer.AddChild(widget.NewLabel(
+			widget.LabelOpts.LabelText("Label"),
+		))
+
+		rootContainer.AddChild(widget.NewText(
+			widget.TextOpts.TextLabel("Text"),
+		))
+	*/
+
+	rootContainer.AddChild(tabBook)
+	lightTheme := themes.GetBasicLightTheme()
+	darkTheme := themes.GetBasicDarkTheme()
 	// construct the UI
 	ui := ebitenui.UI{
 		Container:    rootContainer,
@@ -66,7 +92,6 @@ func main() {
 
 	game := game{
 		ui:         &ui,
-		btn:        button,
 		lightTheme: lightTheme,
 		darkTheme:  darkTheme,
 	}
@@ -87,23 +112,7 @@ func (g *game) Layout(outsideWidth int, outsideHeight int) (int, int) {
 func (g *game) Update() error {
 	// update the UI
 	g.ui.Update()
-	if inpututil.IsKeyJustPressed(ebiten.KeyB) {
-		g.btn.Click()
-	}
-
-	// Test that you can call Click on the focused widget.
-	// Test that you can call Click on the focused widget.
-	if inpututil.IsKeyJustPressed(ebiten.KeyF) {
-		if btn, ok := g.ui.GetFocusedWidget().(*widget.Button); ok {
-			btn.Click()
-		}
-	}
-
-	if inpututil.IsKeyJustPressed(ebiten.KeyG) {
-		g.btn.Press()
-	} else if inpututil.IsKeyJustReleased(ebiten.KeyG) {
-		g.btn.Release()
-	} else if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		if g.ui.PrimaryTheme == g.lightTheme {
 			g.ui.PrimaryTheme = g.darkTheme
 		} else {

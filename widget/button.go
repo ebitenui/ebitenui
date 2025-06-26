@@ -867,7 +867,6 @@ func (b *Button) initWidget() {
 	var textLayoutData any = AnchorLayoutData{
 		StretchHorizontal: true,
 		StretchVertical:   true,
-		Padding:           b.computedParams.TextPadding,
 	}
 	if b.computedParams.GraphicImage != nil {
 		textLayoutData = RowLayoutData{Stretch: true}
