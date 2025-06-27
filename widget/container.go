@@ -230,7 +230,10 @@ func (c *Container) PreferredSize() (int, int) {
 
 func (c *Container) SetLocation(rect img.Rectangle) {
 	c.init.Do()
-	c.widget.Rect = rect
+	if c.widget.Rect != rect {
+		c.widget.Rect = rect
+		c.RequestRelayout()
+	}
 }
 
 func (c *Container) Render(screen *ebiten.Image) {
