@@ -34,21 +34,7 @@ type TabBook struct {
 	initialTab  *TabBookTab
 }
 
-type TabBookTab struct {
-	Container
-	Disabled bool
-	label    string
-}
-
 type TabBookOpt func(t *TabBook)
-
-type TabBookTabSelectedEventArgs struct {
-	TabBook     *TabBook
-	Tab         *TabBookTab
-	PreviousTab *TabBookTab
-}
-
-type TabBookTabSelectedHandlerFunc func(args *TabBookTabSelectedEventArgs)
 
 type TabBookOptions struct {
 }
@@ -210,30 +196,12 @@ func (t *TabBook) populateComputedParams() {
 			}
 		}
 	}
+	if params.ContentSpacing == nil {
+		params.ContentSpacing = &ZERO
+	}
 
 	t.computedParams = params
 
-}
-
-func NewTabBookTab(label string, opts ...ContainerOpt) *TabBookTab {
-	c := &TabBookTab{
-		label: label,
-	}
-	c.init = &MultiOnce{}
-	c.init.Append(c.createWidget)
-
-	// Set a default layout so that tabs use the full container
-	c.widgetOpts = append(c.widgetOpts, WidgetOpts.LayoutData(AnchorLayoutData{
-		StretchHorizontal:  true,
-		StretchVertical:    true,
-		HorizontalPosition: AnchorLayoutPositionCenter,
-		VerticalPosition:   AnchorLayoutPositionCenter,
-	}))
-
-	for _, o := range opts {
-		o(&c.Container)
-	}
-	return c
 }
 
 func (o TabBookOptions) ContainerOpts(opts ...ContainerOpt) TabBookOpt {
@@ -384,12 +352,15 @@ func (t *TabBook) initTabBook() {
 	t.container.AddChild(buttonsContainer)
 
 	btnElements := []RadioGroupElement{}
-	var firstTab *TabBookTab
+	var currentTab *TabBookTab = t.tab
 
-	for _, tab := range t.tabs {
+	for i := range t.tabs {
+
+		t.tabs[i].GetWidget().parent = t.GetWidget()
+		t.tabs[i].Validate()
 		btnOpts := []ButtonOpt{
 			ButtonOpts.Image(t.computedParams.TabButton.Image),
-			ButtonOpts.Text(tab.label, t.computedParams.TabButton.TextFace, t.computedParams.TabButton.TextColor),
+			ButtonOpts.Text(t.tabs[i].label, t.computedParams.TabButton.TextFace, t.computedParams.TabButton.TextColor),
 		}
 		if t.computedParams.TabButton.MinSize != nil {
 			btnOpts = append(btnOpts, ButtonOpts.WidgetOpts(WidgetOpts.MinSize(t.computedParams.TabButton.MinSize.X, t.computedParams.TabButton.MinSize.Y)))
@@ -397,26 +368,26 @@ func (t *TabBook) initTabBook() {
 		if t.computedParams.TabButton.TextPadding != nil {
 			btnOpts = append(btnOpts, ButtonOpts.TextPadding(t.computedParams.TabButton.TextPadding))
 		}
-		btn := NewButton(append(btnOpts, ButtonOpts.WidgetOpts(WidgetOpts.CustomData(tab)))...)
+		btn := NewButton(append(btnOpts, ButtonOpts.WidgetOpts(WidgetOpts.CustomData(t.tabs[i])))...)
 		btnElements = append(btnElements, btn)
 		buttonsContainer.AddChild(btn)
-		t.tabToButton[tab] = btn
-		if firstTab == nil {
-			if t.initialTab == nil && !tab.Disabled {
-				firstTab = tab
-			} else if t.initialTab == tab && !tab.Disabled {
-				firstTab = t.initialTab
+		t.tabToButton[t.tabs[i]] = btn
+		if currentTab == nil {
+			if t.initialTab == nil && !t.tabs[i].Disabled {
+				currentTab = t.tabs[i]
+			} else if t.initialTab == t.tabs[i] && !t.tabs[i].Disabled {
+				currentTab = t.initialTab
 			}
 		}
 	}
 	// If we cannot find an initial tab default to to the first one
-	if firstTab == nil {
-		firstTab = t.tabs[0]
+	if currentTab == nil {
+		currentTab = t.tabs[0]
 	}
 
 	NewRadioGroup(
 		RadioGroupOpts.Elements(btnElements...),
-		RadioGroupOpts.InitialElement(t.tabToButton[firstTab]),
+		RadioGroupOpts.InitialElement(t.tabToButton[currentTab]),
 		RadioGroupOpts.ChangedHandler(func(args *RadioGroupChangedEventArgs) {
 			if hasWidget, ok := args.Active.(HasWidget); ok {
 				if tab, ok := hasWidget.GetWidget().CustomData.(*TabBookTab); ok {
@@ -430,6 +401,9 @@ func (t *TabBook) initTabBook() {
 		FlipBookOpts.Padding(t.computedParams.ContentPadding),
 	)
 	t.container.AddChild(t.flipBook)
+
+	t.tab = nil
+	t.SetTab(currentTab)
 }
 
 // Set the current tab for the tab book.

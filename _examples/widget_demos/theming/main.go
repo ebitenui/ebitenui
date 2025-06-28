@@ -29,11 +29,11 @@ func main() {
 	)
 
 	buttonTab := widget.NewTabBookTab("Button",
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{255, 255, 255, 20})),
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{255, 255, 255, 255})),
 		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Direction(widget.DirectionVertical))),
 	)
 	labelTab := widget.NewTabBookTab("Label",
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{255, 255, 255, 20})),
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{255, 0, 255, 255})),
 		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Direction(widget.DirectionVertical))),
 	)
 

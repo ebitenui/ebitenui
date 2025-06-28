@@ -80,8 +80,10 @@ func GetBasicLightTheme() *widget.Theme {
 				TextPadding: widget.NewInsetsSimple(5),
 				MinSize:     &img.Point{98, 40},
 			},
-			TabSpacing:     constantutil.ConstantToPointer(1),
-			ContentSpacing: constantutil.ConstantToPointer(5),
+			TabSpacing: constantutil.ConstantToPointer(1),
+		},
+		TabTheme: &widget.TabParams{
+			BackgroundImage: image.NewNineSliceColor(color.White),
 		},
 	}
 }

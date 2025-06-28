@@ -18,6 +18,7 @@ type Theme struct {
 	ProgressBarTheme     *ProgressBarParams
 	SliderTheme          *SliderParams
 	TabbookTheme         *TabBookParams
+	TabTheme             *TabParams
 	TextInputTheme       *TextInputParams
 	TextAreaTheme        *TextAreaParams
 	ListTheme            *ListParams
