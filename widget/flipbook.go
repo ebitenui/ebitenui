@@ -144,5 +144,5 @@ func (f *FlipBook) SetPage(page PreferredSizeLocateableWidget) {
 		f.removeCurrent()
 	}
 
-	f.removeCurrent = f.container.AddChild(page)
+ 	f.removeCurrent = f.container.AddChild(page)
 }

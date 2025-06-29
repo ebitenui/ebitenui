@@ -1,6 +1,8 @@
 package widget
 
-import "github.com/ebitenui/ebitenui/image"
+import (
+	"github.com/ebitenui/ebitenui/image"
+)
 
 type TabBookTab struct {
 	Container
@@ -48,8 +50,8 @@ func (t *TabBookTab) Validate() {
 		t.computedParams.BackgroundImage = t.definedParams.BackgroundImage
 	} else {
 		theme := t.widget.GetTheme()
-		if theme != nil && theme.PanelTheme != nil && theme.PanelTheme.BackgroundImage != nil {
-			t.computedParams.BackgroundImage = theme.PanelTheme.BackgroundImage
+		if theme != nil && theme.TabTheme != nil && theme.TabTheme.BackgroundImage != nil {
+			t.computedParams.BackgroundImage = theme.TabTheme.BackgroundImage
 		}
 	}
 }

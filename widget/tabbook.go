@@ -422,8 +422,8 @@ func (t *TabBook) SetTab(tab *TabBookTab) {
 		if btn != nil {
 			previousTab := t.tab
 
+			tab.widget.parent = t.GetWidget()
 			t.tab = tab
-
 			t.flipBook.SetPage(tab)
 
 			btn.SetState(WidgetChecked)

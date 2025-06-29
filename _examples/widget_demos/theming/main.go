@@ -1,11 +1,10 @@
 package main
 
 import (
-	"image/color"
 	"log"
 
 	"github.com/ebitenui/ebitenui"
-	"github.com/ebitenui/ebitenui/image"
+	"github.com/ebitenui/ebitenui/_examples/widget_demos/theming/tabs"
 	"github.com/ebitenui/ebitenui/themes"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -28,14 +27,10 @@ func main() {
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 
-	buttonTab := widget.NewTabBookTab("Button",
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{255, 255, 255, 255})),
-		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Direction(widget.DirectionVertical))),
-	)
-	labelTab := widget.NewTabBookTab("Label",
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{255, 0, 255, 255})),
-		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Direction(widget.DirectionVertical))),
-	)
+	tabList := []*widget.TabBookTab{
+		tabs.NewButtonTab(),
+		tabs.NewLabelTab(),
+	}
 
 	tabBook := widget.NewTabBook(
 		widget.TabBookOpts.ContainerOpts(
@@ -48,34 +43,9 @@ func main() {
 			),
 		),
 
-		//Set the current Tabs
-		widget.TabBookOpts.Tabs(buttonTab, labelTab),
-		// Set the Initial Tab
-		widget.TabBookOpts.InitialTab(buttonTab),
+		// Set the current Tabs.
+		widget.TabBookOpts.Tabs(tabList...),
 	)
-	/*
-
-		// construct a button
-		button := widget.NewButton(
-			// specify the button's text
-			widget.ButtonOpts.TextLabel("Hello, World!"),
-
-			// add a handler that reacts to clicking the button.
-			widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-				println("button clicked")
-			}),
-		)
-		// add the button as a child of the container
-		rootContainer.AddChild(button)
-
-		rootContainer.AddChild(widget.NewLabel(
-			widget.LabelOpts.LabelText("Label"),
-		))
-
-		rootContainer.AddChild(widget.NewText(
-			widget.TextOpts.TextLabel("Text"),
-		))
-	*/
 
 	rootContainer.AddChild(tabBook)
 	lightTheme := themes.GetBasicLightTheme()

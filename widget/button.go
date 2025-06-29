@@ -723,11 +723,6 @@ func (b *Button) draw(screen *ebiten.Image) {
 			i = b.computedParams.Image.Disabled
 		}
 
-	case b.pressing && (b.hovering || b.KeepPressedOnExit) || (b.ToggleMode && b.state == WidgetChecked) || b.justSubmitted:
-		if b.computedParams.Image.Pressed != nil {
-			i = b.computedParams.Image.Pressed
-		}
-
 	case b.focused, b.hovering:
 		if b.ToggleMode && b.state == WidgetChecked || b.pressing && (b.hovering || b.KeepPressedOnExit) {
 			if b.computedParams.Image.PressedHover != nil {
@@ -739,6 +734,10 @@ func (b *Button) draw(screen *ebiten.Image) {
 			if b.computedParams.Image.Hover != nil {
 				i = b.computedParams.Image.Hover
 			}
+		}
+	case b.pressing && (b.hovering || b.KeepPressedOnExit) || (b.ToggleMode && b.state == WidgetChecked) || b.justSubmitted:
+		if b.computedParams.Image.Pressed != nil {
+			i = b.computedParams.Image.Pressed
 		}
 	}
 
