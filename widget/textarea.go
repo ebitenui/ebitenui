@@ -6,6 +6,7 @@ import (
 	"math"
 
 	"github.com/ebitenui/ebitenui/input"
+	"github.com/ebitenui/ebitenui/utilities/constantutil"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -13,7 +14,7 @@ import (
 
 type TextAreaParams struct {
 	Face                   *text.Face
-	ForegroundColor        *color.Color
+	ForegroundColor        color.Color
 	TextPadding            *Insets
 	ControlWidgetSpacing   *int
 	StripBBCode            *bool
@@ -123,7 +124,7 @@ func (t *TextArea) populateComputedParams() {
 			if theme.TextAreaTheme.ForegroundColor != nil {
 				params.ForegroundColor = theme.TextAreaTheme.ForegroundColor
 			} else {
-				params.ForegroundColor = &theme.DefaultTextColor
+				params.ForegroundColor = theme.DefaultTextColor
 			}
 			params.LinkColor = theme.TextAreaTheme.LinkColor
 			params.ScrollContainerImage = theme.TextAreaTheme.ScrollContainerImage
@@ -189,12 +190,10 @@ func (t *TextArea) populateComputedParams() {
 		params.TextPadding = &Insets{}
 	}
 	if params.ControlWidgetSpacing == nil {
-		spacing := 0
-		params.ControlWidgetSpacing = &spacing
+		params.ControlWidgetSpacing = constantutil.ConstantToPointer(0)
 	}
 	if params.StripBBCode == nil {
-		FALSE := false
-		params.StripBBCode = &FALSE
+		params.StripBBCode = constantutil.ConstantToPointer(false)
 	}
 	if params.ScrollContainerPadding == nil {
 		params.ScrollContainerPadding = &Insets{}
@@ -276,7 +275,7 @@ func (o TextAreaOptions) FontFace(f *text.Face) TextAreaOpt {
 // Set the default color for the text area.
 func (o TextAreaOptions) FontColor(color color.Color) TextAreaOpt {
 	return func(l *TextArea) {
-		l.definedParams.ForegroundColor = &color
+		l.definedParams.ForegroundColor = color
 	}
 }
 
@@ -450,7 +449,7 @@ func (l *TextArea) initWidget() {
 		ContainerOpts.AutoDisableChildren())
 
 	l.text = NewText(
-		TextOpts.Text(l.initialText, l.computedParams.Face, *l.computedParams.ForegroundColor),
+		TextOpts.Text(l.initialText, l.computedParams.Face, l.computedParams.ForegroundColor),
 		TextOpts.Padding(l.computedParams.TextPadding),
 		TextOpts.ProcessBBCode(l.processBBCode),
 		TextOpts.StripBBCode(*l.computedParams.StripBBCode),

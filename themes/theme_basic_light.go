@@ -24,9 +24,9 @@ func GetBasicLightTheme() *widget.Theme {
 			},
 			TextFace: &face,
 			Image: &widget.ButtonImage{
-				Idle:    image.NewNineSliceColor(color.NRGBA{233, 231, 231, 255}),
-				Hover:   image.NewNineSliceColor(color.NRGBA{223, 220, 220, 255}),
-				Pressed: image.NewNineSliceColor(color.NRGBA{197, 192, 196, 255}),
+				Idle:    image.NewBorderedNineSliceColor(color.NRGBA{233, 231, 231, 255}, color.NRGBA{223, 220, 220, 255}, 2),
+				Hover:   image.NewBorderedNineSliceColor(color.NRGBA{223, 220, 220, 255}, color.NRGBA{197, 192, 196, 255}, 2),
+				Pressed: image.NewBorderedNineSliceColor(color.NRGBA{197, 192, 196, 255}, color.NRGBA{177, 172, 176, 255}, 2),
 			},
 			TextPadding: &widget.Insets{
 				Left:   30,
@@ -73,6 +73,44 @@ func GetBasicLightTheme() *widget.Theme {
 		},
 		TabTheme: &widget.TabParams{
 			BackgroundImage: image.NewNineSliceColor(color.NRGBA{197, 197, 197, 255}),
+		},
+		TextInputTheme: &widget.TextInputParams{
+			Face: &face,
+			Image: &widget.TextInputImage{
+				Idle:     image.NewBorderedNineSliceColor(color.White, color.NRGBA{177, 177, 177, 255}, 1),
+				Disabled: image.NewBorderedNineSliceColor(color.NRGBA{223, 220, 220, 255}, color.NRGBA{177, 177, 177, 255}, 1),
+			},
+			Color: &widget.TextInputColor{
+				Idle:          color.Black,
+				Caret:         color.Black,
+				Disabled:      color.NRGBA{122, 122, 122, 255},
+				DisabledCaret: color.NRGBA{122, 122, 122, 255},
+			},
+			Padding: widget.NewInsetsSimple(5),
+		},
+		TextAreaTheme: &widget.TextAreaParams{
+			Face:                   &face,
+			StripBBCode:            constantutil.ConstantToPointer(true),
+			ControlWidgetSpacing:   constantutil.ConstantToPointer(2),
+			TextPadding:            &widget.Insets{Right: 18},
+			ForegroundColor:        color.Black,
+			ScrollContainerPadding: widget.NewInsetsSimple(4),
+			ScrollContainerImage: &widget.ScrollContainerImage{
+				Idle:     image.NewBorderedNineSliceColor(color.White, color.NRGBA{177, 177, 177, 255}, 1),
+				Disabled: image.NewBorderedNineSliceColor(color.NRGBA{223, 220, 220, 255}, color.NRGBA{177, 177, 177, 255}, 1),
+				Mask:     image.NewBorderedNineSliceColor(color.White, color.NRGBA{177, 177, 177, 255}, 1),
+			},
+			Slider: &widget.SliderParams{
+				TrackImage: &widget.SliderTrackImage{
+					Idle:     image.NewBorderedNineSliceColor(color.NRGBA{233, 231, 231, 255}, color.NRGBA{223, 220, 220, 255}, 2),
+					Disabled: image.NewBorderedNineSliceColor(color.NRGBA{223, 220, 220, 255}, color.NRGBA{177, 177, 177, 255}, 1),
+				},
+				HandleImage: &widget.ButtonImage{
+					Idle:    image.NewBorderedNineSliceColor(color.White, color.NRGBA{177, 177, 177, 255}, 1),
+					Hover:   image.NewBorderedNineSliceColor(color.NRGBA{235, 235, 235, 255}, color.NRGBA{177, 177, 177, 255}, 2),
+					Pressed: image.NewBorderedNineSliceColor(color.NRGBA{210, 210, 210, 255}, color.NRGBA{177, 177, 177, 255}, 2),
+				},
+			},
 		},
 	}
 }

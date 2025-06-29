@@ -30,6 +30,8 @@ func main() {
 	tabList := []*widget.TabBookTab{
 		tabs.NewButtonTab(),
 		tabs.NewLabelTab(),
+		tabs.NewTextInputTab(),
+		tabs.NewTextAreaTab(),
 	}
 
 	tabBook := widget.NewTabBook(
@@ -57,7 +59,7 @@ func main() {
 	}
 
 	// Ebiten setup
-	ebiten.SetWindowSize(400, 400)
+	ebiten.SetWindowSize(800, 400)
 	ebiten.SetWindowTitle("Ebiten UI - Theming")
 
 	game := game{

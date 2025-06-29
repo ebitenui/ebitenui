@@ -9,7 +9,7 @@ func NewLabelTab() *widget.TabBookTab {
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 			widget.RowLayoutOpts.Spacing(10),
-			widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(10)),
+			widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(20)),
 		)),
 	)
 
@@ -33,7 +33,7 @@ func NewLabelTab() *widget.TabBookTab {
 			}),
 		),
 	)
-	//Set the widget as Disabled. This does not affect NewText
+	// Set the widget as Disabled. This does not affect NewText
 	label1.GetWidget().Disabled = true
 	// Add the first Text as a child of the container
 	result.AddChild(label1)
