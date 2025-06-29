@@ -7,8 +7,54 @@ import (
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/utilities/constantutil"
 	"github.com/ebitenui/ebitenui/widget"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"golang.org/x/image/colornames"
 )
+
+func getDarkCheckbox() *widget.CheckboxImage {
+	border := image.NewBorderedNineSliceColor(color.NRGBA{119, 119, 119, 255}, color.White, 2)
+	idle := ebiten.NewImage(32, 32)
+	border.Draw(idle, 32, 32, nil)
+	idle9s := image.NewFixedNineSlice(idle)
+
+	// Create checked image
+	checked := ebiten.NewImage(32, 32)
+	border.Draw(checked, 32, 32, nil)
+
+	var checkmark vector.Path
+	checkmark.MoveTo(28, 7)
+	checkmark.LineTo(14, 24)
+	checkmark.LineTo(6, 15)
+
+	vertices := []ebiten.Vertex{}
+	indices := []uint16{}
+	vertices, indices = checkmark.AppendVerticesAndIndicesForStroke(vertices, indices, &vector.StrokeOptions{
+		Width:    3,
+		LineJoin: vector.LineJoinBevel,
+	})
+	whiteImg := image.NewImageColor(color.White)
+	checked.DrawTriangles(vertices, indices, whiteImg, &ebiten.DrawTrianglesOptions{AntiAlias: true})
+	checked9s := image.NewFixedNineSlice(checked)
+
+	// Create greyed image
+	greyed := ebiten.NewImage(32, 32)
+	border.Draw(greyed, 32, 32, nil)
+	vector.StrokeLine(greyed, 5, 16, 27, 16, 3, color.White, true)
+	greyed9s := image.NewFixedNineSlice(greyed)
+
+	return &widget.CheckboxImage{
+		Unchecked:         idle9s,
+		Checked:           checked9s,
+		Greyed:            greyed9s,
+		UncheckedHovered:  idle9s,
+		CheckedHovered:    checked9s,
+		GreyedHovered:     greyed9s,
+		UncheckedDisabled: idle9s,
+		CheckedDisabled:   checked9s,
+		GreyedDisabled:    greyed9s,
+	}
+}
 
 func GetBasicDarkTheme() *widget.Theme {
 	// load button text font
@@ -242,6 +288,16 @@ func GetBasicDarkTheme() *widget.Theme {
 				MinSize: &img.Point{200, 0},
 			},
 			MaxContentHeight: constantutil.ConstantToPointer(200),
+		},
+		CheckboxTheme: &widget.CheckboxParams{
+			Label: &widget.LabelParams{
+				Face: &face,
+				Color: &widget.LabelColor{
+					Idle:     color.White,
+					Disabled: color.NRGBA{122, 122, 122, 255},
+				},
+			},
+			Image: getDarkCheckbox(),
 		},
 	}
 }

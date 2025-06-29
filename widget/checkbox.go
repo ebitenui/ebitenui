@@ -174,7 +174,7 @@ func (c *Checkbox) populateComputedParams() {
 	if c.definedParams.Label != nil {
 		if params.Label.Color == nil {
 			params.Label.Color = c.definedParams.Label.Color
-		} else {
+		} else if c.definedParams.Label.Color != nil {
 			if c.definedParams.Label.Color.Idle != nil {
 				params.Label.Color.Idle = c.definedParams.Label.Color.Idle
 			}
@@ -208,6 +208,33 @@ func (o CheckboxOptions) Text(labelString string, face *text.Face, color *LabelC
 		l.definedParams.Label.Color = color
 		l.definedParams.Label.Face = face
 		l.labelString = labelString
+	}
+}
+
+func (o CheckboxOptions) TextLabel(label string) CheckboxOpt {
+	return func(l *Checkbox) {
+		if l.definedParams.Label == nil {
+			l.definedParams.Label = &LabelParams{}
+		}
+		l.labelString = label
+	}
+}
+
+func (o CheckboxOptions) TextFace(face *text.Face) CheckboxOpt {
+	return func(l *Checkbox) {
+		if l.definedParams.Label == nil {
+			l.definedParams.Label = &LabelParams{}
+		}
+		l.definedParams.Label.Face = face
+	}
+}
+
+func (o CheckboxOptions) TextColor(color *LabelColor) CheckboxOpt {
+	return func(l *Checkbox) {
+		if l.definedParams.Label == nil {
+			l.definedParams.Label = &LabelParams{}
+		}
+		l.definedParams.Label.Color = color
 	}
 }
 

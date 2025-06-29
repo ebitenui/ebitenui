@@ -7,7 +7,67 @@ import (
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/utilities/constantutil"
 	"github.com/ebitenui/ebitenui/widget"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
+
+func getLightCheckbox() *widget.CheckboxImage {
+	border := image.NewBorderedNineSliceColor(color.White, color.Black, 2)
+	hover_border := image.NewBorderedNineSliceColor(color.NRGBA{214, 242, 255, 255}, color.Black, 2)
+	idle := ebiten.NewImage(32, 32)
+	border.Draw(idle, 32, 32, nil)
+	idle9s := image.NewFixedNineSlice(idle)
+
+	idle_hover := ebiten.NewImage(32, 32)
+	hover_border.Draw(idle_hover, 32, 32, nil)
+	idle_hover9s := image.NewFixedNineSlice(idle_hover)
+	// Create checked image
+	checked := ebiten.NewImage(32, 32)
+	border.Draw(checked, 32, 32, nil)
+
+	var checkmark vector.Path
+	checkmark.MoveTo(28, 7)
+	checkmark.LineTo(14, 24)
+	checkmark.LineTo(6, 15)
+
+	vertices := []ebiten.Vertex{}
+	indices := []uint16{}
+	vertices, indices = checkmark.AppendVerticesAndIndicesForStroke(vertices, indices, &vector.StrokeOptions{
+		Width:    3,
+		LineJoin: vector.LineJoinBevel,
+	})
+	blackImg := image.NewImageColor(color.Black)
+	checked.DrawTriangles(vertices, indices, blackImg, &ebiten.DrawTrianglesOptions{AntiAlias: true})
+	checked9s := image.NewFixedNineSlice(checked)
+
+	checked_hover := ebiten.NewImage(32, 32)
+	hover_border.Draw(checked_hover, 32, 32, nil)
+	checked_hover.DrawTriangles(vertices, indices, blackImg, &ebiten.DrawTrianglesOptions{AntiAlias: true})
+	checked_hover9s := image.NewFixedNineSlice(checked_hover)
+
+	// Create greyed image
+	greyed := ebiten.NewImage(32, 32)
+	border.Draw(greyed, 32, 32, nil)
+	vector.StrokeLine(greyed, 5, 16, 27, 16, 3, color.Black, true)
+	greyed9s := image.NewFixedNineSlice(greyed)
+
+	greyed_hover := ebiten.NewImage(32, 32)
+	hover_border.Draw(greyed_hover, 32, 32, nil)
+	vector.StrokeLine(greyed_hover, 5, 16, 27, 16, 3, color.Black, true)
+	greyed_hover9s := image.NewFixedNineSlice(greyed_hover)
+
+	return &widget.CheckboxImage{
+		Unchecked:         idle9s,
+		Checked:           checked9s,
+		Greyed:            greyed9s,
+		UncheckedHovered:  idle_hover9s,
+		CheckedHovered:    checked_hover9s,
+		GreyedHovered:     greyed_hover9s,
+		UncheckedDisabled: idle9s,
+		CheckedDisabled:   checked9s,
+		GreyedDisabled:    greyed9s,
+	}
+}
 
 func GetBasicLightTheme() *widget.Theme {
 	// load button text font
@@ -238,6 +298,16 @@ func GetBasicLightTheme() *widget.Theme {
 					HTextPosition: widget.TextPositionCenter,
 				},
 				MinSize: &img.Point{200, 0},
+			},
+		},
+		CheckboxTheme: &widget.CheckboxParams{
+			Image: getLightCheckbox(),
+			Label: &widget.LabelParams{
+				Face: &face,
+				Color: &widget.LabelColor{
+					Idle:     color.Black,
+					Disabled: color.NRGBA{122, 122, 122, 255},
+				},
 			},
 		},
 	}
