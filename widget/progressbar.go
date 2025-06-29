@@ -156,6 +156,18 @@ func (o ProgressBarOptions) Images(track *ProgressBarImage, fill *ProgressBarIma
 	}
 }
 
+func (o ProgressBarOptions) TrackImage(track *ProgressBarImage) ProgressBarOpt {
+	return func(s *ProgressBar) {
+		s.definedParams.TrackImage = track
+	}
+}
+
+func (o ProgressBarOptions) FillImage(fill *ProgressBarImage) ProgressBarOpt {
+	return func(s *ProgressBar) {
+		s.definedParams.FillImage = fill
+	}
+}
+
 func (o ProgressBarOptions) TrackPadding(i *Insets) ProgressBarOpt {
 	return func(s *ProgressBar) {
 		s.definedParams.TrackPadding = i

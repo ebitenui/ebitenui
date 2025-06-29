@@ -39,9 +39,7 @@ func NewProgressBarTab() *widget.TabBookTab {
 			// which is 1px x 1px we must set a minimum size.
 			widget.WidgetOpts.MinSize(200, 20),
 		),
-		widget.ProgressBarOpts.Images(
-			// Set the track images (Idle, Disabled).
-			nil,
+		widget.ProgressBarOpts.FillImage(
 			// Set the progress images (Idle, Disabled).
 			&widget.ProgressBarImage{
 				Idle: image.NewNineSliceColor(color.NRGBA{0, 0, 255, 255}),
@@ -69,10 +67,7 @@ func NewProgressBarTab() *widget.TabBookTab {
 				Position: widget.RowLayoutPositionCenter,
 			}),
 		),
-		widget.ProgressBarOpts.Images(
-			// Set the track images (Idle, Hover, Disabled).
-			nil,
-			// Set the progress images (Idle, Hover, Disabled).
+		widget.ProgressBarOpts.FillImage(
 			&widget.ProgressBarImage{
 				Idle:  image.NewNineSliceColor(color.NRGBA{0, 255, 0, 255}),
 				Hover: image.NewNineSliceColor(color.NRGBA{0, 255, 0, 255}),
