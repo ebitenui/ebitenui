@@ -631,6 +631,8 @@ func (l *List) initWidget() {
 	if l.computedParams.Slider != nil {
 		if l.computedParams.Slider.FixedHandleSize != nil {
 			sliderOpts = append(sliderOpts, SliderOpts.FixedHandleSize(*l.computedParams.Slider.FixedHandleSize))
+		} else {
+			sliderOpts = append(sliderOpts, SliderOpts.FixedHandleSize(0))
 		}
 		if l.computedParams.Slider.HandleImage != nil {
 			sliderOpts = append(sliderOpts, SliderOpts.HandleImage(l.computedParams.Slider.HandleImage))

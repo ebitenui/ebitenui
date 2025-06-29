@@ -34,6 +34,8 @@ func main() {
 		tabs.NewTextAreaTab(),
 		tabs.NewProgressBarTab(),
 		tabs.NewSliderTab(),
+		tabs.NewListTab(),
+		tabs.NewSelectTab(),
 	}
 
 	tabBook := widget.NewTabBook(
@@ -61,7 +63,7 @@ func main() {
 	}
 
 	// Ebiten setup
-	ebiten.SetWindowSize(800, 400)
+	ebiten.SetWindowSize(1200, 400)
 	ebiten.SetWindowTitle("Ebiten UI - Theming")
 
 	game := game{
