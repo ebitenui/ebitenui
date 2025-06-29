@@ -129,7 +129,18 @@ func (t *TextArea) populateComputedParams() {
 			params.LinkColor = theme.TextAreaTheme.LinkColor
 			params.ScrollContainerImage = theme.TextAreaTheme.ScrollContainerImage
 			params.ScrollContainerPadding = theme.TextAreaTheme.ScrollContainerPadding
-			params.Slider = theme.TextAreaTheme.Slider
+			if theme.TextAreaTheme.Slider != nil {
+				params.Slider = &SliderParams{
+					TrackImage:      theme.TextAreaTheme.Slider.TrackImage,
+					Orientation:     theme.TextAreaTheme.Slider.Orientation,
+					TrackPadding:    theme.TextAreaTheme.Slider.TrackPadding,
+					MinHandleSize:   theme.TextAreaTheme.Slider.MinHandleSize,
+					FixedHandleSize: theme.TextAreaTheme.Slider.FixedHandleSize,
+					TrackOffset:     theme.TextAreaTheme.Slider.TrackOffset,
+					HandleImage:     theme.TextAreaTheme.Slider.HandleImage,
+					PageSizeFunc:    theme.TextAreaTheme.Slider.PageSizeFunc,
+				}
+			}
 			params.StripBBCode = theme.TextAreaTheme.StripBBCode
 			params.TextPadding = theme.TextAreaTheme.TextPadding
 		}
@@ -175,6 +186,9 @@ func (t *TextArea) populateComputedParams() {
 		}
 		if t.definedParams.Slider.TrackPadding != nil {
 			params.Slider.TrackPadding = t.definedParams.Slider.TrackPadding
+		}
+		if t.definedParams.Slider.PageSizeFunc != nil {
+			params.Slider.PageSizeFunc = t.definedParams.Slider.PageSizeFunc
 		}
 	}
 	if t.definedParams.StripBBCode != nil {
@@ -473,6 +487,8 @@ func (l *TextArea) initWidget() {
 	if l.computedParams.Slider != nil {
 		if l.computedParams.Slider.FixedHandleSize != nil {
 			sliderOpts = append(sliderOpts, SliderOpts.FixedHandleSize(*l.computedParams.Slider.FixedHandleSize))
+		} else {
+			sliderOpts = append(sliderOpts, SliderOpts.FixedHandleSize(0))
 		}
 		if l.computedParams.Slider.HandleImage != nil {
 			sliderOpts = append(sliderOpts, SliderOpts.HandleImage(l.computedParams.Slider.HandleImage))

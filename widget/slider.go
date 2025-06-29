@@ -7,6 +7,7 @@ import (
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
+	"github.com/ebitenui/ebitenui/utilities/constantutil"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -153,8 +154,7 @@ func (s *Slider) populateComputedParams() {
 
 	// Set defaults
 	if params.MinHandleSize == nil {
-		size := 16
-		params.MinHandleSize = &size
+		params.MinHandleSize = constantutil.ConstantToPointer(16)
 	}
 	if params.PageSizeFunc == nil {
 		params.PageSizeFunc = func() int {
@@ -162,22 +162,19 @@ func (s *Slider) populateComputedParams() {
 		}
 	}
 	if params.Orientation == nil {
-		o := DirectionHorizontal
-		params.Orientation = &o
+		params.Orientation = constantutil.ConstantToPointer(DirectionHorizontal)
 	}
 	if params.TrackPadding == nil {
 		params.TrackPadding = &Insets{}
 	}
 	if params.TrackOffset == nil {
-		o := 0
-		params.TrackOffset = &o
+		params.TrackOffset = constantutil.ConstantToPointer(0)
 	}
 	if params.TrackImage == nil {
 		params.TrackImage = &SliderTrackImage{}
 	}
 	if params.FixedHandleSize == nil {
-		o := 0
-		params.FixedHandleSize = &o
+		params.FixedHandleSize = constantutil.ConstantToPointer(0)
 	}
 
 	s.computedParams = params
@@ -649,5 +646,5 @@ func (s *Slider) createWidget() {
 
 func (s *Slider) setChildComputedParams() {
 	s.handle.definedParams.Image = s.computedParams.HandleImage
-	s.handle.Validate()
+	s.handle.computedParams.Image = s.computedParams.HandleImage
 }

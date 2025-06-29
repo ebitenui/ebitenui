@@ -32,6 +32,8 @@ func main() {
 		tabs.NewLabelTab(),
 		tabs.NewTextInputTab(),
 		tabs.NewTextAreaTab(),
+		tabs.NewProgressBarTab(),
+		tabs.NewSliderTab(),
 	}
 
 	tabBook := widget.NewTabBook(

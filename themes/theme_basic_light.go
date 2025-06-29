@@ -112,5 +112,30 @@ func GetBasicLightTheme() *widget.Theme {
 				},
 			},
 		},
+		ProgressBarTheme: &widget.ProgressBarParams{
+			TrackPadding: widget.NewInsetsSimple(2),
+			TrackImage: &widget.ProgressBarImage{
+				Idle:     image.NewBorderedNineSliceColor(color.White, color.NRGBA{177, 177, 177, 255}, 1),
+				Hover:    image.NewBorderedNineSliceColor(color.White, color.NRGBA{177, 177, 177, 255}, 1),
+				Disabled: image.NewBorderedNineSliceColor(color.NRGBA{223, 220, 220, 255}, color.NRGBA{177, 177, 177, 255}, 1),
+			},
+		},
+		SliderTheme: &widget.SliderParams{
+			TrackPadding:    widget.NewInsetsSimple(2),
+			FixedHandleSize: constantutil.ConstantToPointer(6),
+			TrackOffset:     constantutil.ConstantToPointer(0),
+			PageSizeFunc: func() int {
+				return 1
+			},
+			TrackImage: &widget.SliderTrackImage{
+				Idle:     image.NewBorderedNineSliceColor(color.NRGBA{233, 231, 231, 255}, color.NRGBA{223, 220, 220, 255}, 2),
+				Disabled: image.NewBorderedNineSliceColor(color.NRGBA{223, 220, 220, 255}, color.NRGBA{177, 177, 177, 255}, 1),
+			},
+			HandleImage: &widget.ButtonImage{
+				Idle:    image.NewBorderedNineSliceColor(color.NRGBA{77, 77, 77, 255}, color.NRGBA{51, 51, 51, 255}, 2),
+				Hover:   image.NewBorderedNineSliceColor(color.NRGBA{99, 99, 99, 255}, color.NRGBA{77, 77, 77, 255}, 2),
+				Pressed: image.NewBorderedNineSliceColor(color.NRGBA{99, 99, 99, 255}, color.NRGBA{77, 77, 77, 255}, 2),
+			},
+		},
 	}
 }

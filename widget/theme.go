@@ -24,3 +24,11 @@ type Theme struct {
 	ListTheme            *ListParams
 	ListComboButtonTheme *ListComboButtonParams
 }
+
+/*
+
+	ListTheme            *ListParams
+	ListComboButtonTheme *ListComboButtonParams
+CheckboxTheme        *CheckboxParams
+	SliderTheme          *SliderParams
+*/
