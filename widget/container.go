@@ -18,7 +18,7 @@ type Container struct {
 	layout      Layouter
 	layoutDirty bool
 
-    parentLayout Relayoutable
+	parentLayout Relayoutable
 
 	init     *MultiOnce
 	widget   *Widget
@@ -82,7 +82,7 @@ func (o ContainerOptions) Layout(layout Layouter) ContainerOpt {
 }
 
 func (c *Container) SetParentLayout(parent Relayoutable) {
-    c.parentLayout = parent
+	c.parentLayout = parent
 }
 
 func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveChildFunc {
@@ -96,8 +96,8 @@ func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveCh
 		c.children = append(c.children, child)
 
 		if r, ok := child.(Relayoutable); ok {
-            r.SetParentLayout(c)
-        }
+			r.SetParentLayout(c)
+		}
 
 		child.GetWidget().parent = c.widget
 		child.GetWidget().self = child
@@ -124,9 +124,9 @@ func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveCh
 		})
 	}
 
-    if c.parentLayout != nil {
-        c.parentLayout.RequestRelayout()
-    }
+	if c.parentLayout != nil {
+		c.parentLayout.RequestRelayout()
+	}
 
 	c.RequestRelayout()
 
@@ -166,9 +166,9 @@ func (c *Container) RemoveChild(child PreferredSizeLocateableWidget) {
 		child.GetWidget().ContextMenuWindow.Close()
 	}
 
-    if c.parentLayout != nil {
-        c.parentLayout.RequestRelayout()
-    }
+	if c.parentLayout != nil {
+		c.parentLayout.RequestRelayout()
+	}
 
 	c.RequestRelayout()
 }
@@ -192,9 +192,9 @@ func (c *Container) RemoveChildren() {
 	}
 	c.children = nil
 
-    if c.parentLayout != nil {
-        c.parentLayout.RequestRelayout()
-    }
+	if c.parentLayout != nil {
+		c.parentLayout.RequestRelayout()
+	}
 
 	c.RequestRelayout()
 }

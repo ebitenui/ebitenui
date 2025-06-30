@@ -11,7 +11,7 @@ type Layouter interface {
 
 type Relayoutable interface {
 	RequestRelayout()
-    SetParentLayout(Relayoutable)
+	SetParentLayout(Relayoutable)
 }
 
 type Locateable interface {
