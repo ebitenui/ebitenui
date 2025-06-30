@@ -18,6 +18,8 @@ type Container struct {
 	layout      Layouter
 	layoutDirty bool
 
+	parentLayout Relayoutable
+
 	init     *MultiOnce
 	widget   *Widget
 	children []PreferredSizeLocateableWidget
@@ -79,6 +81,10 @@ func (o ContainerOptions) Layout(layout Layouter) ContainerOpt {
 	}
 }
 
+func (c *Container) SetParentLayout(parent Relayoutable) {
+	c.parentLayout = parent
+}
+
 func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveChildFunc {
 	c.init.Do()
 
@@ -88,6 +94,10 @@ func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveCh
 		}
 
 		c.children = append(c.children, child)
+
+		if r, ok := child.(Relayoutable); ok {
+			r.SetParentLayout(c)
+		}
 
 		child.GetWidget().parent = c.widget
 		child.GetWidget().self = child
@@ -113,6 +123,11 @@ func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveCh
 			}
 		})
 	}
+
+	if c.parentLayout != nil {
+		c.parentLayout.RequestRelayout()
+	}
+
 	c.RequestRelayout()
 
 	return func() {
@@ -139,6 +154,10 @@ func (c *Container) RemoveChild(child PreferredSizeLocateableWidget) {
 
 	child.GetWidget().parent = nil
 
+	if r, ok := child.(Relayoutable); ok {
+		r.SetParentLayout(nil)
+	}
+
 	if child.GetWidget().ToolTip != nil && child.GetWidget().ToolTip.window != nil {
 		child.GetWidget().ToolTip.window.Close()
 	}
@@ -150,6 +169,11 @@ func (c *Container) RemoveChild(child PreferredSizeLocateableWidget) {
 	if child.GetWidget().ContextMenuWindow != nil {
 		child.GetWidget().ContextMenuWindow.Close()
 	}
+
+	if c.parentLayout != nil {
+		c.parentLayout.RequestRelayout()
+	}
+
 	c.RequestRelayout()
 }
 
@@ -157,6 +181,10 @@ func (c *Container) RemoveChildren() {
 	for i := range c.children {
 		childWidget := c.children[i].GetWidget()
 		childWidget.parent = nil
+
+		if r, ok := c.children[i].(Relayoutable); ok {
+			r.SetParentLayout(nil)
+		}
 
 		if childWidget.ToolTip != nil && childWidget.ToolTip.window != nil {
 			childWidget.ToolTip.window.Close()
@@ -171,6 +199,10 @@ func (c *Container) RemoveChildren() {
 		}
 	}
 	c.children = nil
+
+	if c.parentLayout != nil {
+		c.parentLayout.RequestRelayout()
+	}
 
 	c.RequestRelayout()
 }
@@ -230,6 +262,7 @@ func (c *Container) PreferredSize() (int, int) {
 
 func (c *Container) SetLocation(rect img.Rectangle) {
 	c.init.Do()
+
 	if c.widget.Rect != rect {
 		c.widget.Rect = rect
 		c.RequestRelayout()

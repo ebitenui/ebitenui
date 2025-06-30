@@ -287,6 +287,9 @@ func (l *List) SetLocation(rect img.Rectangle) {
 	l.container.GetWidget().Rect = rect
 }
 
+func (l *List) SetParentLayout(parent Relayoutable) {
+}
+
 func (l *List) RequestRelayout() {
 	l.init.Do()
 	l.container.RequestRelayout()
@@ -699,3 +702,5 @@ func scrollClamp(targetScroll, currentScroll float64) float64 {
 	maxScroll := currentScroll + maxScrollStep
 	return math.Max(minScroll, math.Min(targetScroll, maxScroll))
 }
+
+var _ Relayoutable = &List{}
