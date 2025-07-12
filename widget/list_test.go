@@ -28,6 +28,40 @@ func TestList_SelectedEntry_Initial(t *testing.T) {
 	is.Equal(list.SelectedEntry(), nil)
 }
 
+func TestList_NoSliderOpts(t *testing.T) {
+	entries := []interface{}{"first", "second", "third"}
+	_ = NewList(
+		ListOpts.Entries(entries),
+
+		ListOpts.EntryLabelFunc(func(e interface{}) string {
+			result, _ := e.(string)
+			return result
+		}),
+
+		ListOpts.EntrySelectedHandler(func(_ *ListEntrySelectedEventArgs) {
+		}),
+		ListOpts.ScrollContainerOpts(ScrollContainerOpts.Image(&ScrollContainerImage{
+			Idle:     newNineSliceEmpty(t),
+			Disabled: newNineSliceEmpty(t),
+			Mask:     newNineSliceEmpty(t),
+		})),
+
+		ListOpts.HideHorizontalSlider(),
+		ListOpts.HideVerticalSlider(),
+
+		ListOpts.EntryFontFace(loadFont(t)),
+
+		ListOpts.EntryColor(&ListEntryColor{
+			Unselected:                 color.Transparent,
+			Selected:                   color.Transparent,
+			DisabledUnselected:         color.Transparent,
+			DisabledSelected:           color.Transparent,
+			SelectedBackground:         color.Transparent,
+			DisabledSelectedBackground: color.Transparent,
+		}),
+	)
+}
+
 func TestList_SetSelectedEntry(t *testing.T) {
 	is := is.New(t)
 
