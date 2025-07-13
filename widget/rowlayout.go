@@ -8,7 +8,7 @@ import "image"
 // Widget.LayoutData of widgets being layouted by RowLayout need to be of type RowLayoutData.
 type RowLayout struct {
 	direction Direction
-	padding   Insets
+	padding   *Insets
 	spacing   int
 }
 
@@ -57,6 +57,9 @@ func NewRowLayout(opts ...RowLayoutOpt) *RowLayout {
 	for _, o := range opts {
 		o(r)
 	}
+	if r.padding == nil {
+		r.padding = &Insets{}
+	}
 
 	return r
 }
@@ -70,7 +73,7 @@ func (o RowLayoutOptions) Direction(d Direction) RowLayoutOpt {
 }
 
 // Padding configures a row layout to use padding i.
-func (o RowLayoutOptions) Padding(i Insets) RowLayoutOpt {
+func (o RowLayoutOptions) Padding(i *Insets) RowLayoutOpt {
 	return func(r *RowLayout) {
 		r.padding = i
 	}

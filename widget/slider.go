@@ -7,32 +7,40 @@ import (
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
+	"github.com/ebitenui/ebitenui/utilities/constantutil"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+type SliderParams struct {
+	Orientation     *Direction
+	TrackImage      *SliderTrackImage
+	TrackPadding    *Insets
+	MinHandleSize   *int
+	FixedHandleSize *int
+	TrackOffset     *int
+	HandleImage     *ButtonImage
+	PageSizeFunc    SliderPageSizeFunc
+}
+
 type Slider struct {
-	Min               int
-	Max               int
-	Current           int
-	DrawTrackDisabled bool
+	definedParams  SliderParams
+	computedParams SliderParams
+
+	Min                int
+	Max                int
+	Current            int
+	DrawTrackDisabled  bool
+	disableDefaultKeys bool
+
+	widgetOpts []WidgetOpt
 
 	ChangedEvent *event.Event
 
-	widgetOpts         []WidgetOpt
-	handleOpts         []ButtonOpt
-	direction          Direction
-	trackImage         *SliderTrackImage
-	trackPadding       Insets
-	minHandleSize      int
-	fixedHandleSize    int
-	trackOffset        int
-	pageSizeFunc       SliderPageSizeFunc
-	disableDefaultKeys bool
+	init   *MultiOnce
+	widget *Widget
+	handle *Button
 
-	init                         *MultiOnce
-	widget                       *Widget
-	handle                       *Button
 	lastCurrent                  int
 	hovering                     bool
 	dragging                     bool
@@ -78,12 +86,6 @@ func NewSlider(opts ...SliderOpt) *Slider {
 
 		ChangedEvent: &event.Event{},
 
-		trackImage:    &SliderTrackImage{},
-		minHandleSize: 16,
-		pageSizeFunc: func() int {
-			return 10
-		},
-
 		lastCurrent: 1,
 
 		init:     &MultiOnce{},
@@ -96,15 +98,86 @@ func NewSlider(opts ...SliderOpt) *Slider {
 		o(s)
 	}
 
-	s.validate()
-
 	return s
 }
 
-func (s *Slider) validate() {
-	if len(s.handleOpts) == 0 {
-		panic("Slider: HandleImage is required.")
+func (s *Slider) Validate() {
+	s.init.Do()
+	s.populateComputedParams()
+
+	s.setChildComputedParams()
+}
+
+func (s *Slider) populateComputedParams() {
+	params := SliderParams{}
+
+	// Set Theme
+	theme := s.widget.GetTheme()
+	if theme != nil {
+		if theme.SliderTheme != nil {
+			params.FixedHandleSize = theme.SliderTheme.FixedHandleSize
+			params.HandleImage = theme.SliderTheme.HandleImage
+			params.MinHandleSize = theme.SliderTheme.MinHandleSize
+			params.Orientation = theme.SliderTheme.Orientation
+			params.PageSizeFunc = theme.SliderTheme.PageSizeFunc
+			params.TrackImage = theme.SliderTheme.TrackImage
+			params.TrackOffset = theme.SliderTheme.TrackOffset
+			params.TrackPadding = theme.SliderTheme.TrackPadding
+		}
 	}
+
+	// Set defined params
+	if s.definedParams.FixedHandleSize != nil {
+		params.FixedHandleSize = s.definedParams.FixedHandleSize
+	}
+	if s.definedParams.MinHandleSize != nil {
+		params.MinHandleSize = s.definedParams.MinHandleSize
+	}
+	if s.definedParams.HandleImage != nil {
+		params.HandleImage = s.definedParams.HandleImage
+	}
+	if s.definedParams.Orientation != nil {
+		params.Orientation = s.definedParams.Orientation
+	}
+	if s.definedParams.PageSizeFunc != nil {
+		params.PageSizeFunc = s.definedParams.PageSizeFunc
+	}
+	if s.definedParams.TrackImage != nil {
+		params.TrackImage = s.definedParams.TrackImage
+	}
+	if s.definedParams.TrackOffset != nil {
+		params.TrackOffset = s.definedParams.TrackOffset
+	}
+	if s.definedParams.TrackPadding != nil {
+		params.TrackPadding = s.definedParams.TrackPadding
+	}
+
+	// Set defaults
+	if params.MinHandleSize == nil {
+		params.MinHandleSize = constantutil.ConstantToPointer(16)
+	}
+	if params.PageSizeFunc == nil {
+		params.PageSizeFunc = func() int {
+			return 10
+		}
+	}
+	if params.Orientation == nil {
+		params.Orientation = constantutil.ConstantToPointer(DirectionHorizontal)
+	}
+	if params.TrackPadding == nil {
+		params.TrackPadding = &Insets{}
+	}
+	if params.TrackOffset == nil {
+		params.TrackOffset = constantutil.ConstantToPointer(0)
+	}
+	if params.TrackImage == nil {
+		params.TrackImage = &SliderTrackImage{}
+	}
+	if params.FixedHandleSize == nil {
+		params.FixedHandleSize = constantutil.ConstantToPointer(0)
+	}
+
+	s.computedParams = params
 }
 
 func (o SliderOptions) WidgetOpts(opts ...WidgetOpt) SliderOpt {
@@ -113,58 +186,61 @@ func (o SliderOptions) WidgetOpts(opts ...WidgetOpt) SliderOpt {
 	}
 }
 
+func (so SliderOptions) Orientation(o Direction) SliderOpt {
+	return func(s *Slider) {
+		s.definedParams.Orientation = &o
+	}
+}
+
+// Deprecated: Use Orientation(o *Direction) instead.
 func (o SliderOptions) Direction(d Direction) SliderOpt {
 	return func(s *Slider) {
-		s.direction = d
+		s.definedParams.Orientation = &d
 	}
 }
 
 // This sets the track images (not required) and the handle images (required).
 func (o SliderOptions) Images(track *SliderTrackImage, handle *ButtonImage) SliderOpt {
 	return func(s *Slider) {
-		s.trackImage = track
-		if handle != nil && len(s.handleOpts) == 0 {
-			s.handleOpts = append(s.handleOpts, ButtonOpts.Image(handle))
-		}
+		s.definedParams.TrackImage = track
+		s.definedParams.HandleImage = handle
 	}
 }
 
 // This sets the track images (not required).
 func (o SliderOptions) TrackImage(track *SliderTrackImage) SliderOpt {
 	return func(s *Slider) {
-		s.trackImage = track
+		s.definedParams.TrackImage = track
 	}
 }
 
 // This sets the handle images (required).
 func (o SliderOptions) HandleImage(handle *ButtonImage) SliderOpt {
 	return func(s *Slider) {
-		if handle != nil && len(s.handleOpts) == 0 {
-			s.handleOpts = append(s.handleOpts, ButtonOpts.Image(handle))
-		}
+		s.definedParams.HandleImage = handle
 	}
 }
 
-func (o SliderOptions) TrackPadding(i Insets) SliderOpt {
+func (o SliderOptions) TrackPadding(i *Insets) SliderOpt {
 	return func(s *Slider) {
-		s.trackPadding = i
+		s.definedParams.TrackPadding = i
 	}
 }
 func (o SliderOptions) TrackOffset(i int) SliderOpt {
 	return func(s *Slider) {
-		s.trackOffset = i
+		s.definedParams.TrackOffset = &i
 	}
 }
 
 func (o SliderOptions) MinHandleSize(s int) SliderOpt {
 	return func(sl *Slider) {
-		sl.minHandleSize = s
+		sl.definedParams.MinHandleSize = &s
 	}
 }
 
 func (o SliderOptions) FixedHandleSize(s int) SliderOpt {
 	return func(sl *Slider) {
-		sl.fixedHandleSize = s
+		sl.definedParams.FixedHandleSize = &s
 	}
 }
 
@@ -184,7 +260,7 @@ func (o SliderOptions) InitialCurrent(value int) SliderOpt {
 
 func (o SliderOptions) PageSizeFunc(f SliderPageSizeFunc) SliderOpt {
 	return func(s *Slider) {
-		s.pageSizeFunc = f
+		s.definedParams.PageSizeFunc = f
 	}
 }
 
@@ -243,11 +319,11 @@ func (s *Slider) GetWidget() *Widget {
 
 func (s *Slider) PreferredSize() (int, int) {
 	var w, h int
-	if s.direction == DirectionHorizontal {
+	if *s.computedParams.Orientation == DirectionHorizontal {
 		w = 0
-		h = s.minHandleSize + s.trackPadding.Top + s.trackPadding.Bottom
+		h = *s.computedParams.MinHandleSize + s.computedParams.TrackPadding.Top + s.computedParams.TrackPadding.Bottom
 	} else {
-		w = s.minHandleSize + s.trackPadding.Left + s.trackPadding.Right
+		w = *s.computedParams.MinHandleSize + s.computedParams.TrackPadding.Left + s.computedParams.TrackPadding.Right
 		h = 0
 	}
 
@@ -284,7 +360,7 @@ func (s *Slider) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 func (s *Slider) Render(screen *ebiten.Image) {
 	s.init.Do()
 
-	s.handleDirection()
+	s.handleOrientation()
 	s.clampCurrentMinMax()
 
 	s.handle.GetWidget().Disabled = s.widget.Disabled
@@ -314,40 +390,40 @@ func (s *Slider) Update() {
 }
 
 func (s *Slider) drawTrack(screen *ebiten.Image) {
-	if s.trackImage != nil {
-		i := s.trackImage.Idle
+	if s.computedParams.TrackImage != nil {
+		i := s.computedParams.TrackImage.Idle
 		if s.widget.Disabled || s.DrawTrackDisabled {
-			if s.trackImage.Disabled != nil {
-				i = s.trackImage.Disabled
+			if s.computedParams.TrackImage.Disabled != nil {
+				i = s.computedParams.TrackImage.Disabled
 			}
 		} else if s.hovering {
-			if s.trackImage.Hover != nil {
-				i = s.trackImage.Hover
+			if s.computedParams.TrackImage.Hover != nil {
+				i = s.computedParams.TrackImage.Hover
 			}
 		}
 
 		if i != nil {
 			i.Draw(screen, s.widget.Rect.Dx(), s.widget.Rect.Dy(), func(opts *ebiten.DrawImageOptions) {
-				if s.direction == DirectionHorizontal {
-					opts.GeoM.Translate(float64(s.widget.Rect.Min.X), float64(s.widget.Rect.Min.Y+s.trackOffset))
+				if *s.computedParams.Orientation == DirectionHorizontal {
+					opts.GeoM.Translate(float64(s.widget.Rect.Min.X), float64(s.widget.Rect.Min.Y+*s.computedParams.TrackOffset))
 				} else {
-					opts.GeoM.Translate(float64(s.widget.Rect.Min.X+s.trackOffset), float64(s.widget.Rect.Min.Y))
+					opts.GeoM.Translate(float64(s.widget.Rect.Min.X+*s.computedParams.TrackOffset), float64(s.widget.Rect.Min.Y))
 				}
 			})
 		}
 	}
 }
 
-func (s *Slider) handleDirection() {
+func (s *Slider) handleOrientation() {
 	if !s.disableDefaultKeys {
-		if s.direction == DirectionHorizontal {
+		if *s.computedParams.Orientation == DirectionHorizontal {
 			if input.KeyPressed(ebiten.KeyLeft) || input.KeyPressed(ebiten.KeyRight) {
 				if !s.justMoved && s.handle.focused {
 					changeDir := 1
 					if input.KeyPressed(ebiten.KeyLeft) {
 						changeDir = -1
 					}
-					s.Current += (changeDir * s.pageSizeFunc())
+					s.Current += (changeDir * s.computedParams.PageSizeFunc())
 					s.justMoved = true
 				}
 			} else {
@@ -360,7 +436,7 @@ func (s *Slider) handleDirection() {
 					if input.KeyPressed(ebiten.KeyUp) {
 						changeDir = -1
 					}
-					s.Current += (changeDir * s.pageSizeFunc())
+					s.Current += (changeDir * s.computedParams.PageSizeFunc())
 					s.justMoved = true
 				}
 			} else {
@@ -380,17 +456,17 @@ func (s *Slider) fireEvents() {
 
 func (s *Slider) updateHandleSize(handleLength float64) {
 	l := int(math.Round(handleLength))
-	if l < s.minHandleSize {
-		l = s.minHandleSize
+	if l < *s.computedParams.MinHandleSize {
+		l = *s.computedParams.MinHandleSize
 	}
 
 	rect := s.widget.Rect
 
 	var p img.Point
-	if s.direction == DirectionHorizontal {
-		p = img.Point{l, rect.Dy() - s.trackPadding.Top - s.trackPadding.Bottom}
+	if *s.computedParams.Orientation == DirectionHorizontal {
+		p = img.Point{l, rect.Dy() - s.computedParams.TrackPadding.Top - s.computedParams.TrackPadding.Bottom}
 	} else {
-		p = img.Point{rect.Dx() - s.trackPadding.Left - s.trackPadding.Right, l}
+		p = img.Point{rect.Dx() - s.computedParams.TrackPadding.Left - s.computedParams.TrackPadding.Right, l}
 	}
 
 	s.handle.GetWidget().Rect.Max = s.handle.GetWidget().Rect.Min.Add(p)
@@ -406,7 +482,7 @@ func (s *Slider) updateHandleLocation(handleLength float64, trackLength float64)
 		x, y := input.CursorPosition()
 
 		var dragOffset int
-		if s.direction == DirectionHorizontal {
+		if *s.computedParams.Orientation == DirectionHorizontal {
 			dragOffset = x - s.handlePressedCursorX
 		} else {
 			dragOffset = y - s.handlePressedCursorY
@@ -432,31 +508,31 @@ func (s *Slider) updateHandleLocation(handleLength float64, trackLength float64)
 	off := int(math.Round(float64(internalTrackStart)*(1-i)+float64(internalTrackEnd)*i) - handleLength/2)
 
 	rect := s.widget.Rect
-	if s.direction == DirectionHorizontal {
-		rect.Min = rect.Min.Add(img.Point{off + s.trackPadding.Left, s.trackPadding.Top})
+	if *s.computedParams.Orientation == DirectionHorizontal {
+		rect.Min = rect.Min.Add(img.Point{off + s.computedParams.TrackPadding.Left, s.computedParams.TrackPadding.Top})
 	} else {
-		rect.Min = rect.Min.Add(img.Point{s.trackPadding.Left, off + s.trackPadding.Top})
+		rect.Min = rect.Min.Add(img.Point{s.computedParams.TrackPadding.Left, off + s.computedParams.TrackPadding.Top})
 	}
 	s.handle.GetWidget().Rect = rect
 }
 
 func (s *Slider) handleLengthAndTrackLength() (float64, float64) {
 	var trackLength float64
-	if s.direction == DirectionHorizontal {
-		trackLength = float64(s.widget.Rect.Dx()) - float64(s.trackPadding.Left) - float64(s.trackPadding.Right)
+	if *s.computedParams.Orientation == DirectionHorizontal {
+		trackLength = float64(s.widget.Rect.Dx()) - float64(s.computedParams.TrackPadding.Left) - float64(s.computedParams.TrackPadding.Right)
 	} else {
-		trackLength = float64(s.widget.Rect.Dy()) - float64(s.trackPadding.Top) - float64(s.trackPadding.Bottom)
+		trackLength = float64(s.widget.Rect.Dy()) - float64(s.computedParams.TrackPadding.Top) - float64(s.computedParams.TrackPadding.Bottom)
 	}
 
 	handleLength := 0.0
-	if s.fixedHandleSize != 0 {
-		handleLength = float64(s.fixedHandleSize)
+	if *s.computedParams.FixedHandleSize != 0 {
+		handleLength = float64(*s.computedParams.FixedHandleSize)
 	} else {
-		ps := float64(s.pageSizeFunc())
+		ps := float64(s.computedParams.PageSizeFunc())
 		length := float64(s.Max - s.Min + 1)
 		handleLength = ps / length * trackLength
-		if handleLength < float64(s.minHandleSize) {
-			handleLength = float64(s.minHandleSize)
+		if handleLength < float64(*s.computedParams.MinHandleSize) {
+			handleLength = float64(*s.computedParams.MinHandleSize)
 		}
 	}
 
@@ -501,8 +577,8 @@ func (s *Slider) createWidget() {
 		}),
 		WidgetOpts.ScrolledHandler(func(args *WidgetScrolledEventArgs) {
 			if !s.widget.Disabled {
-				ps := s.pageSizeFunc()
-				if s.direction == DirectionHorizontal {
+				ps := s.computedParams.PageSizeFunc()
+				if *s.computedParams.Orientation == DirectionHorizontal {
 					s.Current += ps * int(args.Y)
 				} else {
 					s.Current -= ps * int(args.Y)
@@ -515,9 +591,9 @@ func (s *Slider) createWidget() {
 		WidgetOpts.MouseButtonPressedHandler(func(args *WidgetMouseButtonPressedEventArgs) {
 			if !s.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
 				x, y := input.CursorPosition()
-				ps := s.pageSizeFunc()
+				ps := s.computedParams.PageSizeFunc()
 				rect := s.handle.GetWidget().Rect
-				if s.direction == DirectionHorizontal {
+				if *s.computedParams.Orientation == DirectionHorizontal {
 					if x < rect.Min.X {
 						s.Current -= ps
 					} else if x >= rect.Max.X {
@@ -537,7 +613,8 @@ func (s *Slider) createWidget() {
 	}, s.widgetOpts...)...)
 	s.widgetOpts = nil
 
-	s.handle = NewButton(append(s.handleOpts, []ButtonOpt{
+	s.handle = NewButton([]ButtonOpt{
+		ButtonOpts.Image(s.computedParams.HandleImage),
 		ButtonOpts.KeepPressedOnExit(),
 
 		ButtonOpts.PressedHandler(func(args *ButtonPressedEventArgs) {
@@ -555,8 +632,8 @@ func (s *Slider) createWidget() {
 
 		ButtonOpts.WidgetOpts(WidgetOpts.ScrolledHandler(func(args *WidgetScrolledEventArgs) {
 			if !s.widget.Disabled {
-				ps := s.pageSizeFunc()
-				if s.direction == DirectionHorizontal {
+				ps := s.computedParams.PageSizeFunc()
+				if *s.computedParams.Orientation == DirectionHorizontal {
 					s.Current += ps * int(args.Y)
 				} else {
 					s.Current -= ps * int(args.Y)
@@ -564,5 +641,10 @@ func (s *Slider) createWidget() {
 				s.clampCurrentMinMax()
 			}
 		})),
-	}...)...)
+	}...)
+}
+
+func (s *Slider) setChildComputedParams() {
+	s.handle.definedParams.Image = s.computedParams.HandleImage
+	s.handle.computedParams.Image = s.computedParams.HandleImage
 }

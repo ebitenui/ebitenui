@@ -10,7 +10,7 @@ import (
 // Widget.LayoutData of widgets being layouted by GridLayout need to be of type GridLayoutData.
 type GridLayout struct {
 	columns       int
-	padding       Insets
+	padding       *Insets
 	columnSpacing int
 	rowSpacing    int
 	columnStretch []bool
@@ -66,6 +66,10 @@ func NewGridLayout(opts ...GridLayoutOpt) *GridLayout {
 		o(g)
 	}
 
+	if g.padding == nil {
+		g.padding = &Insets{}
+	}
+
 	g.validate()
 
 	return g
@@ -85,7 +89,7 @@ func (o GridLayoutOptions) Columns(c int) GridLayoutOpt {
 }
 
 // Padding configures a grid layout to use padding i.
-func (o GridLayoutOptions) Padding(i Insets) GridLayoutOpt {
+func (o GridLayoutOptions) Padding(i *Insets) GridLayoutOpt {
 	return func(g *GridLayout) {
 		g.padding = i
 	}

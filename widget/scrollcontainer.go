@@ -17,7 +17,7 @@ type ScrollContainer struct {
 	widgetOpts          []WidgetOpt
 	image               *ScrollContainerImage
 	content             HasWidget
-	padding             Insets
+	padding             *Insets
 	stretchContentWidth bool
 
 	init      *MultiOnce
@@ -51,7 +51,11 @@ func NewScrollContainer(opts ...ScrollContainerOpt) *ScrollContainer {
 		o(s)
 	}
 
-	s.validate()
+	if s.padding == nil {
+		s.padding = &Insets{}
+	}
+
+	s.Validate()
 
 	s.content.GetWidget().ContextMenuEvent.AddHandler(func(args interface{}) {
 		if a, ok := args.(*WidgetContextMenuEventArgs); ok {
@@ -76,7 +80,7 @@ func NewScrollContainer(opts ...ScrollContainerOpt) *ScrollContainer {
 	return s
 }
 
-func (s *ScrollContainer) validate() {
+func (s *ScrollContainer) Validate() {
 	if s.content == nil {
 		panic("ScrollContainer: Content is required.")
 	}
@@ -109,7 +113,7 @@ func (o ScrollContainerOptions) Content(c HasWidget) ScrollContainerOpt {
 	}
 }
 
-func (o ScrollContainerOptions) Padding(p Insets) ScrollContainerOpt {
+func (o ScrollContainerOptions) Padding(p *Insets) ScrollContainerOpt {
 	return func(s *ScrollContainer) {
 		s.padding = p
 	}

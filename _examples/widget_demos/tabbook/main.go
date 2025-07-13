@@ -2,11 +2,12 @@ package main
 
 import (
 	"bytes"
+	"image"
 	"image/color"
 	"log"
 
 	"github.com/ebitenui/ebitenui"
-	"github.com/ebitenui/ebitenui/image"
+	e_image "github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -35,7 +36,7 @@ func main() {
 	// construct a new container that serves as the root of the UI hierarchy
 	rootContainer := widget.NewContainer(
 		// the container will use a plain color as its background
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
+		widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
 
 		// the container will use an anchor layout to layout its single child widget
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
@@ -44,12 +45,12 @@ func main() {
 	// Create the first tab
 	// A TabBookTab is a labelled container. The text here is what will show up in the tab button
 	game.TabRed = widget.NewTabBookTab("Red Tab",
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{255, 0, 0, 255})),
+		widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{255, 0, 0, 255})),
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 
 	redBtn := widget.NewText(
-		widget.TextOpts.Text("Red Tab Button\nPress 'R' to select this tab.", face, color.White),
+		widget.TextOpts.Text("Red Tab Button\nPress 'R' to select this tab.", &face, color.White),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			HorizontalPosition: widget.AnchorLayoutPositionCenter,
 			VerticalPosition:   widget.AnchorLayoutPositionCenter,
@@ -58,11 +59,11 @@ func main() {
 	game.TabRed.AddChild(redBtn)
 
 	game.TabGreen = widget.NewTabBookTab("Green Tab",
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0, 255, 0, 0xff})),
+		widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{0, 255, 0, 0xff})),
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 	greenBtn := widget.NewText(
-		widget.TextOpts.Text("Green Tab Button\nThis is configured as the initial tab.\nPress 'G' to select this tab.", face, color.Black),
+		widget.TextOpts.Text("Green Tab Button\nThis is configured as the initial tab.\nPress 'G' to select this tab.", &face, color.Black),
 		widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			HorizontalPosition: widget.AnchorLayoutPositionCenter,
@@ -72,21 +73,21 @@ func main() {
 	game.TabGreen.AddChild(greenBtn)
 
 	game.TabBlue = widget.NewTabBookTab("Blue Tab",
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0, 0, 255, 0xff})),
+		widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{0, 0, 255, 0xff})),
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 			widget.RowLayoutOpts.Spacing(5),
 		)),
 	)
 	blueBtn1 := widget.NewText(
-		widget.TextOpts.Text("Blue Tab Button 1", face, color.White),
+		widget.TextOpts.Text("Blue Tab Button 1", &face, color.White),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Position: widget.RowLayoutPositionCenter,
 		})),
 	)
 	game.TabBlue.AddChild(blueBtn1)
 	blueBtn2 := widget.NewText(
-		widget.TextOpts.Text("Press 'B' to select this tab.", face, color.White),
+		widget.TextOpts.Text("Press 'B' to select this tab.", &face, color.White),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Position: widget.RowLayoutPositionCenter,
 		})),
@@ -94,14 +95,16 @@ func main() {
 	game.TabBlue.AddChild(blueBtn2)
 
 	tabDisabled := widget.NewTabBookTab("Disabled Tab",
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{R: 80, G: 80, B: 140, A: 255})),
+		widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{R: 80, G: 80, B: 140, A: 255})),
 	)
 	tabDisabled.Disabled = true
-
 	game.TabBook = widget.NewTabBook(
 		widget.TabBookOpts.TabButtonImage(buttonImage),
-		widget.TabBookOpts.TabButtonText(face, &widget.ButtonTextColor{Idle: color.White, Disabled: color.White}),
-		widget.TabBookOpts.TabButtonSpacing(0),
+		widget.TabBookOpts.TabButtonText(&face, &widget.ButtonTextColor{Idle: color.White, Disabled: color.White}),
+		widget.TabBookOpts.TabButtonSpacing(5),
+		widget.TabBookOpts.ContentPadding(widget.NewInsetsSimple(5)),
+		widget.TabBookOpts.ContentSpacing(10),
+		widget.TabBookOpts.TabButtonMinSize(&image.Point{98, 40}),
 		widget.TabBookOpts.ContainerOpts(
 			widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 				StretchHorizontal:  true,
@@ -111,14 +114,11 @@ func main() {
 			}),
 			),
 		),
-		widget.TabBookOpts.TabButtonOpts(
-			widget.ButtonOpts.TextPadding(widget.NewInsetsSimple(5)),
-			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.MinSize(98, 0)),
-		),
+
 		widget.TabBookOpts.Tabs(tabDisabled, game.TabRed, game.TabGreen, game.TabBlue),
 
 		// Set the Initial Tab
-		// widget.TabBookOpts.InitialTab(game.TabGreen),
+		widget.TabBookOpts.InitialTab(game.TabGreen),
 	)
 	// add the tabBook as a child of the container
 	rootContainer.AddChild(game.TabBook)
@@ -174,15 +174,15 @@ func (g *game) Draw(screen *ebiten.Image) {
 }
 
 func loadButtonImage() (*widget.ButtonImage, error) {
-	idle := image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 180, A: 255})
+	idle := e_image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 180, A: 255})
 
-	hover := image.NewNineSliceColor(color.NRGBA{R: 130, G: 130, B: 150, A: 255})
+	hover := e_image.NewNineSliceColor(color.NRGBA{R: 130, G: 130, B: 150, A: 255})
 
-	pressed := image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 120, A: 255})
+	pressed := e_image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 120, A: 255})
 
-	pressedHover := image.NewNineSliceColor(color.NRGBA{R: 110, G: 110, B: 110, A: 255})
+	pressedHover := e_image.NewNineSliceColor(color.NRGBA{R: 110, G: 110, B: 110, A: 255})
 
-	disabled := image.NewNineSliceColor(color.NRGBA{R: 80, G: 80, B: 140, A: 255})
+	disabled := e_image.NewNineSliceColor(color.NRGBA{R: 80, G: 80, B: 140, A: 255})
 
 	return &widget.ButtonImage{
 		Idle:         idle,

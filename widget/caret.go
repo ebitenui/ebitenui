@@ -3,26 +3,22 @@ package widget
 import (
 	img "image"
 	"image/color"
-	"math"
 	"sync/atomic"
 	"time"
 
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
 type Caret struct {
-	Width int
-	Color color.Color
-
-	face          text.Face
+	Width         int
+	Height        int
+	Color         color.Color
 	blinkInterval time.Duration
 
 	init    *MultiOnce
 	widget  *Widget
 	image   *image.NineSlice
-	height  int
 	state   caretBlinkState
 	visible bool
 }
@@ -50,15 +46,11 @@ func NewCaret(opts ...CaretOpt) *Caret {
 		o(c)
 	}
 
-	c.validate()
-
 	return c
 }
 
-func (c *Caret) validate() {
-	if c.face == nil {
-		panic("Caret: Font Face is required.")
-	}
+func (c *Caret) Validate() {
+
 }
 
 func (o CaretOptions) Color(c color.Color) CaretOpt {
@@ -67,9 +59,9 @@ func (o CaretOptions) Color(c color.Color) CaretOpt {
 	}
 }
 
-func (o CaretOptions) Size(face text.Face, width int) CaretOpt {
+func (o CaretOptions) Size(height int, width int) CaretOpt {
 	return func(c *Caret) {
-		c.face = face
+		c.Height = height
 		c.Width = width
 	}
 }
@@ -86,7 +78,7 @@ func (c *Caret) SetLocation(rect img.Rectangle) {
 
 func (c *Caret) PreferredSize() (int, int) {
 	c.init.Do()
-	return c.Width, c.height
+	return c.Width, c.Height
 }
 
 func (c *Caret) Render(screen *ebiten.Image) {
@@ -102,7 +94,7 @@ func (c *Caret) Render(screen *ebiten.Image) {
 
 	c.image = image.NewNineSliceColor(c.Color)
 
-	c.image.Draw(screen, c.Width, c.height, func(opts *ebiten.DrawImageOptions) {
+	c.image.Draw(screen, c.Width, c.Height, func(opts *ebiten.DrawImageOptions) {
 		p := c.widget.Rect.Min
 		opts.GeoM.Translate(float64(p.X), float64(p.Y))
 	})
@@ -148,8 +140,4 @@ func (c *Caret) blinkState(visible bool, timer *time.Timer, expired *atomic.Valu
 
 func (c *Caret) createWidget() {
 	c.widget = NewWidget()
-
-	_, height := text.Measure(" ", c.face, 0)
-	c.height = int(math.Round(height))
-	c.face = nil
 }

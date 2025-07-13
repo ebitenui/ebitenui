@@ -39,7 +39,7 @@ func main() {
 		iter := i
 		Option1 := widget.NewText(
 			widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter),
-			widget.TextOpts.Text(fmt.Sprint("Label: ", iter), face, color.White),
+			widget.TextOpts.Text(fmt.Sprint("Label: ", iter), &face, color.White),
 			widget.TextOpts.WidgetOpts(widget.WidgetOpts.MinSize(100, 0)),
 		)
 		tooltipContainer.AddChild(Option1)
@@ -83,12 +83,12 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Hover for tooltip #1", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Hover for tooltip #1", &face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   30,
 			Right:  30,
 			Top:    5,
@@ -105,7 +105,7 @@ func main() {
 
 	// Use the NewTextToolTip convenience method to create the tooltip
 	btn2ToolTip := widget.NewTextToolTip("Label: 1\nLabel: 2\nLabel: 3\nLabel: 4\nLabel: 5",
-		face, color.White,
+		&face, color.White,
 		image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 230, A: 255}))
 
 	// The NewTextToolTip defaults to follow the cursor
@@ -127,12 +127,12 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Hover for tooltip #2", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Hover for tooltip #2", &face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   30,
 			Right:  30,
 			Top:    5,
@@ -149,7 +149,7 @@ func main() {
 
 	// Use the NewTextToolTip convenience method to create the tooltip
 	btn3ToolTip := widget.NewTextToolTip("This Tooltip uses\n'widget.TOOLTIP_POS_ABSOLUTE'\nto always appear at X: 200 / Y: 100!",
-		face, color.White,
+		&face, color.White,
 		image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 230, A: 255}))
 
 	// The NewTextToolTip defaults to follow the cursor
@@ -176,12 +176,12 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Hover for tooltip #3", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Hover for tooltip #3", &face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   30,
 			Right:  30,
 			Top:    5,
@@ -198,7 +198,7 @@ func main() {
 
 	// Use the NewTextToolTip convenience method to create the tooltip
 	btn4ToolTip := widget.NewTextToolTip("This Tooltip uses\n'widget.TOOLTIP_POS_SCREEN'\nto always appear center screen!",
-		face, color.White,
+		&face, color.White,
 		image.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 230, A: 255}))
 
 	// The NewTextToolTip defaults to follow the cursor
@@ -227,12 +227,12 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Hover for tooltip #4", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Hover for tooltip #4", &face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   30,
 			Right:  30,
 			Top:    5,

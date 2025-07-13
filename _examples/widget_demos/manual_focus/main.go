@@ -159,12 +159,12 @@ func createButton(label string) *widget.Button {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text(label, face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text(label, &face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   30,
 			Right:  30,
 			Top:    5,

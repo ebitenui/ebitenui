@@ -118,7 +118,7 @@ func (g *Game) getEbitenUI() *ebitenui.UI {
 	)
 
 	g.headerLbl = widget.NewText(
-		widget.TextOpts.Text("Game Demo!", face, color.White),
+		widget.TextOpts.Text("Game Demo!", &face, color.White),
 		widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter),
 		widget.TextOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
@@ -163,7 +163,7 @@ func (g *Game) getEbitenUI() *ebitenui.UI {
 		// Set the min, max, and current values.
 		widget.ProgressBarOpts.Values(0, 10, 7),
 		// Set how much of the track is displayed when the bar is overlayed.
-		widget.ProgressBarOpts.TrackPadding(widget.Insets{
+		widget.ProgressBarOpts.TrackPadding(&widget.Insets{
 			Top:    2,
 			Bottom: 2,
 		}),
@@ -173,7 +173,7 @@ func (g *Game) getEbitenUI() *ebitenui.UI {
 
 	// Create a label to show the percentage on top of the progress bar
 	label2 := widget.NewText(
-		widget.TextOpts.Text("70%", face, color.Black),
+		widget.TextOpts.Text("70%", &face, color.Black),
 		widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter),
 		widget.TextOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{

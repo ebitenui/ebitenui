@@ -71,6 +71,9 @@ func (cu *cursor_updater) Update() {
 	cu.systemPosition = image.Point{X, Y}
 
 }
+
+func (cu *cursor_updater) AfterUpdate() {
+}
 func (cu *cursor_updater) Draw(screen *ebiten.Image) {
 }
 func (cu *cursor_updater) AfterDraw(screen *ebiten.Image) {
@@ -151,12 +154,12 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Hello, World!", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Hello, World!", &face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   30,
 			Right:  30,
 			Top:    5,

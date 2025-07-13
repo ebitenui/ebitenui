@@ -102,6 +102,7 @@ type Widget struct {
 	mouseRightPressedInside     bool
 	inputLayer                  *input.Layer
 	focusable                   Focuser
+	theme                       *Theme
 
 	ContextMenu          *Container
 	ContextMenuWindow    *Window
@@ -178,6 +179,15 @@ type UpdateFunc func(w HasWidget)
 // PreferredSizer may be implemented by concrete widget types that can report a preferred size.
 type PreferredSizer interface {
 	PreferredSize() (int, int)
+}
+
+type Containerer interface {
+	Updater
+	Renderer
+	Dropper
+	input.Layerer
+	PreferredSizeLocateableWidget
+	GetFocusers() []Focuser
 }
 
 // WidgetCursorEnterEventArgs are the arguments for cursor enter events.
@@ -819,4 +829,17 @@ func (widget *Widget) In(x, y int) bool {
 		return false
 	}
 	return (widget.mask[i] > 0)
+}
+
+func (widget *Widget) SetTheme(theme *Theme) {
+	widget.theme = theme
+}
+
+func (widget *Widget) GetTheme() *Theme {
+	if widget.theme != nil {
+		return widget.theme
+	} else if widget.parent != nil {
+		return widget.parent.GetTheme()
+	}
+	return nil
 }

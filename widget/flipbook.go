@@ -50,7 +50,7 @@ func (o FlipBookOptions) ContainerOpts(opts ...ContainerOpt) FlipBookOpt {
 }
 
 // WithPadding configures a FlipBook with padding i.
-func (o FlipBookOptions) Padding(i Insets) FlipBookOpt {
+func (o FlipBookOptions) Padding(i *Insets) FlipBookOpt {
 	return func(f *FlipBook) {
 		f.anchorLayoutOpts = append(f.anchorLayoutOpts, AnchorLayoutOpts.Padding(i))
 	}
@@ -72,6 +72,10 @@ func (f *FlipBook) PreferredSize() (int, int) {
 func (f *FlipBook) SetLocation(rect img.Rectangle) {
 	f.init.Do()
 	f.container.SetLocation(rect)
+}
+
+func (f *FlipBook) Validate() {
+
 }
 
 // RequestRelayout implements Relayoutable.
@@ -140,5 +144,5 @@ func (f *FlipBook) SetPage(page PreferredSizeLocateableWidget) {
 		f.removeCurrent()
 	}
 
-	f.removeCurrent = f.container.AddChild(page)
+ 	f.removeCurrent = f.container.AddChild(page)
 }

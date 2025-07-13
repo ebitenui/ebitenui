@@ -16,8 +16,7 @@ import (
 // There should only be exactly one UI per application.
 type UI struct {
 	// Container is the root container of the UI hierarchy.
-	Container *widget.Container
-
+	Container widget.Containerer
 	// If true the default tab/shift-tab to focus will be disabled
 	DisableDefaultFocus bool
 
@@ -32,13 +31,17 @@ type UI struct {
 	// but before the Windows with DrawLayer >= 0 (all by default) are drawn.
 	PostRenderHook widget.RenderFunc
 
+	// Theme settings
+	PrimaryTheme  *widget.Theme
+	previousTheme *widget.Theme
+
 	focusedWidget      widget.Focuser
 	focusedWindow      *widget.Window
 	focusedWindowIndex int
 	inputLayerers      []input.Layerer
 	windows            []*widget.Window
 
-	previousContainer          *widget.Container
+	previousContainer          widget.Containerer
 	previousRemoveHandlerFuncs []event.RemoveHandlerFunc
 	tabWasPressed              bool
 }
@@ -59,13 +62,28 @@ func (u *UI) Update() {
 			u.Container.GetWidget().DragAndDropEvent.AddHandler(u.handleDragAndDropEvent),
 		}
 		u.previousContainer = u.Container
-		// Close all Ephemeral Windows (tooltip/dnd/etc)
+		// Close all Ephemeral Windows (tooltip/dnd/etc).
 		u.closeEphemeralWindows(0)
+		if u.PrimaryTheme != nil {
+			u.Container.GetWidget().SetTheme(u.PrimaryTheme)
+			u.previousTheme = u.PrimaryTheme
+		}
+		// Validate the main container.
+		u.Container.Validate()
+	}
+
+	// Handle the user setting a new theme.
+	if (u.Container.GetWidget().GetTheme() == nil && u.PrimaryTheme != nil) || u.PrimaryTheme != u.previousTheme {
+		u.Container.GetWidget().SetTheme(u.PrimaryTheme)
+		u.previousTheme = u.PrimaryTheme
+
+		// Validate the main container with the new theme.
+		u.Container.Validate()
 	}
 
 	u.handleFocusChangeRequest()
 
-	// If widget is not visible or disabled, change focus to next widget
+	// If widget is not visible or disabled, change focus to next widget.
 	if u.focusedWidget != nil && (u.focusedWidget.GetWidget().Disabled || !u.focusedWidget.GetWidget().IsVisible()) {
 		u.ChangeFocus(widget.FOCUS_NEXT)
 	}
@@ -339,6 +357,11 @@ func (u *UI) addWindow(w *widget.Window) bool {
 	if u.IsWindowOpen(w) {
 		return false
 	}
+
+	if w.Contents.GetWidget().GetTheme() == nil {
+		w.Contents.GetWidget().SetTheme(u.PrimaryTheme)
+	}
+	w.Contents.Validate()
 
 	closeFunc := func() {
 		u.removeWindow(w)

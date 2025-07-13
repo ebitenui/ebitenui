@@ -58,7 +58,7 @@ func main() {
 		// Set the font color
 		widget.TextAreaOpts.FontColor(color.Black),
 		// Set the font face (size) to use
-		widget.TextAreaOpts.FontFace(face),
+		widget.TextAreaOpts.FontFace(&face),
 		widget.TextAreaOpts.TextPadding(widget.Insets{
 			Right: 16,
 		}),
@@ -71,28 +71,24 @@ func main() {
 		// Set padding between edge of the widget and where the text is drawn
 		// widget.TextAreaOpts.TextPadding(widget.NewInsetsSimple(20)),
 		// This sets the background images for the scroll container
-		widget.TextAreaOpts.ScrollContainerOpts(
-			widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
-				Idle: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
-				Mask: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
-			}),
-		),
+		widget.TextAreaOpts.ScrollContainerImage(&widget.ScrollContainerImage{
+			Idle: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+			Mask: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+		}),
 		// This sets the images to use for the sliders
-		widget.TextAreaOpts.SliderOpts(
-			widget.SliderOpts.Images(
-				// Set the track images
-				&widget.SliderTrackImage{
-					Idle:  image.NewNineSliceColor(color.NRGBA{200, 200, 200, 255}),
-					Hover: image.NewNineSliceColor(color.NRGBA{200, 200, 200, 255}),
-				},
-				// Set the handle images
-				&widget.ButtonImage{
-					Idle:    image.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}),
-					Hover:   image.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}),
-					Pressed: image.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}),
-				},
-			),
-		),
+		widget.TextAreaOpts.SliderParams(&widget.SliderParams{
+			// Set the track images
+			TrackImage: &widget.SliderTrackImage{
+				Idle:  image.NewNineSliceColor(color.NRGBA{200, 200, 200, 255}),
+				Hover: image.NewNineSliceColor(color.NRGBA{200, 200, 200, 255}),
+			},
+			// Set the handle images
+			HandleImage: &widget.ButtonImage{
+				Idle:    image.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}),
+				Hover:   image.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}),
+				Pressed: image.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}),
+			},
+		}),
 		widget.TextAreaOpts.LinkClickedEvent(func(args *widget.LinkEventArgs) {
 			fmt.Println("Link Clicked Id: ", args.Id, " value: ", args.Value, " args: ", args.Args,
 				" offsetX/offsetY ", args.OffsetX, "/", args.OffsetY)

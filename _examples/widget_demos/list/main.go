@@ -8,6 +8,7 @@ import (
 
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"
+	"github.com/ebitenui/ebitenui/utilities/constantutil"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -51,7 +52,6 @@ func main() {
 		// the container will use an anchor layout to layout its single child widget
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
-
 	// Construct a list. This is one of the more complicated widgets to use since
 	// it is composed of multiple widget types
 	game.list = widget.NewList(
@@ -67,27 +67,27 @@ func main() {
 		)),
 		// Set the entries in the list
 		widget.ListOpts.Entries(entries),
-		widget.ListOpts.ScrollContainerOpts(
-			// Set the background images/color for the list
-			widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
-				Idle:     image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
-				Disabled: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
-				Mask:     image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
-			}),
-		),
-		widget.ListOpts.SliderOpts(
+		widget.ListOpts.ScrollContainerImage(&widget.ScrollContainerImage{
+			Idle:     image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+			Disabled: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+			Mask:     image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+		}),
+
+		widget.ListOpts.SliderParams(&widget.SliderParams{
 			// Set the background images/color for the background of the slider track
-			widget.SliderOpts.Images(&widget.SliderTrackImage{
+			TrackImage: &widget.SliderTrackImage{
 				Idle:  image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
 				Hover: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
-			}, buttonImage),
-			widget.SliderOpts.MinHandleSize(5),
+			},
+			HandleImage:   buttonImage,
+			MinHandleSize: constantutil.ConstantToPointer(5),
 			// Set how wide the track should be
-			widget.SliderOpts.TrackPadding(widget.NewInsetsSimple(2))),
+			TrackPadding: widget.NewInsetsSimple(2),
+		}),
 		// Hide the horizontal slider
 		widget.ListOpts.HideHorizontalSlider(),
 		// Set the font for the list options
-		widget.ListOpts.EntryFontFace(face),
+		widget.ListOpts.EntryFontFace(&face),
 		// Set the colors for the list
 		widget.ListOpts.EntryColor(&widget.ListEntryColor{
 			Selected:                   color.NRGBA{R: 0, G: 255, B: 0, A: 255},     // Foreground color for the unfocused selected entry
@@ -147,12 +147,12 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Add Entry", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Add Entry", &face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   10,
 			Right:  10,
 			Top:    5,
@@ -177,12 +177,12 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Remove Entry", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Remove Entry", &face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   10,
 			Right:  10,
 			Top:    5,
@@ -203,12 +203,12 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Clear", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Clear", &face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   10,
 			Right:  10,
 			Top:    5,

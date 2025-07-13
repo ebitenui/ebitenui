@@ -11,7 +11,7 @@ import (
 //
 // Widget.LayoutData of widgets being layed out by StackedLayout should be left empty.
 type StackedLayout struct {
-	padding Insets
+	padding *Insets
 }
 
 // StackedLayoutOpt is a function that configures a.
@@ -35,11 +35,14 @@ func NewStackedLayout(opts ...StackedLayoutOpt) *StackedLayout {
 		o(a)
 	}
 
+	if a.padding == nil {
+		a.padding = &Insets{}
+	}
 	return a
 }
 
 // Padding configures an Stacked layout to use padding i.
-func (o StackedLayoutOptions) Padding(i Insets) StackedLayoutOpt {
+func (o StackedLayoutOptions) Padding(i *Insets) StackedLayoutOpt {
 	return func(a *StackedLayout) {
 		a.padding = i
 	}

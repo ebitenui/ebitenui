@@ -11,12 +11,14 @@ import (
 )
 
 type Container struct {
-	BackgroundImage     *image.NineSlice
+	definedParams       PanelParams
+	computedParams      PanelParams
 	AutoDisableChildren bool
 
 	widgetOpts  []WidgetOpt
 	layout      Layouter
 	layoutDirty bool
+	validated   bool
 
 	init     *MultiOnce
 	widget   *Widget
@@ -36,6 +38,7 @@ type PreferredSizeLocateableWidget interface {
 	HasWidget
 	PreferredSizer
 	Locateable
+	Validate()
 }
 
 func NewContainer(opts ...ContainerOpt) *Container {
@@ -63,7 +66,7 @@ func (o ContainerOptions) WidgetOpts(opts ...WidgetOpt) ContainerOpt {
 // Use widget.WidgetOpts.TrackHover(false) to turn this off if desired.
 func (o ContainerOptions) BackgroundImage(i *image.NineSlice) ContainerOpt {
 	return func(c *Container) {
-		c.BackgroundImage = i
+		c.definedParams.BackgroundImage = i
 	}
 }
 
@@ -85,6 +88,10 @@ func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveCh
 	for _, child := range children {
 		if child == nil {
 			panic("cannot add nil child")
+		}
+
+		if c.validated {
+			child.Validate()
 		}
 
 		c.children = append(c.children, child)
@@ -200,9 +207,12 @@ func (c *Container) PreferredSize() (int, int) {
 	c.init.Do()
 	w, h := 0, 0
 
+	if !c.validated {
+		c.Validate()
+	}
 	// Start with the background image min size if one is set
-	if c.BackgroundImage != nil {
-		w, h = c.BackgroundImage.MinSize()
+	if c.computedParams.BackgroundImage != nil {
+		w, h = c.computedParams.BackgroundImage.MinSize()
 	}
 
 	// If the preferred layout for the children is greater than the background image
@@ -234,6 +244,20 @@ func (c *Container) SetLocation(rect img.Rectangle) {
 		c.widget.Rect = rect
 		c.RequestRelayout()
 	}
+}
+
+func (c *Container) Validate() {
+	c.computedParams.BackgroundImage = c.definedParams.BackgroundImage
+
+	for idx := range c.children {
+		c.children[idx].Validate()
+	}
+	c.validated = true
+}
+
+func (c *Container) SetBackgroundImage(image *image.NineSlice) {
+	c.definedParams.BackgroundImage = image
+	c.Validate()
 }
 
 func (c *Container) Render(screen *ebiten.Image) {
@@ -280,6 +304,9 @@ func (c *Container) Update() {
 
 func (c *Container) doLayout() {
 	if c.layout != nil && c.layoutDirty {
+		if !c.validated {
+			c.Validate()
+		}
 		c.layout.Layout(c.children, c.widget.Rect)
 		c.layoutDirty = false
 	}
@@ -309,13 +336,13 @@ func (c *Container) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 }
 
 func (c *Container) draw(screen *ebiten.Image) {
-	if c.BackgroundImage != nil {
-		c.BackgroundImage.Draw(screen, c.widget.Rect.Dx(), c.widget.Rect.Dy(), c.widget.drawImageOptions)
+	if c.computedParams.BackgroundImage != nil {
+		c.computedParams.BackgroundImage.Draw(screen, c.widget.Rect.Dx(), c.widget.Rect.Dy(), c.widget.drawImageOptions)
 	}
 }
 
 func (c *Container) createWidget() {
-	c.widget = NewWidget(append([]WidgetOpt{WidgetOpts.TrackHover(c.BackgroundImage != nil)}, c.widgetOpts...)...)
+	c.widget = NewWidget(append([]WidgetOpt{WidgetOpts.TrackHover(c.definedParams.BackgroundImage != nil)}, c.widgetOpts...)...)
 	c.widgetOpts = nil
 	c.widget.self = c
 }

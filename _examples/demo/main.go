@@ -70,7 +70,7 @@ func createUI() (*ebitenui.UI, error) {
 			// - a fixed sized footer
 			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false, true, false}),
 			// Padding defines how much space to put around the outside of the grid.
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Top:    20,
 				Bottom: 20,
 			}),
@@ -86,7 +86,7 @@ func createUI() (*ebitenui.UI, error) {
 	}))
 
 	footerContainer := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewRowLayout(
-		widget.RowLayoutOpts.Padding(widget.Insets{
+		widget.RowLayoutOpts.Padding(&widget.Insets{
 			Left:  25,
 			Right: 25,
 		}),
@@ -119,7 +119,7 @@ func headerContainer(res *uiResources) widget.PreferredSizeLocateableWidget {
 	c2 := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-			widget.RowLayoutOpts.Padding(widget.Insets{
+			widget.RowLayoutOpts.Padding(&widget.Insets{
 				Left:  25,
 				Right: 25,
 			}),
@@ -156,7 +156,7 @@ func demoContainer(res *uiResources, ui func() *ebitenui.UI) widget.PreferredSiz
 
 	demoContainer := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewGridLayout(
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Left:  25,
 				Right: 25,
 			}),
@@ -198,12 +198,13 @@ func demoContainer(res *uiResources, ui func() *ebitenui.UI) widget.PreferredSiz
 		widget.ListOpts.EntryLabelFunc(func(e interface{}) string {
 			return e.(*page).title
 		}),
-		widget.ListOpts.ScrollContainerOpts(widget.ScrollContainerOpts.Image(res.list.image)),
-		widget.ListOpts.SliderOpts(
-			widget.SliderOpts.Images(res.list.track, res.list.handle),
-			widget.SliderOpts.MinHandleSize(res.list.handleSize),
-			widget.SliderOpts.TrackPadding(res.list.trackPadding),
-		),
+		widget.ListOpts.ScrollContainerImage(res.list.image),
+		widget.ListOpts.SliderParams(&widget.SliderParams{
+			TrackImage:    res.list.track,
+			HandleImage:   res.list.handle,
+			MinHandleSize: res.list.handleSize,
+			TrackPadding:  res.list.trackPadding,
+		}),
 		widget.ListOpts.EntryColor(res.list.entry),
 		widget.ListOpts.EntryFontFace(res.list.face),
 		widget.ListOpts.EntryTextPadding(res.list.entryPadding),
@@ -285,28 +286,24 @@ func newListComboButton(entries []interface{}, buttonLabel widget.SelectComboBut
 	entrySelectedHandler widget.ListComboButtonEntrySelectedHandlerFunc, res *uiResources) *widget.ListComboButton {
 
 	return widget.NewListComboButton(
-		widget.ListComboButtonOpts.SelectComboButtonOpts(
-			widget.SelectComboButtonOpts.ComboButtonOpts(
-				widget.ComboButtonOpts.ButtonOpts(
-					widget.ButtonOpts.Image(res.comboButton.image),
-					widget.ButtonOpts.TextPadding(res.comboButton.padding),
-				),
-			),
-		),
+		widget.ListComboButtonOpts.Entries(entries),
+		widget.ListComboButtonOpts.ButtonParams(&widget.ButtonParams{
+			Image:       res.comboButton.image,
+			TextPadding: res.comboButton.padding,
+		}),
 		widget.ListComboButtonOpts.Text(res.comboButton.face, res.comboButton.graphic, res.comboButton.text),
-		widget.ListComboButtonOpts.ListOpts(
-			widget.ListOpts.Entries(entries),
-			widget.ListOpts.ScrollContainerOpts(
-				widget.ScrollContainerOpts.Image(res.list.image),
-			),
-			widget.ListOpts.SliderOpts(
-				widget.SliderOpts.Images(res.list.track, res.list.handle),
-				widget.SliderOpts.MinHandleSize(res.list.handleSize),
-				widget.SliderOpts.TrackPadding(res.list.trackPadding)),
-			widget.ListOpts.EntryFontFace(res.list.face),
-			widget.ListOpts.EntryColor(res.list.entry),
-			widget.ListOpts.EntryTextPadding(res.list.entryPadding),
-		),
+		widget.ListComboButtonOpts.ListParams(&widget.ListParams{
+			ScrollContainerImage: res.list.image,
+			Slider: &widget.SliderParams{
+				TrackImage:    res.list.track,
+				HandleImage:   res.list.handle,
+				MinHandleSize: res.list.handleSize,
+				TrackPadding:  res.list.trackPadding,
+			},
+			EntryFace:        res.list.face,
+			EntryColor:       res.list.entry,
+			EntryTextPadding: res.list.entryPadding,
+		}),
 		widget.ListComboButtonOpts.EntryLabelFunc(buttonLabel, entryLabel),
 		widget.ListComboButtonOpts.EntrySelectedHandler(entrySelectedHandler))
 }
@@ -314,12 +311,13 @@ func newListComboButton(entries []interface{}, buttonLabel widget.SelectComboBut
 func newList(entries []interface{}, res *uiResources, widgetOpts ...widget.WidgetOpt) *widget.List {
 	return widget.NewList(
 		widget.ListOpts.ContainerOpts(widget.ContainerOpts.WidgetOpts(widgetOpts...)),
-		widget.ListOpts.ScrollContainerOpts(widget.ScrollContainerOpts.Image(res.list.image)),
-		widget.ListOpts.SliderOpts(
-			widget.SliderOpts.Images(res.list.track, res.list.handle),
-			widget.SliderOpts.MinHandleSize(res.list.handleSize),
-			widget.SliderOpts.TrackPadding(res.list.trackPadding),
-		),
+		widget.ListOpts.ScrollContainerImage(res.list.image),
+		widget.ListOpts.SliderParams(&widget.SliderParams{
+			TrackImage:    res.list.track,
+			HandleImage:   res.list.handle,
+			MinHandleSize: res.list.handleSize,
+			TrackPadding:  res.list.trackPadding,
+		}),
 		widget.ListOpts.HideHorizontalSlider(),
 		widget.ListOpts.Entries(entries),
 		widget.ListOpts.EntryLabelFunc(func(e interface{}) string {
@@ -333,18 +331,19 @@ func newList(entries []interface{}, res *uiResources, widgetOpts ...widget.Widge
 func newTextArea(text string, res *uiResources, widgetOpts ...widget.WidgetOpt) *widget.TextArea {
 	return widget.NewTextArea(
 		widget.TextAreaOpts.ContainerOpts(widget.ContainerOpts.WidgetOpts(widgetOpts...)),
-		widget.TextAreaOpts.ScrollContainerOpts(widget.ScrollContainerOpts.Image(res.list.image)),
-		widget.TextAreaOpts.SliderOpts(
-			widget.SliderOpts.Images(res.list.track, res.list.handle),
-			widget.SliderOpts.MinHandleSize(res.list.handleSize),
-			widget.SliderOpts.TrackPadding(res.list.trackPadding),
-		),
+		widget.TextAreaOpts.ScrollContainerImage(res.list.image),
+		widget.TextAreaOpts.SliderParams(&widget.SliderParams{
+			TrackImage:    res.list.track,
+			HandleImage:   res.list.handle,
+			MinHandleSize: res.list.handleSize,
+			TrackPadding:  res.list.trackPadding,
+		}),
 		widget.TextAreaOpts.ShowVerticalScrollbar(),
 		widget.TextAreaOpts.VerticalScrollMode(widget.PositionAtEnd),
 		widget.TextAreaOpts.ProcessBBCode(true),
 		widget.TextAreaOpts.FontFace(res.textArea.face),
 		widget.TextAreaOpts.FontColor(color.NRGBA{R: 200, G: 100, B: 0, A: 255}),
-		widget.TextAreaOpts.TextPadding(res.textArea.entryPadding),
+		widget.TextAreaOpts.TextPadding(*res.textArea.entryPadding),
 		widget.TextAreaOpts.Text(text),
 	)
 }
@@ -353,7 +352,7 @@ func newSeparator(res *uiResources, ld interface{}) widget.PreferredSizeLocateab
 	c := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-			widget.RowLayoutOpts.Padding(widget.Insets{
+			widget.RowLayoutOpts.Padding(&widget.Insets{
 				Top:    20,
 				Bottom: 20,
 			}))),

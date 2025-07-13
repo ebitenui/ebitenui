@@ -29,7 +29,7 @@ func main() {
 	// construct a slider
 	slider := widget.NewSlider(
 		// Set the slider orientation - n/s vs e/w
-		widget.SliderOpts.Direction(widget.DirectionHorizontal),
+		widget.SliderOpts.Orientation(widget.DirectionVertical),
 		// Set the minimum and maximum value for the slider
 		widget.SliderOpts.MinMax(0, 10),
 		// Set the current value of the slider, without triggering a change event
@@ -41,7 +41,7 @@ func main() {
 				VerticalPosition:   widget.AnchorLayoutPositionCenter,
 			}),
 			// Set the widget's dimensions
-			widget.WidgetOpts.MinSize(200, 6),
+			widget.WidgetOpts.MinSize(6, 200),
 		),
 		widget.SliderOpts.Images(
 			// Set the track images

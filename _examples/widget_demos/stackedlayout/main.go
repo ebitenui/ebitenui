@@ -49,12 +49,12 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage2),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Hidden", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Hidden", &face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   50,
 			Right:  50,
 			Top:    5,
@@ -92,12 +92,12 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Top Button", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Top Button", &face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   5,
 			Right:  5,
 			Top:    5,
