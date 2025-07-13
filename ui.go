@@ -197,9 +197,6 @@ func (u *UI) handleFocusEvent(args interface{}) {
 	if a, ok := args.(*widget.WidgetFocusEventArgs); ok {
 		switch {
 		case a.Focused: // New widget focused
-			if u.focusedWidget != nil && u.focusedWidget != a.Widget {
-				u.focusedWidget.Focus(false)
-			}
 			u.focusedWidget = a.Widget
 		case a.Widget == u.focusedWidget: // Current widget focus removed
 			u.focusedWidget = nil
@@ -288,6 +285,7 @@ func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 				u.focusedWidget.Focus(false)
 			}
 			focusableWidgets[0].Focus(true)
+			u.focusedWidget = focusableWidgets[0]
 
 		} else if fwLen > 0 {
 			sort.SliceStable(focusableWidgets, func(i, j int) bool {
@@ -303,6 +301,7 @@ func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 								focusableWidgets[fwLen-1].Focus(true)
 							} else {
 								focusableWidgets[i-1].Focus(true)
+								u.focusedWidget = focusableWidgets[i-1]
 							}
 							return
 						}
@@ -313,6 +312,7 @@ func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 						if focusableWidgets[i] == u.focusedWidget {
 							u.focusedWidget.Focus(false)
 							focusableWidgets[i+1].Focus(true)
+							u.focusedWidget = focusableWidgets[i+1]
 							return
 						}
 					}
@@ -320,16 +320,20 @@ func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 				u.focusedWidget.Focus(false)
 			}
 			focusableWidgets[0].Focus(true)
+			u.focusedWidget = focusableWidgets[0]
 		}
 	} else {
 		if u.focusedWidget != nil {
 			if next := u.focusedWidget.GetFocus(direction); next != nil {
 				if !next.GetWidget().Disabled && next.GetWidget().IsVisible() {
+					u.focusedWidget.Focus(false)
 					next.Focus(true)
+					u.focusedWidget = next
 				}
 			}
 		} else if fwLen > 0 {
 			focusableWidgets[0].Focus(true)
+			u.focusedWidget = focusableWidgets[0]
 		}
 	}
 }
@@ -435,4 +439,17 @@ func (u *UI) ClearFocus() {
 // This function will return the currently focused widget if available otherwise it returns nil
 func (u *UI) GetFocusedWidget() widget.Focuser {
 	return u.focusedWidget
+}
+
+// This function will set a specific focusable widget as the currently focused widget.
+func (u *UI) SetFocusedWidget(focused widget.Focuser) {
+	if u.focusedWidget != nil {
+		u.focusedWidget.Focus(false)
+	}
+
+	u.focusedWidget = focused
+
+	if u.focusedWidget != nil {
+		u.focusedWidget.Focus(true)
+	}
 }
