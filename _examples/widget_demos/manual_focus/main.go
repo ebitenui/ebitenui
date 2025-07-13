@@ -127,6 +127,12 @@ func main() {
 		Container: rootContainer,
 	}
 
+	ui.SetFocusedWidget(btn5)
+
+	if testBtn, ok := ui.GetFocusedWidget().(*widget.Button); ok {
+		testBtn.Click()
+	}
+
 	// Ebiten setup
 	ebiten.SetWindowSize(400, 400)
 	ebiten.SetWindowTitle("Ebiten UI - Manual Focus")
