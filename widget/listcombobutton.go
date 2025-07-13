@@ -393,6 +393,7 @@ func (l *ListComboButton) initWidget() {
 	l.list.definedParams = *l.computedParams.List
 	l.list.definedParams.DisableDefaultKeys = l.computedParams.DisableDefaultKeys
 	l.list.definedParams.AllowReselect = constantutil.ConstantToPointer(true)
+	l.list.GetWidget().parent = l.widget
 	l.list.Validate()
 	btnOpts := []ButtonOpt{
 		ButtonOpts.Image(l.computedParams.Button.Image),
@@ -413,6 +414,7 @@ func (l *ListComboButton) initWidget() {
 		),
 		SelectComboButtonOpts.EntryLabelFunc(l.buttonLabelFunc),
 	)
+	l.button.GetWidget().parent = l.widget
 	l.button.Validate()
 
 	if len(l.list.entries) > 0 {
