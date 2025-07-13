@@ -453,6 +453,7 @@ func (l *TextArea) createWidget() {
 }
 
 func (l *TextArea) initWidget() {
+	currentText := l.GetText()
 	l.container.RemoveChildren()
 	l.layout.columnSpacing = *l.computedParams.ControlWidgetSpacing
 	l.layout.rowSpacing = *l.computedParams.ControlWidgetSpacing
@@ -463,7 +464,7 @@ func (l *TextArea) initWidget() {
 		ContainerOpts.AutoDisableChildren())
 
 	l.text = NewText(
-		TextOpts.Text(l.initialText, l.computedParams.Face, l.computedParams.ForegroundColor),
+		TextOpts.Text(currentText, l.computedParams.Face, l.computedParams.ForegroundColor),
 		TextOpts.Padding(l.computedParams.TextPadding),
 		TextOpts.ProcessBBCode(l.processBBCode),
 		TextOpts.StripBBCode(*l.computedParams.StripBBCode),
