@@ -367,11 +367,11 @@ func (l *ListComboButton) Render(screen *ebiten.Image) {
 
 }
 
-func (l *ListComboButton) Update() {
+func (l *ListComboButton) Update(updObj *UpdateObject) {
 	l.init.Do()
 
 	l.button.GetWidget().Disabled = l.widget.Disabled
-	l.button.Update()
+	l.button.Update(updObj)
 
 	if l.button.button.button.focused {
 		if !*l.computedParams.DisableDefaultKeys {

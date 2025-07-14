@@ -360,9 +360,9 @@ func (w *Window) Render(screen *ebiten.Image) {
 	w.container.Render(screen)
 }
 
-func (w *Window) Update() {
+func (w *Window) Update(updObj *UpdateObject) {
 	w.init.Do()
-	w.container.Update()
+	w.container.Update(updObj)
 }
 
 func (w *Window) createWidget() {

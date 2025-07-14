@@ -424,10 +424,10 @@ func (l *TextArea) Render(screen *ebiten.Image) {
 	l.container.Render(screen)
 }
 
-func (l *TextArea) Update() {
+func (l *TextArea) Update(updObj *UpdateObject) {
 	l.init.Do()
 	if l.container != nil {
-		l.container.Update()
+		l.container.Update(updObj)
 	}
 }
 

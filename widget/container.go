@@ -15,10 +15,11 @@ type Container struct {
 	computedParams      PanelParams
 	AutoDisableChildren bool
 
-	widgetOpts  []WidgetOpt
-	layout      Layouter
-	layoutDirty bool
-	validated   bool
+	widgetOpts     []WidgetOpt
+	layout         Layouter
+	layoutDirty    bool
+	relayoutParent bool
+	validated      bool
 
 	init     *MultiOnce
 	widget   *Widget
@@ -120,7 +121,7 @@ func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveCh
 			}
 		})
 	}
-	c.RequestRelayout()
+	c.relayoutParent = true
 
 	return func() {
 		for _, child := range children {
@@ -157,7 +158,7 @@ func (c *Container) RemoveChild(child PreferredSizeLocateableWidget) {
 	if child.GetWidget().ContextMenuWindow != nil {
 		child.GetWidget().ContextMenuWindow.Close()
 	}
-	c.RequestRelayout()
+	c.relayoutParent = true
 }
 
 func (c *Container) RemoveChildren() {
@@ -179,7 +180,7 @@ func (c *Container) RemoveChildren() {
 	}
 	c.children = nil
 
-	c.RequestRelayout()
+	c.relayoutParent = true
 }
 
 func (c *Container) Children() []PreferredSizeLocateableWidget {
@@ -190,7 +191,6 @@ func (c *Container) RequestRelayout() {
 	c.init.Do()
 
 	c.layoutDirty = true
-
 	for _, ch := range c.children {
 		if r, ok := ch.(Relayoutable); ok {
 			r.RequestRelayout()
@@ -289,17 +289,20 @@ func (c *Container) Render(screen *ebiten.Image) {
 	}
 }
 
-func (c *Container) Update() {
+func (c *Container) Update(updObj *UpdateObject) {
 	c.init.Do()
 
-	c.widget.Update()
+	c.widget.Update(updObj)
 
 	for _, ch := range c.children {
 		if cu, ok := ch.(Updater); ok {
-
-			cu.Update()
+			cu.Update(updObj)
 		}
 	}
+	if c.relayoutParent {
+		updObj.RelayoutRequested = updObj.RelayoutRequested || true
+	}
+	c.relayoutParent = false
 }
 
 func (c *Container) doLayout() {

@@ -134,15 +134,15 @@ func (c *ComboButton) Render(screen *ebiten.Image) {
 	}
 }
 
-func (c *ComboButton) Update() {
+func (c *ComboButton) Update(updObj *UpdateObject) {
 	c.init.Do()
 
-	c.button.Update()
+	c.button.Update(updObj)
 	c.handleClick()
 
 	if c.content != nil && c.ContentVisible {
 		if cu, ok := c.content.(Updater); ok {
-			cu.Update()
+			cu.Update(updObj)
 		}
 	}
 }

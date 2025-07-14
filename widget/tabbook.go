@@ -326,10 +326,10 @@ func (t *TabBook) Render(screen *ebiten.Image) {
 	t.container.Render(screen)
 }
 
-func (t *TabBook) Update() {
+func (t *TabBook) Update(updObj *UpdateObject) {
 	t.init.Do()
 
-	t.container.Update()
+	t.container.Update(updObj)
 }
 
 func (t *TabBook) createWidget() {

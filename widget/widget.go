@@ -130,10 +130,14 @@ type Renderer interface {
 	Render(screen *ebiten.Image)
 }
 
+type UpdateObject struct {
+	RelayoutRequested bool
+}
+
 // Updater may be implemented by concrete widget types that should be updated.
 type Updater interface {
 	// Update updates the widget state based on input.
-	Update()
+	Update(updObj *UpdateObject)
 }
 
 type FocusDirection int
@@ -185,6 +189,7 @@ type Containerer interface {
 	Updater
 	Renderer
 	Dropper
+	Relayoutable
 	input.Layerer
 	PreferredSizeLocateableWidget
 	GetFocusers() []Focuser
@@ -568,7 +573,7 @@ func (w *Widget) Render(screen *ebiten.Image) {
 
 }
 
-func (w *Widget) Update() {
+func (w *Widget) Update(updObj *UpdateObject) {
 	w.fireEvents()
 	if w.DragAndDrop != nil {
 		w.DragAndDrop.Update(w.self)

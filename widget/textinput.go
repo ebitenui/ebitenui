@@ -474,7 +474,7 @@ func (t *TextInput) Render(screen *ebiten.Image) {
 	t.renderTextAndCaret(screen)
 }
 
-func (t *TextInput) Update() {
+func (t *TextInput) Update(updObj *UpdateObject) {
 	t.init.Do()
 	t.text.GetWidget().Disabled = t.widget.Disabled
 	if t.lastInputText != t.inputText {
@@ -511,12 +511,12 @@ func (t *TextInput) Update() {
 		})
 	}
 
-	t.widget.Update()
+	t.widget.Update(updObj)
 	if t.text != nil {
-		t.text.Update()
+		t.text.Update(updObj)
 	}
 	if t.caret != nil {
-		t.caret.Update()
+		t.caret.Update(updObj)
 	}
 }
 

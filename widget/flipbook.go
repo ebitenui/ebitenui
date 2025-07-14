@@ -96,9 +96,9 @@ func (f *FlipBook) Render(screen *ebiten.Image) {
 	f.container.Render(screen)
 }
 
-func (f *FlipBook) Update() {
+func (f *FlipBook) Update(updObj *UpdateObject) {
 	f.init.Do()
-	f.container.Update()
+	f.container.Update(updObj)
 }
 
 // WidgetAt implements WidgetLocator.
@@ -144,5 +144,5 @@ func (f *FlipBook) SetPage(page PreferredSizeLocateableWidget) {
 		f.removeCurrent()
 	}
 
- 	f.removeCurrent = f.container.AddChild(page)
+	f.removeCurrent = f.container.AddChild(page)
 }

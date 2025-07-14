@@ -182,10 +182,10 @@ func (s *ScrollContainer) Render(screen *ebiten.Image) {
 	s.renderContent(screen)
 }
 
-func (s *ScrollContainer) Update() {
+func (s *ScrollContainer) Update(updObj *UpdateObject) {
 	s.init.Do()
 
-	s.widget.Update()
+	s.widget.Update(updObj)
 
 	if s.content == nil {
 		return
@@ -195,7 +195,7 @@ func (s *ScrollContainer) Update() {
 	if !ok {
 		return
 	}
-	r.Update()
+	r.Update(updObj)
 }
 
 func (s *ScrollContainer) GetFocusers() []Focuser {

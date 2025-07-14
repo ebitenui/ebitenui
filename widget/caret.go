@@ -100,10 +100,10 @@ func (c *Caret) Render(screen *ebiten.Image) {
 	})
 }
 
-func (c *Caret) Update() {
+func (c *Caret) Update(updObj *UpdateObject) {
 	c.init.Do()
 
-	c.widget.Update()
+	c.widget.Update(updObj)
 }
 
 func (c *Caret) ResetBlinking() {

@@ -378,10 +378,10 @@ func (t *Text) Render(screen *ebiten.Image) {
 	t.draw(screen)
 }
 
-func (t *Text) Update() {
+func (t *Text) Update(updObj *UpdateObject) {
 	t.init.Do()
 
-	t.widget.Update()
+	t.widget.Update(updObj)
 	if t.ProcessBBCode {
 		t.handleLinkEvents()
 	}
