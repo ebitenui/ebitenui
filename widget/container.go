@@ -85,16 +85,13 @@ func (o ContainerOptions) Layout(layout Layouter) ContainerOpt {
 
 func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveChildFunc {
 	c.init.Do()
-	if !c.validated {
-		c.Validate()
-	}
 	for _, child := range children {
 		if child == nil {
 			panic("cannot add nil child")
 		}
-
-		child.Validate()
-
+		if c.validated {
+			child.Validate()
+		}
 		c.children = append(c.children, child)
 
 		child.GetWidget().parent = c.widget
@@ -206,7 +203,6 @@ func (c *Container) GetWidget() *Widget {
 func (c *Container) PreferredSize() (int, int) {
 	c.init.Do()
 	w, h := 0, 0
-
 	if !c.validated {
 		c.Validate()
 	}
@@ -247,14 +243,13 @@ func (c *Container) SetLocation(rect img.Rectangle) {
 }
 
 func (c *Container) Validate() {
-	if !c.validated {
-		c.computedParams.BackgroundImage = c.definedParams.BackgroundImage
+	c.computedParams.BackgroundImage = c.definedParams.BackgroundImage
 
-		for idx := range c.children {
-			c.children[idx].Validate()
-		}
-		c.validated = true
+	for idx := range c.children {
+		c.children[idx].Validate()
 	}
+	c.validated = true
+
 }
 
 func (c *Container) SetBackgroundImage(image *image.NineSlice) {
@@ -276,7 +271,9 @@ func (c *Container) Render(screen *ebiten.Image) {
 	}
 
 	c.widget.Render(screen)
-
+	if !c.validated {
+		c.Validate()
+	}
 	c.doLayout()
 
 	c.draw(screen)
