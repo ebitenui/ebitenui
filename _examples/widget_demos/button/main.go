@@ -1,120 +1,197 @@
 package main
 
 import (
+	"bytes"
+	"fmt"
 	"image/color"
+	"log"
 
 	"github.com/ebitenui/ebitenui"
+	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"golang.org/x/image/font/gofont/goregular"
 )
 
-type Engine struct {
-	ui      *ebitenui.UI
-	enabled bool
-	update  func(bool)
+// Game object used by ebiten.
+type game struct {
+	ui  *ebitenui.UI
+	btn *widget.Button
 }
 
-func (engine *Engine) Init() {
+func main() {
+	// load images for button states: idle, hover, and pressed.
+	buttonImage, _ := loadButtonImage()
+
+	// load button text font.
+	face, _ := loadFont(20)
+
+	// construct a new container that serves as the root of the UI hierarchy.
 	rootContainer := widget.NewContainer(
-		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-			widget.RowLayoutOpts.Spacing(10),
-		)),
+		// the container will use a plain color as its background.
+		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
+
+		// the container will use an anchor layout to layout its single child widget.
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 
-	c1 := widget.NewContainer(
-		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Direction(widget.DirectionHorizontal),
-			widget.RowLayoutOpts.Spacing(10),
-		)),
-	)
+	var button *widget.Button
+	// construct a button.
+	button = widget.NewButton(
+		// set general widget options
+		widget.ButtonOpts.WidgetOpts(
+			// instruct the container's anchor layout to center the button both horizontally and vertically.
+			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				HorizontalPosition: widget.AnchorLayoutPositionCenter,
+				VerticalPosition:   widget.AnchorLayoutPositionCenter,
+			}),
+		),
+		// specify the images to use.
+		widget.ButtonOpts.Image(buttonImage),
 
-	c2 := widget.NewContainer(
-		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Direction(widget.DirectionHorizontal),
-			widget.RowLayoutOpts.Spacing(10),
-		)),
-	)
+		// specify the button's text, the font face, and the color.
+		widget.ButtonOpts.Text("Hello, World!", &face, &widget.ButtonTextColor{
+			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
+		}),
+		widget.ButtonOpts.TextProcessBBCode(false),
+		// specify that the button's text needs some padding for correct display.
+		widget.ButtonOpts.TextPadding(&widget.Insets{
+			Left:   30,
+			Right:  30,
+			Top:    5,
+			Bottom: 5,
+		}),
+		// Move the text down and right on press
+		widget.ButtonOpts.PressedHandler(func(args *widget.ButtonPressedEventArgs) {
+			button.Text().SetPadding(&widget.Insets{Top: 1, Bottom: -1})
+			button.GetWidget().CustomData = true
+		}),
+		// Move the text back to start on press released
+		widget.ButtonOpts.ReleasedHandler(func(args *widget.ButtonReleasedEventArgs) {
+			button.Text().SetPadding(&widget.Insets{})
+			button.GetWidget().CustomData = false
+		}),
 
-	colors := []color.RGBA{
-		{R: 255, G: 0, B: 0, A: 255},   // Red
-		{R: 0, G: 255, B: 0, A: 255},   // Green
-		{R: 0, G: 0, B: 255, A: 255},   // Blue
-		{R: 255, G: 255, B: 0, A: 255}, // Yellow
-		{R: 255, G: 165, B: 0, A: 255}, // Orange
-		{R: 128, G: 0, B: 128, A: 255}, // Purple
-	}
+		// add a handler that reacts to clicking the button.
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			println("button clicked")
+		}),
 
-	setupContainer := func(set bool) {
-		if set {
-			for _, col := range colors {
-				img := ebiten.NewImage(50, 50)
-				img.Fill(col)
-				c1.AddChild(widget.NewGraphic(
-					widget.GraphicOpts.Image(img),
-				))
+		// add a handler that reacts to entering the button with the cursor
+		widget.ButtonOpts.CursorEnteredHandler(func(args *widget.ButtonHoverEventArgs) {
+			println("cursor entered button: entered =", args.Entered, "offsetX =", args.OffsetX, "offsetY =", args.OffsetY)
+			// If we moved the Text because we clicked on this button previously, move the text down and right
+			if button.GetWidget().CustomData == true {
+				button.Text().SetPadding(&widget.Insets{Top: 1, Bottom: -1})
 			}
-		} else {
-			c1.RemoveChildren()
-		}
-	}
+		}),
 
-	setupContainer(true)
+		// add a handler that reacts to entering the button with the cursor.
+		widget.ButtonOpts.CursorEnteredHandler(func(args *widget.ButtonHoverEventArgs) {
+			println("cursor entered button: entered =", args.Entered, "offsetX =", args.OffsetX, "offsetY =", args.OffsetY)
+		}),
 
-	for range len(colors) {
-		img := ebiten.NewImage(50, 50)
-		img.Fill(color.White)
-		c2.AddChild(widget.NewGraphic(
-			widget.GraphicOpts.Image(img),
-		))
-	}
+		// add a handler that reacts to moving the cursor on the button.
+		widget.ButtonOpts.CursorMovedHandler(func(args *widget.ButtonHoverEventArgs) {
+			println("cursor moved on button: entered =", args.Entered, "offsetX =", args.OffsetX, "offsetY =", args.OffsetY, "diffX =", args.DiffX, "diffY =", args.DiffY)
+		}),
 
-	rootContainer.AddChild(c1, c2)
+		// add a handler that reacts to exiting the button with the cursor.
+		widget.ButtonOpts.CursorExitedHandler(func(args *widget.ButtonHoverEventArgs) {
+			println("cursor exited button: entered =", args.Entered, "offsetX =", args.OffsetX, "offsetY =", args.OffsetY)
+			// Reset the Text inset if the cursor is no longer over the button
+			button.Text().SetPadding(&widget.Insets{})
+		}),
 
-	ui := &ebitenui.UI{
+		// Indicate that this button should not be submitted when enter or space are pressed
+		// widget.ButtonOpts.DisableDefaultKeys(),
+	)
+
+	// add the button as a child of the container.
+	rootContainer.AddChild(button)
+
+	// construct the UI.
+	ui := ebitenui.UI{
 		Container: rootContainer,
 	}
 
-	engine.ui = ui
-	engine.enabled = true
-	engine.update = setupContainer
+	// Ebiten setup
+	ebiten.SetWindowSize(400, 400)
+	ebiten.SetWindowTitle("Ebiten UI - Buttons")
+
+	game := game{
+		ui:  &ui,
+		btn: button,
+	}
+
+	// run Ebiten main loop
+	err := ebiten.RunGame(&game)
+	if err != nil {
+		log.Println(err)
+	}
 }
 
-func (engine *Engine) Update() error {
-	keys := inpututil.AppendJustPressedKeys(nil)
+// Layout implements Game.
+func (g *game) Layout(outsideWidth int, outsideHeight int) (int, int) {
+	return outsideWidth, outsideHeight
+}
 
-	for _, key := range keys {
-		switch key {
-		case ebiten.KeyEscape, ebiten.KeyCapsLock:
-			return ebiten.Termination
-		case ebiten.KeyT:
-			engine.enabled = !engine.enabled
-			engine.update(engine.enabled)
+// Update implements Game.
+func (g *game) Update() error {
+	// update the UI
+	g.ui.Update()
+	if inpututil.IsKeyJustPressed(ebiten.KeyB) {
+		g.btn.Click()
+	}
+
+	// Test that you can call Click on the focused widget.
+	if inpututil.IsKeyJustPressed(ebiten.KeyF) {
+		if btn, ok := g.ui.GetFocusedWidget().(*widget.Button); ok {
+			btn.Click()
 		}
 	}
 
-	engine.ui.Update()
+	if inpututil.IsKeyJustPressed(ebiten.KeyG) {
+		g.btn.Press()
+	} else if inpututil.IsKeyJustReleased(ebiten.KeyG) {
+		g.btn.Release()
+	}
 
 	return nil
 }
 
-func (engine *Engine) Draw(screen *ebiten.Image) {
-	engine.ui.Draw(screen)
+// Draw implements Ebiten's Draw method.
+func (g *game) Draw(screen *ebiten.Image) {
+	// draw the UI onto the screen
+	g.ui.Draw(screen)
 }
 
-func (engine *Engine) Layout(outsideWidth, outsideHeight int) (int, int) {
-	return 640, 480
+func loadButtonImage() (*widget.ButtonImage, error) {
+
+	idle := image.NewBorderedNineSliceColor(color.NRGBA{R: 170, G: 170, B: 180, A: 255}, color.NRGBA{90, 90, 90, 255}, 3)
+
+	hover := image.NewBorderedNineSliceColor(color.NRGBA{R: 130, G: 130, B: 150, A: 255}, color.NRGBA{70, 70, 70, 255}, 3)
+
+	pressed := image.NewAdvancedNineSliceColor(color.NRGBA{R: 130, G: 130, B: 150, A: 255}, image.NewBorder(3, 2, 2, 2, color.NRGBA{70, 70, 70, 255}))
+
+	return &widget.ButtonImage{
+		Idle:    idle,
+		Hover:   hover,
+		Pressed: pressed,
+	}, nil
 }
 
-func main() {
-	ebiten.SetWindowSize(640, 480)
-	ebiten.SetWindowTitle("Hello, Ebiten!")
-
-	var engine Engine
-	engine.Init()
-
-	if err := ebiten.RunGame(&engine); err != nil {
-		panic(err)
+func loadFont(size float64) (text.Face, error) {
+	s, err := text.NewGoTextFaceSource(bytes.NewReader(goregular.TTF))
+	if err != nil {
+		log.Fatal(err)
+		return nil, fmt.Errorf("Error loading font: %w", err)
 	}
+
+	return &text.GoTextFace{
+		Source: s,
+		Size:   size,
+	}, nil
 }
