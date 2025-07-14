@@ -85,15 +85,15 @@ func (o ContainerOptions) Layout(layout Layouter) ContainerOpt {
 
 func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveChildFunc {
 	c.init.Do()
-
+	if !c.validated {
+		c.Validate()
+	}
 	for _, child := range children {
 		if child == nil {
 			panic("cannot add nil child")
 		}
 
-		if c.validated {
-			child.Validate()
-		}
+		child.Validate()
 
 		c.children = append(c.children, child)
 
@@ -247,12 +247,14 @@ func (c *Container) SetLocation(rect img.Rectangle) {
 }
 
 func (c *Container) Validate() {
-	c.computedParams.BackgroundImage = c.definedParams.BackgroundImage
+	if !c.validated {
+		c.computedParams.BackgroundImage = c.definedParams.BackgroundImage
 
-	for idx := range c.children {
-		c.children[idx].Validate()
+		for idx := range c.children {
+			c.children[idx].Validate()
+		}
+		c.validated = true
 	}
-	c.validated = true
 }
 
 func (c *Container) SetBackgroundImage(image *image.NineSlice) {
@@ -299,17 +301,16 @@ func (c *Container) Update(updObj *UpdateObject) {
 			cu.Update(updObj)
 		}
 	}
+
 	if c.relayoutParent {
 		updObj.RelayoutRequested = updObj.RelayoutRequested || true
 	}
+
 	c.relayoutParent = false
 }
 
 func (c *Container) doLayout() {
 	if c.layout != nil && c.layoutDirty {
-		if !c.validated {
-			c.Validate()
-		}
 		c.layout.Layout(c.children, c.widget.Rect)
 		c.layoutDirty = false
 	}
