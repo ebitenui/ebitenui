@@ -700,11 +700,11 @@ func (b *Button) Render(screen *ebiten.Image) {
 	}
 }
 
-func (b *Button) Update() {
+func (b *Button) Update(updObj *UpdateObject) {
 	b.init.Do()
-	b.widget.Update()
+	b.widget.Update(updObj)
 	if b.container != nil {
-		b.container.Update()
+		b.container.Update(updObj)
 	}
 
 	if !b.DisableDefaultKeys {

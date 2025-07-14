@@ -118,9 +118,9 @@ func (s *SelectComboButton) Render(screen *ebiten.Image) {
 	s.button.Render(screen)
 }
 
-func (s *SelectComboButton) Update() {
+func (s *SelectComboButton) Update(updObj *UpdateObject) {
 	s.init.Do()
-	s.button.Update()
+	s.button.Update(updObj)
 }
 
 func (s *SelectComboButton) createWidget() {

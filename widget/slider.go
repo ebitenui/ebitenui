@@ -382,11 +382,11 @@ func (s *Slider) Render(screen *ebiten.Image) {
 	s.lastCurrent = s.Current
 }
 
-func (s *Slider) Update() {
+func (s *Slider) Update(updObj *UpdateObject) {
 	s.init.Do()
 
-	s.widget.Update()
-	s.handle.Update()
+	s.widget.Update(updObj)
+	s.handle.Update(updObj)
 }
 
 func (s *Slider) drawTrack(screen *ebiten.Image) {

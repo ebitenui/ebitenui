@@ -462,11 +462,11 @@ func (l *List) Render(screen *ebiten.Image) {
 	l.container.Render(screen)
 }
 
-func (l *List) Update() {
+func (l *List) Update(updObj *UpdateObject) {
 	l.init.Do()
 
 	l.handleInput()
-	l.container.Update()
+	l.container.Update(updObj)
 }
 
 /** Focuser Interface - Start **/

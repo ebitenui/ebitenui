@@ -211,10 +211,10 @@ func (s *ProgressBar) Render(screen *ebiten.Image) {
 	s.draw(screen)
 }
 
-func (s *ProgressBar) Update() {
+func (s *ProgressBar) Update(updObj *UpdateObject) {
 	s.init.Do()
 
-	s.widget.Update()
+	s.widget.Update(updObj)
 }
 
 func (s *ProgressBar) draw(screen *ebiten.Image) {

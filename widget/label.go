@@ -195,9 +195,9 @@ func (l *Label) Render(screen *ebiten.Image) {
 	l.text.Render(screen)
 }
 
-func (l *Label) Update() {
+func (l *Label) Update(updObj *UpdateObject) {
 	l.init.Do()
-	l.text.Update()
+	l.text.Update(updObj)
 }
 
 func (l *Label) createWidget() {

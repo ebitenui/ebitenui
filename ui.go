@@ -44,6 +44,7 @@ type UI struct {
 	previousContainer          widget.Containerer
 	previousRemoveHandlerFuncs []event.RemoveHandlerFunc
 	tabWasPressed              bool
+	updObj                     *widget.UpdateObject
 }
 
 // Update updates u. This method should be called in the Ebiten Update function.
@@ -91,7 +92,11 @@ func (u *UI) Update() {
 	index := 0
 	for ; index < len(u.windows); index++ {
 		if u.windows[index].DrawLayer < 0 {
-			u.windows[index].Update()
+			u.resetUpdateObject()
+			u.windows[index].Update(u.updObj)
+			if u.updObj.RelayoutRequested {
+				u.windows[index].RequestRelayout()
+			}
 			if u.windows[index].FocusedWindow {
 				u.windows[index].FocusedWindow = false
 				u.focusedWindow = u.windows[index]
@@ -102,10 +107,18 @@ func (u *UI) Update() {
 			break
 		}
 	}
-	u.Container.Update()
 
+	u.resetUpdateObject()
+	u.Container.Update(u.updObj)
+	if u.updObj.RelayoutRequested {
+		u.Container.RequestRelayout()
+	}
 	for ; index < len(u.windows); index++ {
-		u.windows[index].Update()
+		u.resetUpdateObject()
+		u.windows[index].Update(u.updObj)
+		if u.updObj.RelayoutRequested {
+			u.windows[index].RequestRelayout()
+		}
 		if u.windows[index].FocusedWindow {
 			u.windows[index].FocusedWindow = false
 			u.focusedWindow = u.windows[index]
@@ -119,6 +132,15 @@ func (u *UI) Update() {
 	}
 
 	event.ExecuteDeferred()
+}
+
+func (u *UI) resetUpdateObject() {
+	// Reset update object
+	if u.updObj == nil {
+		u.updObj = &widget.UpdateObject{}
+	} else {
+		u.updObj.RelayoutRequested = false
+	}
 }
 
 // Draw renders u onto screen. This function should be called in the Ebiten Draw function.

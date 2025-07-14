@@ -438,10 +438,10 @@ func (c *Checkbox) Render(screen *ebiten.Image) {
 	}
 }
 
-func (c *Checkbox) Update() {
+func (c *Checkbox) Update(updObj *UpdateObject) {
 	c.init.Do()
 
-	c.widget.Update()
+	c.widget.Update(updObj)
 	if c.label != nil {
 		c.label.GetWidget().Disabled = c.widget.Disabled
 	}

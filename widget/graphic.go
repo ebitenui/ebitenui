@@ -175,7 +175,7 @@ func (g *Graphic) Render(screen *ebiten.Image) {
 	g.draw(screen)
 }
 
-func (g *Graphic) Update() {
+func (g *Graphic) Update(updObj *UpdateObject) {
 	g.init.Do()
 
 	if g.gif != nil {
@@ -192,7 +192,7 @@ func (g *Graphic) Update() {
 		}
 	}
 
-	g.widget.Update()
+	g.widget.Update(updObj)
 }
 
 func (g *Graphic) draw(screen *ebiten.Image) {
