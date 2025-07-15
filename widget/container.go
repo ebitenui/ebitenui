@@ -121,8 +121,8 @@ func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveCh
 			}
 		})
 	}
+	c.RequestRelayout()
 	c.relayoutParent = true
-
 	return func() {
 		for _, child := range children {
 			c.RemoveChild(child)
@@ -158,6 +158,7 @@ func (c *Container) RemoveChild(child PreferredSizeLocateableWidget) {
 	if child.GetWidget().ContextMenuWindow != nil {
 		child.GetWidget().ContextMenuWindow.Close()
 	}
+	c.RequestRelayout()
 	c.relayoutParent = true
 }
 
@@ -180,6 +181,7 @@ func (c *Container) RemoveChildren() {
 	}
 	c.children = nil
 
+	c.RequestRelayout()
 	c.relayoutParent = true
 }
 
@@ -191,6 +193,7 @@ func (c *Container) RequestRelayout() {
 	c.init.Do()
 
 	c.layoutDirty = true
+
 	for _, ch := range c.children {
 		if r, ok := ch.(Relayoutable); ok {
 			r.RequestRelayout()
@@ -299,10 +302,11 @@ func (c *Container) Update(updObj *UpdateObject) {
 			cu.Update(updObj)
 		}
 	}
+
 	if c.relayoutParent {
 		updObj.RelayoutRequested = updObj.RelayoutRequested || true
+		c.relayoutParent = false
 	}
-	c.relayoutParent = false
 }
 
 func (c *Container) doLayout() {
