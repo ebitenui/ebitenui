@@ -193,6 +193,7 @@ type Containerer interface {
 	input.Layerer
 	PreferredSizeLocateableWidget
 	GetFocusers() []Focuser
+	AddChild(children ...PreferredSizeLocateableWidget) RemoveChildFunc
 }
 
 // WidgetCursorEnterEventArgs are the arguments for cursor enter events.
