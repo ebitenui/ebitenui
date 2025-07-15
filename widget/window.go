@@ -40,8 +40,8 @@ type Window struct {
 	ClosedEvent *event.Event
 
 	Modal      bool
-	Contents   *Container
-	TitleBar   *Container
+	Contents   Containerer
+	TitleBar   Containerer
 	Draggable  bool
 	Resizeable bool
 	MinSize    *image.Point
@@ -58,7 +58,7 @@ type Window struct {
 
 	closeMode WindowCloseMode
 	closeFunc RemoveWindowFunc
-	container *Container
+	container Containerer
 
 	titleBarHeight int
 
@@ -105,14 +105,14 @@ func (w *Window) Validate() {
 }
 
 // This is the container with the body of this window.
-func (o WindowOptions) Contents(c *Container) WindowOpt {
+func (o WindowOptions) Contents(c Containerer) WindowOpt {
 	return func(w *Window) {
 		w.Contents = c
 	}
 }
 
 // Sets the container for the TitleBar and its fixed height.
-func (o WindowOptions) TitleBar(tb *Container, height int) WindowOpt {
+func (o WindowOptions) TitleBar(tb Containerer, height int) WindowOpt {
 	return func(w *Window) {
 		w.TitleBar = tb
 		w.titleBarHeight = height
@@ -244,7 +244,7 @@ func (w *Window) Close() {
 // This method will set the size and location of this window.
 // This method will account for specified MinSize and MaxSize values.
 func (w *Window) SetLocation(rect image.Rectangle) {
-	if rect != w.container.widget.Rect {
+	if rect != w.container.GetWidget().Rect {
 		if w.MinSize != nil {
 			if rect.Dx() < w.MinSize.X {
 				rect.Max.X = rect.Min.X + w.MinSize.X
@@ -270,7 +270,7 @@ func (w *Window) SetLocation(rect image.Rectangle) {
 // Typically used internally.
 //
 //	Returns the root container that holds the provided titlebar and contents.
-func (w *Window) GetContainer() *Container {
+func (w *Window) GetContainer() Containerer {
 	return w.container
 }
 

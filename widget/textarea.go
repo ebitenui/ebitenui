@@ -16,6 +16,7 @@ type TextAreaParams struct {
 	Face                   *text.Face
 	ForegroundColor        color.Color
 	TextPadding            *Insets
+	TextPosition           *TextPositioning
 	ControlWidgetSpacing   *int
 	StripBBCode            *bool
 	LinkColor              *TextLinkColor
@@ -143,6 +144,7 @@ func (t *TextArea) populateComputedParams() {
 			}
 			params.StripBBCode = theme.TextAreaTheme.StripBBCode
 			params.TextPadding = theme.TextAreaTheme.TextPadding
+			params.TextPosition = theme.TextAreaTheme.TextPosition
 		}
 	}
 
@@ -197,11 +199,16 @@ func (t *TextArea) populateComputedParams() {
 	if t.definedParams.TextPadding != nil {
 		params.TextPadding = t.definedParams.TextPadding
 	}
-
+	if t.definedParams.TextPosition != nil {
+		params.TextPosition = t.definedParams.TextPosition
+	}
 	// Set defaults
 
 	if params.TextPadding == nil {
 		params.TextPadding = &Insets{}
+	}
+	if params.TextPosition == nil {
+		params.TextPosition = &TextPositioning{}
 	}
 	if params.ControlWidgetSpacing == nil {
 		params.ControlWidgetSpacing = constantutil.ConstantToPointer(0)
@@ -297,6 +304,13 @@ func (o TextAreaOptions) FontColor(color color.Color) TextAreaOpt {
 func (o TextAreaOptions) TextPadding(i Insets) TextAreaOpt {
 	return func(l *TextArea) {
 		l.definedParams.TextPadding = &i
+	}
+}
+
+// Set the positioning of the text within the text area
+func (o TextAreaOptions) TextPosition(textPosition TextPositioning) TextAreaOpt {
+	return func(l *TextArea) {
+		l.definedParams.TextPosition = &textPosition
 	}
 }
 
@@ -466,6 +480,7 @@ func (l *TextArea) initWidget() {
 	l.text = NewText(
 		TextOpts.Text(currentText, l.computedParams.Face, l.computedParams.ForegroundColor),
 		TextOpts.Padding(l.computedParams.TextPadding),
+		TextOpts.Position(l.computedParams.TextPosition.HTextPosition, l.computedParams.TextPosition.VTextPosition),
 		TextOpts.ProcessBBCode(l.processBBCode),
 		TextOpts.StripBBCode(*l.computedParams.StripBBCode),
 		TextOpts.LinkColor(l.computedParams.LinkColor),
