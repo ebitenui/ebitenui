@@ -85,13 +85,16 @@ func (o ContainerOptions) Layout(layout Layouter) ContainerOpt {
 
 func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveChildFunc {
 	c.init.Do()
+
 	for _, child := range children {
 		if child == nil {
 			panic("cannot add nil child")
 		}
+
 		if c.validated {
 			child.Validate()
 		}
+
 		c.children = append(c.children, child)
 
 		child.GetWidget().parent = c.widget
@@ -118,8 +121,8 @@ func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveCh
 			}
 		})
 	}
+	c.RequestRelayout()
 	c.relayoutParent = true
-
 	return func() {
 		for _, child := range children {
 			c.RemoveChild(child)
@@ -155,6 +158,7 @@ func (c *Container) RemoveChild(child PreferredSizeLocateableWidget) {
 	if child.GetWidget().ContextMenuWindow != nil {
 		child.GetWidget().ContextMenuWindow.Close()
 	}
+	c.RequestRelayout()
 	c.relayoutParent = true
 }
 
@@ -177,6 +181,7 @@ func (c *Container) RemoveChildren() {
 	}
 	c.children = nil
 
+	c.RequestRelayout()
 	c.relayoutParent = true
 }
 
@@ -188,6 +193,7 @@ func (c *Container) RequestRelayout() {
 	c.init.Do()
 
 	c.layoutDirty = true
+
 	for _, ch := range c.children {
 		if r, ok := ch.(Relayoutable); ok {
 			r.RequestRelayout()
@@ -203,6 +209,7 @@ func (c *Container) GetWidget() *Widget {
 func (c *Container) PreferredSize() (int, int) {
 	c.init.Do()
 	w, h := 0, 0
+
 	if !c.validated {
 		c.Validate()
 	}
@@ -249,7 +256,6 @@ func (c *Container) Validate() {
 		c.children[idx].Validate()
 	}
 	c.validated = true
-
 }
 
 func (c *Container) SetBackgroundImage(image *image.NineSlice) {
@@ -271,9 +277,7 @@ func (c *Container) Render(screen *ebiten.Image) {
 	}
 
 	c.widget.Render(screen)
-	if !c.validated {
-		c.Validate()
-	}
+
 	c.doLayout()
 
 	c.draw(screen)
@@ -301,13 +305,15 @@ func (c *Container) Update(updObj *UpdateObject) {
 
 	if c.relayoutParent {
 		updObj.RelayoutRequested = updObj.RelayoutRequested || true
+		c.relayoutParent = false
 	}
-
-	c.relayoutParent = false
 }
 
 func (c *Container) doLayout() {
 	if c.layout != nil && c.layoutDirty {
+		if !c.validated {
+			c.Validate()
+		}
 		c.layout.Layout(c.children, c.widget.Rect)
 		c.layoutDirty = false
 	}
