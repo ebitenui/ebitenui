@@ -91,14 +91,14 @@ func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveCh
 			panic("cannot add nil child")
 		}
 
+		child.GetWidget().parent = c.widget
+		child.GetWidget().self = child
+
 		if c.validated {
 			child.Validate()
 		}
 
 		c.children = append(c.children, child)
-
-		child.GetWidget().parent = c.widget
-		child.GetWidget().self = child
 
 		child.GetWidget().ContextMenuEvent.AddHandler(func(args interface{}) {
 			if a, ok := args.(*WidgetContextMenuEventArgs); ok {

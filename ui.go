@@ -384,10 +384,10 @@ func (u *UI) addWindow(w *widget.Window) bool {
 		return false
 	}
 
-	if w.Contents.GetWidget().GetTheme() == nil {
-		w.Contents.GetWidget().SetTheme(u.PrimaryTheme)
+	if w.GetContainer().GetWidget().GetTheme() == nil {
+		w.GetContainer().GetWidget().SetTheme(u.PrimaryTheme)
 	}
-	w.Contents.Validate()
+	w.GetContainer().Validate()
 
 	closeFunc := func() {
 		u.removeWindow(w)

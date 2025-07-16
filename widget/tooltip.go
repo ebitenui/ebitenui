@@ -52,7 +52,7 @@ type ToolTip struct {
 	ContentOriginHorizontal ToolTipAnchor
 	Delay                   time.Duration
 	Offset                  image.Point
-	content                 *Container
+	content                 Containerer
 	window                  *Window
 	visible                 bool
 
@@ -67,7 +67,7 @@ var ToolTipOpts ToolTipOptions
 
 type toolTipState func(*Widget) toolTipState
 
-type ToolTipUpdater func(*Container)
+type ToolTipUpdater func(Containerer)
 
 // Create a new Tooltip. This method allows you to specify
 // every aspect of the displayed tooltip's content.
@@ -138,7 +138,7 @@ func NewTextToolTip(label string, face *text.Face, color color.Color, background
 }
 
 // The container to be displayed.
-func (o ToolTipOptions) Content(c *Container) ToolTipOpt {
+func (o ToolTipOptions) Content(c Containerer) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.content = c
 	}
