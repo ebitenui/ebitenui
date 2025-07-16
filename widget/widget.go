@@ -194,6 +194,9 @@ type Containerer interface {
 	PreferredSizeLocateableWidget
 	GetFocusers() []Focuser
 	AddChild(children ...PreferredSizeLocateableWidget) RemoveChildFunc
+	RemoveChild(child PreferredSizeLocateableWidget)
+	RemoveChildren()
+	Children() []PreferredSizeLocateableWidget
 }
 
 // WidgetCursorEnterEventArgs are the arguments for cursor enter events.
@@ -484,6 +487,11 @@ func (o WidgetOptions) ContextMenuCloseMode(contextMenuCloseMode WindowCloseMode
 func (o WidgetOptions) ToolTip(toolTip *ToolTip) WidgetOpt {
 	return func(w *Widget) {
 		w.ToolTip = toolTip
+		if w.ToolTip != nil {
+			if w.ToolTip.window != nil {
+				w.ToolTip.window.container.GetWidget().parent = w
+			}
+		}
 	}
 }
 

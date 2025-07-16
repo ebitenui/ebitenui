@@ -595,7 +595,7 @@ func toolTipPage(res *uiResources) *page {
 		b := widget.NewButton(
 			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.ToolTip(widget.NewToolTip(
 				widget.ToolTipOpts.Content(tt),
-				widget.ToolTipOpts.ToolTipUpdater(func(c *widget.Container) {
+				widget.ToolTipOpts.ToolTipUpdater(func(c widget.Containerer) {
 					if showTimeCheckbox.State() == widget.WidgetChecked {
 						c.Children()[1].(*widget.Text).Label = time.Now().Local().Format("2006-01-02 15:04:05")
 					} else {
