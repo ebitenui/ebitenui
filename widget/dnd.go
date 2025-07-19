@@ -4,6 +4,7 @@ import (
 	"image"
 	"math"
 
+	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -265,8 +266,12 @@ func (d *DragAndDrop) draggingState(srcX int, srcY int, dragWidget *Container, d
 		}
 
 		if input.KeyPressed(ebiten.KeyEscape) || d.dndStopped {
-			if e, ok := d.contentsCreater.(DragContentsEnder); ok {
-				e.EndDrag(false, parent, dragData)
+			if dce, ok := d.contentsCreater.(DragContentsEnder); ok {
+				e := &event.Event{}
+				event.AddEventHandlerOneShot(e, func(_ interface{}) {
+					dce.EndDrag(false, parent, dragData)
+				})
+				e.Fire(nil)
 			}
 
 			return d.idleState(), false
@@ -307,7 +312,11 @@ func (d *DragAndDrop) droppingState(srcX int, srcY int, x int, y int, dragData i
 			if target.GetWidget().canDrop(args) {
 				if target.GetWidget().drop != nil {
 					args.Target = target
-					target.GetWidget().drop(args)
+					e := &event.Event{}
+					event.AddEventHandlerOneShot(e, func(_ interface{}) {
+						target.GetWidget().drop(args)
+					})
+					e.Fire(nil)
 					dropSuccessful = true
 				}
 				break
