@@ -65,23 +65,8 @@ func (u *UI) Update() {
 		u.previousContainer = u.Container
 		// Close all Ephemeral Windows (tooltip/dnd/etc).
 		u.closeEphemeralWindows(0)
-		if u.PrimaryTheme != nil {
-			u.Container.GetWidget().SetTheme(u.PrimaryTheme)
-			u.previousTheme = u.PrimaryTheme
-		}
-		// Validate the main container.
-		u.Container.Validate()
 	}
-
-	// Handle the user setting a new theme.
-	if (u.Container.GetWidget().GetTheme() == nil && u.PrimaryTheme != nil) || u.PrimaryTheme != u.previousTheme {
-		u.Container.GetWidget().SetTheme(u.PrimaryTheme)
-		u.previousTheme = u.PrimaryTheme
-
-		// Validate the main container with the new theme.
-		u.Container.Validate()
-	}
-
+	u.setTheme()
 	u.handleFocusChangeRequest()
 
 	// If widget is not visible or disabled, change focus to next widget.
@@ -145,6 +130,7 @@ func (u *UI) resetUpdateObject() {
 
 // Draw renders u onto screen. This function should be called in the Ebiten Draw function.
 func (u *UI) Draw(screen *ebiten.Image) {
+	u.setTheme()
 	input.Draw(screen)
 	defer input.AfterDraw(screen)
 	x, y := screen.Bounds().Dx(), screen.Bounds().Dy()
@@ -200,6 +186,18 @@ func (u *UI) render(screen *ebiten.Image) {
 	}
 }
 
+func (u *UI) setTheme() {
+	// Handle the user setting a new theme.
+	if u.Container != nil {
+		if (u.PrimaryTheme != nil && u.Container.GetWidget().GetTheme() == nil) || u.PrimaryTheme != u.previousTheme {
+			u.Container.GetWidget().SetTheme(u.PrimaryTheme)
+			u.previousTheme = u.PrimaryTheme
+
+			// Validate the main container with the new theme.
+			u.Container.Validate()
+		}
+	}
+}
 func (u *UI) handleContextMenu(args interface{}) {
 	if a, ok := args.(*widget.WidgetContextMenuEventArgs); ok {
 		x, y := a.Widget.ContextMenu.PreferredSize()
@@ -455,6 +453,7 @@ func (u *UI) HasFocus() bool {
 func (u *UI) ClearFocus() {
 	if u.focusedWidget != nil {
 		u.focusedWidget.Focus(false)
+		u.focusedWidget = nil
 	}
 }
 
