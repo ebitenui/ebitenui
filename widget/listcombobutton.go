@@ -254,6 +254,12 @@ func (o ListComboButtonOptions) Entries(e []any) ListComboButtonOpt {
 	}
 }
 
+func (o ListComboButtonOptions) InitialEntry(e any) ListComboButtonOpt {
+	return func(l *ListComboButton) {
+		l.selectedEntry = e
+	}
+}
+
 func (o ListComboButtonOptions) EntryLabelFunc(button SelectComboButtonEntryLabelFunc, list ListEntryLabelFunc) ListComboButtonOpt {
 	return func(l *ListComboButton) {
 		l.buttonLabelFunc = button
@@ -417,7 +423,10 @@ func (l *ListComboButton) initWidget() {
 	l.button.GetWidget().parent = l.widget
 	l.button.Validate()
 
-	if len(l.list.entries) > 0 {
+	if l.selectedEntry != nil {
+		l.button.SetSelectedEntry(l.selectedEntry)
+		l.list.setSelectedEntry(l.selectedEntry, false)
+	} else if len(l.list.entries) > 0 {
 		firstEntry := l.list.entries[0]
 		l.button.SetSelectedEntry(firstEntry)
 		l.list.SetSelectedEntry(firstEntry)
@@ -439,18 +448,12 @@ func (l *ListComboButton) initWidget() {
 			l.SetSelectedEntry(a.Entry)
 		}
 	})
-
-	if l.selectedEntry != nil {
-		l.button.SetSelectedEntry(l.selectedEntry)
-		l.list.setSelectedEntry(l.selectedEntry, false)
-	}
 }
 
 func (l *ListComboButton) SetSelectedEntry(e interface{}) {
 	l.init.Do()
-	if l.button == nil || l.list == nil {
-		l.selectedEntry = e
-	} else {
+	l.selectedEntry = e
+	if l.button != nil && l.list != nil {
 		l.button.SetSelectedEntry(e)
 		l.list.setSelectedEntry(e, false)
 	}
