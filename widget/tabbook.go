@@ -25,13 +25,14 @@ type TabBook struct {
 	tabs          []*TabBookTab
 	containerOpts []ContainerOpt
 
-	init        *MultiOnce
-	container   *Container
-	gridLayout  *GridLayout
-	tabToButton map[*TabBookTab]*Button
-	flipBook    *FlipBook
-	tab         *TabBookTab
-	initialTab  *TabBookTab
+	init         *MultiOnce
+	container    *Container
+	btnContainer *Container
+	gridLayout   *GridLayout
+	tabToButton  map[*TabBookTab]*Button
+	flipBook     *FlipBook
+	tab          *TabBookTab
+	initialTab   *TabBookTab
 }
 
 type TabBookOpt func(t *TabBook)
@@ -293,7 +294,19 @@ func (t *TabBook) GetWidget() *Widget {
 
 func (t *TabBook) PreferredSize() (int, int) {
 	t.init.Do()
-	return t.container.PreferredSize()
+	x, y := t.container.PreferredSize()
+	_, bcY := t.btnContainer.PreferredSize()
+	for tab := range t.tabs {
+		tx, ty := t.tabs[tab].PreferredSize()
+		ty += bcY
+		if tx > x {
+			x = tx
+		}
+		if ty > y {
+			y = ty
+		}
+	}
+	return x, y
 }
 
 func (t *TabBook) SetLocation(rect image.Rectangle) {
@@ -346,10 +359,10 @@ func (t *TabBook) initTabBook() {
 	t.container.RemoveChildren()
 
 	t.gridLayout.rowSpacing = *t.computedParams.ContentSpacing
-	buttonsContainer := NewContainer(
+	t.btnContainer = NewContainer(
 		ContainerOpts.Layout(NewRowLayout(
 			RowLayoutOpts.Spacing(*t.computedParams.TabSpacing))))
-	t.container.AddChild(buttonsContainer)
+	t.container.AddChild(t.btnContainer)
 
 	btnElements := []RadioGroupElement{}
 	var currentTab *TabBookTab = t.tab
@@ -370,7 +383,7 @@ func (t *TabBook) initTabBook() {
 		}
 		btn := NewButton(append(btnOpts, ButtonOpts.WidgetOpts(WidgetOpts.CustomData(t.tabs[i])))...)
 		btnElements = append(btnElements, btn)
-		buttonsContainer.AddChild(btn)
+		t.btnContainer.AddChild(btn)
 		t.tabToButton[t.tabs[i]] = btn
 		if currentTab == nil {
 			if t.initialTab == nil && !t.tabs[i].Disabled {
