@@ -360,6 +360,12 @@ func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 
 // AddWindow adds window w to ui for rendering. It returns a function to remove w from ui.
 func (u *UI) AddWindow(w *widget.Window) widget.RemoveWindowFunc {
+	return u.AddWindowQuietly(w, true)
+}
+
+// AddWindowQuietly adds window w to ui for rendering. It returns a function to remove w from ui.
+// This function allows you to specify if you would like it to close any open ephemeralWindows (tooltip/dnd/etc)
+func (u *UI) AddWindowQuietly(w *widget.Window, closeEphemeralWindows bool) widget.RemoveWindowFunc {
 	if u.addWindow(w) {
 		w.GetContainer().GetWidget().ContextMenuEvent.AddHandler(u.handleContextMenu)
 		w.GetContainer().GetWidget().FocusEvent.AddHandler(u.handleFocusEvent)
@@ -370,8 +376,10 @@ func (u *UI) AddWindow(w *widget.Window) widget.RemoveWindowFunc {
 			u.focusedWidget.Focus(false)
 
 		}
-		// Close all Ephemeral Windows (tooltip/dnd/etc)
-		u.closeEphemeralWindows(0)
+		if closeEphemeralWindows {
+			// Close all Ephemeral Windows (tooltip/dnd/etc)
+			u.closeEphemeralWindows(0)
+		}
 	}
 
 	return w.GetCloseFunction()
