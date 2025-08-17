@@ -590,6 +590,17 @@ func (o WidgetOptions) OnUpdate(updateFunc UpdateFunc) WidgetOpt {
 	}
 }
 
+// This specifies how long in seconds a Long Press is.
+// Must be greater than 0.
+func (o WidgetOptions) LongPressDuration(seconds float64) WidgetOpt {
+	return func(w *Widget) {
+		if seconds <= 0 {
+			panic("Long Press Duration must be a positive value.")
+		}
+		w.longPressDuration = int(float64(ebiten.TPS()) * seconds)
+	}
+}
+
 func (w *Widget) drawImageOptions(opts *ebiten.DrawImageOptions) {
 	opts.GeoM.Translate(float64(w.Rect.Min.X), float64(w.Rect.Min.Y))
 }
