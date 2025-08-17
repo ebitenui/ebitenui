@@ -244,7 +244,8 @@ func (t *ToolTip) armedState(p image.Point, timer *time.Timer, expired *atomic.V
 		if input.MouseButtonPressed(ebiten.MouseButtonLeft) ||
 			input.MouseButtonPressed(ebiten.MouseButtonMiddle) ||
 			input.MouseButtonPressed(ebiten.MouseButtonRight) ||
-			!cp.In(parent.Rect) {
+			!cp.In(parent.Rect) ||
+			!parent.EffectiveInputLayer().ActiveFor(x, y, input.LayerEventTypeAny) {
 			t.visible = false
 			parent.FireToolTipEvent(t.window, false)
 			return t.idleState()
@@ -277,7 +278,8 @@ func (t *ToolTip) showingState(p image.Point) toolTipState {
 		if input.MouseButtonPressed(ebiten.MouseButtonLeft) ||
 			input.MouseButtonPressed(ebiten.MouseButtonMiddle) ||
 			input.MouseButtonPressed(ebiten.MouseButtonRight) ||
-			!cp.In(parent.Rect) {
+			!cp.In(parent.Rect) ||
+			!parent.EffectiveInputLayer().ActiveFor(x, y, input.LayerEventTypeAny) {
 			t.visible = false
 			parent.FireToolTipEvent(t.window, false)
 			return t.idleState()

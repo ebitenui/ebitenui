@@ -47,6 +47,9 @@ func main() {
 				HorizontalPosition: widget.AnchorLayoutPositionCenter,
 				VerticalPosition:   widget.AnchorLayoutPositionCenter,
 			}),
+			widget.WidgetOpts.MouseButtonLongPressedHandler(func(args *widget.WidgetMouseButtonLongPressedEventArgs) {
+				fmt.Println("Long Press button ", args)
+			}),
 		),
 		// specify the images to use.
 		widget.ButtonOpts.Image(buttonImage),

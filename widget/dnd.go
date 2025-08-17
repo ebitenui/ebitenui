@@ -323,8 +323,12 @@ func (d *DragAndDrop) droppingState(srcX int, srcY int, x int, y int, dragData i
 			}
 		}
 
-		if e, ok := d.contentsCreater.(DragContentsEnder); ok {
-			e.EndDrag(dropSuccessful, parent, dragData)
+		if dce, ok := d.contentsCreater.(DragContentsEnder); ok {
+			e := &event.Event{}
+			event.AddEventHandlerOneShot(e, func(_ interface{}) {
+				dce.EndDrag(dropSuccessful, parent, dragData)
+			})
+			e.Fire(nil)
 		}
 
 		d.dndStopped = false

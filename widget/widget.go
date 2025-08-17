@@ -57,6 +57,10 @@ type Widget struct {
 	// while the cursor is inside the widget's Rect.
 	MouseButtonPressedEvent *event.Event
 
+	// MouseButtonPressedEvent fires an event with *WidgetMouseButtonPressedEventArgs when a mouse button is pressed
+	// while the cursor is inside the widget's Rect.
+	MouseButtonLongPressedEvent *event.Event
+
 	// MouseButtonReleasedEvent fires an event with *WidgetMouseButtonReleasedEventArgs when a mouse button is released
 	// while the cursor is inside the widget's Rect.
 	MouseButtonReleasedEvent *event.Event
@@ -103,6 +107,9 @@ type Widget struct {
 	inputLayer                  *input.Layer
 	focusable                   Focuser
 	theme                       *Theme
+	longPressButton             ebiten.MouseButton
+	longPressDuration           int
+	longPressCurrent            int
 
 	ContextMenu          *Container
 	ContextMenuWindow    *Window
@@ -250,6 +257,18 @@ type WidgetMouseButtonPressedEventArgs struct { //nolint:golint
 	OffsetY int
 }
 
+// WidgetMouseButtonPressedEventArgs are the arguments for mouse button press events.
+type WidgetMouseButtonLongPressedEventArgs struct { //nolint:golint
+	Widget *Widget
+	Button ebiten.MouseButton
+
+	// OffsetX is the x offset relative to the widget's Rect.
+	OffsetX int
+
+	// OffsetY is the y offset relative to the widget's Rect.
+	OffsetY int
+}
+
 // WidgetMouseButtonReleasedEventArgs are the arguments for mouse button release events.
 type WidgetMouseButtonReleasedEventArgs struct { //nolint:golint
 	Widget *Widget
@@ -333,6 +352,9 @@ type WidgetCursorExitHandlerFunc func(args *WidgetCursorExitEventArgs) //nolint:
 // WidgetMouseButtonPressedHandlerFunc is a function that handles mouse button press events.
 type WidgetMouseButtonPressedHandlerFunc func(args *WidgetMouseButtonPressedEventArgs) //nolint:golint
 
+// WidgetMouseButtonLongPressedHandlerFunc is a function that handles mouse button long press events (500ms).
+type WidgetMouseButtonLongPressedHandlerFunc func(args *WidgetMouseButtonLongPressedEventArgs) //nolint:golint
+
 // WidgetMouseButtonReleasedHandlerFunc is a function that handles mouse button release events.
 type WidgetMouseButtonReleasedHandlerFunc func(args *WidgetMouseButtonReleasedEventArgs) //nolint:golint
 
@@ -353,18 +375,21 @@ var deferredRenders []RenderFunc
 // NewWidget constructs a new Widget configured with opts.
 func NewWidget(opts ...WidgetOpt) *Widget {
 	w := &Widget{
-		CursorEnterEvent:         &event.Event{},
-		CursorMoveEvent:          &event.Event{},
-		CursorExitEvent:          &event.Event{},
-		MouseButtonPressedEvent:  &event.Event{},
-		MouseButtonReleasedEvent: &event.Event{},
-		MouseButtonClickedEvent:  &event.Event{},
-		ScrolledEvent:            &event.Event{},
-		FocusEvent:               &event.Event{},
-		ContextMenuEvent:         &event.Event{},
-		ToolTipEvent:             &event.Event{},
-		DragAndDropEvent:         &event.Event{},
-		ContextMenuCloseMode:     CLICK,
+		CursorEnterEvent:            &event.Event{},
+		CursorMoveEvent:             &event.Event{},
+		CursorExitEvent:             &event.Event{},
+		MouseButtonPressedEvent:     &event.Event{},
+		MouseButtonLongPressedEvent: &event.Event{},
+		MouseButtonReleasedEvent:    &event.Event{},
+		MouseButtonClickedEvent:     &event.Event{},
+		ScrolledEvent:               &event.Event{},
+		FocusEvent:                  &event.Event{},
+		ContextMenuEvent:            &event.Event{},
+		ToolTipEvent:                &event.Event{},
+		DragAndDropEvent:            &event.Event{},
+		ContextMenuCloseMode:        CLICK,
+		longPressDuration:           ebiten.TPS() / 2,
+		longPressButton:             -1,
 	}
 
 	for _, o := range opts {
@@ -419,6 +444,18 @@ func (o WidgetOptions) MouseButtonPressedHandler(f WidgetMouseButtonPressedHandl
 	return func(w *Widget) {
 		w.MouseButtonPressedEvent.AddHandler(func(args interface{}) {
 			if arg, ok := args.(*WidgetMouseButtonPressedEventArgs); ok {
+				f(arg)
+			}
+		})
+	}
+}
+
+// MouseButtonLongPressedHandler configures a Widget with mouse button long press event handler f.
+// Triggered after holding down left or right mouse button 500ms.
+func (o WidgetOptions) MouseButtonLongPressedHandler(f WidgetMouseButtonLongPressedHandlerFunc) WidgetOpt {
+	return func(w *Widget) {
+		w.MouseButtonLongPressedEvent.AddHandler(func(args interface{}) {
+			if arg, ok := args.(*WidgetMouseButtonLongPressedEventArgs); ok {
 				f(arg)
 			}
 		})
@@ -649,7 +686,6 @@ func (w *Widget) fireEvents() {
 	}
 
 	if input.MouseButtonJustPressedLayer(ebiten.MouseButtonRight, layer) {
-
 		if inside {
 			w.mouseRightPressedInside = true
 			off := p.Sub(w.Rect.Min)
@@ -662,6 +698,8 @@ func (w *Widget) fireEvents() {
 			if w.ContextMenu != nil {
 				w.FireContextMenuEvent(nil, p)
 			}
+			w.longPressButton = ebiten.MouseButtonRight
+			w.longPressCurrent = 0
 		}
 	}
 
@@ -707,6 +745,8 @@ func (w *Widget) fireEvents() {
 				OffsetX: off.X,
 				OffsetY: off.Y,
 			})
+			w.longPressButton = ebiten.MouseButtonLeft
+			w.longPressCurrent = 0
 		}
 	}
 
@@ -729,6 +769,26 @@ func (w *Widget) fireEvents() {
 		}
 		w.mouseLeftPressedInside = false
 		w.lastUpdateMouseLeftPressed = false
+	}
+
+	if w.longPressButton != -1 {
+		if input.MouseButtonPressed(w.longPressButton) && inside {
+			w.longPressCurrent += 1
+		} else {
+			w.longPressCurrent = 0
+			w.longPressButton = -1
+		}
+		if w.longPressCurrent >= w.longPressDuration {
+			off := p.Sub(w.Rect.Min)
+			w.MouseButtonLongPressedEvent.Fire(&WidgetMouseButtonLongPressedEventArgs{
+				Widget:  w,
+				Button:  w.longPressButton,
+				OffsetX: off.X,
+				OffsetY: off.Y,
+			})
+			w.longPressButton = -1
+			w.longPressCurrent = 0
+		}
 	}
 
 	scrollX, scrollY := input.WheelLayer(layer)
