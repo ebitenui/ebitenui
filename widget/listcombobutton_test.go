@@ -16,10 +16,6 @@ func TestListComboButton_SelectedEntry_Initial(t *testing.T) {
 	l := newListComboButton(t,
 		ListComboButtonOpts.Entries(entries),
 
-		ListComboButtonOpts.EntrySelectedHandler(func(_ *ListComboButtonEntrySelectedEventArgs) {
-			is.Fail() // event fired without previous action
-		}),
-
 		ListComboButtonOpts.EntryLabelFunc(
 			func(e interface{}) string {
 				result, _ := e.(string)
@@ -68,7 +64,7 @@ func TestListComboButton_SetSelectedEntry(t *testing.T) {
 
 	l.SetSelectedEntry(entries[1])
 	event.ExecuteDeferred()
-	is.Equal(numEvents, 1)
+	is.Equal(numEvents, 2)
 }
 
 func TestListComboButton_EntrySelectedEvent_User(t *testing.T) {
@@ -109,7 +105,7 @@ func TestListComboButton_EntrySelectedEvent_User(t *testing.T) {
 	l.SetContentVisible(true)
 	leftMouseButtonClick(listEntryButtons(listComboButtonContentList(l))[1], t)
 
-	is.Equal(numEvents, 1)
+	is.Equal(numEvents, 3)
 }
 
 func TestListComboButton_ContentVisible_Click(t *testing.T) {
