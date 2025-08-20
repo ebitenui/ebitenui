@@ -423,15 +423,6 @@ func (l *ListComboButton) initWidget() {
 	l.button.GetWidget().parent = l.widget
 	l.button.Validate()
 
-	if l.selectedEntry != nil {
-		l.button.SetSelectedEntry(l.selectedEntry)
-		l.list.setSelectedEntry(l.selectedEntry, false)
-	} else if len(l.list.entries) > 0 {
-		firstEntry := l.list.entries[0]
-		l.button.SetSelectedEntry(firstEntry)
-		l.list.SetSelectedEntry(firstEntry)
-	}
-
 	l.button.EntrySelectedEvent.AddHandler(func(args interface{}) {
 		if a, ok := args.(*SelectComboButtonEntrySelectedEventArgs); ok {
 			l.EntrySelectedEvent.Fire(&ListComboButtonEntrySelectedEventArgs{
@@ -448,6 +439,15 @@ func (l *ListComboButton) initWidget() {
 			l.SetSelectedEntry(a.Entry)
 		}
 	})
+
+	if l.selectedEntry != nil {
+		l.button.SetSelectedEntry(l.selectedEntry)
+		l.list.setSelectedEntry(l.selectedEntry, false)
+	} else if len(l.list.entries) > 0 {
+		firstEntry := l.list.entries[0]
+		l.button.SetSelectedEntry(firstEntry)
+		l.list.SetSelectedEntry(firstEntry)
+	}
 }
 
 func (l *ListComboButton) SetSelectedEntry(e interface{}) {

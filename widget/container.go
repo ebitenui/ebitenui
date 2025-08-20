@@ -249,6 +249,10 @@ func (c *Container) SetLocation(rect img.Rectangle) {
 	}
 }
 
+func (c *Container) IsValidated() bool {
+	return c.validated
+}
+
 func (c *Container) Validate() {
 	c.computedParams.BackgroundImage = c.definedParams.BackgroundImage
 

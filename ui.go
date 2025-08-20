@@ -195,6 +195,8 @@ func (u *UI) setTheme() {
 
 			// Validate the main container with the new theme.
 			u.Container.Validate()
+		} else if !u.Container.IsValidated() {
+			u.Container.Validate()
 		}
 	}
 }

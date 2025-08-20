@@ -204,6 +204,7 @@ type Containerer interface {
 	RemoveChild(child PreferredSizeLocateableWidget)
 	RemoveChildren()
 	Children() []PreferredSizeLocateableWidget
+	IsValidated() bool
 }
 
 // WidgetCursorEnterEventArgs are the arguments for cursor enter events.
