@@ -16,12 +16,13 @@ type ScrollContainer struct {
 
 	widgetOpts          []WidgetOpt
 	image               *ScrollContainerImage
-	content             HasWidget
+	content             PreferredSizeLocateableWidget
 	padding             *Insets
 	stretchContentWidth bool
 
 	init      *MultiOnce
 	widget    *Widget
+	validated bool
 	renderBuf *image.MaskedRenderBuffer
 }
 
@@ -55,8 +56,25 @@ func NewScrollContainer(opts ...ScrollContainerOpt) *ScrollContainer {
 		s.padding = &Insets{}
 	}
 
-	s.Validate()
+	return s
+}
 
+func (s *ScrollContainer) Validate() {
+	if s.content == nil {
+		panic("ScrollContainer: Content is required.")
+	}
+	if s.image == nil {
+		panic("ScrollContainer: Image is required.")
+	}
+	if s.image.Idle == nil {
+		panic("ScrollContainer: Image.Idle is required.")
+	}
+	if s.image.Mask == nil {
+		panic("ScrollContainer: Image.Mask is required.")
+	}
+
+	s.content.GetWidget().parent = s.widget
+	s.content.GetWidget().self = s.content
 	s.content.GetWidget().ContextMenuEvent.AddHandler(func(args interface{}) {
 		if a, ok := args.(*WidgetContextMenuEventArgs); ok {
 			s.GetWidget().FireContextMenuEvent(a.Widget, a.Location)
@@ -77,22 +95,9 @@ func NewScrollContainer(opts ...ScrollContainerOpt) *ScrollContainer {
 			s.GetWidget().FireDragAndDropEvent(a.Window, a.Show, a.DnD)
 		}
 	})
-	return s
-}
 
-func (s *ScrollContainer) Validate() {
-	if s.content == nil {
-		panic("ScrollContainer: Content is required.")
-	}
-	if s.image == nil {
-		panic("ScrollContainer: Image is required.")
-	}
-	if s.image.Idle == nil {
-		panic("ScrollContainer: Image.Idle is required.")
-	}
-	if s.image.Mask == nil {
-		panic("ScrollContainer: Image.Mask is required.")
-	}
+	s.content.Validate()
+	s.validated = true
 }
 
 func (o ScrollContainerOptions) WidgetOpts(opts ...WidgetOpt) ScrollContainerOpt {
@@ -107,7 +112,7 @@ func (o ScrollContainerOptions) Image(i *ScrollContainerImage) ScrollContainerOp
 	}
 }
 
-func (o ScrollContainerOptions) Content(c HasWidget) ScrollContainerOpt {
+func (o ScrollContainerOptions) Content(c PreferredSizeLocateableWidget) ScrollContainerOpt {
 	return func(s *ScrollContainer) {
 		s.content = c
 	}
@@ -137,7 +142,9 @@ func (s *ScrollContainer) SetLocation(rect img.Rectangle) {
 
 func (s *ScrollContainer) PreferredSize() (int, int) {
 	s.init.Do()
-
+	if !s.validated {
+		s.Validate()
+	}
 	if s.content == nil {
 		return 50, 50
 	}

@@ -152,6 +152,7 @@ func main() {
 	// construct a combobox
 	comboBox := widget.NewListComboButton(
 		widget.ListComboButtonOpts.Entries(entries),
+		widget.ListComboButtonOpts.InitialEntry(entries[1]),
 		widget.ListComboButtonOpts.WidgetOpts(
 			//Set the combobox's position
 			widget.WidgetOpts.LayoutData(widget.GridLayoutData{
@@ -224,7 +225,6 @@ func main() {
 			flipBook.SetPage(args.Entry.(ListEntry).widget)
 		}),
 	)
-	comboBox.SetSelectedEntry(entries[1])
 	//The following line is needed if you dont set a selected entry in the combobox
 	// since the callback for the combobox isn't called when selecting the first entry
 	//flipBook.SetPage(entrys[0].(ListEntry).widget)
