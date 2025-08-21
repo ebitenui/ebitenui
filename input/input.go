@@ -192,11 +192,17 @@ func GetWindowSize() image.Point {
 func Update() {
 	SetCursorShape(CURSOR_DEFAULT)
 	currentCursorUpdater.Update()
+	if currentCursorUpdater != internalinput.InputHandler {
+		internalinput.InputHandler.Update()
+	}
 	internalinput.InternalUIHovered = false
 }
 
 func AfterUpdate() {
 	currentCursorUpdater.AfterUpdate()
+	if currentCursorUpdater != internalinput.InputHandler {
+		internalinput.InputHandler.AfterUpdate()
+	}
 }
 
 func Draw(screen *ebiten.Image) {
