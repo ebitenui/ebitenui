@@ -675,7 +675,7 @@ func (b *Button) Render(screen *ebiten.Image) {
 				b.graphic.Image = b.GraphicImage.Disabled
 			}
 
-		case (b.pressing && (b.hovering || b.KeepPressedOnExit) || (b.ToggleMode && b.state == WidgetChecked) || b.justSubmitted):
+		case b.pressing && (b.hovering || b.KeepPressedOnExit) || (b.ToggleMode && b.state == WidgetChecked) || b.justSubmitted:
 			if b.text != nil && b.computedParams.TextColor.Pressed != nil {
 				b.text.SetColor(b.computedParams.TextColor.Pressed)
 			}
@@ -683,7 +683,7 @@ func (b *Button) Render(screen *ebiten.Image) {
 				b.graphic.Image = b.GraphicImage.Pressed
 			}
 
-		case (b.hovering || b.focused):
+		case b.hovering || b.focused:
 			if b.computedParams.TextColor.Hover != nil {
 				b.text.SetColor(b.computedParams.TextColor.Hover)
 			}
