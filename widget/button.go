@@ -688,7 +688,7 @@ func (b *Button) Render(screen *ebiten.Image) {
 				b.text.SetColor(b.computedParams.TextColor.Hover)
 			}
 			if b.computedParams.GraphicImage != nil && b.computedParams.GraphicImage.Hover != nil {
-				b.graphic.Image = b.GraphicImage.Hover
+				b.graphic.Image = b.computedParams.GraphicImage.Hover
 			}
 		default:
 			b.text.SetColor(b.computedParams.TextColor.Idle)
