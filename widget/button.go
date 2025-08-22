@@ -391,14 +391,12 @@ func (o ButtonOptions) TextProcessBBCode(enabled bool) ButtonOpt {
 // TODO: add parameter for image position (start/end).
 func (o ButtonOptions) TextAndImage(label string, face *text.Face, image *GraphicImage, color *ButtonTextColor) ButtonOpt {
 	return func(b *Button) {
-		b.init.Append(func() {
-			b.autoUpdateTextAndGraphic = true
-			b.textLabel = label
-			b.definedParams.TextFace = face
-			b.definedParams.TextColor = color
-			b.definedParams.GraphicImage = image
-			b.definedParams.TextColor = color
-		})
+		b.autoUpdateTextAndGraphic = true
+		b.textLabel = label
+		b.definedParams.TextFace = face
+		b.definedParams.TextColor = color
+		b.definedParams.GraphicImage = image
+		b.definedParams.TextColor = color
 	}
 }
 
