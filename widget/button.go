@@ -67,11 +67,12 @@ type Button struct {
 type ButtonOpt func(b *Button)
 
 type ButtonImage struct {
-	Idle         *image.NineSlice
-	Hover        *image.NineSlice
-	Pressed      *image.NineSlice
-	PressedHover *image.NineSlice
-	Disabled     *image.NineSlice
+	Idle            *image.NineSlice
+	Hover           *image.NineSlice
+	Pressed         *image.NineSlice
+	PressedHover    *image.NineSlice
+	Disabled        *image.NineSlice
+	PressedDisabled *image.NineSlice
 }
 
 type ButtonTextColor struct {
@@ -722,7 +723,11 @@ func (b *Button) draw(screen *ebiten.Image) {
 		if b.computedParams.Image.Disabled != nil {
 			i = b.computedParams.Image.Disabled
 		}
-
+		if b.pressing && (b.hovering || b.KeepPressedOnExit) || b.ToggleMode && b.state == WidgetChecked {
+			if b.computedParams.Image.PressedDisabled != nil {
+				i = b.computedParams.Image.PressedDisabled
+			}
+		}
 	case b.focused, b.hovering:
 		if b.pressing && (b.hovering || b.KeepPressedOnExit) || b.ToggleMode && b.state == WidgetChecked {
 			if b.computedParams.Image.PressedHover != nil {
