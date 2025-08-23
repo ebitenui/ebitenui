@@ -741,7 +741,7 @@ func (b *Button) draw(screen *ebiten.Image) {
 				i = b.computedParams.Image.Hover
 			}
 		}
-	case pressed || b.justSubmitted:
+	case pressed, b.justSubmitted:
 		if b.computedParams.Image.Pressed != nil {
 			i = b.computedParams.Image.Pressed
 		}
