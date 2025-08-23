@@ -724,7 +724,7 @@ func (b *Button) draw(screen *ebiten.Image) {
 		}
 
 	case b.focused, b.hovering:
-		if b.ToggleMode && b.state == WidgetChecked || b.pressing && (b.hovering || b.KeepPressedOnExit) {
+		if b.pressing && (b.hovering || b.KeepPressedOnExit) || b.ToggleMode && b.state == WidgetChecked {
 			if b.computedParams.Image.PressedHover != nil {
 				i = b.computedParams.Image.PressedHover
 			} else {
