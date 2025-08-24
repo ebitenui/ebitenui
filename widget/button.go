@@ -718,7 +718,7 @@ func (b *Button) Update(updObj *UpdateObject) {
 
 func (b *Button) draw(screen *ebiten.Image) {
 	i := b.computedParams.Image.Idle
-	pressed := b.pressing && (b.hovering || b.KeepPressedOnExit) || b.ToggleMode && b.state == WidgetChecked
+	pressed := (b.pressing && (b.hovering || b.KeepPressedOnExit)) || (b.ToggleMode && b.state == WidgetChecked)
 	switch {
 	case b.widget.Disabled:
 		if b.computedParams.Image.Disabled != nil {
