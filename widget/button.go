@@ -67,11 +67,12 @@ type Button struct {
 type ButtonOpt func(b *Button)
 
 type ButtonImage struct {
-	Idle         *image.NineSlice
-	Hover        *image.NineSlice
-	Pressed      *image.NineSlice
-	PressedHover *image.NineSlice
-	Disabled     *image.NineSlice
+	Idle            *image.NineSlice
+	Hover           *image.NineSlice
+	Pressed         *image.NineSlice
+	PressedHover    *image.NineSlice
+	Disabled        *image.NineSlice
+	PressedDisabled *image.NineSlice
 }
 
 type ButtonTextColor struct {
@@ -716,14 +717,19 @@ func (b *Button) Update(updObj *UpdateObject) {
 
 func (b *Button) draw(screen *ebiten.Image) {
 	i := b.computedParams.Image.Idle
+	pressed := (b.pressing && (b.hovering || b.KeepPressedOnExit)) || (b.ToggleMode && b.state == WidgetChecked)
 	switch {
 	case b.widget.Disabled:
 		if b.computedParams.Image.Disabled != nil {
 			i = b.computedParams.Image.Disabled
 		}
-
+		if pressed {
+			if b.computedParams.Image.PressedDisabled != nil {
+				i = b.computedParams.Image.PressedDisabled
+			}
+		}
 	case b.focused, b.hovering:
-		if b.ToggleMode && b.state == WidgetChecked || b.pressing && (b.hovering || b.KeepPressedOnExit) {
+		if pressed {
 			if b.computedParams.Image.PressedHover != nil {
 				i = b.computedParams.Image.PressedHover
 			} else {
@@ -734,7 +740,7 @@ func (b *Button) draw(screen *ebiten.Image) {
 				i = b.computedParams.Image.Hover
 			}
 		}
-	case b.pressing && (b.hovering || b.KeepPressedOnExit) || (b.ToggleMode && b.state == WidgetChecked) || b.justSubmitted:
+	case pressed, b.justSubmitted:
 		if b.computedParams.Image.Pressed != nil {
 			i = b.computedParams.Image.Pressed
 		}
