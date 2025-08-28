@@ -148,8 +148,10 @@ func (c *Container) ReplaceChild(remove PreferredSizeLocateableWidget, add Prefe
 func closeWidget(w *Widget) {
 	w.parent = nil
 
-	if w.ToolTip != nil && w.ToolTip.window != nil {
-		w.ToolTip.window.Close()
+	for _, tt := range w.ToolTips {
+		if tt.window != nil {
+			tt.window.Close()
+		}
 	}
 
 	if w.DragAndDrop != nil && w.DragAndDrop.window != nil {
