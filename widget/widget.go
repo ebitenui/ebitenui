@@ -115,7 +115,7 @@ type Widget struct {
 	ContextMenuWindow    *Window
 	ContextMenuCloseMode WindowCloseMode
 
-	ToolTip *ToolTip
+	ToolTips []*ToolTip
 
 	DragAndDrop *DragAndDrop
 
@@ -523,12 +523,17 @@ func (o WidgetOptions) ContextMenuCloseMode(contextMenuCloseMode WindowCloseMode
 	}
 }
 
-func (o WidgetOptions) ToolTip(toolTip *ToolTip) WidgetOpt {
+func (o WidgetOptions) ToolTip(toolTips ...*ToolTip) WidgetOpt {
 	return func(w *Widget) {
-		w.ToolTip = toolTip
-		if w.ToolTip != nil {
-			if w.ToolTip.window != nil {
-				w.ToolTip.window.container.GetWidget().parent = w
+		for _, tt := range toolTips {
+			if w.ToolTips == nil {
+				w.ToolTips = make([]*ToolTip, 0, 0)
+			}
+			if tt != nil {
+				w.ToolTips = append(w.ToolTips, tt)
+				if tt.window != nil {
+					tt.window.container.GetWidget().parent = w
+				}
 			}
 		}
 	}
@@ -637,8 +642,8 @@ func (w *Widget) Update(updObj *UpdateObject) {
 	if w.DragAndDrop != nil {
 		w.DragAndDrop.Update(w.self)
 	}
-	if w.ToolTip != nil {
-		w.ToolTip.Update(w)
+	for _, t := range w.ToolTips {
+		t.Update(w)
 	}
 	if w.OnUpdate != nil {
 		w.OnUpdate(w.self)
