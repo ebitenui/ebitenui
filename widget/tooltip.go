@@ -52,6 +52,7 @@ type ToolTip struct {
 	ContentOriginHorizontal ToolTipAnchor
 	Delay                   time.Duration
 	Offset                  image.Point
+	KeepOnHover             bool
 	content                 Containerer
 	window                  *Window
 	visible                 bool
@@ -201,6 +202,14 @@ func (o ToolTipOptions) ToolTipUpdater(toolTipUpdater ToolTipUpdater) ToolTipOpt
 	}
 }
 
+// KeepOnHover will make it so if the user cursor is on the ToolTip it'll
+// not be hidden as it does by default
+func (o ToolTipOptions) KeepOnHover(b bool) ToolTipOpt {
+	return func(t *ToolTip) {
+		t.KeepOnHover = b
+	}
+}
+
 func (t *ToolTip) Update(parent *Widget) {
 	newState := t.state(parent)
 	if newState != nil {
@@ -214,6 +223,7 @@ func (t *ToolTip) idleState() toolTipState {
 			input.MouseButtonPressed(ebiten.MouseButtonMiddle) ||
 			input.MouseButtonPressed(ebiten.MouseButtonRight) ||
 			!parent.IsVisible() {
+
 			t.visible = false
 			parent.FireToolTipEvent(t.window, false)
 			return nil
@@ -246,9 +256,12 @@ func (t *ToolTip) armedState(p image.Point, timer *time.Timer, expired *atomic.V
 			input.MouseButtonPressed(ebiten.MouseButtonRight) ||
 			!cp.In(parent.Rect) ||
 			!parent.EffectiveInputLayer().ActiveFor(x, y, input.LayerEventTypeAny) {
-			t.visible = false
-			parent.FireToolTipEvent(t.window, false)
-			return t.idleState()
+
+			if !(t.KeepOnHover && cp.In(t.content.GetWidget().Rect)) {
+				t.visible = false
+				parent.FireToolTipEvent(t.window, false)
+				return t.idleState()
+			}
 		}
 		if timer != nil {
 			if isExpired, _ := expired.Load().(bool); isExpired {
@@ -280,9 +293,12 @@ func (t *ToolTip) showingState(p image.Point) toolTipState {
 			input.MouseButtonPressed(ebiten.MouseButtonRight) ||
 			!cp.In(parent.Rect) ||
 			!parent.EffectiveInputLayer().ActiveFor(x, y, input.LayerEventTypeAny) {
-			t.visible = false
-			parent.FireToolTipEvent(t.window, false)
-			return t.idleState()
+
+			if !(t.KeepOnHover && cp.In(t.content.GetWidget().Rect)) {
+				t.visible = false
+				parent.FireToolTipEvent(t.window, false)
+				return t.idleState()
+			}
 		}
 		sx, sy := t.content.PreferredSize()
 
