@@ -126,6 +126,7 @@ func (c *Container) ReplaceChild(remove PreferredSizeLocateableWidget, add Prefe
 	for i, ch := range c.children {
 		if ch == remove {
 			c.children[i] = add
+			c.RequestRelayout()
 			return
 		}
 	}
