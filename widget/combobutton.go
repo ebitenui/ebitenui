@@ -37,18 +37,18 @@ func NewComboButton(opts ...ComboButtonOpt) *ComboButton {
 		o(c)
 	}
 
-	c.validate()
-
 	return c
 }
 
-func (c *ComboButton) validate() {
+func (c *ComboButton) Validate() {
+	c.init.Do()
 	if c.content == nil {
 		panic("ComboButton: Content is required.")
 	}
 	if len(c.buttonOpts) == 0 {
 		panic("ComboButton: ButtonOpts are required.")
 	}
+	c.button.Validate()
 }
 func (o ComboButtonOptions) ButtonOpts(opts ...ButtonOpt) ComboButtonOpt {
 	return func(c *ComboButton) {
@@ -134,15 +134,15 @@ func (c *ComboButton) Render(screen *ebiten.Image) {
 	}
 }
 
-func (c *ComboButton) Update() {
+func (c *ComboButton) Update(updObj *UpdateObject) {
 	c.init.Do()
 
-	c.button.Update()
+	c.button.Update(updObj)
 	c.handleClick()
 
 	if c.content != nil && c.ContentVisible {
 		if cu, ok := c.content.(Updater); ok {
-			cu.Update()
+			cu.Update(updObj)
 		}
 	}
 }
@@ -199,5 +199,4 @@ func (c *ComboButton) createWidget() {
 	c.button = NewButton(append(c.buttonOpts, ButtonOpts.ClickedHandler(func(_ *ButtonClickedEventArgs) {
 		c.ContentVisible = !c.ContentVisible
 	}))...)
-	c.buttonOpts = nil
 }

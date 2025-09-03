@@ -52,7 +52,7 @@ type ToolTip struct {
 	ContentOriginHorizontal ToolTipAnchor
 	Delay                   time.Duration
 	Offset                  image.Point
-	content                 *Container
+	content                 Containerer
 	window                  *Window
 	visible                 bool
 
@@ -67,7 +67,7 @@ var ToolTipOpts ToolTipOptions
 
 type toolTipState func(*Widget) toolTipState
 
-type ToolTipUpdater func(*Container)
+type ToolTipUpdater func(Containerer)
 
 // Create a new Tooltip. This method allows you to specify
 // every aspect of the displayed tooltip's content.
@@ -84,7 +84,7 @@ func NewToolTip(opts ...ToolTipOpt) *ToolTip {
 		o(t)
 	}
 
-	t.validate()
+	t.Validate()
 
 	t.window = NewWindow(
 		WindowOpts.CloseMode(NONE),
@@ -94,7 +94,7 @@ func NewToolTip(opts ...ToolTipOpt) *ToolTip {
 	return t
 }
 
-func (t *ToolTip) validate() {
+func (t *ToolTip) Validate() {
 	if t.content == nil {
 		panic("ToolTip: Contents is required.")
 	}
@@ -107,7 +107,7 @@ func (t *ToolTip) validate() {
 //   - Offset = 0, 20
 //   - ContentOriginHorizontal = TOOLTIP_ANCHOR_END
 //   - ContentOriginVertical = TOOLTIP_ANCHOR_START
-func NewTextToolTip(label string, face text.Face, color color.Color, background *e_image.NineSlice) *ToolTip {
+func NewTextToolTip(label string, face *text.Face, color color.Color, background *e_image.NineSlice) *ToolTip {
 	if color == nil {
 		panic("TextToolTip: color is required.")
 	}
@@ -118,7 +118,7 @@ func NewTextToolTip(label string, face text.Face, color color.Color, background 
 	c := NewContainer(
 		ContainerOpts.BackgroundImage(background),
 		ContainerOpts.AutoDisableChildren(),
-		ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(Insets{
+		ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(&Insets{
 			Top:    5,
 			Bottom: 5,
 			Left:   10,
@@ -138,7 +138,7 @@ func NewTextToolTip(label string, face text.Face, color color.Color, background 
 }
 
 // The container to be displayed.
-func (o ToolTipOptions) Content(c *Container) ToolTipOpt {
+func (o ToolTipOptions) Content(c Containerer) ToolTipOpt {
 	return func(t *ToolTip) {
 		t.content = c
 	}
@@ -244,7 +244,8 @@ func (t *ToolTip) armedState(p image.Point, timer *time.Timer, expired *atomic.V
 		if input.MouseButtonPressed(ebiten.MouseButtonLeft) ||
 			input.MouseButtonPressed(ebiten.MouseButtonMiddle) ||
 			input.MouseButtonPressed(ebiten.MouseButtonRight) ||
-			!cp.In(parent.Rect) {
+			!cp.In(parent.Rect) ||
+			!parent.EffectiveInputLayer().ActiveFor(x, y, input.LayerEventTypeAny) {
 			t.visible = false
 			parent.FireToolTipEvent(t.window, false)
 			return t.idleState()
@@ -277,7 +278,8 @@ func (t *ToolTip) showingState(p image.Point) toolTipState {
 		if input.MouseButtonPressed(ebiten.MouseButtonLeft) ||
 			input.MouseButtonPressed(ebiten.MouseButtonMiddle) ||
 			input.MouseButtonPressed(ebiten.MouseButtonRight) ||
-			!cp.In(parent.Rect) {
+			!cp.In(parent.Rect) ||
+			!parent.EffectiveInputLayer().ActiveFor(x, y, input.LayerEventTypeAny) {
 			t.visible = false
 			parent.FireToolTipEvent(t.window, false)
 			return t.idleState()

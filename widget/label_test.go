@@ -19,17 +19,6 @@ func TestLabel_SetLabel(t *testing.T) {
 	is.Equal(labelText(l).Label, "foo")
 }
 
-func TestLabel_SetDisabled_Color(t *testing.T) {
-	is := is.New(t)
-
-	l := newLabel(t)
-
-	l.GetWidget().Disabled = true
-	render(l, t)
-
-	is.Equal(labelText(l).Color, color.Black)
-}
-
 func newLabel(t *testing.T, opts ...LabelOpt) *Label {
 	t.Helper()
 

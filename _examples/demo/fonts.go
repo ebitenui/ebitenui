@@ -12,10 +12,10 @@ const (
 )
 
 type fonts struct {
-	face         text.Face
-	titleFace    text.Face
-	bigTitleFace text.Face
-	toolTipFace  text.Face
+	face         *text.Face
+	titleFace    *text.Face
+	bigTitleFace *text.Face
+	toolTipFace  *text.Face
 }
 
 func loadFonts() (*fonts, error) {
@@ -40,10 +40,10 @@ func loadFonts() (*fonts, error) {
 	}
 
 	return &fonts{
-		face:         fontFace,
-		titleFace:    titleFontFace,
-		bigTitleFace: bigTitleFontFace,
-		toolTipFace:  toolTipFace,
+		face:         &fontFace,
+		titleFace:    &titleFontFace,
+		bigTitleFace: &bigTitleFontFace,
+		toolTipFace:  &toolTipFace,
 	}, nil
 }
 

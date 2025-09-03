@@ -165,13 +165,17 @@ func (g *Graphic) PreferredSize() (int, int) {
 	return 50, 50
 }
 
+func (g *Graphic) Validate() {
+
+}
+
 func (g *Graphic) Render(screen *ebiten.Image) {
 	g.init.Do()
 	g.widget.Render(screen)
 	g.draw(screen)
 }
 
-func (g *Graphic) Update() {
+func (g *Graphic) Update(updObj *UpdateObject) {
 	g.init.Do()
 
 	if g.gif != nil {
@@ -188,7 +192,7 @@ func (g *Graphic) Update() {
 		}
 	}
 
-	g.widget.Update()
+	g.widget.Update(updObj)
 }
 
 func (g *Graphic) draw(screen *ebiten.Image) {

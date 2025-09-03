@@ -9,42 +9,33 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
+type TabBookParams struct {
+	TabButton      *ButtonParams
+	TabSpacing     *int
+	ContentSpacing *int
+	ContentPadding *Insets
+}
+
 type TabBook struct {
+	definedParams  TabBookParams
+	computedParams TabBookParams
+
 	TabSelectedEvent *event.Event
 
 	tabs          []*TabBookTab
 	containerOpts []ContainerOpt
-	buttonOpts    []ButtonOpt
-	buttonImages  *ButtonImage
-	buttonFace    text.Face
-	buttonColor   *ButtonTextColor
-	flipBookOpts  []FlipBookOpt
-	buttonSpacing int
-	spacing       int
 
-	init        *MultiOnce
-	container   *Container
-	tabToButton map[*TabBookTab]*Button
-	flipBook    *FlipBook
-	tab         *TabBookTab
-	initialTab  *TabBookTab
-}
-
-type TabBookTab struct {
-	Container
-	Disabled bool
-	label    string
+	init         *MultiOnce
+	container    *Container
+	btnContainer *Container
+	gridLayout   *GridLayout
+	tabToButton  map[*TabBookTab]*Button
+	flipBook     *FlipBook
+	tab          *TabBookTab
+	initialTab   *TabBookTab
 }
 
 type TabBookOpt func(t *TabBook)
-
-type TabBookTabSelectedEventArgs struct {
-	TabBook     *TabBook
-	Tab         *TabBookTab
-	PreviousTab *TabBookTab
-}
-
-type TabBookTabSelectedHandlerFunc func(args *TabBookTabSelectedEventArgs)
 
 type TabBookOptions struct {
 }
@@ -65,54 +56,153 @@ func NewTabBook(opts ...TabBookOpt) *TabBook {
 		o(t)
 	}
 
-	t.validate()
-
 	return t
 }
 
-func (t *TabBook) validate() {
+func (t *TabBook) Validate() {
+	t.init.Do()
+	t.populateComputedParams()
 	if len(t.tabs) == 0 {
 		panic("TabBook: At least one tab is required.")
 	}
-	if t.buttonColor == nil {
+	if t.computedParams.TabButton == nil {
+		panic("TabBook: TabButton parameters are required.")
+	}
+	if t.computedParams.TabButton.TextColor == nil {
 		panic("TabBook: TabButtonText Color is required.")
 	}
-	if t.buttonColor.Idle == nil {
+	if t.computedParams.TabButton.TextColor.Idle == nil {
 		panic("TabBook: TabButtonText Color.Idle is required.")
 	}
-	if t.buttonFace == nil {
+	if t.computedParams.TabButton.TextFace == nil {
 		panic("TabBook: TabButtonText Font Face is required.")
 	}
-	if t.buttonImages == nil {
+	if t.computedParams.TabButton.Image == nil {
 		panic("TabBook: TabButtonImage is required.")
 	}
-	if t.buttonImages.Idle == nil {
+	if t.computedParams.TabButton.Image.Idle == nil {
 		panic("TabBook: TabButtonImage.Idle is required.")
 	}
-	if t.buttonImages.Pressed == nil {
+	if t.computedParams.TabButton.Image.Pressed == nil {
 		panic("TabBook: TabButtonImage.Pressed is required.")
 	}
+
+	t.initTabBook()
 }
 
-func NewTabBookTab(label string, opts ...ContainerOpt) *TabBookTab {
-	c := &TabBookTab{
-		label: label,
-	}
-	c.init = &MultiOnce{}
-	c.init.Append(c.createWidget)
+func (t *TabBook) populateComputedParams() {
+	ZERO := 0
+	params := TabBookParams{ContentSpacing: &ZERO, TabSpacing: &ZERO, ContentPadding: &Insets{}}
 
-	// Set a default layout so that tabs use the full container
-	c.widgetOpts = append(c.widgetOpts, WidgetOpts.LayoutData(AnchorLayoutData{
-		StretchHorizontal:  true,
-		StretchVertical:    true,
-		HorizontalPosition: AnchorLayoutPositionCenter,
-		VerticalPosition:   AnchorLayoutPositionCenter,
-	}))
+	theme := t.GetWidget().GetTheme()
 
-	for _, o := range opts {
-		o(&c.Container)
+	if theme != nil {
+		if theme.TabbookTheme != nil {
+			params.ContentPadding = theme.TabbookTheme.ContentPadding
+			params.ContentSpacing = theme.TabbookTheme.ContentSpacing
+			params.TabSpacing = theme.TabbookTheme.TabSpacing
+			params.TabButton = theme.TabbookTheme.TabButton
+		}
+		if params.TabButton == nil {
+			params.TabButton = &ButtonParams{TextColor: &ButtonTextColor{}}
+		}
+		if params.TabButton.TextFace == nil {
+			params.TabButton.TextFace = theme.DefaultFace
+		}
+		if params.TabButton.TextColor.Idle == nil {
+			params.TabButton.TextColor.Idle = theme.DefaultTextColor
+		}
 	}
-	return c
+
+	if t.definedParams.ContentPadding != nil {
+		params.ContentPadding = t.definedParams.ContentPadding
+	}
+	if t.definedParams.ContentSpacing != nil {
+		params.ContentSpacing = t.definedParams.ContentSpacing
+	}
+	if t.definedParams.TabSpacing != nil {
+		params.TabSpacing = t.definedParams.TabSpacing
+	}
+	if params.TabButton == nil {
+		params.TabButton = &ButtonParams{TextColor: &ButtonTextColor{}}
+	}
+	if t.definedParams.TabButton != nil {
+		if t.definedParams.TabButton.Image != nil {
+			if params.TabButton.Image == nil {
+				params.TabButton.Image = t.definedParams.TabButton.Image
+			} else {
+				if t.definedParams.TabButton.Image.Idle != nil {
+					params.TabButton.Image.Idle = t.definedParams.TabButton.Image.Idle
+				}
+				if t.definedParams.TabButton.Image.Hover != nil {
+					params.TabButton.Image.Hover = t.definedParams.TabButton.Image.Hover
+				}
+				if t.definedParams.TabButton.Image.Pressed != nil {
+					params.TabButton.Image.Pressed = t.definedParams.TabButton.Image.Pressed
+				}
+				if t.definedParams.TabButton.Image.PressedHover != nil {
+					params.TabButton.Image.PressedHover = t.definedParams.TabButton.Image.PressedHover
+				}
+				if t.definedParams.TabButton.Image.Disabled != nil {
+					params.TabButton.Image.Disabled = t.definedParams.TabButton.Image.Disabled
+				}
+			}
+		}
+
+		if t.definedParams.TabButton.GraphicImage != nil {
+			if params.TabButton.GraphicImage == nil {
+				params.TabButton.GraphicImage = t.definedParams.TabButton.GraphicImage
+			} else {
+				if t.definedParams.TabButton.GraphicImage.Idle != nil {
+					params.TabButton.GraphicImage.Idle = t.definedParams.TabButton.GraphicImage.Idle
+				}
+				if t.definedParams.TabButton.GraphicImage.Disabled != nil {
+					params.TabButton.GraphicImage.Disabled = t.definedParams.TabButton.GraphicImage.Disabled
+				}
+			}
+		}
+		if t.definedParams.TabButton.GraphicPadding != nil {
+			params.TabButton.GraphicPadding = t.definedParams.TabButton.GraphicPadding
+		}
+		if t.definedParams.TabButton.TextPosition != nil {
+			params.TabButton.TextPosition.HTextPosition = t.definedParams.TabButton.TextPosition.HTextPosition
+			params.TabButton.TextPosition.VTextPosition = t.definedParams.TabButton.TextPosition.VTextPosition
+		}
+		if t.definedParams.TabButton.TextFace != nil {
+			params.TabButton.TextFace = t.definedParams.TabButton.TextFace
+		}
+		if t.definedParams.TabButton.TextPadding != nil {
+			params.TabButton.TextPadding = t.definedParams.TabButton.TextPadding
+		}
+		if t.definedParams.TabButton.MinSize != nil {
+			params.TabButton.MinSize = t.definedParams.TabButton.MinSize
+		}
+
+		if t.definedParams.TabButton.TextColor != nil {
+			if params.TabButton.TextColor == nil {
+				params.TabButton.TextColor = t.definedParams.TabButton.TextColor
+			} else {
+				if t.definedParams.TabButton.TextColor.Disabled != nil {
+					params.TabButton.TextColor.Disabled = t.definedParams.TabButton.TextColor.Disabled
+				}
+				if t.definedParams.TabButton.TextColor.Hover != nil {
+					params.TabButton.TextColor.Hover = t.definedParams.TabButton.TextColor.Hover
+				}
+				if t.definedParams.TabButton.TextColor.Idle != nil {
+					params.TabButton.TextColor.Idle = t.definedParams.TabButton.TextColor.Idle
+				}
+				if t.definedParams.TabButton.TextColor.Pressed != nil {
+					params.TabButton.TextColor.Pressed = t.definedParams.TabButton.TextColor.Pressed
+				}
+			}
+		}
+	}
+	if params.ContentSpacing == nil {
+		params.ContentSpacing = &ZERO
+	}
+
+	t.computedParams = params
+
 }
 
 func (o TabBookOptions) ContainerOpts(opts ...ContainerOpt) TabBookOpt {
@@ -121,40 +211,57 @@ func (o TabBookOptions) ContainerOpts(opts ...ContainerOpt) TabBookOpt {
 	}
 }
 
-func (o TabBookOptions) TabButtonOpts(opts ...ButtonOpt) TabBookOpt {
+func (o TabBookOptions) ContentPadding(contentPadding *Insets) TabBookOpt {
 	return func(t *TabBook) {
-		t.buttonOpts = append(t.buttonOpts, opts...)
-	}
-}
-
-func (o TabBookOptions) FlipBookOpts(opts ...FlipBookOpt) TabBookOpt {
-	return func(t *TabBook) {
-		t.flipBookOpts = append(t.flipBookOpts, opts...)
+		t.definedParams.ContentPadding = contentPadding
 	}
 }
 
 func (o TabBookOptions) TabButtonImage(buttonImages *ButtonImage) TabBookOpt {
 	return func(t *TabBook) {
-		t.buttonImages = buttonImages
+		if t.definedParams.TabButton == nil {
+			t.definedParams.TabButton = &ButtonParams{}
+		}
+		t.definedParams.TabButton.Image = buttonImages
 	}
 }
 
 func (o TabBookOptions) TabButtonSpacing(s int) TabBookOpt {
 	return func(t *TabBook) {
-		t.buttonSpacing = s
+		t.definedParams.TabSpacing = &s
 	}
 }
 
-func (o TabBookOptions) TabButtonText(face text.Face, color *ButtonTextColor) TabBookOpt {
+func (o TabBookOptions) TabButtonText(face *text.Face, color *ButtonTextColor) TabBookOpt {
 	return func(t *TabBook) {
-		t.buttonFace = face
-		t.buttonColor = color
+		if t.definedParams.TabButton == nil {
+			t.definedParams.TabButton = &ButtonParams{}
+		}
+		t.definedParams.TabButton.TextFace = face
+		t.definedParams.TabButton.TextColor = color
 	}
 }
 
-func (o TabBookOptions) Spacing(s int) TabBookOpt {
+func (o TabBookOptions) TabButtonTextPadding(textPadding *Insets) TabBookOpt {
 	return func(t *TabBook) {
-		t.spacing = s
+		if t.definedParams.TabButton == nil {
+			t.definedParams.TabButton = &ButtonParams{}
+		}
+		t.definedParams.TabButton.TextPadding = textPadding
+	}
+}
+func (o TabBookOptions) TabButtonMinSize(minSize *image.Point) TabBookOpt {
+	return func(t *TabBook) {
+		if t.definedParams.TabButton == nil {
+			t.definedParams.TabButton = &ButtonParams{}
+		}
+		t.definedParams.TabButton.MinSize = minSize
+	}
+}
+
+func (o TabBookOptions) ContentSpacing(s int) TabBookOpt {
+	return func(t *TabBook) {
+		t.definedParams.ContentSpacing = &s
 	}
 }
 
@@ -187,7 +294,19 @@ func (t *TabBook) GetWidget() *Widget {
 
 func (t *TabBook) PreferredSize() (int, int) {
 	t.init.Do()
-	return t.container.PreferredSize()
+	x, y := t.container.PreferredSize()
+	_, bcY := t.btnContainer.PreferredSize()
+	for tab := range t.tabs {
+		tx, ty := t.tabs[tab].PreferredSize()
+		ty += bcY
+		if tx > x {
+			x = tx
+		}
+		if ty > y {
+			y = ty
+		}
+	}
+	return x, y
 }
 
 func (t *TabBook) SetLocation(rect image.Rectangle) {
@@ -220,57 +339,68 @@ func (t *TabBook) Render(screen *ebiten.Image) {
 	t.container.Render(screen)
 }
 
-func (t *TabBook) Update() {
+func (t *TabBook) Update(updObj *UpdateObject) {
 	t.init.Do()
 
-	t.container.Update()
+	t.container.Update(updObj)
 }
 
 func (t *TabBook) createWidget() {
-	t.container = NewContainer(append(t.containerOpts, []ContainerOpt{
-		ContainerOpts.Layout(NewGridLayout(
-			GridLayoutOpts.Columns(1),
-			GridLayoutOpts.Stretch([]bool{true}, []bool{false, true}),
-			GridLayoutOpts.Spacing(0, t.spacing))),
-	}...)...)
-	t.containerOpts = nil
+	t.gridLayout = NewGridLayout(
+		GridLayoutOpts.Columns(1),
+		GridLayoutOpts.Stretch([]bool{true}, []bool{false, true}))
 
-	buttonsContainer := NewContainer(
+	t.container = NewContainer(append(t.containerOpts, []ContainerOpt{ContainerOpts.Layout(t.gridLayout)}...)...)
+	t.containerOpts = nil
+}
+
+func (t *TabBook) initTabBook() {
+	t.init.Do()
+	t.container.RemoveChildren()
+
+	t.gridLayout.rowSpacing = *t.computedParams.ContentSpacing
+	t.btnContainer = NewContainer(
 		ContainerOpts.Layout(NewRowLayout(
-			RowLayoutOpts.Spacing(t.buttonSpacing))))
-	t.container.AddChild(buttonsContainer)
+			RowLayoutOpts.Spacing(*t.computedParams.TabSpacing))))
+	t.container.AddChild(t.btnContainer)
 
 	btnElements := []RadioGroupElement{}
-	var firstTab *TabBookTab
+	var currentTab *TabBookTab = t.tab
 
-	for _, tab := range t.tabs {
-		tab := tab
-		btn := NewButton(
-			append(t.buttonOpts,
-				ButtonOpts.Image(t.buttonImages),
-				ButtonOpts.Text(tab.label, t.buttonFace, t.buttonColor),
-				ButtonOpts.WidgetOpts(WidgetOpts.CustomData(tab)),
-			)...,
-		)
+	for i := range t.tabs {
+
+		t.tabs[i].GetWidget().parent = t.GetWidget()
+		t.tabs[i].Validate()
+		btnOpts := []ButtonOpt{
+			ButtonOpts.Image(t.computedParams.TabButton.Image),
+			ButtonOpts.Text(t.tabs[i].label, t.computedParams.TabButton.TextFace, t.computedParams.TabButton.TextColor),
+		}
+		if t.computedParams.TabButton.MinSize != nil {
+			btnOpts = append(btnOpts, ButtonOpts.WidgetOpts(WidgetOpts.MinSize(t.computedParams.TabButton.MinSize.X, t.computedParams.TabButton.MinSize.Y)))
+		}
+		if t.computedParams.TabButton.TextPadding != nil {
+			btnOpts = append(btnOpts, ButtonOpts.TextPadding(t.computedParams.TabButton.TextPadding))
+		}
+		btn := NewButton(append(btnOpts, ButtonOpts.WidgetOpts(WidgetOpts.CustomData(t.tabs[i])))...)
 		btnElements = append(btnElements, btn)
-		buttonsContainer.AddChild(btn)
-		t.tabToButton[tab] = btn
-		if firstTab == nil {
-			if t.initialTab == nil && !tab.Disabled {
-				firstTab = tab
-			} else if t.initialTab == tab && !tab.Disabled {
-				firstTab = t.initialTab
+		t.btnContainer.AddChild(btn)
+		t.tabToButton[t.tabs[i]] = btn
+		if currentTab == nil {
+			if t.initialTab == nil && !t.tabs[i].Disabled {
+				currentTab = t.tabs[i]
+			} else if t.initialTab == t.tabs[i] && !t.tabs[i].Disabled {
+				currentTab = t.initialTab
 			}
 		}
 	}
 	// If we cannot find an initial tab default to to the first one
-	if firstTab == nil {
-		firstTab = t.tabs[0]
+	if currentTab == nil {
+		currentTab = t.tabs[0]
 	}
 
 	NewRadioGroup(
 		RadioGroupOpts.Elements(btnElements...),
-		RadioGroupOpts.InitialElement(t.tabToButton[firstTab]),
+		RadioGroupOpts.InitialElement(t.tabToButton[currentTab]),
 		RadioGroupOpts.ChangedHandler(func(args *RadioGroupChangedEventArgs) {
 			if hasWidget, ok := args.Active.(HasWidget); ok {
 				if tab, ok := hasWidget.GetWidget().CustomData.(*TabBookTab); ok {
@@ -279,14 +409,14 @@ func (t *TabBook) createWidget() {
 			}
 		}))
 
-	t.buttonOpts = nil
-	t.buttonImages = nil
-
-	t.flipBook = NewFlipBook(append(t.flipBookOpts,
-		FlipBookOpts.ContainerOpts(ContainerOpts.AutoDisableChildren()))...)
+	t.flipBook = NewFlipBook(
+		FlipBookOpts.ContainerOpts(ContainerOpts.AutoDisableChildren()),
+		FlipBookOpts.Padding(t.computedParams.ContentPadding),
+	)
 	t.container.AddChild(t.flipBook)
-	t.flipBookOpts = nil
 
+	t.tab = nil
+	t.SetTab(currentTab)
 }
 
 // Set the current tab for the tab book.
@@ -305,8 +435,8 @@ func (t *TabBook) SetTab(tab *TabBookTab) {
 		if btn != nil {
 			previousTab := t.tab
 
+			tab.widget.parent = t.GetWidget()
 			t.tab = tab
-
 			t.flipBook.SetPage(tab)
 
 			btn.SetState(WidgetChecked)

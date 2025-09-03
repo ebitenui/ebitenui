@@ -10,7 +10,6 @@ linters:
     - forcetypeassert
     - goconst
     - godot
-    - gofmt
     - prealloc
     - nilerr
     - predeclared

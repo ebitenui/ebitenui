@@ -52,18 +52,18 @@ func NewSelectComboButton(opts ...SelectComboButtonOpt) *SelectComboButton {
 		o(s)
 	}
 
-	s.validate()
-
 	return s
 }
 
-func (s *SelectComboButton) validate() {
+func (s *SelectComboButton) Validate() {
+	s.init.Do()
 	if len(s.buttonOpts) == 0 {
 		panic("SelectComboButton: ButtonOpts are required.")
 	}
 	if s.entryLabelFunc == nil {
 		panic("SelectComboButton: EntryLabelFunc is required.")
 	}
+	s.button.Validate()
 }
 
 func (o SelectComboButtonOptions) ComboButtonOpts(opts ...ComboButtonOpt) SelectComboButtonOpt {
@@ -118,14 +118,13 @@ func (s *SelectComboButton) Render(screen *ebiten.Image) {
 	s.button.Render(screen)
 }
 
-func (s *SelectComboButton) Update() {
+func (s *SelectComboButton) Update(updObj *UpdateObject) {
 	s.init.Do()
-	s.button.Update()
+	s.button.Update(updObj)
 }
 
 func (s *SelectComboButton) createWidget() {
 	s.button = NewComboButton(s.buttonOpts...)
-	s.buttonOpts = nil
 }
 
 func (s *SelectComboButton) SetSelectedEntry(e interface{}) {

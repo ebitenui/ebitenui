@@ -6,13 +6,14 @@
 package main
 
 import (
-	"github.com/ebitenui/ebitenui"
-	"github.com/ebitenui/ebitenui/image"
-	"github.com/ebitenui/ebitenui/widget"
-	"github.com/ebitenui/ebitenui/event"
-	"golang.org/x/image/colornames"
 	goimage "image"
 	"image/color"
+
+	"github.com/ebitenui/ebitenui"
+	"github.com/ebitenui/ebitenui/event"
+	"github.com/ebitenui/ebitenui/image"
+	"github.com/ebitenui/ebitenui/widget"
+	"golang.org/x/image/colornames"
 )
 
 // NOTE: It's not strictly necessary to store references to all the buttons in the toolbar struct, but this example does
@@ -62,7 +63,7 @@ func newToolbar(ui *ebitenui.UI, res *resources) *toolbar {
 		quit = newToolbarMenuEntry(res, "Quit")
 	)
 
-    // Make the toolbar entry open a menu with our "save" and "load" entries  when the user clicks it.
+	// Make the toolbar entry open a menu with our "save" and "load" entries  when the user clicks it.
 	file.ClickedEvent.AddHandler(event.WrapHandler(func(args *widget.ButtonClickedEventArgs) {
 		openToolbarMenu(args.Button.GetWidget(), ui, save, load, quit)
 	}))
@@ -117,13 +118,13 @@ func newToolbarButton(res *resources, label string) *widget.Button {
 			Hover:   image.NewNineSliceColor(colornames.Darkgray),
 			Pressed: image.NewNineSliceColor(colornames.White),
 		}),
-		widget.ButtonOpts.Text(label, res.font, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text(label, &res.font, &widget.ButtonTextColor{
 			Idle:     color.White,
 			Disabled: colornames.Gray,
 			Hover:    color.White,
 			Pressed:  color.Black,
 		}),
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Top:    4,
 			Left:   4,
 			Right:  32,
@@ -140,14 +141,14 @@ func newToolbarMenuEntry(res *resources, label string) *widget.Button {
 			Hover:   image.NewNineSliceColor(colornames.Darkgray),
 			Pressed: image.NewNineSliceColor(colornames.White),
 		}),
-		widget.ButtonOpts.Text(label, res.font, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text(label, &res.font, &widget.ButtonTextColor{
 			Idle:     color.White,
 			Disabled: colornames.Gray,
 			Hover:    color.White,
 			Pressed:  color.Black,
 		}),
 		widget.ButtonOpts.TextPosition(widget.TextPositionStart, widget.TextPositionCenter),
-		widget.ButtonOpts.TextPadding(widget.Insets{Left: 16, Right: 64}),
+		widget.ButtonOpts.TextPadding(&widget.Insets{Left: 16, Right: 64}),
 		widget.ButtonOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Stretch: true,
@@ -166,7 +167,7 @@ func openToolbarMenu(opener *widget.Widget, ui *ebitenui.UI, entries ...*widget.
 			widget.NewRowLayout(
 				widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 				widget.RowLayoutOpts.Spacing(4),
-				widget.RowLayoutOpts.Padding(widget.Insets{Top: 1, Bottom: 1}),
+				widget.RowLayoutOpts.Padding(&widget.Insets{Top: 1, Bottom: 1}),
 			),
 		),
 

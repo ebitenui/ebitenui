@@ -35,8 +35,8 @@ const (
 	DirectionVertical
 )
 
-func NewInsetsSimple(widthHeight int) Insets {
-	return Insets{
+func NewInsetsSimple(widthHeight int) *Insets {
+	return &Insets{
 		Top:    widthHeight,
 		Left:   widthHeight,
 		Right:  widthHeight,

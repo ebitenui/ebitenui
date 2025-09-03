@@ -50,7 +50,7 @@ func main() {
 		// the container will use an anchor layout to layout its single child widget
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()), // the container will use a plain color as its background
 	)
-	winContainer.AddChild(widget.NewText(widget.TextOpts.Text("Click outside to close.\nResizable.\nUses System cursor for E/W.\nUses Custom cursor for N/S", face, color.White)))
+	winContainer.AddChild(widget.NewText(widget.TextOpts.Text("Click outside to close.\nResizable.\nUses System cursor for E/W.\nUses Custom cursor for N/S", &face, color.White)))
 
 	win := widget.NewWindow(widget.WindowOpts.CloseMode(widget.CLICK_OUT), widget.WindowOpts.Contents(winContainer), widget.WindowOpts.Resizeable())
 
@@ -71,12 +71,12 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Hello, World!", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Hello, World!", &face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   30,
 			Right:  30,
 			Top:    5,

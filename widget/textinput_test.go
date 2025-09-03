@@ -129,8 +129,6 @@ func newTextInput(t *testing.T, opts ...TextInputOpt) *TextInput {
 			Disabled: color.White,
 			Caret:    color.White,
 		}),
-		TextInputOpts.CaretOpts(
-			CaretOpts.Size(loadFont(t), 1)),
 	}...)...)
 	event.ExecuteDeferred()
 	render(ti, t)

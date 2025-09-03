@@ -12,7 +12,7 @@ func TestRowLayout_PreferredSize(t *testing.T) {
 
 	spacing := 7
 
-	padding := Insets{
+	padding := &Insets{
 		Top:    10,
 		Left:   20,
 		Right:  30,
@@ -81,7 +81,7 @@ func TestRowLayout_Layout(t *testing.T) {
 	is := is.New(t)
 
 	l := newRowLayout(t,
-		RowLayoutOpts.Padding(Insets{
+		RowLayoutOpts.Padding(&Insets{
 			Top:    10,
 			Left:   20,
 			Right:  30,

@@ -114,12 +114,12 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Hide top container (blocking)", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Hide top container (blocking)", &face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   5,
 			Right:  5,
 			Top:    5,
@@ -139,12 +139,12 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Show blue container (non blocking)", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Show blue container (non blocking)", &face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   5,
 			Right:  5,
 			Top:    5,
@@ -161,12 +161,12 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Hide blue container (non blocking)", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Hide blue container (non blocking)", &face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   5,
 			Right:  5,
 			Top:    5,
@@ -187,12 +187,12 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Show top container (blocking)", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Show top container (blocking)", &face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   5,
 			Right:  5,
 			Top:    5,
@@ -217,7 +217,7 @@ func main() {
 			// specify the Stretch for each row and column.
 			widget.GridLayoutOpts.Stretch([]bool{true, true}, []bool{false, true}),
 			// Padding between elements
-			widget.GridLayoutOpts.Padding(widget.Insets{
+			widget.GridLayoutOpts.Padding(&widget.Insets{
 				Top:    10,
 				Bottom: 10,
 				Left:   10,

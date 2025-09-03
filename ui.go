@@ -16,8 +16,7 @@ import (
 // There should only be exactly one UI per application.
 type UI struct {
 	// Container is the root container of the UI hierarchy.
-	Container *widget.Container
-
+	Container widget.Containerer
 	// If true the default tab/shift-tab to focus will be disabled
 	DisableDefaultFocus bool
 
@@ -32,15 +31,20 @@ type UI struct {
 	// but before the Windows with DrawLayer >= 0 (all by default) are drawn.
 	PostRenderHook widget.RenderFunc
 
+	// Theme settings
+	PrimaryTheme  *widget.Theme
+	previousTheme *widget.Theme
+
 	focusedWidget      widget.Focuser
 	focusedWindow      *widget.Window
 	focusedWindowIndex int
 	inputLayerers      []input.Layerer
 	windows            []*widget.Window
 
-	previousContainer          *widget.Container
+	previousContainer          widget.Containerer
 	previousRemoveHandlerFuncs []event.RemoveHandlerFunc
 	tabWasPressed              bool
+	updObj                     *widget.UpdateObject
 }
 
 // Update updates u. This method should be called in the Ebiten Update function.
@@ -59,13 +63,13 @@ func (u *UI) Update() {
 			u.Container.GetWidget().DragAndDropEvent.AddHandler(u.handleDragAndDropEvent),
 		}
 		u.previousContainer = u.Container
-		// Close all Ephemeral Windows (tooltip/dnd/etc)
+		// Close all Ephemeral Windows (tooltip/dnd/etc).
 		u.closeEphemeralWindows(0)
 	}
-
+	u.setTheme()
 	u.handleFocusChangeRequest()
 
-	// If widget is not visible or disabled, change focus to next widget
+	// If widget is not visible or disabled, change focus to next widget.
 	if u.focusedWidget != nil && (u.focusedWidget.GetWidget().Disabled || !u.focusedWidget.GetWidget().IsVisible()) {
 		u.ChangeFocus(widget.FOCUS_NEXT)
 	}
@@ -73,7 +77,11 @@ func (u *UI) Update() {
 	index := 0
 	for ; index < len(u.windows); index++ {
 		if u.windows[index].DrawLayer < 0 {
-			u.windows[index].Update()
+			u.resetUpdateObject()
+			u.windows[index].Update(u.updObj)
+			if u.updObj.RelayoutRequested {
+				u.windows[index].RequestRelayout()
+			}
 			if u.windows[index].FocusedWindow {
 				u.windows[index].FocusedWindow = false
 				u.focusedWindow = u.windows[index]
@@ -84,10 +92,18 @@ func (u *UI) Update() {
 			break
 		}
 	}
-	u.Container.Update()
 
+	u.resetUpdateObject()
+	u.Container.Update(u.updObj)
+	if u.updObj.RelayoutRequested {
+		u.Container.RequestRelayout()
+	}
 	for ; index < len(u.windows); index++ {
-		u.windows[index].Update()
+		u.resetUpdateObject()
+		u.windows[index].Update(u.updObj)
+		if u.updObj.RelayoutRequested {
+			u.windows[index].RequestRelayout()
+		}
 		if u.windows[index].FocusedWindow {
 			u.windows[index].FocusedWindow = false
 			u.focusedWindow = u.windows[index]
@@ -103,8 +119,18 @@ func (u *UI) Update() {
 	event.ExecuteDeferred()
 }
 
+func (u *UI) resetUpdateObject() {
+	// Reset update object
+	if u.updObj == nil {
+		u.updObj = &widget.UpdateObject{}
+	} else {
+		u.updObj.RelayoutRequested = false
+	}
+}
+
 // Draw renders u onto screen. This function should be called in the Ebiten Draw function.
 func (u *UI) Draw(screen *ebiten.Image) {
+	u.setTheme()
 	input.Draw(screen)
 	defer input.AfterDraw(screen)
 	x, y := screen.Bounds().Dx(), screen.Bounds().Dy()
@@ -160,6 +186,20 @@ func (u *UI) render(screen *ebiten.Image) {
 	}
 }
 
+func (u *UI) setTheme() {
+	// Handle the user setting a new theme.
+	if u.Container != nil {
+		if (u.PrimaryTheme != nil && u.Container.GetWidget().GetTheme() == nil) || u.PrimaryTheme != u.previousTheme {
+			u.Container.GetWidget().SetTheme(u.PrimaryTheme)
+			u.previousTheme = u.PrimaryTheme
+
+			// Validate the main container with the new theme.
+			u.Container.Validate()
+		} else if !u.Container.IsValidated() {
+			u.Container.Validate()
+		}
+	}
+}
 func (u *UI) handleContextMenu(args interface{}) {
 	if a, ok := args.(*widget.WidgetContextMenuEventArgs); ok {
 		x, y := a.Widget.ContextMenu.PreferredSize()
@@ -179,9 +219,6 @@ func (u *UI) handleFocusEvent(args interface{}) {
 	if a, ok := args.(*widget.WidgetFocusEventArgs); ok {
 		switch {
 		case a.Focused: // New widget focused
-			if u.focusedWidget != nil && u.focusedWidget != a.Widget {
-				u.focusedWidget.Focus(false)
-			}
 			u.focusedWidget = a.Widget
 		case a.Widget == u.focusedWidget: // Current widget focus removed
 			u.focusedWidget = nil
@@ -270,6 +307,7 @@ func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 				u.focusedWidget.Focus(false)
 			}
 			focusableWidgets[0].Focus(true)
+			u.focusedWidget = focusableWidgets[0]
 
 		} else if fwLen > 0 {
 			sort.SliceStable(focusableWidgets, func(i, j int) bool {
@@ -285,6 +323,7 @@ func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 								focusableWidgets[fwLen-1].Focus(true)
 							} else {
 								focusableWidgets[i-1].Focus(true)
+								u.focusedWidget = focusableWidgets[i-1]
 							}
 							return
 						}
@@ -295,6 +334,7 @@ func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 						if focusableWidgets[i] == u.focusedWidget {
 							u.focusedWidget.Focus(false)
 							focusableWidgets[i+1].Focus(true)
+							u.focusedWidget = focusableWidgets[i+1]
 							return
 						}
 					}
@@ -302,22 +342,32 @@ func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 				u.focusedWidget.Focus(false)
 			}
 			focusableWidgets[0].Focus(true)
+			u.focusedWidget = focusableWidgets[0]
 		}
 	} else {
 		if u.focusedWidget != nil {
 			if next := u.focusedWidget.GetFocus(direction); next != nil {
 				if !next.GetWidget().Disabled && next.GetWidget().IsVisible() {
+					u.focusedWidget.Focus(false)
 					next.Focus(true)
+					u.focusedWidget = next
 				}
 			}
 		} else if fwLen > 0 {
 			focusableWidgets[0].Focus(true)
+			u.focusedWidget = focusableWidgets[0]
 		}
 	}
 }
 
 // AddWindow adds window w to ui for rendering. It returns a function to remove w from ui.
 func (u *UI) AddWindow(w *widget.Window) widget.RemoveWindowFunc {
+	return u.AddWindowQuietly(w, true)
+}
+
+// AddWindowQuietly adds window w to ui for rendering. It returns a function to remove w from ui.
+// This function allows you to specify if you would like it to close any open ephemeralWindows (tooltip/dnd/etc)
+func (u *UI) AddWindowQuietly(w *widget.Window, closeEphemeralWindows bool) widget.RemoveWindowFunc {
 	if u.addWindow(w) {
 		w.GetContainer().GetWidget().ContextMenuEvent.AddHandler(u.handleContextMenu)
 		w.GetContainer().GetWidget().FocusEvent.AddHandler(u.handleFocusEvent)
@@ -328,8 +378,10 @@ func (u *UI) AddWindow(w *widget.Window) widget.RemoveWindowFunc {
 			u.focusedWidget.Focus(false)
 
 		}
-		// Close all Ephemeral Windows (tooltip/dnd/etc)
-		u.closeEphemeralWindows(0)
+		if closeEphemeralWindows {
+			// Close all Ephemeral Windows (tooltip/dnd/etc)
+			u.closeEphemeralWindows(0)
+		}
 	}
 
 	return w.GetCloseFunction()
@@ -339,6 +391,11 @@ func (u *UI) addWindow(w *widget.Window) bool {
 	if u.IsWindowOpen(w) {
 		return false
 	}
+
+	if w.GetContainer().GetWidget().GetTheme() == nil {
+		w.GetContainer().GetWidget().SetTheme(u.PrimaryTheme)
+	}
+	w.GetContainer().Validate()
 
 	closeFunc := func() {
 		u.removeWindow(w)
@@ -406,10 +463,24 @@ func (u *UI) HasFocus() bool {
 func (u *UI) ClearFocus() {
 	if u.focusedWidget != nil {
 		u.focusedWidget.Focus(false)
+		u.focusedWidget = nil
 	}
 }
 
 // This function will return the currently focused widget if available otherwise it returns nil
 func (u *UI) GetFocusedWidget() widget.Focuser {
 	return u.focusedWidget
+}
+
+// This function will set a specific focusable widget as the currently focused widget.
+func (u *UI) SetFocusedWidget(focused widget.Focuser) {
+	if u.focusedWidget != nil {
+		u.focusedWidget.Focus(false)
+	}
+
+	u.focusedWidget = focused
+
+	if u.focusedWidget != nil {
+		u.focusedWidget.Focus(true)
+	}
 }

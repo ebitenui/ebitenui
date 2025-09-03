@@ -3,11 +3,13 @@ package main
 import (
 	"bytes"
 	"fmt"
+	img "image"
 	"image/color"
 	"log"
 
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"
+	"github.com/ebitenui/ebitenui/utilities/constantutil"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -74,7 +76,7 @@ func main() {
 	)
 
 	redBtn := widget.NewText(
-		widget.TextOpts.Text("Red Tab Button", face, color.White),
+		widget.TextOpts.Text("Red Tab Button", &face, color.White),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			HorizontalPosition: widget.AnchorLayoutPositionCenter,
 			VerticalPosition:   widget.AnchorLayoutPositionCenter,
@@ -96,7 +98,7 @@ func main() {
 			})),
 	)
 	greenBtn := widget.NewText(
-		widget.TextOpts.Text("Green Tab Button\nThis is configured as the initial tab.", face, color.Black),
+		widget.TextOpts.Text("Green Tab Button\nThis is configured as the initial tab.", &face, color.Black),
 		widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 			HorizontalPosition: widget.AnchorLayoutPositionCenter,
@@ -122,14 +124,14 @@ func main() {
 			})),
 	)
 	blueBtn1 := widget.NewText(
-		widget.TextOpts.Text("Blue Tab Button 1", face, color.White),
+		widget.TextOpts.Text("Blue Tab Button 1", &face, color.White),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Position: widget.RowLayoutPositionCenter,
 		})),
 	)
 	tabBlue.AddChild(blueBtn1)
 	blueBtn2 := widget.NewText(
-		widget.TextOpts.Text("Blue Tab Button 2", face, color.White),
+		widget.TextOpts.Text("Blue Tab Button 2", &face, color.White),
 		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 			Position: widget.RowLayoutPositionCenter,
 		})),
@@ -149,59 +151,51 @@ func main() {
 
 	// construct a combobox
 	comboBox := widget.NewListComboButton(
-		widget.ListComboButtonOpts.SelectComboButtonOpts(
-			widget.SelectComboButtonOpts.ComboButtonOpts(
-				//Set the max height of the dropdown list
-				widget.ComboButtonOpts.MaxContentHeight(150),
-				//Set the parameters for the primary displayed button
-				widget.ComboButtonOpts.ButtonOpts(
-					widget.ButtonOpts.Image(buttonImage),
-					widget.ButtonOpts.TextPadding(widget.NewInsetsSimple(5)),
-					widget.ButtonOpts.Text("", face, &widget.ButtonTextColor{
-						Idle:     color.White,
-						Disabled: color.White,
-					}),
-					widget.ButtonOpts.WidgetOpts(
-						//Set how wide the button should be
-						widget.WidgetOpts.MinSize(150, 0),
-						//Set the combobox's position
-						widget.WidgetOpts.LayoutData(widget.GridLayoutData{
-							HorizontalPosition: widget.GridLayoutPositionCenter,
-							VerticalPosition:   widget.GridLayoutPositionCenter,
-							MaxWidth:           150,
-						}),
-					),
-				),
-			),
+		widget.ListComboButtonOpts.Entries(entries),
+		widget.ListComboButtonOpts.InitialEntry(entries[1]),
+		widget.ListComboButtonOpts.WidgetOpts(
+			//Set the combobox's position
+			widget.WidgetOpts.LayoutData(widget.GridLayoutData{
+				HorizontalPosition: widget.GridLayoutPositionCenter,
+				VerticalPosition:   widget.GridLayoutPositionCenter,
+				MaxWidth:           150,
+			}),
 		),
-		widget.ListComboButtonOpts.ListOpts(
+		widget.ListComboButtonOpts.MaxContentHeight(150),
+		widget.ListComboButtonOpts.ButtonParams(&widget.ButtonParams{
+			//Set the parameters for the primary displayed button
+			Image:       buttonImage,
+			TextPadding: widget.NewInsetsSimple(5),
+			TextFace:    &face,
+			TextColor: &widget.ButtonTextColor{
+				Idle:     color.White,
+				Disabled: color.White,
+			},
+			MinSize: &img.Point{150, 0},
+		}),
+		widget.ListComboButtonOpts.ListParams(&widget.ListParams{
 			//Set how wide the dropdown list should be
-			widget.ListOpts.ContainerOpts(widget.ContainerOpts.WidgetOpts(
-				widget.WidgetOpts.MinSize(150, 0),
-			)),
-			//Set the entries in the list
-			widget.ListOpts.Entries(entries),
-			widget.ListOpts.ScrollContainerOpts(
-				//Set the background images/color for the dropdown list
-				widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
-					Idle:     image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
-					Disabled: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
-					Mask:     image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
-				}),
-			),
-			widget.ListOpts.SliderOpts(
+			MinSize: &img.Point{150, 0},
+			ScrollContainerImage: &widget.ScrollContainerImage{
+				Idle:     image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+				Disabled: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+				Mask:     image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+			},
+			Slider: &widget.SliderParams{
 				//Set the background images/color for the background of the slider track
-				widget.SliderOpts.Images(&widget.SliderTrackImage{
+				TrackImage: &widget.SliderTrackImage{
 					Idle:  image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
 					Hover: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
-				}, buttonImage),
-				widget.SliderOpts.MinHandleSize(5),
+				},
+				HandleImage:   buttonImage,
+				MinHandleSize: constantutil.ConstantToPointer(5),
 				//Set how wide the track should be
-				widget.SliderOpts.TrackPadding(widget.NewInsetsSimple(2))),
+				TrackPadding: widget.NewInsetsSimple(2),
+			},
 			//Set the font for the list options
-			widget.ListOpts.EntryFontFace(face),
+			EntryFace: &face,
 			//Set the colors for the list
-			widget.ListOpts.EntryColor(&widget.ListEntryColor{
+			EntryColor: &widget.ListEntryColor{
 				Selected:                   color.NRGBA{254, 255, 255, 255},             //Foreground color for the unfocused selected entry
 				Unselected:                 color.NRGBA{254, 255, 255, 255},             //Foreground color for the unfocused unselected entry
 				SelectedBackground:         color.NRGBA{R: 130, G: 130, B: 200, A: 255}, //Background color for the unfocused selected entry
@@ -210,10 +204,10 @@ func main() {
 				DisabledUnselected:         color.NRGBA{100, 100, 100, 255},             //Foreground color for the disabled unselected entry
 				DisabledSelected:           color.NRGBA{100, 100, 100, 255},             //Foreground color for the disabled selected entry
 				DisabledSelectedBackground: color.NRGBA{100, 100, 100, 255},             //Background color for the disabled selected entry
-			}),
+			},
 			//Padding for each entry
-			widget.ListOpts.EntryTextPadding(widget.NewInsetsSimple(5)),
-		),
+			EntryTextPadding: widget.NewInsetsSimple(5),
+		}),
 		//Define how the entry is displayed
 		widget.ListComboButtonOpts.EntryLabelFunc(
 			func(e any) string {
@@ -231,7 +225,6 @@ func main() {
 			flipBook.SetPage(args.Entry.(ListEntry).widget)
 		}),
 	)
-	comboBox.SetSelectedEntry(entries[1])
 	//The following line is needed if you dont set a selected entry in the combobox
 	// since the callback for the combobox isn't called when selecting the first entry
 	//flipBook.SetPage(entrys[0].(ListEntry).widget)

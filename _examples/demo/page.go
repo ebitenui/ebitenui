@@ -207,16 +207,14 @@ func textAreaPage(res *uiResources) *page {
 		})),
 		widget.TextInputOpts.Image(res.textInput.image),
 		widget.TextInputOpts.Color(res.textInput.color),
-		widget.TextInputOpts.Padding(widget.Insets{
+		widget.TextInputOpts.Padding(&widget.Insets{
 			Left:   13,
 			Right:  13,
 			Top:    7,
 			Bottom: 7,
 		}),
 		widget.TextInputOpts.Face(res.textInput.face),
-		widget.TextInputOpts.CaretOpts(
-			widget.CaretOpts.Size(res.textInput.face, 2),
-		),
+		widget.TextInputOpts.CaretWidth(2),
 	}
 
 	t := widget.NewTextInput(append(
@@ -332,9 +330,9 @@ func tabBookPage(res *uiResources) *page {
 		widget.TabBookOpts.Tabs(tabs...),
 		widget.TabBookOpts.TabButtonImage(res.button.image),
 		widget.TabBookOpts.TabButtonText(res.tabBook.buttonFace, res.tabBook.buttonText),
-		widget.TabBookOpts.TabButtonOpts(widget.ButtonOpts.TextPadding(res.tabBook.buttonPadding)),
+		widget.TabBookOpts.TabButtonTextPadding(res.tabBook.buttonPadding),
 		widget.TabBookOpts.TabButtonSpacing(10),
-		widget.TabBookOpts.Spacing(15))
+		widget.TabBookOpts.ContentSpacing(15))
 	c.AddChild(t)
 
 	c.AddChild(newSeparator(res, widget.RowLayoutData{
@@ -452,7 +450,7 @@ func sliderPage(res *uiResources) *page {
 			}), widget.WidgetOpts.MinSize(200, 6)),
 			widget.SliderOpts.MinMax(1, 10),
 			widget.SliderOpts.Images(res.slider.trackImage, res.slider.handle),
-			widget.SliderOpts.FixedHandleSize(res.slider.handleSize),
+			widget.SliderOpts.FixedHandleSize(*res.slider.handleSize),
 			widget.SliderOpts.TrackOffset(5),
 			widget.SliderOpts.PageSizeFunc(func() int {
 				return ps
@@ -508,7 +506,7 @@ func progressBarPage(res *uiResources) *page {
 			widget.WidgetOpts.MinSize(200, 30),
 		),
 		widget.ProgressBarOpts.Values(0, 20, 20),
-		widget.ProgressBarOpts.TrackPadding(widget.Insets{
+		widget.ProgressBarOpts.TrackPadding(&widget.Insets{
 			Top:    3,
 			Bottom: 3,
 			Left:   2,
@@ -597,7 +595,7 @@ func toolTipPage(res *uiResources) *page {
 		b := widget.NewButton(
 			widget.ButtonOpts.WidgetOpts(widget.WidgetOpts.ToolTip(widget.NewToolTip(
 				widget.ToolTipOpts.Content(tt),
-				widget.ToolTipOpts.ToolTipUpdater(func(c *widget.Container) {
+				widget.ToolTipOpts.ToolTipUpdater(func(c widget.Containerer) {
 					if showTimeCheckbox.State() == widget.WidgetChecked {
 						c.Children()[1].(*widget.Text).Label = time.Now().Local().Format("2006-01-02 15:04:05")
 					} else {
@@ -693,11 +691,11 @@ func dragAndDropPage(res *uiResources) *page {
 			}),
 			widget.WidgetOpts.Dropped(func(args *widget.DragAndDropDroppedEventArgs) {
 				targetText.Label = "Thanks!"
-				targetText.Color = res.text.idleColor
+				targetText.SetColor(res.text.idleColor)
 
 				time.AfterFunc(2500*time.Millisecond, func() {
 					targetText.Label = "Drop\nHere"
-					targetText.Color = res.text.disabledColor
+					targetText.SetColor(res.text.disabledColor)
 				})
 			}),
 		),
@@ -723,16 +721,14 @@ func textInputPage(res *uiResources) *page {
 		})),
 		widget.TextInputOpts.Image(res.textInput.image),
 		widget.TextInputOpts.Color(res.textInput.color),
-		widget.TextInputOpts.Padding(widget.Insets{
+		widget.TextInputOpts.Padding(&widget.Insets{
 			Left:   13,
 			Right:  13,
 			Top:    7,
 			Bottom: 7,
 		}),
 		widget.TextInputOpts.Face(res.textInput.face),
-		widget.TextInputOpts.CaretOpts(
-			widget.CaretOpts.Size(res.textInput.face, 2),
-		),
+		widget.TextInputOpts.CaretWidth(2),
 	}
 
 	label := widget.NewLabel(widget.LabelOpts.Text("", res.label.face, res.label.text))
@@ -826,12 +822,15 @@ func openWindow(res *uiResources, ui func() *ebitenui.UI) {
 
 	titleBar := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(res.panel.titleBar),
-		widget.ContainerOpts.Layout(widget.NewGridLayout(widget.GridLayoutOpts.Columns(3), widget.GridLayoutOpts.Stretch([]bool{true, false, false}, []bool{true}), widget.GridLayoutOpts.Padding(widget.Insets{
-			Left:   30,
-			Right:  5,
-			Top:    6,
-			Bottom: 5,
-		}))))
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			widget.GridLayoutOpts.Columns(3),
+			widget.GridLayoutOpts.Stretch([]bool{true, false, false}, []bool{true}),
+			widget.GridLayoutOpts.Padding(&widget.Insets{
+				Left:   30,
+				Right:  5,
+				Top:    6,
+				Bottom: 5,
+			}))))
 
 	titleBar.AddChild(widget.NewText(
 		widget.TextOpts.Text("Modal Window", res.text.titleFace, res.textInput.color.Idle),
@@ -870,16 +869,14 @@ func openWindow(res *uiResources, ui func() *ebitenui.UI) {
 		})),
 		widget.TextInputOpts.Image(res.textInput.image),
 		widget.TextInputOpts.Color(res.textInput.color),
-		widget.TextInputOpts.Padding(widget.Insets{
+		widget.TextInputOpts.Padding(&widget.Insets{
 			Left:   13,
 			Right:  13,
 			Top:    7,
 			Bottom: 7,
 		}),
 		widget.TextInputOpts.Face(res.textInput.face),
-		widget.TextInputOpts.CaretOpts(
-			widget.CaretOpts.Size(res.textInput.face, 2),
-		),
+		widget.TextInputOpts.CaretWidth(2),
 	}
 
 	t := widget.NewTextInput(append(

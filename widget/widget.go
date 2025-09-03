@@ -57,6 +57,10 @@ type Widget struct {
 	// while the cursor is inside the widget's Rect.
 	MouseButtonPressedEvent *event.Event
 
+	// MouseButtonPressedEvent fires an event with *WidgetMouseButtonPressedEventArgs when a mouse button is pressed
+	// while the cursor is inside the widget's Rect.
+	MouseButtonLongPressedEvent *event.Event
+
 	// MouseButtonReleasedEvent fires an event with *WidgetMouseButtonReleasedEventArgs when a mouse button is released
 	// while the cursor is inside the widget's Rect.
 	MouseButtonReleasedEvent *event.Event
@@ -102,6 +106,10 @@ type Widget struct {
 	mouseRightPressedInside     bool
 	inputLayer                  *input.Layer
 	focusable                   Focuser
+	theme                       *Theme
+	longPressButton             ebiten.MouseButton
+	longPressDuration           int
+	longPressCurrent            int
 
 	ContextMenu          *Container
 	ContextMenuWindow    *Window
@@ -129,10 +137,14 @@ type Renderer interface {
 	Render(screen *ebiten.Image)
 }
 
+type UpdateObject struct {
+	RelayoutRequested bool
+}
+
 // Updater may be implemented by concrete widget types that should be updated.
 type Updater interface {
 	// Update updates the widget state based on input.
-	Update()
+	Update(updObj *UpdateObject)
 }
 
 type FocusDirection int
@@ -180,6 +192,21 @@ type PreferredSizer interface {
 	PreferredSize() (int, int)
 }
 
+type Containerer interface {
+	Updater
+	Renderer
+	Dropper
+	Relayoutable
+	input.Layerer
+	PreferredSizeLocateableWidget
+	GetFocusers() []Focuser
+	AddChild(children ...PreferredSizeLocateableWidget) RemoveChildFunc
+	RemoveChild(child PreferredSizeLocateableWidget)
+	RemoveChildren()
+	Children() []PreferredSizeLocateableWidget
+	IsValidated() bool
+}
+
 // WidgetCursorEnterEventArgs are the arguments for cursor enter events.
 type WidgetCursorEnterEventArgs struct { //nolint:golint
 	Widget *Widget
@@ -221,6 +248,18 @@ type WidgetCursorExitEventArgs struct { //nolint:golint
 
 // WidgetMouseButtonPressedEventArgs are the arguments for mouse button press events.
 type WidgetMouseButtonPressedEventArgs struct { //nolint:golint
+	Widget *Widget
+	Button ebiten.MouseButton
+
+	// OffsetX is the x offset relative to the widget's Rect.
+	OffsetX int
+
+	// OffsetY is the y offset relative to the widget's Rect.
+	OffsetY int
+}
+
+// WidgetMouseButtonPressedEventArgs are the arguments for mouse button press events.
+type WidgetMouseButtonLongPressedEventArgs struct { //nolint:golint
 	Widget *Widget
 	Button ebiten.MouseButton
 
@@ -314,6 +353,9 @@ type WidgetCursorExitHandlerFunc func(args *WidgetCursorExitEventArgs) //nolint:
 // WidgetMouseButtonPressedHandlerFunc is a function that handles mouse button press events.
 type WidgetMouseButtonPressedHandlerFunc func(args *WidgetMouseButtonPressedEventArgs) //nolint:golint
 
+// WidgetMouseButtonLongPressedHandlerFunc is a function that handles mouse button long press events (500ms).
+type WidgetMouseButtonLongPressedHandlerFunc func(args *WidgetMouseButtonLongPressedEventArgs) //nolint:golint
+
 // WidgetMouseButtonReleasedHandlerFunc is a function that handles mouse button release events.
 type WidgetMouseButtonReleasedHandlerFunc func(args *WidgetMouseButtonReleasedEventArgs) //nolint:golint
 
@@ -334,18 +376,21 @@ var deferredRenders []RenderFunc
 // NewWidget constructs a new Widget configured with opts.
 func NewWidget(opts ...WidgetOpt) *Widget {
 	w := &Widget{
-		CursorEnterEvent:         &event.Event{},
-		CursorMoveEvent:          &event.Event{},
-		CursorExitEvent:          &event.Event{},
-		MouseButtonPressedEvent:  &event.Event{},
-		MouseButtonReleasedEvent: &event.Event{},
-		MouseButtonClickedEvent:  &event.Event{},
-		ScrolledEvent:            &event.Event{},
-		FocusEvent:               &event.Event{},
-		ContextMenuEvent:         &event.Event{},
-		ToolTipEvent:             &event.Event{},
-		DragAndDropEvent:         &event.Event{},
-		ContextMenuCloseMode:     CLICK,
+		CursorEnterEvent:            &event.Event{},
+		CursorMoveEvent:             &event.Event{},
+		CursorExitEvent:             &event.Event{},
+		MouseButtonPressedEvent:     &event.Event{},
+		MouseButtonLongPressedEvent: &event.Event{},
+		MouseButtonReleasedEvent:    &event.Event{},
+		MouseButtonClickedEvent:     &event.Event{},
+		ScrolledEvent:               &event.Event{},
+		FocusEvent:                  &event.Event{},
+		ContextMenuEvent:            &event.Event{},
+		ToolTipEvent:                &event.Event{},
+		DragAndDropEvent:            &event.Event{},
+		ContextMenuCloseMode:        CLICK,
+		longPressDuration:           ebiten.TPS() / 2,
+		longPressButton:             -1,
 	}
 
 	for _, o := range opts {
@@ -400,6 +445,18 @@ func (o WidgetOptions) MouseButtonPressedHandler(f WidgetMouseButtonPressedHandl
 	return func(w *Widget) {
 		w.MouseButtonPressedEvent.AddHandler(func(args interface{}) {
 			if arg, ok := args.(*WidgetMouseButtonPressedEventArgs); ok {
+				f(arg)
+			}
+		})
+	}
+}
+
+// MouseButtonLongPressedHandler configures a Widget with mouse button long press event handler f.
+// Triggered after holding down left or right mouse button 500ms.
+func (o WidgetOptions) MouseButtonLongPressedHandler(f WidgetMouseButtonLongPressedHandlerFunc) WidgetOpt {
+	return func(w *Widget) {
+		w.MouseButtonLongPressedEvent.AddHandler(func(args interface{}) {
+			if arg, ok := args.(*WidgetMouseButtonLongPressedEventArgs); ok {
 				f(arg)
 			}
 		})
@@ -468,6 +525,11 @@ func (o WidgetOptions) ContextMenuCloseMode(contextMenuCloseMode WindowCloseMode
 func (o WidgetOptions) ToolTip(toolTip *ToolTip) WidgetOpt {
 	return func(w *Widget) {
 		w.ToolTip = toolTip
+		if w.ToolTip != nil {
+			if w.ToolTip.window != nil {
+				w.ToolTip.window.container.GetWidget().parent = w
+			}
+		}
 	}
 }
 
@@ -529,6 +591,17 @@ func (o WidgetOptions) OnUpdate(updateFunc UpdateFunc) WidgetOpt {
 	}
 }
 
+// This specifies how long in seconds a Long Press is.
+// Must be greater than 0.
+func (o WidgetOptions) LongPressDuration(seconds float64) WidgetOpt {
+	return func(w *Widget) {
+		if seconds <= 0 {
+			panic("Long Press Duration must be a positive value.")
+		}
+		w.longPressDuration = int(float64(ebiten.TPS()) * seconds)
+	}
+}
+
 func (w *Widget) drawImageOptions(opts *ebiten.DrawImageOptions) {
 	opts.GeoM.Translate(float64(w.Rect.Min.X), float64(w.Rect.Min.Y))
 }
@@ -558,7 +631,7 @@ func (w *Widget) Render(screen *ebiten.Image) {
 
 }
 
-func (w *Widget) Update() {
+func (w *Widget) Update(updObj *UpdateObject) {
 	w.fireEvents()
 	if w.DragAndDrop != nil {
 		w.DragAndDrop.Update(w.self)
@@ -625,7 +698,6 @@ func (w *Widget) fireEvents() {
 	}
 
 	if input.MouseButtonJustPressedLayer(ebiten.MouseButtonRight, layer) {
-
 		if inside {
 			w.mouseRightPressedInside = true
 			off := p.Sub(w.Rect.Min)
@@ -638,6 +710,8 @@ func (w *Widget) fireEvents() {
 			if w.ContextMenu != nil {
 				w.FireContextMenuEvent(nil, p)
 			}
+			w.longPressButton = ebiten.MouseButtonRight
+			w.longPressCurrent = 0
 		}
 	}
 
@@ -683,6 +757,8 @@ func (w *Widget) fireEvents() {
 				OffsetX: off.X,
 				OffsetY: off.Y,
 			})
+			w.longPressButton = ebiten.MouseButtonLeft
+			w.longPressCurrent = 0
 		}
 	}
 
@@ -705,6 +781,26 @@ func (w *Widget) fireEvents() {
 		}
 		w.mouseLeftPressedInside = false
 		w.lastUpdateMouseLeftPressed = false
+	}
+
+	if w.longPressButton != -1 {
+		if input.MouseButtonPressed(w.longPressButton) && inside {
+			w.longPressCurrent += 1
+		} else {
+			w.longPressCurrent = 0
+			w.longPressButton = -1
+		}
+		if w.longPressCurrent >= w.longPressDuration {
+			off := p.Sub(w.Rect.Min)
+			w.MouseButtonLongPressedEvent.Fire(&WidgetMouseButtonLongPressedEventArgs{
+				Widget:  w,
+				Button:  w.longPressButton,
+				OffsetX: off.X,
+				OffsetY: off.Y,
+			})
+			w.longPressButton = -1
+			w.longPressCurrent = 0
+		}
 	}
 
 	scrollX, scrollY := input.WheelLayer(layer)
@@ -819,4 +915,17 @@ func (widget *Widget) In(x, y int) bool {
 		return false
 	}
 	return (widget.mask[i] > 0)
+}
+
+func (widget *Widget) SetTheme(theme *Theme) {
+	widget.theme = theme
+}
+
+func (widget *Widget) GetTheme() *Theme {
+	if widget.theme != nil {
+		return widget.theme
+	} else if widget.parent != nil {
+		return widget.parent.GetTheme()
+	}
+	return nil
 }

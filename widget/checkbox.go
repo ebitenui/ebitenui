@@ -18,21 +18,28 @@ const (
 	LABEL_FIRST
 )
 
+type CheckboxParams struct {
+	Image *CheckboxImage
+	Label *LabelParams
+}
+
 type Checkbox struct {
+	definedParams  CheckboxParams
+	computedParams CheckboxParams
+
 	init              *MultiOnce
 	widget            *Widget
 	widgetOpts        []WidgetOpt
-	image             *CheckboxImage
 	triState          bool
 	StateChangedEvent *event.Event
 
 	state    WidgetState
 	hovering bool
 
-	label    *Label
-	labelOpt LabelOpt
-	spacing  int
-	order    LabelOrder
+	labelString string
+	label       *Label
+	spacing     int
+	order       LabelOrder
 
 	// Allows the user to disable space bar and enter automatically triggering a focused checkbox.
 	DisableDefaultKeys bool
@@ -71,45 +78,119 @@ var CheckboxOpts CheckboxOptions
 func NewCheckbox(opts ...CheckboxOpt) *Checkbox {
 	c := &Checkbox{
 		StateChangedEvent: &event.Event{},
-
-		spacing: 8,
-		order:   CHECKBOX_FIRST,
-		init:    &MultiOnce{},
+		spacing:           8,
+		order:             CHECKBOX_FIRST,
+		init:              &MultiOnce{},
 
 		focusMap: make(map[FocusDirection]Focuser),
 	}
-
-	c.init.Append(c.createWidget)
 
 	for _, o := range opts {
 		o(c)
 	}
 
-	c.validate()
+	c.createWidget()
 
 	return c
 }
 
-func (c *Checkbox) validate() {
+func (c *Checkbox) Validate() {
+	c.init.Do()
+	c.populateComputedParams()
 
-	if c.image == nil {
+	if c.computedParams.Image == nil {
 		panic("Checkbox: Image is required.")
 	}
 
-	if c.image.Checked == nil {
+	if c.computedParams.Image.Checked == nil {
 		panic("Checkbox: Image.Checked is required.")
 	}
 
-	if c.image.Unchecked == nil {
+	if c.computedParams.Image.Unchecked == nil {
 		panic("Checkbox: Image.Unchecked is required.")
 	}
 
-	if c.triState && c.image.Greyed == nil {
+	if c.triState && c.computedParams.Image.Greyed == nil {
 		panic("Checkbox: Image.Greyed is required if this is a tristate checkbox.")
 	}
 	if c.state == WidgetGreyed && !c.triState {
-		panic("Checkbox: non-tri state Checkbox cannot be in greyed state")
+		panic("Checkbox: non-tri state Checkbox cannot be in greyed state.")
 	}
+	if c.label != nil {
+		c.setChildComputedParams()
+	}
+}
+
+func (c *Checkbox) populateComputedParams() {
+	params := CheckboxParams{
+		Image: &CheckboxImage{},
+		Label: &LabelParams{},
+	}
+
+	theme := c.GetWidget().GetTheme()
+
+	if theme != nil {
+		if theme.CheckboxTheme != nil {
+			params.Image = theme.CheckboxTheme.Image
+			params.Label = theme.CheckboxTheme.Label
+			if theme.CheckboxTheme.Label != nil {
+				params.Label.Face = theme.LabelTheme.Face
+				params.Label.Color = theme.LabelTheme.Color
+				params.Label.Padding = theme.LabelTheme.Padding
+			}
+		}
+	}
+
+	if c.definedParams.Image != nil {
+		if c.definedParams.Image.Checked != nil {
+			params.Image.Checked = c.definedParams.Image.Checked
+		}
+		if c.definedParams.Image.CheckedDisabled != nil {
+			params.Image.CheckedDisabled = c.definedParams.Image.CheckedDisabled
+		}
+		if c.definedParams.Image.CheckedHovered != nil {
+			params.Image.CheckedHovered = c.definedParams.Image.CheckedHovered
+		}
+		if c.definedParams.Image.Greyed != nil {
+			params.Image.Greyed = c.definedParams.Image.Greyed
+		}
+		if c.definedParams.Image.GreyedDisabled != nil {
+			params.Image.GreyedDisabled = c.definedParams.Image.GreyedDisabled
+		}
+		if c.definedParams.Image.GreyedHovered != nil {
+			params.Image.GreyedHovered = c.definedParams.Image.GreyedHovered
+		}
+		if c.definedParams.Image.Unchecked != nil {
+			params.Image.Unchecked = c.definedParams.Image.Unchecked
+		}
+		if c.definedParams.Image.UncheckedDisabled != nil {
+			params.Image.UncheckedDisabled = c.definedParams.Image.UncheckedDisabled
+		}
+		if c.definedParams.Image.UncheckedHovered != nil {
+			params.Image.UncheckedHovered = c.definedParams.Image.UncheckedHovered
+		}
+	}
+
+	if c.definedParams.Label != nil {
+		if params.Label.Color == nil {
+			params.Label.Color = c.definedParams.Label.Color
+		} else if c.definedParams.Label.Color != nil {
+			if c.definedParams.Label.Color.Idle != nil {
+				params.Label.Color.Idle = c.definedParams.Label.Color.Idle
+			}
+			if c.definedParams.Label.Color.Disabled != nil {
+				params.Label.Color.Disabled = c.definedParams.Label.Color.Disabled
+			}
+		}
+		if c.definedParams.Label.Face != nil {
+			params.Label.Face = c.definedParams.Label.Face
+		}
+		if c.definedParams.Label.Padding != nil {
+			params.Label.Padding = c.definedParams.Label.Padding
+		}
+	}
+
+	c.computedParams = params
 }
 
 func (o CheckboxOptions) WidgetOpts(opts ...WidgetOpt) CheckboxOpt {
@@ -119,9 +200,41 @@ func (o CheckboxOptions) WidgetOpts(opts ...WidgetOpt) CheckboxOpt {
 }
 
 // This option allows you to specify a label to be shown before or after the checkbox.
-func (o CheckboxOptions) Text(label string, face text.Face, color *LabelColor) CheckboxOpt {
+func (o CheckboxOptions) Text(labelString string, face *text.Face, color *LabelColor) CheckboxOpt {
 	return func(l *Checkbox) {
-		l.labelOpt = LabelOpts.Text(label, face, color)
+		if l.definedParams.Label == nil {
+			l.definedParams.Label = &LabelParams{}
+		}
+		l.definedParams.Label.Color = color
+		l.definedParams.Label.Face = face
+		l.labelString = labelString
+	}
+}
+
+func (o CheckboxOptions) TextLabel(label string) CheckboxOpt {
+	return func(l *Checkbox) {
+		if l.definedParams.Label == nil {
+			l.definedParams.Label = &LabelParams{}
+		}
+		l.labelString = label
+	}
+}
+
+func (o CheckboxOptions) TextFace(face *text.Face) CheckboxOpt {
+	return func(l *Checkbox) {
+		if l.definedParams.Label == nil {
+			l.definedParams.Label = &LabelParams{}
+		}
+		l.definedParams.Label.Face = face
+	}
+}
+
+func (o CheckboxOptions) TextColor(color *LabelColor) CheckboxOpt {
+	return func(l *Checkbox) {
+		if l.definedParams.Label == nil {
+			l.definedParams.Label = &LabelParams{}
+		}
+		l.definedParams.Label.Color = color
 	}
 }
 
@@ -143,7 +256,7 @@ func (o CheckboxOptions) LabelFirst() CheckboxOpt {
 // i.Checked and i.Unchecked are required.
 func (o CheckboxOptions) Image(i *CheckboxImage) CheckboxOpt {
 	return func(c *Checkbox) {
-		c.image = i
+		c.definedParams.Image = i
 	}
 }
 
@@ -230,7 +343,7 @@ func (c *Checkbox) PreferredSize() (int, int) {
 
 	w, h := 0, 0
 
-	iw, ih := c.image.Unchecked.MinSize()
+	iw, ih := c.computedParams.Image.Unchecked.MinSize()
 	if w < iw {
 		w = iw
 	}
@@ -258,7 +371,7 @@ func (c *Checkbox) checkboxPreferredSize() (int, int) {
 
 	w, h := 0, 0
 
-	iw, ih := c.image.Unchecked.MinSize()
+	iw, ih := c.computedParams.Image.Unchecked.MinSize()
 	if w < iw {
 		w = iw
 	}
@@ -325,10 +438,10 @@ func (c *Checkbox) Render(screen *ebiten.Image) {
 	}
 }
 
-func (c *Checkbox) Update() {
+func (c *Checkbox) Update(updObj *UpdateObject) {
 	c.init.Do()
 
-	c.widget.Update()
+	c.widget.Update(updObj)
 	if c.label != nil {
 		c.label.GetWidget().Disabled = c.widget.Disabled
 	}
@@ -395,15 +508,18 @@ func (c *Checkbox) createWidget() {
 		}),
 	}, c.widgetOpts...)...)
 
-	if c.labelOpt != nil {
-		c.label = NewLabel([]LabelOpt{c.labelOpt, LabelOpts.TextOpts(
-			TextOpts.Position(TextPositionStart, TextPositionCenter),
-			TextOpts.WidgetOpts(
-				WidgetOpts.MouseButtonClickedHandler(func(args *WidgetMouseButtonClickedEventArgs) {
-					c.Click()
-				}),
+	if len(c.labelString) > 0 {
+		c.label = NewLabel(
+			LabelOpts.TextOpts(
+				TextOpts.Position(TextPositionStart, TextPositionCenter),
+				TextOpts.WidgetOpts(
+					WidgetOpts.MouseButtonClickedHandler(func(args *WidgetMouseButtonClickedEventArgs) {
+						c.Click()
+					}),
+				),
 			),
-		)}...)
+			LabelOpts.LabelText(c.labelString),
+		)
 	}
 }
 
@@ -428,16 +544,16 @@ func (c *Checkbox) currentImage() *image.NineSlice {
 	if c.widget.Disabled {
 		switch c.state {
 		case WidgetChecked:
-			if c.image.CheckedDisabled != nil {
-				return c.image.CheckedDisabled
+			if c.computedParams.Image.CheckedDisabled != nil {
+				return c.computedParams.Image.CheckedDisabled
 			}
 		case WidgetUnchecked:
-			if c.image.UncheckedDisabled != nil {
-				return c.image.UncheckedDisabled
+			if c.computedParams.Image.UncheckedDisabled != nil {
+				return c.computedParams.Image.UncheckedDisabled
 			}
 		case WidgetGreyed:
-			if c.image.UncheckedDisabled != nil {
-				return c.image.GreyedDisabled
+			if c.computedParams.Image.UncheckedDisabled != nil {
+				return c.computedParams.Image.GreyedDisabled
 			}
 		}
 	}
@@ -445,30 +561,37 @@ func (c *Checkbox) currentImage() *image.NineSlice {
 	if c.hovering || c.focused {
 		switch c.state {
 		case WidgetChecked:
-			if c.image.CheckedHovered != nil {
-				return c.image.CheckedHovered
+			if c.computedParams.Image.CheckedHovered != nil {
+				return c.computedParams.Image.CheckedHovered
 			}
 		case WidgetUnchecked:
-			if c.image.UncheckedHovered != nil {
-				return c.image.UncheckedHovered
+			if c.computedParams.Image.UncheckedHovered != nil {
+				return c.computedParams.Image.UncheckedHovered
 			}
 		case WidgetGreyed:
-			if c.image.GreyedHovered != nil {
-				return c.image.GreyedHovered
+			if c.computedParams.Image.GreyedHovered != nil {
+				return c.computedParams.Image.GreyedHovered
 			}
 		}
 	}
 	// Fallback to default images
 	switch c.state {
 	case WidgetChecked:
-		return c.image.Checked
+		return c.computedParams.Image.Checked
 
 	case WidgetUnchecked:
-		return c.image.Unchecked
+		return c.computedParams.Image.Unchecked
 
 	case WidgetGreyed:
-		return c.image.Greyed
+		return c.computedParams.Image.Greyed
 	}
 
-	return c.image.Unchecked
+	return c.computedParams.Image.Unchecked
+}
+
+func (c *Checkbox) setChildComputedParams() {
+	c.label.definedParams.Color = c.computedParams.Label.Color
+	c.label.definedParams.Face = c.computedParams.Label.Face
+	c.label.definedParams.Padding = c.computedParams.Label.Padding
+	c.label.Validate()
 }

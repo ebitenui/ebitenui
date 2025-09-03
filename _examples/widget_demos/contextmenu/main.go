@@ -39,7 +39,7 @@ func main() {
 			widget.ButtonOpts.Image(buttonImage),
 
 			// specify the button's text, the font face, and the color
-			widget.ButtonOpts.Text(fmt.Sprintf("Option %d", i), face, &widget.ButtonTextColor{
+			widget.ButtonOpts.Text(fmt.Sprintf("Option %d", i), &face, &widget.ButtonTextColor{
 				Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 			}),
 
@@ -91,12 +91,12 @@ func main() {
 		widget.ButtonOpts.Image(buttonImage),
 
 		// specify the button's text, the font face, and the color
-		widget.ButtonOpts.Text("Right click for Contextmenu", face, &widget.ButtonTextColor{
+		widget.ButtonOpts.Text("Right click for Contextmenu", &face, &widget.ButtonTextColor{
 			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
 		}),
 
 		// specify that the button's text needs some padding for correct display
-		widget.ButtonOpts.TextPadding(widget.Insets{
+		widget.ButtonOpts.TextPadding(&widget.Insets{
 			Left:   30,
 			Right:  30,
 			Top:    5,

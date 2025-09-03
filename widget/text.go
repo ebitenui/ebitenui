@@ -22,19 +22,23 @@ var bbcodeRegex = regexp.MustCompile(`\[color=#[0-9a-fA-F]{6}]|\[\/color]|\[link
 const COLOR_TAG = "color"
 const LINK_TAG = "link"
 
-type Text struct {
-	Label         string
-	Face          text.Face
-	Color         color.Color
-	MaxWidth      float64
-	Padding       Insets
-	ProcessBBCode bool
-	LinkColor     TextLinkColor
-	StripBBCode   bool
+type TextParams struct {
+	Face      *text.Face
+	Color     color.Color
+	Padding   *Insets
+	LinkColor *TextLinkColor
+	Position  *TextPositioning
+}
 
-	widgetOpts         []WidgetOpt
-	horizontalPosition TextPosition
-	verticalPosition   TextPosition
+type Text struct {
+	definedParams  TextParams
+	computedParams TextParams
+	Label          string
+	MaxWidth       float64
+	ProcessBBCode  bool
+	StripBBCode    bool
+
+	widgetOpts []WidgetOpt
 
 	init         *MultiOnce
 	widget       *Widget
@@ -51,7 +55,7 @@ type Text struct {
 
 type textMeasurements struct {
 	label         string
-	face          text.Face
+	face          *text.Face
 	maxWidth      float64
 	ProcessBBCode bool
 
@@ -90,9 +94,8 @@ type LinkEventArgs struct {
 	OffsetX int
 	OffsetY int
 }
-type LinkHandlerFunc func(args *LinkEventArgs)
 
-type TextOpt func(t *Text)
+type LinkHandlerFunc func(args *LinkEventArgs)
 
 type TextPosition int
 
@@ -101,6 +104,13 @@ const (
 	TextPositionCenter
 	TextPositionEnd
 )
+
+type TextPositioning struct {
+	VTextPosition TextPosition
+	HTextPosition TextPosition
+}
+
+type TextOpt func(t *Text)
 
 type TextOptions struct {
 }
@@ -115,10 +125,6 @@ func NewText(opts ...TextOpt) *Text {
 		LinkCursorExitedEvent:  &event.Event{},
 		colorList:              &datastructures.Stack[color.Color]{},
 		linkStack:              &datastructures.Stack[linkData]{},
-		LinkColor: TextLinkColor{
-			Idle:  color.NRGBA{R: 0, G: 0, B: 250, A: 255},
-			Hover: color.NRGBA{R: 255, G: 0, B: 250, A: 255},
-		},
 	}
 
 	t.init.Append(t.createWidget)
@@ -126,19 +132,65 @@ func NewText(opts ...TextOpt) *Text {
 	for _, o := range opts {
 		o(t)
 	}
-	t.validate()
 
-	t.colorList.Push(&t.Color)
 	return t
 }
 
-func (t *Text) validate() {
-	if t.Color == nil {
+func (t *Text) Validate() {
+	t.init.Do()
+	t.populateComputedParams()
+
+	if t.computedParams.Color == nil {
 		panic("Text: Color is required.")
 	}
-	if t.Face == nil {
+	if t.computedParams.Face == nil {
 		panic("Text: Face is required.")
 	}
+
+	t.colorList.Push(&t.computedParams.Color)
+}
+
+func (t *Text) populateComputedParams() {
+	txtParams := TextParams{}
+	theme := t.widget.GetTheme()
+	if theme != nil {
+		if theme.TextTheme != nil {
+			txtParams.Color = theme.TextTheme.Color
+			txtParams.Face = theme.TextTheme.Face
+			txtParams.Padding = theme.TextTheme.Padding
+			txtParams.LinkColor = theme.TextTheme.LinkColor
+			txtParams.Position = theme.TextTheme.Position
+		}
+	}
+	if t.definedParams.Face != nil {
+		txtParams.Face = t.definedParams.Face
+	}
+	if t.definedParams.Padding != nil {
+		txtParams.Padding = t.definedParams.Padding
+	}
+	if t.definedParams.Color != nil {
+		txtParams.Color = t.definedParams.Color
+	}
+	if t.definedParams.Position != nil {
+		txtParams.Position = t.definedParams.Position
+	}
+
+	if txtParams.Padding == nil {
+		txtParams.Padding = &Insets{}
+	}
+
+	if txtParams.LinkColor == nil {
+		txtParams.LinkColor = &TextLinkColor{
+			Idle:  color.NRGBA{R: 0, G: 0, B: 250, A: 255},
+			Hover: color.NRGBA{R: 255, G: 0, B: 250, A: 255},
+		}
+	}
+
+	if txtParams.Position == nil {
+		txtParams.Position = &TextPositioning{}
+	}
+
+	t.computedParams = txtParams
 }
 
 func (o TextOptions) WidgetOpts(opts ...WidgetOpt) TextOpt {
@@ -150,11 +202,11 @@ func (o TextOptions) WidgetOpts(opts ...WidgetOpt) TextOpt {
 // Text combines three options: TextLabel, TextFace and TextColor.
 // It can be used for the inline configurations of Text object while
 // separate functions are useful for a multi-step configuration.
-func (o TextOptions) Text(label string, face text.Face, color color.Color) TextOpt {
+func (o TextOptions) Text(label string, face *text.Face, color color.Color) TextOpt {
 	return func(t *Text) {
 		t.Label = label
-		t.Face = face
-		t.Color = color
+		t.definedParams.Face = face
+		t.definedParams.Color = color
 	}
 }
 
@@ -164,28 +216,30 @@ func (o TextOptions) TextLabel(label string) TextOpt {
 	}
 }
 
-func (o TextOptions) TextFace(face text.Face) TextOpt {
+func (o TextOptions) TextFace(face *text.Face) TextOpt {
 	return func(t *Text) {
-		t.Face = face
+		t.definedParams.Face = face
 	}
 }
 
 func (o TextOptions) TextColor(color color.Color) TextOpt {
 	return func(t *Text) {
-		t.Color = color
+		t.definedParams.Color = color
 	}
 }
 
-func (o TextOptions) Padding(padding Insets) TextOpt {
+func (o TextOptions) Padding(padding *Insets) TextOpt {
 	return func(t *Text) {
-		t.Padding = padding
+		t.definedParams.Padding = padding
 	}
 }
 
 func (o TextOptions) Position(h TextPosition, v TextPosition) TextOpt {
 	return func(t *Text) {
-		t.horizontalPosition = h
-		t.verticalPosition = v
+		t.definedParams.Position = &TextPositioning{
+			HTextPosition: h,
+			VTextPosition: v,
+		}
 	}
 }
 
@@ -215,7 +269,7 @@ func (o TextOptions) StripBBCode(stripBBCode bool) TextOpt {
 func (o TextOptions) LinkColor(linkColor *TextLinkColor) TextOpt {
 	return func(t *Text) {
 		if linkColor != nil {
-			t.LinkColor = *linkColor
+			t.definedParams.LinkColor = linkColor
 		}
 	}
 }
@@ -272,6 +326,27 @@ func (o TextOptions) LinkCursorExitedHandler(f LinkHandlerFunc) TextOpt {
 	}
 }
 
+func (t *Text) SetColor(color color.Color) {
+	t.definedParams.Color = color
+	t.computedParams.Color = color
+}
+
+func (t *Text) SetFace(face *text.Face) {
+	t.definedParams.Face = face
+	t.computedParams.Face = face
+
+}
+
+func (t *Text) SetPadding(padding *Insets) {
+	t.definedParams.Padding = padding
+	t.computedParams.Padding = padding
+}
+
+func (t *Text) SetPosition(position *TextPositioning) {
+	t.definedParams.Position = position
+	t.computedParams.Position = position
+}
+
 func (t *Text) GetWidget() *Widget {
 	t.init.Do()
 	return t.widget
@@ -285,8 +360,8 @@ func (t *Text) SetLocation(rect image.Rectangle) {
 func (t *Text) PreferredSize() (int, int) {
 	t.init.Do()
 	t.measure()
-	w := int(math.Ceil(t.measurements.boundingBoxWidth)) + t.Padding.Left + t.Padding.Right
-	h := int(math.Ceil(t.measurements.boundingBoxHeight)) + t.Padding.Top + t.Padding.Bottom
+	w := int(math.Ceil(t.measurements.boundingBoxWidth)) + t.computedParams.Padding.Left + t.computedParams.Padding.Right
+	h := int(math.Ceil(t.measurements.boundingBoxHeight)) + t.computedParams.Padding.Top + t.computedParams.Padding.Bottom
 
 	if t.widget != nil && h < t.widget.MinHeight {
 		h = t.widget.MinHeight
@@ -303,10 +378,10 @@ func (t *Text) Render(screen *ebiten.Image) {
 	t.draw(screen)
 }
 
-func (t *Text) Update() {
+func (t *Text) Update(updObj *UpdateObject) {
 	t.init.Do()
 
-	t.widget.Update()
+	t.widget.Update(updObj)
 	if t.ProcessBBCode {
 		t.handleLinkEvents()
 	}
@@ -335,17 +410,17 @@ func (t *Text) handleLinkEvents() {
 		for linesIdx := range t.measurements.processedLines {
 			ly := float64(p.Y) + t.measurements.lineHeight*float64(linesIdx)
 			lx := float64(p.X)
-			switch t.horizontalPosition {
+			switch t.computedParams.Position.HTextPosition {
 			case TextPositionCenter:
-				lx += ((float64(w) - t.measurements.processedLineWidths[linesIdx]) / 2) + float64(t.Padding.Left)
+				lx += ((float64(w) - t.measurements.processedLineWidths[linesIdx]) / 2) + float64(t.computedParams.Padding.Left)
 			case TextPositionEnd:
-				lx += float64(w) - t.measurements.processedLineWidths[linesIdx] - float64(t.Padding.Right)
+				lx += float64(w) - t.measurements.processedLineWidths[linesIdx] - float64(t.computedParams.Padding.Right)
 			case TextPositionStart:
-				lx += float64(t.Padding.Left)
+				lx += float64(t.computedParams.Padding.Left)
 			}
 			hoverLX := lx
 			for idx := range t.measurements.processedLines[linesIdx] {
-				wordWidth, _ := text.Measure(t.measurements.processedLines[linesIdx][idx].text, t.Face, 0)
+				wordWidth, _ := text.Measure(t.measurements.processedLines[linesIdx][idx].text, *t.computedParams.Face, 0)
 
 				if t.measurements.processedLines[linesIdx][idx].linkValue != nil {
 					if cursorPoint.In(image.Rect(int(hoverLX), int(ly), int(hoverLX+wordWidth), int(ly+t.measurements.lineHeight))) {
@@ -415,13 +490,13 @@ func (t *Text) draw(screen *ebiten.Image) {
 	w := r.Dx()
 	p := r.Min
 
-	switch t.verticalPosition {
+	switch t.computedParams.Position.VTextPosition {
 	case TextPositionStart:
-		p = p.Add(image.Point{0, t.Padding.Top})
+		p = p.Add(image.Point{0, t.computedParams.Padding.Top})
 	case TextPositionCenter:
-		p = p.Add(image.Point{0, int((float64(r.Dy())-t.measurements.boundingBoxHeight)/2 + float64(t.Padding.Top))})
+		p = p.Add(image.Point{0, int((float64(r.Dy())-t.measurements.boundingBoxHeight)/2 + float64(t.computedParams.Padding.Top))})
 	case TextPositionEnd:
-		p = p.Add(image.Point{0, int(float64(r.Dy())-t.measurements.boundingBoxHeight) - t.Padding.Bottom})
+		p = p.Add(image.Point{0, int(float64(r.Dy())-t.measurements.boundingBoxHeight) - t.computedParams.Padding.Bottom})
 	}
 
 	// Draw text
@@ -443,45 +518,45 @@ func (t *Text) draw(screen *ebiten.Image) {
 		}
 
 		lx := float64(p.X)
-		switch t.horizontalPosition {
+		switch t.computedParams.Position.HTextPosition {
 		case TextPositionCenter:
-			lx += ((float64(w) - t.measurements.processedLineWidths[linesIdx]) / 2) + float64(t.Padding.Left)
+			lx += ((float64(w) - t.measurements.processedLineWidths[linesIdx]) / 2) + float64(t.computedParams.Padding.Left)
 		case TextPositionEnd:
-			lx += float64(w) - t.measurements.processedLineWidths[linesIdx] - float64(t.Padding.Right)
+			lx += float64(w) - t.measurements.processedLineWidths[linesIdx] - float64(t.computedParams.Padding.Right)
 		case TextPositionStart:
-			lx += float64(t.Padding.Left)
+			lx += float64(t.computedParams.Padding.Left)
 		}
 
 		if t.ProcessBBCode {
 			for _, piece := range t.measurements.processedLines[linesIdx] {
-				wordWidth, _ := text.Measure(piece.text, t.Face, 0)
+				wordWidth, _ := text.Measure(piece.text, *t.computedParams.Face, 0)
 
 				op := &text.DrawOptions{}
 				op.GeoM.Translate(lx, ly)
 				if piece.linkValue != nil {
-					if piece.hovered {
-						op.ColorScale.ScaleWithColor(t.LinkColor.Hover)
+					if piece.hovered && t.computedParams.LinkColor.Hover != nil {
+						op.ColorScale.ScaleWithColor(t.computedParams.LinkColor.Hover)
 					} else {
-						op.ColorScale.ScaleWithColor(t.LinkColor.Idle)
+						op.ColorScale.ScaleWithColor(t.computedParams.LinkColor.Idle)
 					}
 				} else {
 					op.ColorScale.ScaleWithColor(piece.color)
 				}
-				text.Draw(screen, piece.text, t.Face, op)
+				text.Draw(screen, piece.text, *t.computedParams.Face, op)
 				lx += float64(wordWidth)
 			}
 
 		} else {
 			op := &text.DrawOptions{}
 			op.GeoM.Translate(lx, ly)
-			op.ColorScale.ScaleWithColor(t.Color)
+			op.ColorScale.ScaleWithColor(t.computedParams.Color)
 			lineStr := ""
 
 			for _, piece := range t.measurements.processedLines[linesIdx] {
 				lineStr += piece.text
 			}
 
-			text.Draw(screen, lineStr, t.Face, op)
+			text.Draw(screen, lineStr, *t.computedParams.Face, op)
 		}
 	}
 }
@@ -596,19 +671,19 @@ func (t *Text) processTree(node *bbcode.BBCodeNode, newColor color.Color, linkVa
 }
 
 func (t *Text) measure() {
-	if t.Label == t.measurements.label && t.Face == t.measurements.face && t.MaxWidth == t.measurements.maxWidth && t.ProcessBBCode == t.measurements.ProcessBBCode {
+	if t.Label == t.measurements.label && t.computedParams.Face == t.measurements.face && t.MaxWidth == t.measurements.maxWidth && t.ProcessBBCode == t.measurements.ProcessBBCode {
 		return
 	}
-	m := t.Face.Metrics()
+	m := (*t.computedParams.Face).Metrics()
 	t.measurements = textMeasurements{
 		label:         t.Label,
-		face:          t.Face,
+		face:          t.computedParams.Face,
 		ProcessBBCode: t.ProcessBBCode,
 		ascent:        m.HAscent,
 		maxWidth:      t.MaxWidth,
 	}
 
-	sWidth, sHeight := text.Measure(" ", t.measurements.face, 0)
+	sWidth, sHeight := text.Measure(" ", *t.measurements.face, 0)
 
 	fh := m.HAscent + m.HDescent
 	t.measurements.lineHeight = sHeight
@@ -618,7 +693,7 @@ func (t *Text) measure() {
 	for s.Scan() {
 		if t.MaxWidth > 0 || t.ProcessBBCode {
 			var newLine []*bbCodeText
-			newLineWidth := float64(t.Padding.Left + t.Padding.Right)
+			newLineWidth := float64(t.computedParams.Padding.Left + t.computedParams.Padding.Right)
 
 			blocks, _, _ := t.handleBBCodeColor(s.Text())
 
@@ -626,7 +701,7 @@ func (t *Text) measure() {
 				words := strings.Split(blocks[idx].text, " ")
 				for i, word := range words {
 					var wordWidth float64
-					wordWidth, _ = text.Measure(word, t.Face, 0)
+					wordWidth, _ = text.Measure(word, *t.computedParams.Face, 0)
 
 					// Don't add the space to the last chunk.
 					if i != len(words)-1 {
@@ -663,7 +738,7 @@ func (t *Text) measure() {
 							wordBlock.text += " "
 						}
 						newLine = []*bbCodeText{&wordBlock}
-						newLineWidth = wordWidth + float64(t.Padding.Left+t.Padding.Right)
+						newLineWidth = wordWidth + float64(t.computedParams.Padding.Left+t.computedParams.Padding.Right)
 					}
 				}
 			}
@@ -680,8 +755,8 @@ func (t *Text) measure() {
 		} else {
 			line := s.Text()
 			t.measurements.processedLines = append(t.measurements.processedLines, []*bbCodeText{{text: line}})
-			lw, _ := text.Measure(line, t.Face, 0)
-			lw += float64(t.Padding.Left + t.Padding.Right)
+			lw, _ := text.Measure(line, *t.computedParams.Face, 0)
+			lw += float64(t.computedParams.Padding.Left + t.computedParams.Padding.Right)
 			t.measurements.processedLineWidths = append(t.measurements.processedLineWidths, lw)
 
 			if lw > t.measurements.boundingBoxWidth {
