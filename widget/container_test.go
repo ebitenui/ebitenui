@@ -72,6 +72,44 @@ func TestContainer_SetupInputLayer(t *testing.T) {
 	m.AssertExpectations(t)
 }
 
+func TestContainer_Replace(t *testing.T) {
+	c := newContainer(t)
+	m1 := controlMock{}
+	m2 := controlMock{}
+	m3 := controlMock{}
+
+	m1.On("GetWidget").Maybe().Return(NewWidget())
+	m2.On("GetWidget").Maybe().Return(NewWidget())
+	m3.On("GetWidget").Maybe().Return(NewWidget())
+
+	c.AddChild(&m1, &m2, &m3)
+
+	if len(c.children) != 3 {
+		t.Fatalf("expected 3 children, got %d", len(c.children))
+	}
+
+	replaced := controlMock{}
+	replaced.On("GetWidget").Maybe().Return(NewWidget())
+
+	c.ReplaceChild(&m2, &replaced)
+
+	if len(c.children) != 3 {
+		t.Fatalf("expected 3 children, got %d", len(c.children))
+	}
+
+	if c.children[0] != &m1 {
+		t.Fatalf("expected original child at index 0")
+	}
+
+	if c.children[1] != &replaced {
+		t.Fatalf("expected replaced child at index 1")
+	}
+
+	if c.children[2] != &m3 {
+		t.Fatalf("expected original child at index 2")
+	}
+}
+
 func (c *controlMock) GetWidget() *Widget {
 	args := c.Called()
 	if arg, ok := args.Get(0).(*Widget); ok {

@@ -122,6 +122,15 @@ func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveCh
 	}
 }
 
+func (c *Container) ReplaceChild(remove PreferredSizeLocateableWidget, add PreferredSizeLocateableWidget) {
+	for i, ch := range c.children {
+		if ch == remove {
+			c.children[i] = add
+			return
+		}
+	}
+}
+
 func (c *Container) RemoveChild(child PreferredSizeLocateableWidget) {
 	index := -1
 	for i, ch := range c.children {
