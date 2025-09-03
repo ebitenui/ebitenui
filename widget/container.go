@@ -94,7 +94,7 @@ func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveCh
 		child.GetWidget().parent = c.widget
 		child.GetWidget().self = child
 
-		if c.validated {
+		if !c.validated {
 			child.Validate()
 		}
 
