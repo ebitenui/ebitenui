@@ -11,6 +11,7 @@
 [![License](https://img.shields.io/github/license/ebitenui/ebitenui?style=for-the-badge&logo=github&labelColor=%23202e3bff&color=%235a7d93ff%20)](https://opensource.org/licenses/MIT)
 [![Github](https://img.shields.io/badge/code-5a7d93ff?style=for-the-badge&logo=github&label=github&labelColor=%23202e3bff&color=%235a7d93ff)](https://github.com/ebitenui/ebitenui)
 [![Docs](https://img.shields.io/badge/ebitenui.github.io-5a7d93ff?style=for-the-badge&logo=go&logoColor=white&label=docs&labelColor=%23202e3bff&color=%235a7d93ff)](https://ebitenui.github.io)
+[![Docs](https://img.shields.io/badge/godoc-5a7d93ff?style=for-the-badge&logo=go&logoColor=white&label=docs&labelColor=%23202e3bff&color=%235a7d93ff)](https://pkg.go.dev/github.com/ebitenui/ebitenui)
 [![Discord](https://img.shields.io/discord/958140778931175424?style=for-the-badge&labelColor=%23202e3bff&color=%235a7d93ff%20&label=Discord&logo=discord&logoColor=white)](https://discord.gg/ujEeeHgptU)
 [![Subreddit](https://img.shields.io/reddit/subreddit-subscribers/birdmtndev?style=for-the-badge&logo=reddit&logoColor=white&label=r%2Fbirdmtndev&labelColor=%23202e3bff&color=%235a7d93ff&cacheSeconds=120)](https://www.reddit.com/r/birdmtndev)
 </div>
