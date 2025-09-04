@@ -83,6 +83,36 @@ func (o ContainerOptions) Layout(layout Layouter) ContainerOpt {
 	}
 }
 
+func (c *Container) addChildInit(child PreferredSizeLocateableWidget) {
+	child.GetWidget().parent = c.widget
+	child.GetWidget().self = child
+
+	if c.validated {
+		child.Validate()
+	}
+
+	child.GetWidget().ContextMenuEvent.AddHandler(func(args interface{}) {
+		if a, ok := args.(*WidgetContextMenuEventArgs); ok {
+			c.GetWidget().FireContextMenuEvent(a.Widget, a.Location)
+		}
+	})
+	child.GetWidget().FocusEvent.AddHandler(func(args interface{}) {
+		if a, ok := args.(*WidgetFocusEventArgs); ok {
+			c.GetWidget().FireFocusEvent(a.Widget, a.Focused, a.Location)
+		}
+	})
+	child.GetWidget().ToolTipEvent.AddHandler(func(args interface{}) {
+		if a, ok := args.(*WidgetToolTipEventArgs); ok {
+			c.GetWidget().FireToolTipEvent(a.Window, a.Show)
+		}
+	})
+	child.GetWidget().DragAndDropEvent.AddHandler(func(args interface{}) {
+		if a, ok := args.(*WidgetDragAndDropEventArgs); ok {
+			c.GetWidget().FireDragAndDropEvent(a.Window, a.Show, a.DnD)
+		}
+	})
+}
+
 func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveChildFunc {
 	c.init.Do()
 
@@ -91,35 +121,8 @@ func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveCh
 			panic("cannot add nil child")
 		}
 
-		child.GetWidget().parent = c.widget
-		child.GetWidget().self = child
-
-		if c.validated {
-			child.Validate()
-		}
-
+		c.addChildInit(child)
 		c.children = append(c.children, child)
-
-		child.GetWidget().ContextMenuEvent.AddHandler(func(args interface{}) {
-			if a, ok := args.(*WidgetContextMenuEventArgs); ok {
-				c.GetWidget().FireContextMenuEvent(a.Widget, a.Location)
-			}
-		})
-		child.GetWidget().FocusEvent.AddHandler(func(args interface{}) {
-			if a, ok := args.(*WidgetFocusEventArgs); ok {
-				c.GetWidget().FireFocusEvent(a.Widget, a.Focused, a.Location)
-			}
-		})
-		child.GetWidget().ToolTipEvent.AddHandler(func(args interface{}) {
-			if a, ok := args.(*WidgetToolTipEventArgs); ok {
-				c.GetWidget().FireToolTipEvent(a.Window, a.Show)
-			}
-		})
-		child.GetWidget().DragAndDropEvent.AddHandler(func(args interface{}) {
-			if a, ok := args.(*WidgetDragAndDropEventArgs); ok {
-				c.GetWidget().FireDragAndDropEvent(a.Window, a.Show, a.DnD)
-			}
-		})
 	}
 	c.RequestRelayout()
 	c.relayoutParent = true
@@ -127,6 +130,34 @@ func (c *Container) AddChild(children ...PreferredSizeLocateableWidget) RemoveCh
 		for _, child := range children {
 			c.RemoveChild(child)
 		}
+	}
+}
+
+func (c *Container) ReplaceChild(remove PreferredSizeLocateableWidget, add PreferredSizeLocateableWidget) {
+	for i, ch := range c.children {
+		if ch == remove {
+			c.addChildInit(add)
+			c.children[i] = add
+			closeWidget(remove.GetWidget())
+			c.RequestRelayout()
+			return
+		}
+	}
+}
+
+func closeWidget(w *Widget) {
+	w.parent = nil
+
+	if w.ToolTip != nil && w.ToolTip.window != nil {
+		w.ToolTip.window.Close()
+	}
+
+	if w.DragAndDrop != nil && w.DragAndDrop.window != nil {
+		w.DragAndDrop.window.Close()
+	}
+
+	if w.ContextMenuWindow != nil {
+		w.ContextMenuWindow.Close()
 	}
 }
 
@@ -145,39 +176,15 @@ func (c *Container) RemoveChild(child PreferredSizeLocateableWidget) {
 
 	c.children = append(c.children[:index], c.children[index+1:]...)
 
-	child.GetWidget().parent = nil
+	closeWidget(child.GetWidget())
 
-	if child.GetWidget().ToolTip != nil && child.GetWidget().ToolTip.window != nil {
-		child.GetWidget().ToolTip.window.Close()
-	}
-
-	if child.GetWidget().DragAndDrop != nil && child.GetWidget().DragAndDrop.window != nil {
-		child.GetWidget().DragAndDrop.window.Close()
-	}
-
-	if child.GetWidget().ContextMenuWindow != nil {
-		child.GetWidget().ContextMenuWindow.Close()
-	}
 	c.RequestRelayout()
 	c.relayoutParent = true
 }
 
 func (c *Container) RemoveChildren() {
 	for i := range c.children {
-		childWidget := c.children[i].GetWidget()
-		childWidget.parent = nil
-
-		if childWidget.ToolTip != nil && childWidget.ToolTip.window != nil {
-			childWidget.ToolTip.window.Close()
-		}
-
-		if childWidget.DragAndDrop != nil && childWidget.DragAndDrop.window != nil {
-			childWidget.DragAndDrop.window.Close()
-		}
-
-		if childWidget.ContextMenuWindow != nil {
-			childWidget.ContextMenuWindow.Close()
-		}
+		closeWidget(c.children[i].GetWidget())
 	}
 	c.children = nil
 
