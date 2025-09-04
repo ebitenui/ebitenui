@@ -15,11 +15,13 @@ type Container struct {
 	computedParams      PanelParams
 	AutoDisableChildren bool
 
-	widgetOpts     []WidgetOpt
-	layout         Layouter
-	layoutDirty    bool
-	relayoutParent bool
-	validated      bool
+	widgetOpts  []WidgetOpt
+	layout      Layouter
+	layoutDirty bool
+	validated   bool
+
+	relayoutParent        bool
+	closeEphemeralWindows bool
 
 	init     *MultiOnce
 	widget   *Widget
@@ -147,18 +149,6 @@ func (c *Container) ReplaceChild(remove PreferredSizeLocateableWidget, add Prefe
 
 func closeWidget(w *Widget) {
 	w.parent = nil
-
-	if w.ToolTip != nil && w.ToolTip.window != nil {
-		w.ToolTip.window.Close()
-	}
-
-	if w.DragAndDrop != nil && w.DragAndDrop.window != nil {
-		w.DragAndDrop.window.Close()
-	}
-
-	if w.ContextMenuWindow != nil {
-		w.ContextMenuWindow.Close()
-	}
 }
 
 func (c *Container) RemoveChild(child PreferredSizeLocateableWidget) {
@@ -180,6 +170,7 @@ func (c *Container) RemoveChild(child PreferredSizeLocateableWidget) {
 
 	c.RequestRelayout()
 	c.relayoutParent = true
+	c.closeEphemeralWindows = true
 }
 
 func (c *Container) RemoveChildren() {
@@ -190,6 +181,7 @@ func (c *Container) RemoveChildren() {
 
 	c.RequestRelayout()
 	c.relayoutParent = true
+	c.closeEphemeralWindows = true
 }
 
 func (c *Container) Children() []PreferredSizeLocateableWidget {
@@ -317,6 +309,10 @@ func (c *Container) Update(updObj *UpdateObject) {
 	if c.relayoutParent {
 		updObj.RelayoutRequested = updObj.RelayoutRequested || true
 		c.relayoutParent = false
+	}
+	if c.closeEphemeralWindows {
+		updObj.CloseEphemeralWindows = updObj.CloseEphemeralWindows || true
+		c.closeEphemeralWindows = false
 	}
 }
 

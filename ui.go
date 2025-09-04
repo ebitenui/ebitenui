@@ -98,6 +98,9 @@ func (u *UI) Update() {
 	if u.updObj.RelayoutRequested {
 		u.Container.RequestRelayout()
 	}
+	if u.updObj.CloseEphemeralWindows {
+		u.closeEphemeralWindows(0)
+	}
 	for ; index < len(u.windows); index++ {
 		u.resetUpdateObject()
 		u.windows[index].Update(u.updObj)
@@ -125,6 +128,7 @@ func (u *UI) resetUpdateObject() {
 		u.updObj = &widget.UpdateObject{}
 	} else {
 		u.updObj.RelayoutRequested = false
+		u.updObj.CloseEphemeralWindows = false
 	}
 }
 

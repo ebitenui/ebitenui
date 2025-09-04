@@ -138,7 +138,8 @@ type Renderer interface {
 }
 
 type UpdateObject struct {
-	RelayoutRequested bool
+	RelayoutRequested     bool
+	CloseEphemeralWindows bool
 }
 
 // Updater may be implemented by concrete widget types that should be updated.
