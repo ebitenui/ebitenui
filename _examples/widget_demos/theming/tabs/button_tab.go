@@ -6,7 +6,9 @@ import (
 
 func NewButtonTab() *widget.TabBookTab {
 	result := widget.NewTabBookTab("Button",
-		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+		widget.TabBookTabOpts.ContainerOpts(
+			widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+		),
 	)
 	var button *widget.Button
 	button = widget.NewButton(

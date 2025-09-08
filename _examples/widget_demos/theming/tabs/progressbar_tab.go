@@ -9,7 +9,9 @@ import (
 
 func NewProgressBarTab() *widget.TabBookTab {
 	result := widget.NewTabBookTab("Progress Bar",
-		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+		widget.TabBookTabOpts.ContainerOpts(
+			widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+		),
 	)
 
 	// Construct a container to hold the progress bars.

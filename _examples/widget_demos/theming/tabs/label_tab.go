@@ -6,11 +6,13 @@ import (
 
 func NewLabelTab() *widget.TabBookTab {
 	result := widget.NewTabBookTab("Label",
-		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-			widget.RowLayoutOpts.Spacing(10),
-			widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(20)),
-		)),
+		widget.TabBookTabOpts.ContainerOpts(
+			widget.ContainerOpts.Layout(widget.NewRowLayout(
+				widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+				widget.RowLayoutOpts.Spacing(10),
+				widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(20)),
+			)),
+		),
 	)
 
 	/**

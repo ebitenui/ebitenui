@@ -8,7 +8,9 @@ import (
 
 func NewSelectTab() *widget.TabBookTab {
 	result := widget.NewTabBookTab("Select",
-		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+		widget.TabBookTabOpts.ContainerOpts(
+			widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+		),
 	)
 
 	numEntries := 20

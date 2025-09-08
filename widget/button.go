@@ -857,6 +857,16 @@ func (b *Button) Text() *Text {
 	return b.text
 }
 
+func (b *Button) SetText(text string) {
+	b.init.Do()
+	b.textLabel = text
+}
+
+func (b *Button) SetGraphicImage(image *GraphicImage) {
+	b.init.Do()
+	b.definedParams.GraphicImage = image
+}
+
 func (b *Button) initWidget() {
 
 	if b.computedParams.MinSize != nil {

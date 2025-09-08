@@ -8,6 +8,7 @@ type TabBookTab struct {
 	Container
 	Disabled bool
 	label    string
+	image   *GraphicImage
 }
 
 type TabBookTabSelectedEventArgs struct {
@@ -22,7 +23,28 @@ type TabParams struct {
 	BackgroundImage *image.NineSlice
 }
 
-func NewTabBookTab(label string, opts ...ContainerOpt) *TabBookTab {
+type TabBookTabOptions struct {
+}
+
+type TabBookTabOpt func(o *TabBookTab)
+
+var TabBookTabOpts TabBookTabOptions
+
+func (o *TabBookTabOptions) ContainerOpts(opts ...ContainerOpt) TabBookTabOpt {
+	return func(t *TabBookTab) {
+		for _, o := range opts {
+			o(&t.Container)
+		}
+	}
+}
+
+func (o *TabBookTabOptions) Image(img *GraphicImage) TabBookTabOpt {
+	return func(t *TabBookTab) {
+		t.image = img
+	}
+}
+
+func NewTabBookTab(label string, opts... TabBookTabOpt) *TabBookTab {
 	c := &TabBookTab{
 		label: label,
 	}
@@ -38,7 +60,7 @@ func NewTabBookTab(label string, opts ...ContainerOpt) *TabBookTab {
 	}))
 
 	for _, o := range opts {
-		o(&c.Container)
+		o(c)
 	}
 	return c
 }
