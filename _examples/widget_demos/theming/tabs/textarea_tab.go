@@ -8,11 +8,13 @@ import (
 
 func NewTextAreaTab() *widget.TabBookTab {
 	result := widget.NewTabBookTab("Text Area",
-		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-			widget.RowLayoutOpts.Spacing(10),
-			widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(20)),
-		)),
+		widget.TabBookTabOpts.ContainerOpts(
+			widget.ContainerOpts.Layout(widget.NewRowLayout(
+				widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+				widget.RowLayoutOpts.Spacing(10),
+				widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(20)),
+			)),
+		),
 	)
 	// construct a textarea
 	textarea := widget.NewTextArea(

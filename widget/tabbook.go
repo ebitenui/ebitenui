@@ -373,7 +373,11 @@ func (t *TabBook) initTabBook() {
 		t.tabs[i].Validate()
 		btnOpts := []ButtonOpt{
 			ButtonOpts.Image(t.computedParams.TabButton.Image),
-			ButtonOpts.Text(t.tabs[i].label, t.computedParams.TabButton.TextFace, t.computedParams.TabButton.TextColor),
+		}
+		if t.tabs[i].image != nil {
+			btnOpts = append(btnOpts, ButtonOpts.TextAndImage(t.tabs[i].label, t.computedParams.TabButton.TextFace, t.tabs[i].image, t.computedParams.TabButton.TextColor))
+		} else {
+			btnOpts = append(btnOpts, ButtonOpts.Text(t.tabs[i].label, t.computedParams.TabButton.TextFace, t.computedParams.TabButton.TextColor))
 		}
 		if t.computedParams.TabButton.MinSize != nil {
 			btnOpts = append(btnOpts, ButtonOpts.WidgetOpts(WidgetOpts.MinSize(t.computedParams.TabButton.MinSize.X, t.computedParams.TabButton.MinSize.Y)))
