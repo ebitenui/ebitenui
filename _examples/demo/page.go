@@ -306,10 +306,11 @@ func tabBookPage(res *uiResources) *page {
 
 	for i := 0; i < 4; i++ {
 		tab := widget.NewTabBookTab(fmt.Sprintf("Tab %d", i+1),
-			widget.ContainerOpts.Layout(widget.NewRowLayout(
-				widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-				widget.RowLayoutOpts.Spacing(10))),
-			widget.ContainerOpts.AutoDisableChildren())
+			widget.TabBookTabOpts.ContainerOpts(
+				widget.ContainerOpts.Layout(widget.NewRowLayout(
+					widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+					widget.RowLayoutOpts.Spacing(10))),
+				widget.ContainerOpts.AutoDisableChildren()))
 
 		for j := 0; j < 3; j++ {
 			b := widget.NewButton(
