@@ -860,7 +860,9 @@ func (b *Button) Text() *Text {
 func (b *Button) SetText(text string) {
 	b.init.Do()
 	b.textLabel = text
-	b.text.Label = text
+	if b.text != nil {
+		b.text.Label = text
+	}
 }
 
 func (b *Button) SetGraphicImage(image *GraphicImage) {
