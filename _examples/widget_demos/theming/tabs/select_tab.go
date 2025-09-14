@@ -7,7 +7,8 @@ import (
 )
 
 func NewSelectTab() *widget.TabBookTab {
-	result := widget.NewTabBookTab("Select",
+	result := widget.NewTabBookTab(
+		widget.TabBookTabOpts.Label("Select"),
 		widget.TabBookTabOpts.ContainerOpts(
 			widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 		),

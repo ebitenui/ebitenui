@@ -7,7 +7,8 @@ import (
 )
 
 func NewTextAreaTab() *widget.TabBookTab {
-	result := widget.NewTabBookTab("Text Area",
+	result := widget.NewTabBookTab(
+		widget.TabBookTabOpts.Label("Text Area"),
 		widget.TabBookTabOpts.ContainerOpts(
 			widget.ContainerOpts.Layout(widget.NewRowLayout(
 				widget.RowLayoutOpts.Direction(widget.DirectionVertical),

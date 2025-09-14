@@ -7,7 +7,8 @@ import (
 )
 
 func NewCheckboxTab() *widget.TabBookTab {
-	result := widget.NewTabBookTab("Checkbox",
+	result := widget.NewTabBookTab(
+		widget.TabBookTabOpts.Label("Checkbox"),
 		widget.TabBookTabOpts.ContainerOpts(
 			widget.ContainerOpts.Layout(
 				widget.NewRowLayout(

@@ -305,7 +305,7 @@ func tabBookPage(res *uiResources) *page {
 	tabs := []*widget.TabBookTab{}
 
 	for i := 0; i < 4; i++ {
-		tab := widget.NewTabBookTab(fmt.Sprintf("Tab %d", i+1),
+		tab := widget.NewTabBookTab(widget.TabBookTabOpts.Label(fmt.Sprintf("Tab %d", i+1)),
 			widget.TabBookTabOpts.ContainerOpts(
 				widget.ContainerOpts.Layout(widget.NewRowLayout(
 					widget.RowLayoutOpts.Direction(widget.DirectionVertical),

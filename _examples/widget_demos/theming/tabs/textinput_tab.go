@@ -9,7 +9,8 @@ import (
 )
 
 func NewTextInputTab() *widget.TabBookTab {
-	result := widget.NewTabBookTab("Text Input",
+	result := widget.NewTabBookTab(
+		widget.TabBookTabOpts.Label("Text Input"),
 		widget.TabBookTabOpts.ContainerOpts(
 			widget.ContainerOpts.Layout(widget.NewRowLayout(
 				widget.RowLayoutOpts.Direction(widget.DirectionVertical),

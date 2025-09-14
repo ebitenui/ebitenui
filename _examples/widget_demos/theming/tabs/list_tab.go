@@ -12,7 +12,8 @@ type ListEntry struct {
 }
 
 func NewListTab() *widget.TabBookTab {
-	result := widget.NewTabBookTab("List",
+	result := widget.NewTabBookTab(
+		widget.TabBookTabOpts.Label("List"),
 		widget.TabBookTabOpts.ContainerOpts(
 			widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 		),
