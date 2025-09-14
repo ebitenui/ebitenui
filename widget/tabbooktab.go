@@ -70,14 +70,6 @@ func NewTabBookTab(opts... TabBookTabOpt) *TabBookTab {
 	return c
 }
 
-func (t *TabBookTab) SetLabel(label string) {
-	t.label = label
-}
-
-func (t *TabBookTab) SetImage(img *GraphicImage) {
-	t.image = img
-}
-
 func (t *TabBookTab) Validate() {
 	t.Container.Validate()
 
