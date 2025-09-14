@@ -860,11 +860,13 @@ func (b *Button) Text() *Text {
 func (b *Button) SetText(text string) {
 	b.init.Do()
 	b.textLabel = text
+	b.text.Label = text
 }
 
 func (b *Button) SetGraphicImage(image *GraphicImage) {
 	b.init.Do()
 	b.definedParams.GraphicImage = image
+	b.computedParams.GraphicImage = image
 }
 
 func (b *Button) initWidget() {
