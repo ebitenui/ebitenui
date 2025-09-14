@@ -44,9 +44,14 @@ func (o *TabBookTabOptions) Image(img *GraphicImage) TabBookTabOpt {
 	}
 }
 
-func NewTabBookTab(label string, opts... TabBookTabOpt) *TabBookTab {
+func (o *TabBookTabOptions) Label(label string) TabBookTabOpt {
+	return func(t *TabBookTab) {
+		t.label = label
+	}
+}
+
+func NewTabBookTab(opts... TabBookTabOpt) *TabBookTab {
 	c := &TabBookTab{
-		label: label,
 	}
 	c.init = &MultiOnce{}
 	c.init.Append(c.createWidget)
@@ -63,6 +68,14 @@ func NewTabBookTab(label string, opts... TabBookTabOpt) *TabBookTab {
 		o(c)
 	}
 	return c
+}
+
+func (t *TabBookTab) SetLabel(label string) {
+	t.label = label
+}
+
+func (t *TabBookTab) SetImage(img *GraphicImage) {
+	t.image = img
 }
 
 func (t *TabBookTab) Validate() {

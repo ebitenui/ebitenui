@@ -11,8 +11,8 @@ import (
 func TestTabBook_Tab_Initial(t *testing.T) {
 	is := is.New(t)
 
-	tab1 := NewTabBookTab("Tab 1", TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
-	tab2 := NewTabBookTab("Tab 2", TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
+	tab1 := NewTabBookTab(TabBookTabOpts.Label("Tab 1"), TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
+	tab2 := NewTabBookTab(TabBookTabOpts.Label("Tab 2"), TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
 
 	tb := newTabBook(t,
 		TabBookOpts.Tabs(tab1, tab2),
@@ -30,8 +30,8 @@ func TestTabBook_SetTab(t *testing.T) {
 	var eventArgs *TabBookTabSelectedEventArgs
 	numEvents := 0
 
-	tab1 := NewTabBookTab("Tab 1", TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
-	tab2 := NewTabBookTab("Tab 2", TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
+	tab1 := NewTabBookTab(TabBookTabOpts.Label("Tab 1"), TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
+	tab2 := NewTabBookTab(TabBookTabOpts.Label("Tab 2"), TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
 
 	tb := newTabBook(t,
 		TabBookOpts.Tabs(tab1, tab2),
@@ -58,8 +58,8 @@ func TestTabBook_TabSelectedEvent_User(t *testing.T) {
 	var eventArgs *TabBookTabSelectedEventArgs
 	numEvents := 0
 
-	tab1 := NewTabBookTab("Tab 1", TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
-	tab2 := NewTabBookTab("Tab 2", TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
+	tab1 := NewTabBookTab(TabBookTabOpts.Label("Tab 1"), TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
+	tab2 := NewTabBookTab(TabBookTabOpts.Label("Tab 2"), TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
 
 	tb := newTabBook(t,
 		TabBookOpts.Tabs(tab1, tab2),
@@ -81,9 +81,9 @@ func TestTabBook_TabSelectedEvent_User(t *testing.T) {
 func TestTabBook_GetTabButton(t *testing.T) {
 	is := is.New(t)
 
-	tab1 := NewTabBookTab("Tab 1", TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
-	tab2 := NewTabBookTab("Tab 2", TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
-	tab3 := NewTabBookTab("Tab 3", TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
+	tab1 := NewTabBookTab(TabBookTabOpts.Label("Tab 1"), TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
+	tab2 := NewTabBookTab(TabBookTabOpts.Label("Tab 2"), TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
+	tab3 := NewTabBookTab(TabBookTabOpts.Label("Tab 3"), TabBookTabOpts.ContainerOpts(newTabContainerOpts()...))
 
 	tb := newTabBook(t,
 		TabBookOpts.Tabs(tab1, tab2),
