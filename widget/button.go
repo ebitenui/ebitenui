@@ -523,32 +523,6 @@ func (o ButtonOptions) TabOrder(tabOrder int) ButtonOpt {
 	}
 }
 
-// This returns the currently defined GraphicImage object.
-// This may be nil. Any changes to this reference will be reflected by the button
-// but may be overwritten if the button is re-validated.
-func (b *Button) GraphicImage() *GraphicImage {
-	return b.computedParams.GraphicImage
-}
-
-// Set the GraphicImage for this button.
-func (b *Button) SetGraphicImage(graphicImage *GraphicImage) {
-	b.definedParams.GraphicImage = graphicImage
-	b.computedParams.GraphicImage = graphicImage
-}
-
-// This returns the currently defined Image object.
-// This may be nil. Any changes to this reference will be reflected by the button
-// but may be overwritten if the button is re-validated.
-func (b *Button) Image() *ButtonImage {
-	return b.computedParams.Image
-}
-
-// Set the GraphicImage for this button.
-func (b *Button) SetImage(image *ButtonImage) {
-	b.definedParams.Image = image
-	b.computedParams.Image = image
-}
-
 func (b *Button) State() WidgetState {
 	return b.state
 }
@@ -889,10 +863,34 @@ func (b *Button) SetText(text string) {
 	}
 }
 
-func (b *Button) SetGraphicImage(image *GraphicImage) {
+// This returns the currently defined GraphicImage object.
+// This may be nil. Any changes to this reference will be reflected by the button
+// but may be overwritten if the button is re-validated.
+func (b *Button) GraphicImage() *GraphicImage {
 	b.init.Do()
-	b.definedParams.GraphicImage = image
-	b.computedParams.GraphicImage = image
+	return b.computedParams.GraphicImage
+}
+
+// Set the GraphicImage for this button.
+func (b *Button) SetGraphicImage(graphicImage *GraphicImage) {
+	b.init.Do()
+	b.definedParams.GraphicImage = graphicImage
+	b.computedParams.GraphicImage = graphicImage
+}
+
+// This returns the currently defined Image object.
+// This may be nil. Any changes to this reference will be reflected by the button
+// but may be overwritten if the button is re-validated.
+func (b *Button) Image() *ButtonImage {
+	b.init.Do()
+	return b.computedParams.Image
+}
+
+// Set the GraphicImage for this button.
+func (b *Button) SetImage(image *ButtonImage) {
+	b.init.Do()
+	b.definedParams.Image = image
+	b.computedParams.Image = image
 }
 
 func (b *Button) initWidget() {
