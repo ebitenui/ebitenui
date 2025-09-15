@@ -7,12 +7,15 @@ import (
 )
 
 func NewCheckboxTab() *widget.TabBookTab {
-	result := widget.NewTabBookTab("Checkbox",
-		widget.ContainerOpts.Layout(
-			widget.NewRowLayout(
-				widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-				widget.RowLayoutOpts.Spacing(35),
-				widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(30)),
+	result := widget.NewTabBookTab(
+		widget.TabBookTabOpts.Label("Checkbox"),
+		widget.TabBookTabOpts.ContainerOpts(
+			widget.ContainerOpts.Layout(
+				widget.NewRowLayout(
+					widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+					widget.RowLayoutOpts.Spacing(35),
+					widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(30)),
+				),
 			),
 		),
 	)

@@ -5,8 +5,11 @@ import (
 )
 
 func NewButtonTab() *widget.TabBookTab {
-	result := widget.NewTabBookTab("Button",
-		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+	result := widget.NewTabBookTab(
+		widget.TabBookTabOpts.Label("Button"),
+		widget.TabBookTabOpts.ContainerOpts(
+			widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+		),
 	)
 	var button *widget.Button
 	button = widget.NewButton(

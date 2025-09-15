@@ -44,9 +44,12 @@ func main() {
 
 	// Create the first tab
 	// A TabBookTab is a labelled container. The text here is what will show up in the tab button
-	game.TabRed = widget.NewTabBookTab("Red Tab",
-		widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{255, 0, 0, 255})),
-		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+	game.TabRed = widget.NewTabBookTab(
+		widget.TabBookTabOpts.Label("Red Tab"),
+		widget.TabBookTabOpts.ContainerOpts(
+			widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{255, 0, 0, 255})),
+			widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+		),
 	)
 
 	redBtn := widget.NewText(
@@ -58,9 +61,12 @@ func main() {
 	)
 	game.TabRed.AddChild(redBtn)
 
-	game.TabGreen = widget.NewTabBookTab("Green Tab",
-		widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{0, 255, 0, 0xff})),
-		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+	game.TabGreen = widget.NewTabBookTab(
+		widget.TabBookTabOpts.Label("Green Tab"),
+		widget.TabBookTabOpts.ContainerOpts(
+			widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{0, 255, 0, 0xff})),
+			widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+		),
 	)
 	greenBtn := widget.NewText(
 		widget.TextOpts.Text("Green Tab Button\nThis is configured as the initial tab.\nPress 'G' to select this tab.", &face, color.Black),
@@ -72,12 +78,24 @@ func main() {
 	)
 	game.TabGreen.AddChild(greenBtn)
 
-	game.TabBlue = widget.NewTabBookTab("Blue Tab",
-		widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{0, 0, 255, 0xff})),
-		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-			widget.RowLayoutOpts.Spacing(5),
-		)),
+	blueImage := ebiten.NewImage(10, 10)
+	blueImage.Fill(color.NRGBA{0, 0, 255, 255})
+
+	game.TabBlue = widget.NewTabBookTab(
+		widget.TabBookTabOpts.Label("Blue Tab"),
+		widget.TabBookTabOpts.Image(&widget.GraphicImage{
+			Idle: blueImage,
+			Disabled: blueImage,
+			Pressed: blueImage,
+			Hover: blueImage,
+		}),
+		widget.TabBookTabOpts.ContainerOpts(
+			widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{0, 0, 255, 0xff})),
+			widget.ContainerOpts.Layout(widget.NewRowLayout(
+				widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+				widget.RowLayoutOpts.Spacing(5),
+			)),
+		),
 	)
 	blueBtn1 := widget.NewText(
 		widget.TextOpts.Text("Blue Tab Button 1", &face, color.White),
@@ -94,8 +112,11 @@ func main() {
 	)
 	game.TabBlue.AddChild(blueBtn2)
 
-	tabDisabled := widget.NewTabBookTab("Disabled Tab",
-		widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{R: 80, G: 80, B: 140, A: 255})),
+	tabDisabled := widget.NewTabBookTab(
+		widget.TabBookTabOpts.Label("Disabled Tab"),
+		widget.TabBookTabOpts.ContainerOpts(
+			widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{R: 80, G: 80, B: 140, A: 255})),
+		),
 	)
 	tabDisabled.Disabled = true
 	game.TabBook = widget.NewTabBook(

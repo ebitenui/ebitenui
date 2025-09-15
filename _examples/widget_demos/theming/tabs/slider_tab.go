@@ -7,8 +7,11 @@ import (
 )
 
 func NewSliderTab() *widget.TabBookTab {
-	result := widget.NewTabBookTab("Slider",
-		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+	result := widget.NewTabBookTab(
+		widget.TabBookTabOpts.Label("Slider"),
+		widget.TabBookTabOpts.ContainerOpts(
+			widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+		),
 	)
 
 	// construct a slider
