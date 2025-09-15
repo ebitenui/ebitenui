@@ -114,6 +114,7 @@ func main() {
 			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 				Position: widget.RowLayoutPositionCenter,
 			}),
+			widget.WidgetOpts.MinSize(70, 70),
 		),
 		// specify the images to use.
 		widget.ButtonOpts.Image(buttonImage),

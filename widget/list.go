@@ -61,6 +61,7 @@ type List struct {
 	hSlider         *Slider
 	buttons         []*Button
 	selectedEntry   any
+	validated       bool
 
 	focused        bool
 	tabOrder       int
@@ -132,6 +133,7 @@ func (l *List) Validate() {
 	}
 	l.initWidget()
 	l.resetFocusIndex()
+	l.validated = true
 }
 
 func (t *List) populateComputedParams() {
@@ -722,9 +724,11 @@ func (l *List) SetEntries(newEntries []any) {
 			return cmp == newEntries[idx]
 		}) {
 			l.entries = append(l.entries, newEntries[idx])
-			but := l.createEntry(newEntries[idx])
-			l.buttons = append(l.buttons, but)
-			l.listContent.AddChild(but)
+			if l.validated {
+				but := l.createEntry(newEntries[idx])
+				l.buttons = append(l.buttons, but)
+				l.listContent.AddChild(but)
+			}
 		}
 	}
 	l.selectedEntry = nil
@@ -764,9 +768,11 @@ func (l *List) AddEntry(entry any) {
 	l.init.Do()
 	if !l.checkForDuplicates(l.entries, entry) {
 		l.entries = append(l.entries, entry)
-		but := l.createEntry(entry)
-		l.buttons = append(l.buttons, but)
-		l.listContent.AddChild(but)
+		if l.validated {
+			but := l.createEntry(entry)
+			l.buttons = append(l.buttons, but)
+			l.listContent.AddChild(but)
+		}
 	}
 	l.resetFocusIndex()
 }

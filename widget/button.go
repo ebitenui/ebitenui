@@ -30,8 +30,6 @@ type Button struct {
 	IgnoreTransparentPixels bool
 	KeepPressedOnExit       bool
 	ToggleMode              bool
-	GraphicImage            *GraphicImage
-
 	// Allows the user to disable space bar and enter automatically triggering a focused button.
 	DisableDefaultKeys bool
 
@@ -671,16 +669,16 @@ func (b *Button) Render(screen *ebiten.Image) {
 			if b.text != nil && b.computedParams.TextColor.Disabled != nil {
 				b.text.SetColor(b.computedParams.TextColor.Disabled)
 			}
-			if b.GraphicImage != nil && b.GraphicImage.Disabled != nil {
-				b.graphic.Image = b.GraphicImage.Disabled
+			if b.computedParams.GraphicImage != nil && b.computedParams.GraphicImage.Disabled != nil {
+				b.graphic.Image = b.computedParams.GraphicImage.Disabled
 			}
 
 		case b.pressing && (b.hovering || b.KeepPressedOnExit) || (b.ToggleMode && b.state == WidgetChecked) || b.justSubmitted:
 			if b.text != nil && b.computedParams.TextColor.Pressed != nil {
 				b.text.SetColor(b.computedParams.TextColor.Pressed)
 			}
-			if b.GraphicImage != nil && b.GraphicImage.Pressed != nil {
-				b.graphic.Image = b.GraphicImage.Pressed
+			if b.computedParams.GraphicImage != nil && b.computedParams.GraphicImage.Pressed != nil {
+				b.graphic.Image = b.computedParams.GraphicImage.Pressed
 			}
 
 		case b.hovering || b.focused:
@@ -865,10 +863,34 @@ func (b *Button) SetText(text string) {
 	}
 }
 
-func (b *Button) SetGraphicImage(image *GraphicImage) {
+// This returns the currently defined GraphicImage object.
+// This may be nil. Any changes to this reference will be reflected by the button
+// but may be overwritten if the button is re-validated.
+func (b *Button) GraphicImage() *GraphicImage {
 	b.init.Do()
-	b.definedParams.GraphicImage = image
-	b.computedParams.GraphicImage = image
+	return b.computedParams.GraphicImage
+}
+
+// Set the GraphicImage for this button.
+func (b *Button) SetGraphicImage(graphicImage *GraphicImage) {
+	b.init.Do()
+	b.definedParams.GraphicImage = graphicImage
+	b.computedParams.GraphicImage = graphicImage
+}
+
+// This returns the currently defined Image object.
+// This may be nil. Any changes to this reference will be reflected by the button
+// but may be overwritten if the button is re-validated.
+func (b *Button) Image() *ButtonImage {
+	b.init.Do()
+	return b.computedParams.Image
+}
+
+// Set the GraphicImage for this button.
+func (b *Button) SetImage(image *ButtonImage) {
+	b.init.Do()
+	b.definedParams.Image = image
+	b.computedParams.Image = image
 }
 
 func (b *Button) initWidget() {
@@ -908,8 +930,8 @@ func (b *Button) initWidget() {
 	if b.computedParams.GraphicImage != nil {
 		c := NewContainer(
 			ContainerOpts.WidgetOpts(WidgetOpts.LayoutData(AnchorLayoutData{
-				StretchHorizontal: true,
-				StretchVertical:   true,
+				HorizontalPosition: AnchorLayoutPositionCenter,
+				VerticalPosition:   AnchorLayoutPositionCenter,
 			})),
 			ContainerOpts.Layout(NewRowLayout(
 				RowLayoutOpts.Spacing(10),
@@ -921,7 +943,8 @@ func (b *Button) initWidget() {
 		b.container.AddChild(c)
 		b.graphic = NewGraphic(
 			GraphicOpts.WidgetOpts(WidgetOpts.LayoutData(RowLayoutData{
-				Stretch: false,
+				Stretch:  false,
+				Position: RowLayoutPositionCenter,
 			})),
 			GraphicOpts.Image(b.computedParams.GraphicImage.Idle),
 		)

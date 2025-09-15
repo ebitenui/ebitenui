@@ -22,7 +22,7 @@ type ListEntry struct {
 	Name string
 }
 
-// Game object used by ebiten
+// Game object used by ebiten.
 type game struct {
 	ui   *ebitenui.UI
 	list *widget.List
@@ -66,7 +66,7 @@ func main() {
 			}),
 		)),
 		// Set the entries in the list
-		widget.ListOpts.Entries(entries),
+		// widget.ListOpts.Entries(entries),
 		widget.ListOpts.ScrollContainerImage(&widget.ScrollContainerImage{
 			Idle:     image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
 			Disabled: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
@@ -101,7 +101,7 @@ func main() {
 			DisabledSelected:           color.NRGBA{R: 100, G: 100, B: 100, A: 255}, // Foreground color for the disabled selected entry
 			DisabledSelectedBackground: color.NRGBA{R: 100, G: 100, B: 100, A: 255}, // Background color for the disabled selected entry
 		}),
-		// This required function returns the string displayed in the list
+		// This required function returns the string displayed in the list.
 		widget.ListOpts.EntryLabelFunc(func(e interface{}) string {
 			return e.(ListEntry).Name
 		}),
@@ -120,11 +120,13 @@ func main() {
 		// widget.ListOpts.SelectPressed(),
 
 		// This option will disable default keys (up and down)
-		//widget.ListOpts.DisableDefaultKeys(true),
+		// widget.ListOpts.DisableDefaultKeys(true),
 	)
 
 	// Add list to the root container
 	rootContainer.AddChild(game.list)
+	game.list.SetEntries(entries)
+	game.list.AddEntry(ListEntry{999, "Entry 999"})
 
 	buttonsContainer := widget.NewContainer(
 		widget.ContainerOpts.WidgetOpts(
