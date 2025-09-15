@@ -12,8 +12,11 @@ type ListEntry struct {
 }
 
 func NewListTab() *widget.TabBookTab {
-	result := widget.NewTabBookTab("List",
-		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+	result := widget.NewTabBookTab(
+		widget.TabBookTabOpts.Label("List"),
+		widget.TabBookTabOpts.ContainerOpts(
+			widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+		),
 	)
 	// Create array of list entries
 	numEntries := 20
