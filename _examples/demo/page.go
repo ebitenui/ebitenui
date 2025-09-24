@@ -624,11 +624,11 @@ func toolTipPage(res *uiResources) *page {
 		children := bc.Children()
 		for i := range children {
 			if args.State == widget.WidgetChecked {
-				children[i].GetWidget().ToolTip.Delay = 800 * time.Millisecond
-				children[i].GetWidget().ToolTip.Position = widget.TOOLTIP_POS_CURSOR_STICKY
+				children[i].GetWidget().ToolTips[0].Delay = 800 * time.Millisecond
+				children[i].GetWidget().ToolTips[0].Position = widget.TOOLTIP_POS_CURSOR_STICKY
 			} else {
-				children[i].GetWidget().ToolTip.Delay = 0
-				children[i].GetWidget().ToolTip.Position = widget.TOOLTIP_POS_CURSOR_FOLLOW
+				children[i].GetWidget().ToolTips[0].Delay = 0
+				children[i].GetWidget().ToolTips[0].Position = widget.TOOLTIP_POS_CURSOR_FOLLOW
 			}
 		}
 	}, res)
