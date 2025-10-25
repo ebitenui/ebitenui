@@ -603,14 +603,14 @@ func (l *TextArea) SetText(value string) {
 	l.init.Do()
 	l.text.Label = value
 
-	if l.showHorizontalSlider {
+	if l.showHorizontalSlider && l.hSlider != nil {
 		if l.horizontalScrollMode == ScrollBeginning {
 			l.hSlider.Current = 0
 		} else if l.horizontalScrollMode == ScrollEnd {
 			l.hSlider.Current = l.hSlider.Max
 		}
 	}
-	if l.showVerticalSlider {
+	if l.showVerticalSlider && l.vSlider != nil {
 		if l.verticalScrollMode == ScrollBeginning {
 			l.vSlider.Current = 0
 		} else if l.verticalScrollMode == ScrollEnd {
