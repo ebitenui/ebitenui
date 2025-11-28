@@ -558,7 +558,7 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 			if y < tr.Min.Y {
 				curIdx = 0
 			} else {
-				curIdx = len(t.inputText)
+				curIdx = len([]rune(t.inputText))
 			}
 		}
 		textSize := tr.Dx() - fontAdvance(t.inputText, t.computedParams.Face)
