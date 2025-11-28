@@ -2,11 +2,13 @@ package widget
 
 import (
 	"image"
+	"image/color"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
 	internalinput "github.com/ebitenui/ebitenui/internal/input"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 // A Widget is an abstraction of a user interface widget, such as a button. Actual widget implementations
@@ -121,6 +123,8 @@ type Widget struct {
 
 	CursorHovered string
 	CursorPressed string
+
+	debugMode bool
 }
 
 // WidgetOpt is a function that configures w.
@@ -140,6 +144,7 @@ type Renderer interface {
 type UpdateObject struct {
 	RelayoutRequested     bool
 	CloseEphemeralWindows bool
+	DebugMode             bool
 }
 
 // Updater may be implemented by concrete widget types that should be updated.
@@ -634,7 +639,9 @@ func (w *Widget) EffectiveInputLayer() *input.Layer {
 
 // always call this method first before rendering themselves.
 func (w *Widget) Render(screen *ebiten.Image) {
-
+	if w.lastUpdateCursorEntered && w.debugMode {
+		vector.StrokeRect(screen, float32(w.Rect.Min.X), float32(w.Rect.Min.Y), float32(w.Rect.Dx()), float32(w.Rect.Dy()), 2, color.White, false)
+	}
 }
 
 func (w *Widget) Update(updObj *UpdateObject) {
@@ -648,6 +655,8 @@ func (w *Widget) Update(updObj *UpdateObject) {
 	if w.OnUpdate != nil {
 		w.OnUpdate(w.self)
 	}
+
+	w.debugMode = updObj.DebugMode
 }
 
 func (w *Widget) fireEvents() {
