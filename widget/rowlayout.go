@@ -1,6 +1,8 @@
 package widget
 
-import "image"
+import (
+	"image"
+)
 
 // RowLayout layouts widgets in either a single row or a single column,
 // optionally stretching them in the other direction.
@@ -111,7 +113,7 @@ func (r *RowLayout) layout(widgets []PreferredSizeLocateableWidget, rect image.R
 	x, y := 0, 0
 
 	for _, widget := range widgets {
-		if widget.GetWidget().Visibility == Visibility_Hide {
+		if widget.GetWidget().GetVisibility() == Visibility_Hide {
 			continue
 		}
 

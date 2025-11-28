@@ -246,7 +246,7 @@ func (d *DragAndDrop) draggingState(srcX int, srcY int, dragWidget *Container, d
 					Data:    dragData,
 				}
 				for _, target := range d.AvailableDropTargets {
-					if target.GetWidget().Visibility == Visibility_Hide {
+					if target.GetWidget().GetVisibility() == Visibility_Hide {
 						continue
 					}
 					if !target.GetWidget().In(x, y) {
@@ -300,7 +300,7 @@ func (d *DragAndDrop) droppingState(srcX int, srcY int, x int, y int, dragData i
 		}
 		dropSuccessful := false
 		for _, target := range d.AvailableDropTargets {
-			if target.GetWidget().Visibility == Visibility_Hide {
+			if target.GetWidget().GetVisibility() == Visibility_Hide {
 				continue
 			}
 			if !target.GetWidget().In(x, y) {
