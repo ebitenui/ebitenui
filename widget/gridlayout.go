@@ -234,7 +234,14 @@ func (g *GridLayout) rowStretched(r int) bool {
 }
 
 func (g *GridLayout) preferredColumnWidthsAndRowHeights(widgets []PreferredSizeLocateableWidget) ([]int, []int) {
-	colWidths := make([]int, g.columns)
+	colLen := g.columns
+	// Check if there are less widgets than columns declared
+	// and if so use the len(widgets) as columns so the sizes
+	// work as epxected
+	if len(widgets) < g.columns {
+		colLen = len(widgets)
+	}
+	colWidths := make([]int, colLen)
 	rowHeights := make([]int, int(math.Ceil(float64(len(widgets))/float64(g.columns))))
 
 	c := 0
