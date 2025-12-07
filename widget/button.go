@@ -606,7 +606,9 @@ func (b *Button) SetLocation(rect img.Rectangle) {
 	b.init.Do()
 
 	// If we are ignoring transparent pixels and the mask isn't set to the current Image/Size, rebuild the mask.
-	if b.IgnoreTransparentPixels && (b.GetWidget().mask == nil || b.widget.Rect == img.Rectangle{} || b.widget.Rect.Dx() != rect.Dx() || b.widget.Rect.Dy() != rect.Dy()) {
+	// If the rect is 0,0 we need to return because the 'ebiten.NewImage' will panic.
+	// This is the case when we are on a window context
+	if b.IgnoreTransparentPixels && (b.GetWidget().mask == nil || b.widget.Rect == img.Rectangle{} || b.widget.Rect.Dx() != rect.Dx() || b.widget.Rect.Dy() != rect.Dy()) && (rect.Dx() != 0 && rect.Dy() != 0) {
 		maskImage := ebiten.NewImage(rect.Dx(), rect.Dy())
 		b.computedParams.Image.Idle.Draw(maskImage, maskImage.Bounds().Dx(), maskImage.Bounds().Dy(), func(_ *ebiten.DrawImageOptions) {})
 
