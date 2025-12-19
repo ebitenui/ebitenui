@@ -128,7 +128,7 @@ func main() {
 
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			topContainer.GetWidget().Visibility = widget.Visibility_Hide_Blocking
+			topContainer.GetWidget().SetVisibility(widget.Visibility_Hide_Blocking)
 		}),
 	)
 	topContainer.AddChild(topButton)
@@ -153,7 +153,7 @@ func main() {
 
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			middleRightContainer.GetWidget().Visibility = widget.Visibility_Show
+			middleRightContainer.GetWidget().SetVisibility(widget.Visibility_Show)
 		}),
 	)
 	middleHideButton := widget.NewButton(
@@ -175,7 +175,7 @@ func main() {
 
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			middleRightContainer.GetWidget().Visibility = widget.Visibility_Hide
+			middleRightContainer.GetWidget().SetVisibility(widget.Visibility_Hide)
 		}),
 	)
 	middleLeftContainer.AddChild(middleShowButton)
@@ -201,7 +201,7 @@ func main() {
 
 		// add a handler that reacts to clicking the button
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
-			topContainer.GetWidget().Visibility = widget.Visibility_Show
+			topContainer.GetWidget().SetVisibility(widget.Visibility_Show)
 		}),
 	)
 	middleLeftContainer.AddChild(buttonShowTop)

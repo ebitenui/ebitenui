@@ -42,7 +42,7 @@ type Widget struct {
 
 	// Hidden specifies whether the widget is visible. Hidden widgets should
 	// not render anything or react to user input.
-	Visibility Visibility
+	visibility Visibility
 
 	// CursorEnterEvent fires an event with *WidgetCursorEnterEventArgs when the cursor enters the widget's Rect.
 	CursorEnterEvent *event.Event
@@ -121,6 +121,8 @@ type Widget struct {
 
 	CursorHovered string
 	CursorPressed string
+
+	relayoutParent bool
 }
 
 // WidgetOpt is a function that configures w.
@@ -648,6 +650,23 @@ func (w *Widget) Update(updObj *UpdateObject) {
 	if w.OnUpdate != nil {
 		w.OnUpdate(w.self)
 	}
+	if w.relayoutParent {
+		updObj.RelayoutRequested = true
+		w.relayoutParent = false
+	}
+}
+
+// SetVisibility changes the visibility of the Widget
+func (w *Widget) SetVisibility(v Visibility) {
+	if w.visibility != v {
+		w.visibility = v
+		w.relayoutParent = true
+	}
+}
+
+// GetVisibility changes the visibility of the Widget
+func (w *Widget) GetVisibility() Visibility {
+	return w.visibility
 }
 
 func (w *Widget) fireEvents() {
@@ -877,7 +896,7 @@ func (widget *Widget) FireDragAndDropEvent(w *Window, show bool, dnd *DragAndDro
 // all the parents it has, as if one of the parents is not visible this widget will not be visible
 // even if it has Visibility_Show.
 func (widget *Widget) IsVisible() bool {
-	if widget.Visibility != Visibility_Show {
+	if widget.GetVisibility() != Visibility_Show {
 		return false
 	}
 	if widget.parent != nil {
