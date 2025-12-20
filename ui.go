@@ -45,6 +45,8 @@ type UI struct {
 	previousRemoveHandlerFuncs []event.RemoveHandlerFunc
 	tabWasPressed              bool
 	updObj                     *widget.UpdateObject
+
+	debugMode bool
 }
 
 // Update updates u. This method should be called in the Ebiten Update function.
@@ -126,10 +128,11 @@ func (u *UI) resetUpdateObject() {
 	// Reset update object
 	if u.updObj == nil {
 		u.updObj = &widget.UpdateObject{}
-	} else {
-		u.updObj.RelayoutRequested = false
-		u.updObj.CloseEphemeralWindows = false
 	}
+
+	u.updObj.RelayoutRequested = false
+	u.updObj.CloseEphemeralWindows = false
+	u.updObj.DebugMode = u.debugMode
 }
 
 // Draw renders u onto screen. This function should be called in the Ebiten Draw function.
@@ -487,4 +490,15 @@ func (u *UI) SetFocusedWidget(focused widget.Focuser) {
 	if u.focusedWidget != nil {
 		u.focusedWidget.Focus(true)
 	}
+}
+
+// SetDebugMode enables or disables DebugMode which shows the
+// margins of the Widgets when hovering the cursor on them
+func (u *UI) SetDebugMode(dm bool) {
+	u.debugMode = dm
+}
+
+// GetDebugMode get's the current value of DebugMode
+func (u *UI) GetDebugMode() bool {
+	return u.debugMode
 }
