@@ -46,6 +46,7 @@ type Window struct {
 	Resizeable bool
 	MinSize    *image.Point
 	MaxSize    *image.Point
+	Dynamic    bool
 	DrawLayer  int
 	// Used to indicate this window should close if other windows close.
 	Ephemeral bool
@@ -168,6 +169,15 @@ func (o WindowOptions) MinSize(width int, height int) WindowOpt {
 func (o WindowOptions) MaxSize(width int, height int) WindowOpt {
 	return func(w *Window) {
 		w.MaxSize = &image.Point{X: width, Y: height}
+	}
+}
+
+// Dynamic will check to change the default size of the Window
+// if the content sizes goes over or below the current one
+// Will not work with Resizeable
+func (o WindowOptions) Dynamic() WindowOpt {
+	return func(w *Window) {
+		w.Dynamic = true
 	}
 }
 
@@ -355,6 +365,16 @@ func (w *Window) Render(screen *ebiten.Image) {
 		} else if !input.MouseButtonPressed(ebiten.MouseButtonLeft) {
 			w.resizingWidth = false
 			w.resizingHeight = false
+		}
+	}
+
+	if w.Dynamic && !w.Resizeable {
+		x, y := w.container.PreferredSize()
+		rec := w.container.GetWidget().Rect
+		if rec.Dx() != x || rec.Dy() != y {
+			newRect := image.Rect(0, 0, x, y)
+			newRect = newRect.Add(rec.Min)
+			w.SetLocation(newRect)
 		}
 	}
 	w.container.Render(screen)
