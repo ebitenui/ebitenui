@@ -735,6 +735,27 @@ func (l *List) SetEntries(newEntries []any) {
 	l.resetFocusIndex()
 }
 
+// UpdateEntry recreates the button for the passed in entry if it exists.
+func (l *List) UpdateEntry(entry any) {
+	l.init.Do()
+
+	if !l.validated {
+		return
+	}
+
+	for i, e := range l.entries {
+		if e == entry {
+			oldButton := l.buttons[i]
+			newButton := l.createEntry(entry)
+			newButton.focused = oldButton.focused
+			l.setEntryButtonStyle(newButton, entry == l.selectedEntry)
+			l.buttons[i] = newButton
+			l.listContent.ReplaceChild(oldButton, newButton)
+			return
+		}
+	}
+}
+
 // Remove the passed in entry from the list if it exists.
 func (l *List) RemoveEntry(entry any) {
 	l.init.Do()
@@ -802,17 +823,7 @@ func (l *List) setSelectedEntry(e any, user bool) {
 		l.selectedEntry = e
 		l.resetFocusIndex()
 		for i := range l.buttons {
-			if l.entries[i] == e {
-				l.buttons[i].definedParams.Image = l.computedParams.entrySelectedColor
-				l.buttons[i].definedParams.TextColor = l.computedParams.entryTextColor
-				l.buttons[i].computedParams.Image = l.computedParams.entrySelectedColor
-				l.buttons[i].computedParams.TextColor = l.computedParams.entryTextColor
-			} else {
-				l.buttons[i].definedParams.Image = l.computedParams.entryUnselectedColor
-				l.buttons[i].definedParams.TextColor = l.computedParams.entryUnselectedTextColor
-				l.buttons[i].computedParams.Image = l.computedParams.entryUnselectedColor
-				l.buttons[i].computedParams.TextColor = l.computedParams.entryUnselectedTextColor
-			}
+			l.setEntryButtonStyle(l.buttons[i], l.entries[i] == e)
 		}
 
 		l.EntrySelectedEvent.Fire(&ListEntrySelectedEventArgs{
@@ -820,6 +831,19 @@ func (l *List) setSelectedEntry(e any, user bool) {
 			PreviousEntry: prev,
 		})
 	}
+}
+
+func (l *List) setEntryButtonStyle(button *Button, selected bool) {
+	image := l.computedParams.entryUnselectedColor
+	textColor := l.computedParams.entryUnselectedTextColor
+	if selected {
+		image = l.computedParams.entrySelectedColor
+		textColor = l.computedParams.entryTextColor
+	}
+	button.definedParams.Image = image
+	button.definedParams.TextColor = textColor
+	button.computedParams.Image = image
+	button.computedParams.TextColor = textColor
 }
 
 func (l *List) checkForDuplicates(entries []any, entry any) bool {
