@@ -719,11 +719,24 @@ func (l *List) initWidget() {
 // Updates the entries in the list.
 // Note: Duplicates will be removed.
 func (l *List) SetEntries(newEntries []any) {
-	oldEntries := append([]any(nil), l.entries...)
-	oldButtons := append([]*Button(nil), l.buttons...)
+	if l.validated {
+		for _, but := range l.buttons {
+			l.listContent.RemoveChild(but)
+		}
+	}
 
 	l.entries = l.normalizeEntries(newEntries)
-	l.syncButtonsToEntries(oldEntries, oldButtons)
+	l.buttons = nil
+
+	if l.validated {
+		l.buttons = make([]*Button, 0, len(l.entries))
+		for _, entry := range l.entries {
+			but := l.createEntry(entry)
+			l.buttons = append(l.buttons, but)
+			l.listContent.AddChild(but)
+		}
+	}
+
 	l.selectedEntry = nil
 	l.resetFocusIndex()
 }
@@ -760,11 +773,22 @@ func (l *List) RemoveEntry(entry any) {
 func (l *List) AddEntry(entry any) {
 	l.init.Do()
 	if !l.checkForDuplicates(l.entries, entry) {
-		oldEntries := append([]any(nil), l.entries...)
-		oldButtons := append([]*Button(nil), l.buttons...)
-
-		l.entries = l.normalizeEntries(append(l.entries, entry))
-		l.syncButtonsToEntries(oldEntries, oldButtons)
+		if l.entrySortFunc != nil {
+			index, _ := slices.BinarySearchFunc(l.entries, entry, l.entrySortFunc)
+			l.entries = slices.Insert(l.entries, index, entry)
+			if l.validated {
+				but := l.createEntry(entry)
+				l.buttons = slices.Insert(l.buttons, index, but)
+				l.insertListContentChild(index, but)
+			}
+		} else {
+			l.entries = append(l.entries, entry)
+			if l.validated {
+				but := l.createEntry(entry)
+				l.buttons = append(l.buttons, but)
+				l.listContent.AddChild(but)
+			}
+		}
 	}
 	l.resetFocusIndex()
 }
@@ -833,53 +857,9 @@ func (l *List) normalizeEntries(entries []any) []any {
 	return normalized
 }
 
-func (l *List) syncButtonsToEntries(oldEntries []any, oldButtons []*Button) {
-	if !l.validated {
-		l.buttons = nil
-		return
-	}
-
-	newEntries := make([]any, len(l.entries))
-	copy(newEntries, l.entries)
-
-	newButtons := make([]*Button, 0, len(newEntries))
-	reusedButtons := make([]bool, len(oldButtons))
-
-	for _, entry := range newEntries {
-		reused := false
-		for i, oldEntry := range oldEntries {
-			if reusedButtons[i] {
-				continue
-			}
-			if oldEntry == entry {
-				newButtons = append(newButtons, oldButtons[i])
-				reusedButtons[i] = true
-				reused = true
-				break
-			}
-		}
-		if reused {
-			continue
-		}
-
-		but := l.createEntry(entry)
-		l.listContent.addChildInit(but)
-		newButtons = append(newButtons, but)
-	}
-
-	for i, oldButton := range oldButtons {
-		if !reusedButtons[i] {
-			closeWidget(oldButton.GetWidget())
-		}
-	}
-
-	l.buttons = newButtons
-
-	children := make([]PreferredSizeLocateableWidget, len(newButtons))
-	for i, but := range newButtons {
-		children[i] = but
-	}
-	l.listContent.children = children
+func (l *List) insertListContentChild(index int, child PreferredSizeLocateableWidget) {
+	l.listContent.addChildInit(child)
+	l.listContent.children = slices.Insert(l.listContent.children, index, child)
 	l.listContent.RequestRelayout()
 	l.listContent.relayoutParent = true
 	l.listContent.closeEphemeralWindows = true
