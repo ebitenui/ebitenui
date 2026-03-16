@@ -26,6 +26,7 @@ import (
 	"github.com/ebitenui/ebitenui"
 	eimage "github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
+	"github.com/ebitenui/ebitenui/themes"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -47,6 +48,7 @@ func main() {
 	g := &Game{
 		layers:     getLayers(),
 		tilesImage: getTileImage(),
+		scale:      2,
 	}
 	g.ui = g.getEbitenUI()
 
@@ -63,6 +65,13 @@ type Game struct {
 
 	ui        *ebitenui.UI
 	headerLbl *widget.Text
+
+	scale int
+}
+
+type ListEntry struct {
+	id   int
+	Name string
 }
 
 func (g *Game) Update() error {
@@ -186,6 +195,43 @@ func (g *Game) getEbitenUI() *ebitenui.UI {
 	)
 	rootContainer.AddChild(label2)
 
+	entries := []any{
+		ListEntry{1, "Small"},
+		ListEntry{2, "Medium"},
+		ListEntry{3, "Large"},
+	}
+	// construct a combobox
+	comboBox := widget.NewListComboButton(
+		widget.ListComboButtonOpts.WidgetOpts(
+			// Set the combobox's position
+			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				HorizontalPosition: widget.AnchorLayoutPositionCenter,
+				VerticalPosition:   widget.AnchorLayoutPositionStart,
+				Padding:            widget.NewInsetsSimple(50),
+			}),
+			widget.WidgetOpts.Theme(themes.GetBasicDarkTheme()),
+		),
+		widget.ListComboButtonOpts.Entries(entries),
+		widget.ListComboButtonOpts.InitialEntry(entries[1]),
+
+		// Define how the entry is displayed
+		widget.ListComboButtonOpts.EntryLabelFunc(
+			func(e any) string {
+				// Button Label function
+				return e.(ListEntry).Name
+			},
+			func(e any) string {
+				// List Label function
+				return e.(ListEntry).Name
+			}),
+		// Callback when a new entry is selected
+		widget.ListComboButtonOpts.EntrySelectedHandler(func(args *widget.ListComboButtonEntrySelectedEventArgs) {
+			fmt.Println("Selected Entry: ", args.Entry)
+			g.scale = args.Entry.(ListEntry).id
+		}),
+	)
+
+	rootContainer.AddChild(comboBox)
 	return &ebitenui.UI{
 		Container: rootContainer,
 		//Call a render method after the rootContainer is drawn but before any ebitenui.Windows are drawn
@@ -193,6 +239,7 @@ func (g *Game) getEbitenUI() *ebitenui.UI {
 	}
 }
 
+// This method is currently un-used, see PostRenderHook above.
 func (g *Game) Render(screen *ebiten.Image) {
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("FPS: %f, UI Hovered %t", ebiten.ActualFPS(), input.UIHovered))
 }
@@ -201,12 +248,17 @@ func (g *Game) drawGameWorld(screen *ebiten.Image) {
 	w := g.tilesImage.Bounds().Dx()
 	tileXCount := w / tileSize
 
+	tileMapPxWidth := tileMapWidth * tileSize
+	tileMapPxHeight := tileMapWidth * tileSize
+	startX := (screen.Bounds().Dx() / (g.scale * 2)) - (tileMapPxWidth / 2)
+	startY := (screen.Bounds().Dy() / (g.scale * 2)) - (tileMapPxHeight / 2)
+
 	for _, l := range g.layers {
 		for i, t := range l {
 			op := &ebiten.DrawImageOptions{}
+			op.GeoM.Translate(float64(startX), float64(startY))
 			op.GeoM.Translate(float64((i%tileMapWidth)*tileSize), float64((i/tileMapWidth)*tileSize))
-			op.GeoM.Scale(2, 2)
-
+			op.GeoM.Scale(float64(g.scale), float64(g.scale))
 			sx := (t % tileXCount) * tileSize
 			sy := (t / tileXCount) * tileSize
 			screen.DrawImage(g.tilesImage.SubImage(image.Rect(sx, sy, sx+tileSize, sy+tileSize)).(*ebiten.Image), op)

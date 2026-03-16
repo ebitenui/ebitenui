@@ -587,6 +587,13 @@ func (o WidgetOptions) TrackHover(trackHover bool) WidgetOpt {
 	}
 }
 
+// CustomData configures a Widget with custom data cd.
+func (o WidgetOptions) Theme(theme *Theme) WidgetOpt {
+	return func(w *Widget) {
+		w.theme = theme
+	}
+}
+
 // This tells the system to create a new input layer for this focusable widget.
 // The new layer will be added in the order that the widget is added to the render tree.
 // This means the last widiget added where this value is true will have the highest input layer.
