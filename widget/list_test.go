@@ -96,6 +96,42 @@ func TestList_SetSelectedEntry(t *testing.T) {
 	is.Equal(numEvents, 1)
 }
 
+func TestList_UpdateEntry(t *testing.T) {
+	is := is.New(t)
+
+	type listEntry struct {
+		label string
+	}
+
+	entries := []interface{}{
+		&listEntry{label: "first"},
+		&listEntry{label: "second"},
+		&listEntry{label: "third"},
+	}
+
+	list := newList(t,
+		ListOpts.Entries(entries),
+
+		ListOpts.EntryLabelFunc(func(e interface{}) string {
+			return e.(*listEntry).label
+		}),
+	)
+
+	oldButton := list.buttons[1]
+	entry := entries[1].(*listEntry)
+
+	is.Equal(list.buttons[1].Text().Label, "second")
+
+	entry.label = "updated"
+
+	is.Equal(list.buttons[1].Text().Label, "second")
+
+	list.UpdateEntry(entry)
+
+	is.True(list.buttons[1] != oldButton)
+	is.Equal(list.buttons[1].Text().Label, "updated")
+}
+
 func TestList_EntrySelectedEvent_IncludesList(t *testing.T) {
 	is := is.New(t)
 
