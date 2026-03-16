@@ -95,6 +95,34 @@ func TestList_SetSelectedEntry(t *testing.T) {
 	is.Equal(numEvents, 1)
 }
 
+func TestList_EntrySelectedEvent_IncludesList(t *testing.T) {
+	is := is.New(t)
+
+	entries := []interface{}{"first", "second", "third"}
+
+	var eventArgs *ListEntrySelectedEventArgs
+	var selectedEntry interface{}
+
+	list := newList(t,
+		ListOpts.Entries(entries),
+
+		ListOpts.EntryLabelFunc(func(e interface{}) string {
+			result, _ := e.(string)
+			return result
+		}),
+
+		ListOpts.EntrySelectedHandler(func(args *ListEntrySelectedEventArgs) {
+			eventArgs = args
+			selectedEntry = args.List.SelectedEntry()
+		}))
+
+	list.SetSelectedEntry(entries[1])
+	event.ExecuteDeferred()
+
+	is.Equal(eventArgs.List, list)
+	is.Equal(selectedEntry, entries[1])
+}
+
 func TestList_EntrySelectedEvent_User(t *testing.T) {
 	is := is.New(t)
 
