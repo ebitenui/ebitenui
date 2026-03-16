@@ -21,6 +21,13 @@ const (
 
 type RemoveWindowFunc func()
 
+type WindowDraggedEventArgs struct {
+	Window *Window
+	Diff   image.Point
+}
+
+type WindowDraggedHandlerFunc func(args *WindowDraggedEventArgs)
+
 type WindowChangedEventArgs struct {
 	Window *Window
 	Rect   image.Rectangle
@@ -36,6 +43,7 @@ type WindowClosedHandlerFunc func(args *WindowClosedEventArgs)
 
 type Window struct {
 	ResizeEvent *event.Event
+	DragEvent   *event.Event
 	MoveEvent   *event.Event
 	ClosedEvent *event.Event
 
@@ -81,6 +89,7 @@ var WindowOpts WindowOptions
 
 func NewWindow(opts ...WindowOpt) *Window {
 	w := &Window{
+		DragEvent:   &event.Event{},
 		MoveEvent:   &event.Event{},
 		ResizeEvent: &event.Event{},
 		ClosedEvent: &event.Event{},
@@ -183,6 +192,17 @@ func (o WindowOptions) MoveHandler(f WindowChangedHandlerFunc) WindowOpt {
 	return func(w *Window) {
 		w.MoveEvent.AddHandler(func(args interface{}) {
 			if arg, ok := args.(*WindowChangedEventArgs); ok {
+				f(arg)
+			}
+		})
+	}
+}
+
+// This handler is triggered when the window is dragged.
+func (o WindowOptions) DragHandler(f WindowDraggedHandlerFunc) WindowOpt {
+	return func(w *Window) {
+		w.DragEvent.AddHandler(func(args interface{}) {
+			if arg, ok := args.(*WindowDraggedEventArgs); ok {
 				f(arg)
 			}
 		})
@@ -310,15 +330,30 @@ func (w *Window) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 
 // Typically used internally.
 func (w *Window) Render(screen *ebiten.Image) {
+	w.container.Render(screen)
+}
+
+func (w *Window) Update(updObj *UpdateObject) {
+	w.init.Do()
+
 	x, y := input.CursorPosition()
 
 	if w.dragging {
 		if w.startingPoint.X != x || w.startingPoint.Y != y {
-			newRect := w.container.GetWidget().Rect.Add(image.Point{x - w.startingPoint.X, y - w.startingPoint.Y})
-			w.SetLocation(newRect)
-			w.startingPoint = image.Point{x, y}
+			m := image.Point{x, y}
+			diff := m.Sub(w.startingPoint)
+			rect := w.container.GetWidget().Rect.Add(diff)
+
+			w.SetLocation(rect)
+			w.startingPoint = m
+
+			w.DragEvent.Fire(&WindowDraggedEventArgs{
+				Window: w,
+				Diff:   diff,
+			})
 		}
 	}
+
 	if w.resizing {
 		if w.startingPoint.X != x || w.startingPoint.Y != y {
 			if w.resizingWidth {
@@ -357,11 +392,7 @@ func (w *Window) Render(screen *ebiten.Image) {
 			w.resizingHeight = false
 		}
 	}
-	w.container.Render(screen)
-}
 
-func (w *Window) Update(updObj *UpdateObject) {
-	w.init.Do()
 	w.container.Update(updObj)
 }
 
