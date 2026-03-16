@@ -646,7 +646,9 @@ func (w *Widget) Render(screen *ebiten.Image) {
 }
 
 func (w *Widget) Update(updObj *UpdateObject) {
-	w.fireEvents()
+	if w.IsVisible() {
+		w.fireEvents()
+	}
 	if w.DragAndDrop != nil {
 		w.DragAndDrop.Update(w.self)
 	}

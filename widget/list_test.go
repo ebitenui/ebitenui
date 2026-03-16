@@ -2,6 +2,7 @@ package widget
 
 import (
 	"image/color"
+	"strconv"
 	"testing"
 
 	"github.com/ebitenui/ebitenui/event"
@@ -131,6 +132,34 @@ func TestList_UpdateEntry(t *testing.T) {
 	is.Equal(list.buttons[1].Text().Label, "updated")
 }
 
+func TestList_EntrySelectedEvent_IncludesList(t *testing.T) {
+	is := is.New(t)
+
+	entries := []interface{}{"first", "second", "third"}
+
+	var eventArgs *ListEntrySelectedEventArgs
+	var selectedEntry interface{}
+
+	list := newList(t,
+		ListOpts.Entries(entries),
+
+		ListOpts.EntryLabelFunc(func(e interface{}) string {
+			result, _ := e.(string)
+			return result
+		}),
+
+		ListOpts.EntrySelectedHandler(func(args *ListEntrySelectedEventArgs) {
+			eventArgs = args
+			selectedEntry = args.List.SelectedEntry()
+		}))
+
+	list.SetSelectedEntry(entries[1])
+	event.ExecuteDeferred()
+
+	is.Equal(eventArgs.List, list)
+	is.Equal(selectedEntry, entries[1])
+}
+
 func TestList_EntrySelectedEvent_User(t *testing.T) {
 	is := is.New(t)
 
@@ -197,6 +226,67 @@ func TestList_EntrySelectedEvent_User_AllowReselect(t *testing.T) {
 	is.Equal(list.SelectedEntry(), entries[1])
 
 	is.Equal(numEvents, 2)
+}
+
+func TestList_Entries_SortedOnCreate(t *testing.T) {
+	is := is.New(t)
+
+	list := newList(t,
+		ListOpts.Entries([]interface{}{"third", "first", "second"}),
+		ListOpts.EntrySortFunc(func(a, b any) int {
+			left := a.(string)
+			right := b.(string)
+			switch {
+			case left < right:
+				return -1
+			case left > right:
+				return 1
+			default:
+				return 0
+			}
+		}),
+		ListOpts.EntryLabelFunc(func(e interface{}) string {
+			return e.(string)
+		}),
+	)
+
+	is.Equal(list.Entries()[0], "first")
+	is.Equal(list.Entries()[1], "second")
+	is.Equal(list.Entries()[2], "third")
+	is.Equal(list.buttons[0].Text().Label, "first")
+	is.Equal(list.buttons[1].Text().Label, "second")
+	is.Equal(list.buttons[2].Text().Label, "third")
+}
+
+func TestList_AddEntry_ResortsAndReusesButtons(t *testing.T) {
+	is := is.New(t)
+
+	list := newList(t,
+		ListOpts.Entries([]interface{}{2, 4}),
+		ListOpts.EntrySortFunc(func(a, b any) int {
+			return a.(int) - b.(int)
+		}),
+		ListOpts.EntryLabelFunc(func(e interface{}) string {
+			return strconv.Itoa(e.(int))
+		}),
+	)
+
+	button2 := list.buttons[0]
+	button4 := list.buttons[1]
+
+	list.AddEntry(3)
+
+	is.Equal(list.Entries()[0], 2)
+	is.Equal(list.Entries()[1], 3)
+	is.Equal(list.Entries()[2], 4)
+	is.Equal(list.buttons[0], button2)
+	is.Equal(list.buttons[2], button4)
+	is.Equal(list.buttons[1].Text().Label, "3")
+
+	children := list.listContent.Children()
+	is.Equal(children[0], button2)
+	is.Equal(children[1], list.buttons[1])
+	is.Equal(children[2], button4)
 }
 
 func newList(t *testing.T, opts ...ListOpt) *List {

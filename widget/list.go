@@ -51,6 +51,7 @@ type List struct {
 
 	entries        []any
 	entryLabelFunc ListEntryLabelFunc
+	entrySortFunc  ListEntrySortFunc
 
 	init            *MultiOnce
 	container       *Container
@@ -75,6 +76,7 @@ type List struct {
 type ListOpt func(l *List)
 
 type ListEntryLabelFunc func(e any) string
+type ListEntrySortFunc func(a, b any) int
 
 type ListEntryColor struct {
 	Unselected                 color.Color
@@ -337,13 +339,20 @@ func (o ListOptions) HideVerticalSlider() ListOpt {
 
 func (o ListOptions) Entries(e []any) ListOpt {
 	return func(l *List) {
-		l.entries = slices.CompactFunc(e, func(a any, b any) bool { return a == b })
+		l.entries = l.normalizeEntries(e)
 	}
 }
 
 func (o ListOptions) EntryLabelFunc(f ListEntryLabelFunc) ListOpt {
 	return func(l *List) {
 		l.entryLabelFunc = f
+	}
+}
+
+func (o ListOptions) EntrySortFunc(f ListEntrySortFunc) ListOpt {
+	return func(l *List) {
+		l.entrySortFunc = f
+		l.entries = l.normalizeEntries(l.entries)
 	}
 }
 
@@ -710,27 +719,24 @@ func (l *List) initWidget() {
 // Updates the entries in the list.
 // Note: Duplicates will be removed.
 func (l *List) SetEntries(newEntries []any) {
-	// Remove old entries
-	for i := range l.entries {
-		but := l.buttons[i]
-		l.listContent.RemoveChild(but)
-	}
-	l.entries = nil
-	l.buttons = nil
-
-	// Add new Entries
-	for idx := range newEntries {
-		if !slices.ContainsFunc(l.entries, func(cmp any) bool {
-			return cmp == newEntries[idx]
-		}) {
-			l.entries = append(l.entries, newEntries[idx])
-			if l.validated {
-				but := l.createEntry(newEntries[idx])
-				l.buttons = append(l.buttons, but)
-				l.listContent.AddChild(but)
-			}
+	if l.validated {
+		for _, but := range l.buttons {
+			l.listContent.RemoveChild(but)
 		}
 	}
+
+	l.entries = l.normalizeEntries(newEntries)
+	l.buttons = nil
+
+	if l.validated {
+		l.buttons = make([]*Button, 0, len(l.entries))
+		for _, entry := range l.entries {
+			but := l.createEntry(entry)
+			l.buttons = append(l.buttons, but)
+			l.listContent.AddChild(but)
+		}
+	}
+
 	l.selectedEntry = nil
 	l.resetFocusIndex()
 }
@@ -788,11 +794,21 @@ func (l *List) RemoveEntry(entry any) {
 func (l *List) AddEntry(entry any) {
 	l.init.Do()
 	if !l.checkForDuplicates(l.entries, entry) {
-		l.entries = append(l.entries, entry)
-		if l.validated {
-			but := l.createEntry(entry)
-			l.buttons = append(l.buttons, but)
-			l.listContent.AddChild(but)
+		if l.entrySortFunc != nil {
+			index, _ := slices.BinarySearchFunc(l.entries, entry, l.entrySortFunc)
+			l.entries = slices.Insert(l.entries, index, entry)
+			if l.validated {
+				but := l.createEntry(entry)
+				l.buttons = slices.Insert(l.buttons, index, but)
+				l.insertListContentChild(index, but)
+			}
+		} else {
+			l.entries = append(l.entries, entry)
+			if l.validated {
+				but := l.createEntry(entry)
+				l.buttons = append(l.buttons, but)
+				l.listContent.AddChild(but)
+			}
 		}
 	}
 	l.resetFocusIndex()
@@ -827,6 +843,7 @@ func (l *List) setSelectedEntry(e any, user bool) {
 		}
 
 		l.EntrySelectedEvent.Fire(&ListEntrySelectedEventArgs{
+			List:          l,
 			Entry:         e,
 			PreviousEntry: prev,
 		})
@@ -850,6 +867,27 @@ func (l *List) checkForDuplicates(entries []any, entry any) bool {
 	return slices.ContainsFunc(entries, func(cmp any) bool {
 		return cmp == entry
 	})
+}
+
+func (l *List) normalizeEntries(entries []any) []any {
+	normalized := make([]any, 0, len(entries))
+	for _, entry := range entries {
+		if !l.checkForDuplicates(normalized, entry) {
+			normalized = append(normalized, entry)
+		}
+	}
+	if l.entrySortFunc != nil {
+		slices.SortStableFunc(normalized, l.entrySortFunc)
+	}
+	return normalized
+}
+
+func (l *List) insertListContentChild(index int, child PreferredSizeLocateableWidget) {
+	l.listContent.addChildInit(child)
+	l.listContent.children = slices.Insert(l.listContent.children, index, child)
+	l.listContent.RequestRelayout()
+	l.listContent.relayoutParent = true
+	l.listContent.closeEphemeralWindows = true
 }
 
 func (l *List) createEntry(entry any) *Button {
