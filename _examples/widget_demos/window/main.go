@@ -128,25 +128,95 @@ func createButton(ui *ebitenui.UI, win *widget.Window, label string, winPos imag
 			}
 		}),
 	)
+
 	return btn
 }
 func createWindow(ui *ebitenui.UI, label string) *widget.Window {
 	// load the font for the window title
 	titleFace, _ := loadFont(12)
 	face, _ := loadFont(20)
+	buttonImage, _ := loadButtonImage() // load button text font
 
 	// Create the contents of the window
 	windowContainer := widget.NewContainer(
-		widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255})),
+		//widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255})),
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
-	windowContainer.AddChild(widget.NewText(
-		widget.TextOpts.Text("Hello from "+label, &face, color.NRGBA{254, 255, 255, 255}),
-		widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
-			HorizontalPosition: widget.AnchorLayoutPositionCenter,
-			VerticalPosition:   widget.AnchorLayoutPositionCenter,
-		})),
-	))
+	wRL := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(e_image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255})),
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+		)),
+	)
+	btn1 := widget.NewButton(
+		// specify the images to use
+		widget.ButtonOpts.Image(buttonImage),
+
+		// specify the button's text, the font face, and the color
+		widget.ButtonOpts.Text("Open 1", &face, &widget.ButtonTextColor{
+			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
+		}),
+
+		// specify that the button's text needs some padding for correct display
+		widget.ButtonOpts.TextPadding(&widget.Insets{
+			Left:   30,
+			Right:  30,
+			Top:    5,
+			Bottom: 5,
+		}),
+	)
+	btn2 := widget.NewButton(
+		// specify the images to use
+		widget.ButtonOpts.Image(buttonImage),
+
+		// specify the button's text, the font face, and the color
+		widget.ButtonOpts.Text("Open 2222222222", &face, &widget.ButtonTextColor{
+			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
+		}),
+
+		// specify that the button's text needs some padding for correct display
+		widget.ButtonOpts.TextPadding(&widget.Insets{
+			Left:   30,
+			Right:  30,
+			Top:    5,
+			Bottom: 5,
+		}),
+	)
+	btn2.GetWidget().SetVisibility(widget.Visibility_Hide)
+	btn := widget.NewButton(
+		// specify the images to use
+		widget.ButtonOpts.Image(buttonImage),
+
+		// specify the button's text, the font face, and the color
+		widget.ButtonOpts.Text("Open "+label, &face, &widget.ButtonTextColor{
+			Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
+		}),
+
+		// specify that the button's text needs some padding for correct display
+		widget.ButtonOpts.TextPadding(&widget.Insets{
+			Left:   30,
+			Right:  30,
+			Top:    5,
+			Bottom: 5,
+		}),
+
+		// add a handler that reacts to clicking the button
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			if btn1.GetWidget().GetVisibility() == widget.Visibility_Show {
+				btn1.GetWidget().SetVisibility(widget.Visibility_Hide)
+				btn2.GetWidget().SetVisibility(widget.Visibility_Show)
+			} else {
+				btn1.GetWidget().SetVisibility(widget.Visibility_Show)
+				btn2.GetWidget().SetVisibility(widget.Visibility_Hide)
+			}
+		}),
+	)
+	wRL.AddChild(
+		btn1,
+		btn2,
+		btn,
+	)
+	windowContainer.AddChild(wRL)
 
 	// Create the titlebar for the window
 	titleContainer := widget.NewContainer(
@@ -177,11 +247,12 @@ func createWindow(ui *ebitenui.UI, label string) *widget.Window {
 		// Indicates that the window is draggable. It must have a TitleBar for this to work
 		widget.WindowOpts.Draggable(),
 		// Set the window resizeable
-		widget.WindowOpts.Resizeable(),
+		//widget.WindowOpts.Resizeable(),
 		// Set the minimum size the window can be
 		widget.WindowOpts.MinSize(200, 100),
 		// Set the maximum size a window can be
-		widget.WindowOpts.MaxSize(300, 300),
+		//widget.WindowOpts.MaxSize(300, 300),
+		widget.WindowOpts.Dynamic(),
 		// Set the callback that triggers when a move is complete
 		widget.WindowOpts.MoveHandler(func(args *widget.WindowChangedEventArgs) {
 			fmt.Println("Window Moved")
