@@ -816,6 +816,7 @@ func (l *List) setSelectedEntry(e any, user bool) {
 		}
 
 		l.EntrySelectedEvent.Fire(&ListEntrySelectedEventArgs{
+			List:          l,
 			Entry:         e,
 			PreviousEntry: prev,
 		})
