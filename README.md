@@ -33,11 +33,11 @@ Quick Start
 ------
 Ebiten UI is written in Go 1.19 which is available at [https://go.dev/](https://go.dev/).
 
-There are Ebiten UI examples that can be found in the `_examples/` folder. 
+There are Ebiten UI examples that can be found in the `_examples/` folder.
 
 They can be run from the root directory of the project with the following commands:
-* Ebiten UI complete demo: `go run github.com/ebitenui/ebitenui/_examples/demo`
-* Ebiten UI widget: `go run github.com/ebitenui/ebitenui/_examples/widget_demos/<folder_name>`
+* Ebiten UI complete demo: `go run github.com/ebitenui/ebitenui/_examples/demo@latest`
+* Ebiten UI widget: `go run github.com/ebitenui/ebitenui/_examples/widget_demos/<folder_name>@latest`
 
 The examples can also be tested as WASM by running the following commands and opening your browser to [http://localhost:6262](http://localhost:6262):
 * Ebiten UI complete demo: `go run github.com/hajimehoshi/wasmserve@latest -http=:6262 ./_examples/demo`
