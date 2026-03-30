@@ -207,6 +207,12 @@ func (t *ListComboButton) populateComputedParams() {
 		if t.definedParams.List.MinSize != nil {
 			params.List.MinSize = t.definedParams.List.MinSize
 		}
+		if t.definedParams.List.HideVerticalSlider {
+			params.List.HideVerticalSlider = true
+		}
+		if t.definedParams.List.HideHorizontalSlider {
+			params.List.HideHorizontalSlider = true
+		}
 	}
 	// Set defaults
 	if params.MaxContentHeight == nil {
@@ -397,6 +403,12 @@ func (l *ListComboButton) initWidget() {
 
 	l.list = NewList(ListOpts.HideHorizontalSlider(), ListOpts.Entries(l.entries), ListOpts.EntryLabelFunc(l.listLabelFunc))
 	l.list.definedParams = *l.computedParams.List
+	if l.computedParams.List.HideVerticalSlider {
+		l.list.hideVerticalSlider = true
+	}
+	if l.computedParams.List.HideHorizontalSlider {
+		l.list.hideHorizontalSlider = true
+	}
 	l.list.definedParams.DisableDefaultKeys = l.computedParams.DisableDefaultKeys
 	l.list.definedParams.AllowReselect = constantutil.ConstantToPointer(true)
 	l.list.GetWidget().parent = l.widget
