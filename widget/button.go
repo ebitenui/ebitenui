@@ -419,6 +419,7 @@ func (o ButtonOptions) TextPadding(p *Insets) ButtonOpt {
 func (o ButtonOptions) Graphic(image *GraphicImage) ButtonOpt {
 	return func(b *Button) {
 		b.definedParams.GraphicImage = image
+		b.autoUpdateTextAndGraphic = true
 	}
 }
 
@@ -684,14 +685,16 @@ func (b *Button) Render(screen *ebiten.Image) {
 			}
 
 		case b.hovering || b.focused:
-			if b.computedParams.TextColor.Hover != nil {
+			if b.text != nil && b.computedParams.TextColor != nil && b.computedParams.TextColor.Hover != nil {
 				b.text.SetColor(b.computedParams.TextColor.Hover)
 			}
 			if b.computedParams.GraphicImage != nil && b.computedParams.GraphicImage.Hover != nil {
 				b.graphic.Image = b.computedParams.GraphicImage.Hover
 			}
 		default:
-			b.text.SetColor(b.computedParams.TextColor.Idle)
+			if b.text != nil && b.computedParams.TextColor != nil {
+				b.text.SetColor(b.computedParams.TextColor.Idle)
+			}
 		}
 	}
 

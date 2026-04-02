@@ -224,6 +224,7 @@ func (d *DragAndDrop) draggingState(srcX int, srcY int, dragWidget *Container, d
 			d.window = NewWindow(
 				WindowOpts.CloseMode(NONE),
 				WindowOpts.Contents(dragWidget),
+				WindowOpts.BlockLower(false),
 			)
 			parent.GetWidget().FireDragAndDropEvent(d.window, true, d)
 		}
