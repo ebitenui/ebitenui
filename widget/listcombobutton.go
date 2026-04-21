@@ -402,6 +402,7 @@ func (l *ListComboButton) initWidget() {
 	l.list.GetWidget().parent = l.widget
 	l.list.Validate()
 	btnOpts := []ButtonOpt{
+		ButtonOpts.Graphic(l.computedParams.Button.GraphicImage),
 		ButtonOpts.Image(l.computedParams.Button.Image),
 		ButtonOpts.Text("", l.computedParams.Button.TextFace, l.computedParams.Button.TextColor),
 	}
