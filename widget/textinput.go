@@ -32,6 +32,7 @@ type TextInputParams struct {
 	SubmitOnEnter        *bool
 	ScrollSensitivity    *int
 	CaretWidth           *int
+	Multiline            *bool
 }
 
 type TextInput struct {
@@ -57,6 +58,7 @@ type TextInput struct {
 	cursorPosition        int
 	state                 textInputState
 	scrollOffset          int
+	scrollOffsetY         int
 	lastInputText         string
 	previousSubmittedText *string
 	dragStartIndex        int
@@ -111,6 +113,8 @@ const (
 	textInputDelete
 	textInputEnter
 	textInputEscape
+	textInputGoUp
+	textInputGoDown
 )
 
 var textInputKeyToCommand = map[ebiten.Key]textInputControlCommand{
@@ -123,6 +127,8 @@ var textInputKeyToCommand = map[ebiten.Key]textInputControlCommand{
 	ebiten.KeyEnter:       textInputEnter,
 	ebiten.KeyNumpadEnter: textInputEnter,
 	ebiten.KeyEscape:      textInputEscape,
+	ebiten.KeyArrowUp:     textInputGoUp,
+	ebiten.KeyArrowDown:   textInputGoDown,
 }
 
 func NewTextInput(opts ...TextInputOpt) *TextInput {
@@ -148,6 +154,8 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 	t.commandToFunc[textInputDelete] = t.Delete
 	t.commandToFunc[textInputEnter] = t.submitWithEnter
 	t.commandToFunc[textInputEscape] = t.DeselectText
+	t.commandToFunc[textInputGoUp] = t.CursorMoveUp
+	t.commandToFunc[textInputGoDown] = t.CursorMoveDown
 
 	t.init.Append(t.createWidget)
 
@@ -259,6 +267,9 @@ func (t *TextInput) populateComputedParams() {
 	if t.definedParams.CaretWidth != nil {
 		params.CaretWidth = t.definedParams.CaretWidth
 	}
+	if t.definedParams.Multiline != nil {
+		params.Multiline = t.definedParams.Multiline
+	}
 
 	// Set Default values
 	if params.Image == nil {
@@ -300,6 +311,9 @@ func (t *TextInput) populateComputedParams() {
 	if params.CaretWidth == nil {
 		width := 2
 		params.CaretWidth = &width
+	}
+	if params.Multiline == nil {
+		params.Multiline = &FALSE
 	}
 	if params.Color != nil && params.Color.Caret == nil {
 		params.Color.Caret = params.Color.Idle
@@ -416,6 +430,14 @@ func (o TextInputOptions) TabOrder(to int) TextInputOpt {
 func (o TextInputOptions) SubmitOnEnter(submitOnEnter bool) TextInputOpt {
 	return func(t *TextInput) {
 		t.definedParams.SubmitOnEnter = &submitOnEnter
+	}
+}
+
+// Multiline enables multi-line editing. Enter inserts a newline instead of submitting.
+// Arrow Up/Down navigate between lines.
+func (o TextInputOptions) Multiline(multiline bool) TextInputOpt {
+	return func(t *TextInput) {
+		t.definedParams.Multiline = &multiline
 	}
 }
 
@@ -552,7 +574,15 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 		if x > tr.Max.X {
 			x = tr.Max.X
 		}
-		if p.In(t.widget.Rect) {
+		if *t.computedParams.Multiline {
+			if p.In(t.widget.Rect) {
+				curIdx = t.multilineCursorFromPoint(x, y, tr)
+			} else if y < tr.Min.Y {
+				curIdx = 0
+			} else {
+				curIdx = len([]rune(t.inputText))
+			}
+		} else if p.In(t.widget.Rect) {
 			curIdx = fontStringIndex([]rune(t.inputText), t.computedParams.Face, x-t.scrollOffset-tr.Min.X)
 		} else {
 			if y < tr.Min.Y {
@@ -561,8 +591,6 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 				curIdx = len([]rune(t.inputText))
 			}
 		}
-		textSize := tr.Dx() - fontAdvance(t.inputText, t.computedParams.Face)
-
 		if input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, t.widget.EffectiveInputLayer()) {
 			t.dragStartIndex = curIdx
 			t.cursorPosition = curIdx
@@ -571,10 +599,13 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 				t.dragStartIndex = curIdx
 			}
 			t.cursorPosition = curIdx
-			if t.scrollOffset < 0 && x < t.widget.Rect.Min.X+*t.computedParams.ScrollSensitivity {
-				t.scrollOffset = min(0, t.scrollOffset+1)
-			} else if t.scrollOffset > textSize && x > t.widget.Rect.Max.X-*t.computedParams.ScrollSensitivity {
-				t.scrollOffset = max(t.scrollOffset-1, textSize)
+			if !*t.computedParams.Multiline {
+				textSize := tr.Dx() - fontAdvance(t.inputText, t.computedParams.Face)
+				if t.scrollOffset < 0 && x < t.widget.Rect.Min.X+*t.computedParams.ScrollSensitivity {
+					t.scrollOffset = min(0, t.scrollOffset+1)
+				} else if t.scrollOffset > textSize && x > t.widget.Rect.Max.X-*t.computedParams.ScrollSensitivity {
+					t.scrollOffset = max(t.scrollOffset-1, textSize)
+				}
 			}
 		}
 
@@ -599,6 +630,11 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 func textInputCheckForCommand(t *TextInput, newKeyOrCommand bool) textInputState {
 	for key, cmd := range textInputKeyToCommand {
 		if !input.KeyPressed(key) {
+			continue
+		}
+
+		// Up/Down arrows are only used in multiline mode
+		if !*t.computedParams.Multiline && (cmd == textInputGoUp || cmd == textInputGoDown) {
 			continue
 		}
 
@@ -698,14 +734,80 @@ func (t *TextInput) CursorMoveRight() {
 
 func (t *TextInput) CursorMoveStart() {
 	t.init.Do()
-	t.cursorPosition = 0
+	if t.computedParams.Multiline != nil && *t.computedParams.Multiline {
+		maxWidth := t.contentWidth()
+		wlines := wrapText(t.inputText, t.computedParams.Face, maxWidth)
+		vLine, _ := cursorToWrappedLineCol(wlines, t.cursorPosition)
+		t.cursorPosition = wlines[vLine].startRune
+	} else {
+		t.cursorPosition = 0
+	}
 	t.caret.ResetBlinking()
 }
 
 func (t *TextInput) CursorMoveEnd() {
 	t.init.Do()
-	t.cursorPosition = len([]rune(t.inputText))
+	if t.computedParams.Multiline != nil && *t.computedParams.Multiline {
+		maxWidth := t.contentWidth()
+		wlines := wrapText(t.inputText, t.computedParams.Face, maxWidth)
+		vLine, _ := cursorToWrappedLineCol(wlines, t.cursorPosition)
+		t.cursorPosition = wlines[vLine].startRune + len([]rune(wlines[vLine].text))
+	} else {
+		t.cursorPosition = len([]rune(t.inputText))
+	}
 	t.caret.ResetBlinking()
+}
+
+func (t *TextInput) CursorMoveUp() {
+	t.init.Do()
+	if !*t.computedParams.Multiline {
+		return
+	}
+	maxWidth := t.contentWidth()
+	wlines := wrapText(t.inputText, t.computedParams.Face, maxWidth)
+	vLine, vCol := cursorToWrappedLineCol(wlines, t.cursorPosition)
+	if vLine > 0 {
+		prevLineRunes := len([]rune(wlines[vLine-1].text))
+		col := vCol
+		if col > prevLineRunes {
+			col = prevLineRunes
+		}
+		t.cursorPosition = wlines[vLine-1].startRune + col
+	}
+	t.caret.ResetBlinking()
+}
+
+func (t *TextInput) CursorMoveDown() {
+	t.init.Do()
+	if !*t.computedParams.Multiline {
+		return
+	}
+	maxWidth := t.contentWidth()
+	wlines := wrapText(t.inputText, t.computedParams.Face, maxWidth)
+	vLine, vCol := cursorToWrappedLineCol(wlines, t.cursorPosition)
+	if vLine < len(wlines)-1 {
+		nextLineRunes := len([]rune(wlines[vLine+1].text))
+		col := vCol
+		if col > nextLineRunes {
+			col = nextLineRunes
+		}
+		t.cursorPosition = wlines[vLine+1].startRune + col
+	}
+	t.caret.ResetBlinking()
+}
+
+// contentWidth returns the available pixel width for text content (widget width minus padding).
+func (t *TextInput) contentWidth() int {
+	if t.widget == nil {
+		return 0
+	}
+	return t.widget.Rect.Dx() - t.computedParams.Padding.Left - t.computedParams.Padding.Right
+}
+
+// multilineLineHeight returns the pixel height of one line for the given face.
+func multilineLineHeight(f *text.Face) float64 {
+	_, h := text.Measure(" ", *f, 0)
+	return h
 }
 
 func (t *TextInput) Backspace() {
@@ -736,6 +838,12 @@ func (t *TextInput) Delete() {
 }
 
 func (t *TextInput) submitWithEnter() {
+	if *t.computedParams.Multiline {
+		if !t.widget.Disabled {
+			t.Insert("\n")
+		}
+		return
+	}
 	if *t.computedParams.SubmitOnEnter {
 		t.Submit()
 	}
@@ -848,6 +956,11 @@ func (t *TextInput) renderTextAndCaret(screen *ebiten.Image) {
 }
 
 func (t *TextInput) drawTextAndCaret(screen *ebiten.Image) {
+	if *t.computedParams.Multiline {
+		t.drawTextAndCaretMultiline(screen)
+		return
+	}
+
 	rect := t.widget.Rect
 	tr := rect
 	tr = tr.Add(img.Point{t.computedParams.Padding.Left, t.computedParams.Padding.Top})
@@ -913,6 +1026,224 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image) {
 
 		t.caret.Render(screen)
 	}
+}
+
+// wrappedLine represents a visual line after word wrapping.
+// startRune is the index into []rune(inputText) where this visual line starts.
+type wrappedLine struct {
+	text      string
+	startRune int
+}
+
+// wrapText splits the input text into visual lines that fit within maxWidth pixels.
+// Hard newlines (\n) always cause a line break.
+func wrapText(s string, face *text.Face, maxWidth int) []wrappedLine {
+	if maxWidth <= 0 {
+		// Fallback: no wrapping, just split on newlines
+		var result []wrappedLine
+		pos := 0
+		for _, line := range strings.Split(s, "\n") {
+			result = append(result, wrappedLine{text: line, startRune: pos})
+			pos += len([]rune(line)) + 1 // +1 for the \n
+		}
+		return result
+	}
+
+	runes := []rune(s)
+	var result []wrappedLine
+	lineStart := 0
+
+	for lineStart <= len(runes) {
+		// Find the end of the current logical line (up to next \n or end)
+		lineEnd := len(runes)
+		for i := lineStart; i < len(runes); i++ {
+			if runes[i] == '\n' {
+				lineEnd = i
+				break
+			}
+		}
+
+		// Wrap this logical line segment into visual lines
+		segStart := lineStart
+		for segStart <= lineEnd {
+			if segStart == lineEnd {
+				// Only add an empty visual line if this is a truly empty logical line
+				// (e.g. from \n\n or trailing \n), not when we just finished wrapping.
+				if segStart == lineStart {
+					result = append(result, wrappedLine{text: "", startRune: segStart})
+				}
+				break
+			}
+
+			// Find how many runes fit in maxWidth
+			fitEnd := segStart
+			for fitEnd < lineEnd {
+				w := fontAdvance(string(runes[segStart:fitEnd+1]), face)
+				if w > maxWidth {
+					break
+				}
+				fitEnd++
+			}
+
+			if fitEnd == segStart {
+				// At least one character per visual line
+				fitEnd = segStart + 1
+			}
+
+			// Try to break at a word boundary (space) if we didn't reach lineEnd
+			if fitEnd < lineEnd {
+				// Search backwards for a space to break at
+				breakAt := fitEnd
+				for breakAt > segStart {
+					if runes[breakAt-1] == ' ' {
+						break
+					}
+					breakAt--
+				}
+				if breakAt > segStart {
+					fitEnd = breakAt
+				}
+			}
+
+			result = append(result, wrappedLine{text: string(runes[segStart:fitEnd]), startRune: segStart})
+			segStart = fitEnd
+		}
+
+		lineStart = lineEnd + 1 // skip the \n
+	}
+
+	if len(result) == 0 {
+		result = append(result, wrappedLine{text: "", startRune: 0})
+	}
+	return result
+}
+
+// cursorToWrappedLineCol finds which visual line the cursor is on and the column within it.
+func cursorToWrappedLineCol(wlines []wrappedLine, cursor int) (int, int) {
+	for i := len(wlines) - 1; i >= 0; i-- {
+		if cursor >= wlines[i].startRune {
+			col := cursor - wlines[i].startRune
+			lineRunes := len([]rune(wlines[i].text))
+			if col > lineRunes {
+				col = lineRunes
+			}
+			return i, col
+		}
+	}
+	return 0, 0
+}
+
+func (t *TextInput) drawTextAndCaretMultiline(screen *ebiten.Image) {
+	rect := t.widget.Rect
+	tr := rect
+	tr = tr.Add(img.Point{t.computedParams.Padding.Left, t.computedParams.Padding.Top})
+
+	lineH := int(math.Round(multilineLineHeight(t.computedParams.Face)))
+	maxWidth := t.contentWidth()
+	wlines := wrapText(t.inputText, t.computedParams.Face, maxWidth)
+	vLine, vCol := cursorToWrappedLineCol(wlines, t.cursorPosition)
+
+	// Cursor pixel position within content
+	var cx int
+	if vLine < len(wlines) {
+		lineRunes := []rune(wlines[vLine].text)
+		if vCol > len(lineRunes) {
+			vCol = len(lineRunes)
+		}
+		cx = fontAdvance(string(lineRunes[:vCol]), t.computedParams.Face)
+	}
+	cy := vLine * lineH
+
+	// Vertical scroll to keep cursor visible
+	visibleH := rect.Dy() - t.computedParams.Padding.Top - t.computedParams.Padding.Bottom
+	if cy+lineH > -t.scrollOffsetY+visibleH {
+		t.scrollOffsetY = -(cy + lineH - visibleH)
+	}
+	if cy < -t.scrollOffsetY {
+		t.scrollOffsetY = -cy
+	}
+
+	// Determine display text and color
+	textColor := t.computedParams.Color.Idle
+	displayLines := wlines
+	if (t.widget.Disabled || len(t.inputText) == 0) && t.computedParams.Color.Disabled != nil {
+		textColor = t.computedParams.Color.Disabled
+	}
+	if len(t.inputText) == 0 {
+		displayLines = []wrappedLine{{text: t.placeholderText, startRune: 0}}
+	}
+
+	// Render selection highlight
+	if t.focused && t.dragStartIndex != -1 {
+		selStart := min(t.dragStartIndex, t.cursorPosition)
+		selEnd := max(t.dragStartIndex, t.cursorPosition)
+		startLine, startCol := cursorToWrappedLineCol(wlines, selStart)
+		endLine, endCol := cursorToWrappedLineCol(wlines, selEnd)
+
+		for i := startLine; i <= endLine; i++ {
+			lineRunes := []rune(wlines[i].text)
+			var hlX0, hlX1 int
+			if i == startLine {
+				hlX0 = fontAdvance(string(lineRunes[:startCol]), t.computedParams.Face)
+			}
+			if i == endLine {
+				if endCol > len(lineRunes) {
+					endCol = len(lineRunes)
+				}
+				hlX1 = fontAdvance(string(lineRunes[:endCol]), t.computedParams.Face)
+			} else {
+				hlX1 = fontAdvance(string(lineRunes), t.computedParams.Face)
+			}
+			if hlW := hlX1 - hlX0; hlW > 0 {
+				ly := i*lineH + t.scrollOffsetY
+				t.computedParams.Image.Highlight.Draw(screen, hlW, lineH,
+					func(opts *ebiten.DrawImageOptions) {
+						opts.GeoM.Translate(float64(tr.Min.X+hlX0), float64(tr.Min.Y+ly))
+					})
+			}
+		}
+	}
+
+	// Render each visual line
+	for i, wl := range displayLines {
+		ly := float64(tr.Min.Y) + float64(i*lineH) + float64(t.scrollOffsetY)
+		op := &text.DrawOptions{}
+		op.GeoM.Translate(float64(tr.Min.X), ly)
+		op.ColorScale.ScaleWithColor(textColor)
+		text.Draw(screen, wl.text, *t.computedParams.Face, op)
+	}
+
+	// Render caret
+	if t.focused {
+		if t.widget.Disabled && t.computedParams.Color.DisabledCaret != nil {
+			t.caret.Color = t.computedParams.Color.DisabledCaret
+		} else {
+			t.caret.Color = t.computedParams.Color.Caret
+		}
+
+		caretRect := tr
+		caretRect = caretRect.Add(img.Point{cx, cy + t.scrollOffsetY})
+		t.caret.SetLocation(caretRect)
+		t.caret.Render(screen)
+	}
+}
+
+func (t *TextInput) multilineCursorFromPoint(x, y int, tr img.Rectangle) int {
+	lineH := int(math.Round(multilineLineHeight(t.computedParams.Face)))
+	if lineH <= 0 {
+		lineH = 1
+	}
+	maxWidth := t.contentWidth()
+	wlines := wrapText(t.inputText, t.computedParams.Face, maxWidth)
+	clickLine := (y - tr.Min.Y - t.scrollOffsetY) / lineH
+	if clickLine < 0 {
+		clickLine = 0
+	}
+	if clickLine >= len(wlines) {
+		clickLine = len(wlines) - 1
+	}
+	col := fontStringIndex([]rune(wlines[clickLine].text), t.computedParams.Face, x-tr.Min.X)
+	return wlines[clickLine].startRune + col
 }
 
 func (t *TextInput) GetText() string {
