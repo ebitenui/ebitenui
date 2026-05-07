@@ -341,6 +341,8 @@ func main() {
 			secureTextInput.SetText("This is a test")
 			// This will show the text as is
 			game.standardTextInput.SetText("This is a test")
+			// This will show multi line text
+			multilineTextInput.SetText("Line one\nLine two\nLine three")
 		}),
 	)
 

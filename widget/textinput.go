@@ -633,9 +633,13 @@ func textInputCheckForCommand(t *TextInput, newKeyOrCommand bool) textInputState
 			continue
 		}
 
-		// Up/Down arrows are only used in multiline mode
-		if !*t.computedParams.Multiline && (cmd == textInputGoUp || cmd == textInputGoDown) {
-			continue
+		// In single-line mode, Up moves to start and Down moves to end
+		if !*t.computedParams.Multiline {
+			if cmd == textInputGoUp {
+				cmd = textInputGoStart
+			} else if cmd == textInputGoDown {
+				cmd = textInputGoEnd
+			}
 		}
 
 		var delay time.Duration
