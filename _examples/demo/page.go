@@ -3,9 +3,12 @@ package main
 import (
 	"fmt"
 	"image"
+	"image/color"
+	"math"
 	"time"
 
 	"github.com/ebitenui/ebitenui"
+	euiimage "github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/widget"
 )
@@ -13,6 +16,132 @@ import (
 type page struct {
 	title   string
 	content widget.PreferredSizeLocateableWidget
+}
+
+func scrollPage(res *uiResources) *page {
+	c := newPageContentContainer()
+
+	// construct a new container that serves as the root of the UI hierarchy
+	rootContainer := widget.NewContainer(
+		// the container will use a plain color as its background
+		widget.ContainerOpts.BackgroundImage(euiimage.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
+
+		// the container will use an grid layout to layout its ScrollableContainer and Slider
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			widget.GridLayoutOpts.Columns(2),
+			widget.GridLayoutOpts.Spacing(2, 0),
+			widget.GridLayoutOpts.Stretch([]bool{true, false}, []bool{true}),
+		)),
+	)
+
+	// Create the container with the content that should be scrolled
+	content := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewRowLayout(
+		widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+		widget.RowLayoutOpts.Spacing(20),
+		widget.RowLayoutOpts.Padding(&widget.Insets{Top: 10, Bottom: 10}),
+	)))
+
+	// Add 20 buttons to the scrollable content container
+	for x := 0; x < 20; x++ {
+		// Capture x for use in callback
+		x := x
+		// construct a button
+		button := widget.NewButton(
+			// set general widget options
+			widget.ButtonOpts.WidgetOpts(
+				// instruct the container's anchor layout to center the button both horizontally and vertically
+				widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+					Position: widget.RowLayoutPositionCenter,
+				}),
+			),
+
+			// specify the images to use
+			widget.ButtonOpts.Image(&widget.ButtonImage{
+				Idle:    euiimage.NewNineSliceColor(color.NRGBA{R: 170, G: 170, B: 180, A: 255}),
+				Hover:   euiimage.NewNineSliceColor(color.NRGBA{R: 130, G: 130, B: 150, A: 255}),
+				Pressed: euiimage.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 120, A: 255}),
+			}),
+
+			// specify the button's text, the font face, and the color
+			widget.ButtonOpts.Text(fmt.Sprintf("Hello, World! - %d", x), res.button.face, &widget.ButtonTextColor{
+				Idle: color.NRGBA{0xdf, 0xf4, 0xff, 0xff},
+			}),
+
+			// specify that the button's text needs some padding for correct display
+			widget.ButtonOpts.TextPadding(&widget.Insets{
+				Left:   30,
+				Right:  30,
+				Top:    5,
+				Bottom: 5,
+			}),
+
+			// add a handler that reacts to clicking the button
+			widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+				println(fmt.Sprintf("Button %d Clicked!", x))
+			}),
+		)
+
+		// add the button as a child of the container
+		content.AddChild(button)
+	}
+
+	// Create the new ScrollContainer object
+	scrollContainer := widget.NewScrollContainer(
+		// Set the content that will be scrolled
+		widget.ScrollContainerOpts.Content(content),
+		// Tell the container to stretch the content width to match available space
+		widget.ScrollContainerOpts.StretchContentWidth(),
+		// Set the background images for the scrollable container
+		widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
+			Idle: euiimage.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff}),
+			Mask: euiimage.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff}),
+		}),
+	)
+	// Add the scrollable container to the left side of the window
+	rootContainer.AddChild(scrollContainer)
+
+	// Create a function to return the page size used by the slider
+	pageSizeFunc := func() int {
+		return int(math.Round(float64(scrollContainer.ViewRect().Dy())/float64(content.GetWidget().Rect.Dy())*1000) / 3)
+	}
+	// Create a vertical Slider bar to control the ScrollableContainer
+	vSlider := widget.NewSlider(
+		widget.SliderOpts.Orientation(widget.DirectionVertical),
+		widget.SliderOpts.MinMax(0, 1000),
+		widget.SliderOpts.PageSizeFunc(pageSizeFunc),
+		// On change update scroll location based on the Slider's value
+		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
+			scrollContainer.ScrollTop = float64(args.Slider.Current) / 1000
+		}),
+		widget.SliderOpts.Images(
+			// Set the track images
+			&widget.SliderTrackImage{
+				Idle:  euiimage.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+				Hover: euiimage.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+			},
+			// Set the handle images
+			&widget.ButtonImage{
+				Idle:    euiimage.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}),
+				Hover:   euiimage.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}),
+				Pressed: euiimage.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}),
+			},
+		),
+	)
+	// Set the slider's position if the scrollContainer is scrolled by other means than the slider
+	scrollContainer.GetWidget().ScrolledEvent.AddHandler(func(args interface{}) {
+		if a, ok := args.(*widget.WidgetScrolledEventArgs); ok {
+			vSlider.Current -= int(math.Round(a.Y * float64(pageSizeFunc())))
+		}
+	})
+
+	// Add the slider to the second slot in the root container
+	rootContainer.AddChild(vSlider)
+	c.AddChild(rootContainer)
+
+	return &page{
+		title:   "Scroll Container",
+		content: c,
+	}
 }
 
 func buttonPage(res *uiResources) *page {
