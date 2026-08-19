@@ -270,6 +270,40 @@ func main() {
 	allCapsTextInput.SetText("Hello World")
 	rootContainer.AddChild(allCapsTextInput)
 
+	// construct a multiline textinput widget
+	multilineTextInput := widget.NewTextInput(
+		widget.TextInputOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Position: widget.RowLayoutPositionCenter,
+				Stretch:  true,
+			}),
+			// Set a taller minimum height so multiple lines are visible
+			widget.WidgetOpts.MinSize(0, 80),
+		),
+		widget.TextInputOpts.Image(&widget.TextInputImage{
+			Idle:     image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
+			Disabled: image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
+		}),
+		widget.TextInputOpts.Face(&face),
+		widget.TextInputOpts.Color(&widget.TextInputColor{
+			Idle:          color.NRGBA{254, 255, 255, 255},
+			Disabled:      color.NRGBA{R: 200, G: 200, B: 200, A: 255},
+			Caret:         color.NRGBA{254, 255, 255, 255},
+			DisabledCaret: color.NRGBA{R: 200, G: 200, B: 200, A: 255},
+		}),
+		widget.TextInputOpts.Padding(widget.NewInsetsSimple(5)),
+		widget.TextInputOpts.Placeholder("Multiline Textbox"),
+
+		// Enable multiline mode: Enter inserts a newline, text wraps at the widget edge,
+		// and Up/Down arrow keys navigate between lines.
+		widget.TextInputOpts.Multiline(true),
+
+		widget.TextInputOpts.ChangedHandler(func(args *widget.TextInputChangedEventArgs) {
+			fmt.Println("Multiline Text Changed: ", args.InputText)
+		}),
+	)
+	rootContainer.AddChild(multilineTextInput)
+
 	// construct a button
 	button := widget.NewButton(
 		// set general widget options
@@ -307,6 +341,8 @@ func main() {
 			secureTextInput.SetText("This is a test")
 			// This will show the text as is
 			game.standardTextInput.SetText("This is a test")
+			// This will show multi line text
+			multilineTextInput.SetText("Line one\nLine two\nLine three")
 		}),
 	)
 
