@@ -174,6 +174,9 @@ func (t *Text) populateComputedParams() {
 	if t.definedParams.Position != nil {
 		txtParams.Position = t.definedParams.Position
 	}
+	if t.definedParams.LinkColor != nil {
+		txtParams.LinkColor = t.definedParams.LinkColor
+	}
 
 	if txtParams.Padding == nil {
 		txtParams.Padding = &Insets{}
