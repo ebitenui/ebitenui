@@ -833,7 +833,7 @@ func (t *TextInput) renderImage(screen *ebiten.Image) {
 }
 
 func (t *TextInput) renderTextAndCaret(screen *ebiten.Image) {
-	t.renderBuf.Draw(screen,
+	t.renderBuf.DrawTextInput(screen,
 		func(buf *ebiten.Image) {
 			t.drawTextAndCaret(buf)
 		},
@@ -841,14 +841,24 @@ func (t *TextInput) renderTextAndCaret(screen *ebiten.Image) {
 			rect := t.widget.Rect
 			t.mask.Draw(buf, rect.Dx()-t.computedParams.Padding.Left-t.computedParams.Padding.Right, rect.Dy()-t.computedParams.Padding.Top-t.computedParams.Padding.Bottom,
 				func(opts *ebiten.DrawImageOptions) {
-					opts.GeoM.Translate(float64(rect.Min.X+t.computedParams.Padding.Left), float64(rect.Min.Y+t.computedParams.Padding.Top))
+					opts.GeoM.Translate(float64(t.computedParams.Padding.Left), float64(t.computedParams.Padding.Top))
 					opts.CompositeMode = ebiten.CompositeModeCopy
 				})
-		})
+		},
+		t.widget.Rect,
+	)
 }
 
 func (t *TextInput) drawTextAndCaret(screen *ebiten.Image) {
 	rect := t.widget.Rect
+
+	// rebuild origin at 0,0, so we can just apply translate to image instead of using
+	// mask buffer image of screen size, only initial input size
+	rect.Max.X -= rect.Min.X
+	rect.Min.X = 0
+	rect.Max.Y -= rect.Min.Y
+	rect.Min.Y = 0
+
 	tr := rect
 	tr = tr.Add(img.Point{t.computedParams.Padding.Left, t.computedParams.Padding.Top})
 

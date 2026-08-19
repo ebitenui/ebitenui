@@ -1,6 +1,10 @@
 package image
 
-import "github.com/hajimehoshi/ebiten/v2"
+import (
+	img "image"
+
+	"github.com/hajimehoshi/ebiten/v2"
+)
 
 // BufferedImage is a wrapper for an Ebiten Image that helps with caching the Image.
 // As long as Width and Height stay the same, no new Image will be created.
@@ -64,4 +68,41 @@ func (m *MaskedRenderBuffer) Draw(screen *ebiten.Image, d DrawFunc, dm DrawFunc)
 	})
 
 	screen.DrawImage(maskedBuf, nil)
+}
+
+// Draw calls d to draw onto screen, using the mask drawn by dm. The buffer images passed
+// to d and dm are of the same size as screen.
+func (m *MaskedRenderBuffer) DrawTextInput(screen *ebiten.Image, d, dm DrawFunc, rect img.Rectangle) {
+
+	// uses width and height of original input to apply mask
+	// this keeps drawn image at size of input instead of size of screen,
+	// which can be significantly larger
+	// then a translation is applied to move input sized renderBuf to proper location
+
+	x := float64(rect.Min.X)
+	y := float64(rect.Min.Y)
+	w := rect.Dx()
+	h := rect.Dy()
+
+	m.renderBuf.Width, m.renderBuf.Height = w, h
+	renderBuf := m.renderBuf.Image()
+	renderBuf.Clear()
+
+	m.maskedBuf.Width, m.maskedBuf.Height = w, h
+	maskedBuf := m.maskedBuf.Image()
+	maskedBuf.Clear()
+
+	d(renderBuf)
+	dm(maskedBuf)
+
+	maskedBuf.DrawImage(renderBuf, &ebiten.DrawImageOptions{
+		CompositeMode: ebiten.CompositeModeSourceIn,
+	})
+
+	g := ebiten.GeoM{}
+	g.Translate(x, y)
+
+	screen.DrawImage(maskedBuf, &ebiten.DrawImageOptions{
+		GeoM: g,
+	})
 }
