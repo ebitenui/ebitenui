@@ -767,7 +767,8 @@ func (t *TextInput) SelectedText() string {
 		start := min(t.dragStartIndex, t.cursorPosition)
 		end := max(t.dragStartIndex, t.cursorPosition)
 
-		return strings.Clone(t.inputText)[start:end]
+		runes := []rune(t.inputText)
+		return string(runes[start:end])
 	}
 	return ""
 }
@@ -793,7 +794,12 @@ func (t *TextInput) DeleteSelectedText() {
 	if t.dragStartIndex != -1 {
 		start := min(t.dragStartIndex, t.cursorPosition)
 		end := max(t.dragStartIndex, t.cursorPosition)
-		t.inputText = strings.Replace(t.inputText, t.inputText[start:end], "", 1)
+
+		runes := []rune(t.inputText)
+		kept := make([]rune, 0, len(runes)-(end-start))
+		kept = append(kept, runes[:start]...)
+		kept = append(kept, runes[end:]...)
+		t.inputText = string(kept)
 		if t.cursorPosition > t.dragStartIndex {
 			t.cursorPosition -= (end - start)
 		}
