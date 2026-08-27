@@ -46,6 +46,14 @@ type TextInput struct {
 	placeholderText string
 	mobileInputMode mobile.InputMode
 
+	PressedEvent       *event.Event
+	ReleasedEvent      *event.Event
+	ClickedEvent       *event.Event
+	CursorEnteredEvent *event.Event
+	CursorMovedEvent   *event.Event
+	CursorExitedEvent  *event.Event
+	StateChangedEvent  *event.Event
+
 	widgetOpts            []WidgetOpt
 	init                  *MultiOnce
 	commandToFunc         map[textInputControlCommand]textInputCommandFunc
@@ -61,6 +69,9 @@ type TextInput struct {
 	previousSubmittedText *string
 	dragStartIndex        int
 
+	hovering          bool
+	pressing          bool
+
 	tabOrder int
 	focused  bool
 	focusMap map[FocusDirection]Focuser
@@ -71,18 +82,16 @@ type TextInputOpt func(t *TextInput)
 type TextInputOptions struct {
 }
 
-type TextInputChangedEventArgs struct {
-	TextInput *TextInput
-	InputText string
-}
-
-type TextInputChangedHandlerFunc func(args *TextInputChangedEventArgs)
-
 type TextInputImage struct {
 	Idle     *image.NineSlice
 	Disabled *image.NineSlice
 	// Highlight defaults to image.NewNineSliceColor(color.NRGBA{6, 67, 161, 100}).
 	Highlight *image.NineSlice
+
+	Hover *image.NineSlice
+	Pressed         *image.NineSlice
+	PressedHover    *image.NineSlice
+	PressedDisabled *image.NineSlice
 }
 
 type TextInputColor struct {
@@ -90,7 +99,54 @@ type TextInputColor struct {
 	Disabled      color.Color
 	Caret         color.Color
 	DisabledCaret color.Color
+	Hover    color.Color
+	Pressed  color.Color
 }
+
+type TextInputPressedEventArgs struct {
+	TextInput  *TextInput
+	OffsetX int
+	OffsetY int
+}
+
+type TextInputReleasedEventArgs struct {
+	TextInput  *TextInput
+	Inside  bool
+	OffsetX int
+	OffsetY int
+}
+
+type TextInputClickedEventArgs struct {
+	TextInput  *TextInput
+	OffsetX int
+	OffsetY int
+}
+
+type TextInputHoverEventArgs struct {
+	TextInput  *TextInput
+	Entered bool
+	OffsetX int
+	OffsetY int
+	DiffX   int
+	DiffY   int
+}
+
+type TextInputChangedEventArgs struct {
+	TextInput  *TextInput
+	InputText string
+	OffsetX int
+	OffsetY int
+}
+
+type TextInputPressedHandlerFunc func(args *TextInputPressedEventArgs)
+
+type TextInputReleasedHandlerFunc func(args *TextInputReleasedEventArgs)
+
+type TextInputClickedHandlerFunc func(args *TextInputClickedEventArgs)
+
+type TextInputCursorHoverHandlerFunc func(args *TextInputHoverEventArgs)
+
+type TextInputChangedHandlerFunc func(args *TextInputChangedEventArgs)
 
 type TextInputValidationFunc func(newInputText string) (bool, *string)
 
@@ -127,6 +183,14 @@ var textInputKeyToCommand = map[ebiten.Key]textInputControlCommand{
 
 func NewTextInput(opts ...TextInputOpt) *TextInput {
 	t := &TextInput{
+		PressedEvent:       &event.Event{},
+		ReleasedEvent:      &event.Event{},
+		ClickedEvent:       &event.Event{},
+		CursorEnteredEvent: &event.Event{},
+		CursorMovedEvent:   &event.Event{},
+		CursorExitedEvent:  &event.Event{},
+		StateChangedEvent:  &event.Event{},
+
 		ChangedEvent: &event.Event{},
 		SubmitEvent:  &event.Event{},
 
@@ -192,6 +256,8 @@ func (t *TextInput) populateComputedParams() {
 				params.Color.Disabled = theme.TextInputTheme.Color.Disabled
 				params.Color.Caret = theme.TextInputTheme.Color.Caret
 				params.Color.DisabledCaret = theme.TextInputTheme.Color.DisabledCaret
+				params.Color.Hover = theme.TextInputTheme.Color.Hover
+				params.Color.Pressed = theme.TextInputTheme.Color.Pressed
 			}
 			if theme.TextInputTheme.Face != nil {
 				params.Face = theme.TextInputTheme.Face
@@ -203,6 +269,10 @@ func (t *TextInput) populateComputedParams() {
 				params.Image.Idle = theme.TextInputTheme.Image.Idle
 				params.Image.Disabled = theme.TextInputTheme.Image.Disabled
 				params.Image.Highlight = theme.TextInputTheme.Image.Highlight
+				params.Image.Hover = theme.TextInputTheme.Image.Hover
+				params.Image.Pressed = theme.TextInputTheme.Image.Pressed
+				params.Image.PressedDisabled = theme.TextInputTheme.Image.PressedDisabled
+				params.Image.PressedHover = theme.TextInputTheme.Image.PressedHover
 			}
 			params.Padding = theme.TextInputTheme.Padding
 			params.RepeatDelay = theme.TextInputTheme.RepeatDelay
@@ -222,10 +292,12 @@ func (t *TextInput) populateComputedParams() {
 		params.ClearOnSubmit = t.definedParams.ClearOnSubmit
 	}
 	if t.definedParams.Color != nil {
-		params.Color.Idle = t.definedParams.Color.Idle
+		params.Color.Idle     = t.definedParams.Color.Idle
 		params.Color.Disabled = t.definedParams.Color.Disabled
-		params.Color.Caret = t.definedParams.Color.Caret
+		params.Color.Caret    = t.definedParams.Color.Caret
 		params.Color.DisabledCaret = t.definedParams.Color.DisabledCaret
+		params.Color.Hover   = t.definedParams.Color.Hover
+		params.Color.Pressed = t.definedParams.Color.Pressed
 	}
 	if t.definedParams.Face != nil {
 		params.Face = t.definedParams.Face
@@ -237,6 +309,10 @@ func (t *TextInput) populateComputedParams() {
 		params.Image.Idle = t.definedParams.Image.Idle
 		params.Image.Disabled = t.definedParams.Image.Disabled
 		params.Image.Highlight = t.definedParams.Image.Highlight
+		params.Image.Pressed = t.definedParams.Image.Pressed
+		params.Image.PressedDisabled = t.definedParams.Image.PressedDisabled
+		params.Image.PressedHover = t.definedParams.Image.PressedHover
+		params.Image.Hover = t.definedParams.Image.Hover
 	}
 	if t.definedParams.Padding != nil {
 		params.Padding = t.definedParams.Padding
@@ -403,6 +479,76 @@ func (o TextInputOptions) Secure(b bool) TextInputOpt {
 func (o TextInputOptions) CaretWidth(caretWidth int) TextInputOpt {
 	return func(t *TextInput) {
 		t.definedParams.CaretWidth = &caretWidth
+	}
+}
+
+func (o TextInputOptions) PressedHandler(f TextInputPressedHandlerFunc) TextInputOpt {
+	return func(b *TextInput) {
+		b.PressedEvent.AddHandler(func(args interface{}) {
+			if arg, ok := args.(*TextInputPressedEventArgs); ok {
+				f(arg)
+			}
+		})
+	}
+}
+
+func (o TextInputOptions) ReleasedHandler(f TextInputReleasedHandlerFunc) TextInputOpt {
+	return func(b *TextInput) {
+		b.ReleasedEvent.AddHandler(func(args interface{}) {
+			if arg, ok := args.(*TextInputReleasedEventArgs); ok {
+				f(arg)
+			}
+		})
+	}
+}
+
+func (o TextInputOptions) ClickedHandler(f TextInputClickedHandlerFunc) TextInputOpt {
+	return func(b *TextInput) {
+		b.ClickedEvent.AddHandler(func(args interface{}) {
+			if arg, ok := args.(*TextInputClickedEventArgs); ok {
+				f(arg)
+			}
+		})
+	}
+}
+
+func (o TextInputOptions) CursorEnteredHandler(f TextInputCursorHoverHandlerFunc) TextInputOpt {
+	return func(b *TextInput) {
+		b.CursorEnteredEvent.AddHandler(func(args interface{}) {
+			if arg, ok := args.(*TextInputHoverEventArgs); ok {
+				f(arg)
+			}
+		})
+	}
+}
+
+func (o TextInputOptions) CursorMovedHandler(f TextInputCursorHoverHandlerFunc) TextInputOpt {
+	return func(b *TextInput) {
+		b.CursorMovedEvent.AddHandler(func(args interface{}) {
+			if arg, ok := args.(*TextInputHoverEventArgs); ok {
+				f(arg)
+			}
+		})
+	}
+}
+
+func (o TextInputOptions) CursorExitedHandler(f TextInputCursorHoverHandlerFunc) TextInputOpt {
+	return func(b *TextInput) {
+		b.CursorExitedEvent.AddHandler(func(args interface{}) {
+			if arg, ok := args.(*TextInputHoverEventArgs); ok {
+				f(arg)
+			}
+		})
+	}
+}
+
+func (o TextInputOptions) StateChangedHandler(f TextInputChangedHandlerFunc) TextInputOpt {
+	return func(b *TextInput) {
+		b.StateChangedEvent.AddHandler(func(args interface{}) {
+			if arg, ok := args.(*TextInputChangedEventArgs); ok {
+				f(arg)
+			}
+		})
 	}
 }
 
@@ -819,21 +965,40 @@ func removeChar(r []rune, pos int) []rune {
 }
 
 func (t *TextInput) renderImage(screen *ebiten.Image) {
-	if t.computedParams.Image != nil && t.computedParams.Image.Idle != nil {
-		i := t.computedParams.Image.Idle
-		if t.widget.Disabled && t.computedParams.Image.Disabled != nil {
+	if t.computedParams.Image == nil || t.computedParams.Image.Idle == nil {
+		return
+	}
+
+	pressed := (t.pressing && t.hovering)
+	i := t.computedParams.Image.Idle
+
+	switch {
+	case t.widget.Disabled && t.computedParams.Image.Disabled != nil:
+		if pressed && t.computedParams.Image.PressedDisabled != nil {
+			i = t.computedParams.Image.PressedDisabled
+		} else {
 			i = t.computedParams.Image.Disabled
 		}
-
-		rect := t.widget.Rect
-		i.Draw(screen, rect.Dx(), rect.Dy(), func(opts *ebiten.DrawImageOptions) {
-			opts.GeoM.Translate(float64(rect.Min.X), float64(rect.Min.Y))
-		})
+	case (t.focused || t.hovering) && t.computedParams.Image.Hover != nil:
+		if pressed && t.computedParams.Image.PressedHover != nil {
+			i = t.computedParams.Image.PressedHover
+		} else {
+			i = t.computedParams.Image.Hover
+		}
+	case pressed:
+		if t.computedParams.Image.Pressed != nil {
+			i = t.computedParams.Image.Pressed
+		}
 	}
+
+	rect := t.widget.Rect
+	i.Draw(screen, rect.Dx(), rect.Dy(), func(opts *ebiten.DrawImageOptions) {
+		opts.GeoM.Translate(float64(rect.Min.X), float64(rect.Min.Y))
+	})
 }
 
 func (t *TextInput) renderTextAndCaret(screen *ebiten.Image) {
-	t.renderBuf.Draw(screen,
+	t.renderBuf.DrawTextInput(screen,
 		func(buf *ebiten.Image) {
 			t.drawTextAndCaret(buf)
 		},
@@ -841,14 +1006,24 @@ func (t *TextInput) renderTextAndCaret(screen *ebiten.Image) {
 			rect := t.widget.Rect
 			t.mask.Draw(buf, rect.Dx()-t.computedParams.Padding.Left-t.computedParams.Padding.Right, rect.Dy()-t.computedParams.Padding.Top-t.computedParams.Padding.Bottom,
 				func(opts *ebiten.DrawImageOptions) {
-					opts.GeoM.Translate(float64(rect.Min.X+t.computedParams.Padding.Left), float64(rect.Min.Y+t.computedParams.Padding.Top))
+					opts.GeoM.Translate(float64(t.computedParams.Padding.Left), float64(t.computedParams.Padding.Top))
 					opts.CompositeMode = ebiten.CompositeModeCopy
 				})
-		})
+		},
+		t.widget.Rect,
+	)
 }
 
 func (t *TextInput) drawTextAndCaret(screen *ebiten.Image) {
 	rect := t.widget.Rect
+
+	// rebuild origin at 0,0, so we can just apply translate to image instead of using
+	// mask buffer image of screen size, only initial input size
+	rect.Max.X -= rect.Min.X
+	rect.Min.X = 0
+	rect.Max.Y -= rect.Min.Y
+	rect.Min.Y = 0
+
 	tr := rect
 	tr = tr.Add(img.Point{t.computedParams.Padding.Left, t.computedParams.Padding.Top})
 
@@ -897,7 +1072,14 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image) {
 	if (t.widget.Disabled || len([]rune(t.inputText)) == 0) && t.computedParams.Color.Disabled != nil {
 		t.text.SetColor(t.computedParams.Color.Disabled)
 	} else {
-		t.text.SetColor(t.computedParams.Color.Idle)
+		switch {
+		case t.pressing && t.computedParams.Color.Pressed != nil:
+			t.text.SetColor(t.computedParams.Color.Pressed)
+		case t.hovering && t.computedParams.Color.Hover != nil:
+			t.text.SetColor(t.computedParams.Color.Hover)
+		default:
+			t.text.SetColor(t.computedParams.Color.Idle)
+		}
 	}
 	t.text.Render(screen)
 
@@ -993,7 +1175,91 @@ func (t *TextInput) AddFocus(direction FocusDirection, focus Focuser) {
 /** Focuser Interface - End **/
 
 func (t *TextInput) createWidget() {
-	t.widget = NewWidget(append([]WidgetOpt{WidgetOpts.TrackHover(true)}, t.widgetOpts...)...)
+	t.widget = NewWidget(append([]WidgetOpt{
+		WidgetOpts.TrackHover(true),
+
+		WidgetOpts.CursorEnterHandler(func(args *WidgetCursorEnterEventArgs) {
+			if !t.widget.Disabled {
+				t.hovering = true
+			}
+			if t.hovering {
+				t.CursorEnteredEvent.Fire(&TextInputHoverEventArgs{
+					TextInput: t,
+					Entered: true,
+					OffsetX: args.OffsetX,
+					OffsetY: args.OffsetY,
+					DiffX:   0,
+					DiffY:   0,
+				})
+			}
+
+		}),
+
+		WidgetOpts.CursorMoveHandler(func(args *WidgetCursorMoveEventArgs) {
+			t.CursorMovedEvent.Fire(&TextInputHoverEventArgs{
+				TextInput: t,
+				Entered: false,
+				OffsetX: args.OffsetX,
+				OffsetY: args.OffsetY,
+				DiffX:   args.DiffX,
+				DiffY:   args.DiffY,
+			})
+		}),
+
+		WidgetOpts.CursorExitHandler(func(args *WidgetCursorExitEventArgs) {
+			if t.hovering {
+				t.hovering = false
+				t.CursorExitedEvent.Fire(&TextInputHoverEventArgs{
+					TextInput: t,
+					Entered: false,
+					OffsetX: args.OffsetX,
+					OffsetY: args.OffsetY,
+					DiffX:   0,
+					DiffY:   0,
+				})
+			}
+		}),
+
+		WidgetOpts.MouseButtonPressedHandler(func(args *WidgetMouseButtonPressedEventArgs) {
+
+			if !t.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
+				t.pressing = true
+				t.PressedEvent.Fire(&TextInputPressedEventArgs{
+					TextInput: t,
+					OffsetX: args.OffsetX,
+					OffsetY: args.OffsetY,
+				})
+			}
+
+		}),
+
+		WidgetOpts.MouseButtonReleasedHandler(func(args *WidgetMouseButtonReleasedEventArgs) {
+			if t.pressing && !t.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
+
+				t.ReleasedEvent.Fire(&TextInputReleasedEventArgs{
+					TextInput: t,
+					Inside:  args.Inside,
+					OffsetX: args.OffsetX,
+					OffsetY: args.OffsetY,
+				})
+			}
+
+			t.pressing = false
+		}),
+
+		WidgetOpts.MouseButtonClickedHandler(func(args *WidgetMouseButtonClickedEventArgs) {
+			if !t.widget.Disabled && args.Button == ebiten.MouseButtonLeft {
+				t.ClickedEvent.Fire(&TextInputClickedEventArgs{
+					TextInput: t,
+					OffsetX: args.OffsetX,
+					OffsetY: args.OffsetY,
+				})
+			}
+		}),
+
+
+
+	}, t.widgetOpts...)...)
 	t.widget.focusable = t
 	t.caret = NewCaret()
 	t.mask = image.NewNineSliceColor(color.NRGBA{255, 0, 255, 255})
