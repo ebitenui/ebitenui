@@ -69,6 +69,25 @@ func TestButton_ManualClick(t *testing.T) {
 	is.True(eventArgs != nil)
 }
 
+func TestButton_PreferredSizeBeforeValidation(t *testing.T) {
+	is := is.New(t)
+
+	buttonImage := &ButtonImage{
+		Idle:    newNineSliceEmpty(t),
+		Pressed: newNineSliceEmpty(t),
+	}
+	b := NewButton(
+		ButtonOpts.Image(buttonImage),
+		ButtonOpts.WidgetOpts(WidgetOpts.MinSize(60, 70)),
+	)
+	c := NewContainer()
+	c.AddChild(b)
+
+	w, h := b.PreferredSize()
+	is.Equal(w, 60)
+	is.Equal(h, 70)
+}
+
 func newButton(t *testing.T, opts ...ButtonOpt) *Button {
 	t.Helper()
 
