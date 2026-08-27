@@ -33,6 +33,9 @@ type ListParams struct {
 	ScrollContainerImage   *ScrollContainerImage
 	ScrollContainerPadding *Insets
 
+	HideVerticalSlider   bool
+	HideHorizontalSlider bool
+
 	entryUnselectedColor     *ButtonImage
 	entrySelectedColor       *ButtonImage
 	entryUnselectedTextColor *ButtonTextColor
@@ -230,6 +233,13 @@ func (t *List) populateComputedParams() {
 		if t.definedParams.Slider.TrackPadding != nil {
 			params.Slider.TrackPadding = t.definedParams.Slider.TrackPadding
 		}
+	}
+
+	if t.definedParams.HideVerticalSlider {
+		t.hideVerticalSlider = true
+	}
+	if t.definedParams.HideHorizontalSlider {
+		t.hideHorizontalSlider = true
 	}
 
 	// Set defaults
@@ -586,7 +596,7 @@ func (l *List) resetFocusIndex() {
 
 func (l *List) createWidget() {
 	var cols int
-	if l.hideVerticalSlider {
+	if l.hideVerticalSlider || l.definedParams.HideVerticalSlider {
 		cols = 1
 	} else {
 		cols = 2
@@ -665,7 +675,7 @@ func (l *List) initWidget() {
 		sliderOpts = append(sliderOpts, SliderOpts.DisableDefaultKeys(*l.computedParams.DisableDefaultKeys))
 	}
 
-	if !l.hideVerticalSlider {
+	if !l.hideVerticalSlider && l.computedParams.Slider != nil {
 		pageSizeFunc := func() int {
 			return int(math.Round(float64(l.scrollContainer.ViewRect().Dy()) / float64(l.listContent.GetWidget().Rect.Dy()) * 1000))
 		}
@@ -695,7 +705,7 @@ func (l *List) initWidget() {
 		})
 	}
 
-	if !l.hideHorizontalSlider {
+	if !l.hideHorizontalSlider && l.computedParams.Slider != nil {
 		l.hSlider = NewSlider(append(sliderOpts, []SliderOpt{
 			SliderOpts.Direction(DirectionHorizontal),
 			SliderOpts.MinMax(0, 1000),
