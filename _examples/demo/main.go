@@ -173,6 +173,7 @@ func demoContainer(res *uiResources, ui func() *ebitenui.UI) widget.PreferredSiz
 		tabBookPage(res),
 		gridLayoutPage(res),
 		rowLayoutPage(res),
+		scrollPage(res),
 		sliderPage(res),
 		toolTipPage(res),
 		dragAndDropPage(res),
