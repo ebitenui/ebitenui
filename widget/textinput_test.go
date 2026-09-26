@@ -3,6 +3,7 @@ package widget
 import (
 	"image/color"
 	"testing"
+	"time"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/matryer/is"
@@ -119,6 +120,92 @@ func TestTextInput_DoInsert(t *testing.T) {
 
 	is.Equal(ti.GetText(), "fab€coo")
 	is.Equal(ti.cursorPosition, 5)
+}
+
+func TestTextInput_WordBounds(t *testing.T) {
+	tests := []struct {
+		text          string
+		index         int
+		expectedStart int
+		expectedEnd   int
+	}{
+		{"hello brave world", 8, 6, 11},
+		{"hello brave world", 6, 6, 11},
+		{"hello  world", 6, 5, 7},
+		{"a...b", 2, 1, 4},
+		{"snake_case name", 3, 0, 10},
+		{"hello world", 11, 6, 11},
+		{"", 0, 0, 0},
+	}
+
+	for _, test := range tests {
+		t.Run(test.text, func(t *testing.T) {
+			is := is.New(t)
+
+			start, end := wordBounds([]rune(test.text), test.index)
+
+			is.Equal(start, test.expectedStart)
+			is.Equal(end, test.expectedEnd)
+		})
+	}
+}
+
+func TestTextInput_DoubleClick(t *testing.T) {
+	is := is.New(t)
+
+	ti := newTextInput(t)
+	ti.SetText("hello brave world")
+	now := time.Now()
+
+	ti.press(8, false, now)
+	ti.press(8, false, now.Add(100*time.Millisecond))
+
+	is.Equal(ti.SelectedText(), "brave")
+}
+
+func TestTextInput_DoubleClick_TooSlow(t *testing.T) {
+	is := is.New(t)
+
+	ti := newTextInput(t)
+	ti.SetText("hello brave world")
+	now := time.Now()
+
+	ti.press(8, false, now)
+	ti.press(8, false, now.Add(time.Second))
+
+	is.Equal(ti.SelectedText(), "")
+	is.Equal(ti.cursorPosition, 8)
+}
+
+func TestTextInput_ShiftClick(t *testing.T) {
+	is := is.New(t)
+
+	ti := newTextInput(t)
+	ti.SetText("hello brave world")
+	ti.cursorPosition = 6
+
+	ti.press(11, true, time.Now())
+
+	is.Equal(ti.SelectedText(), "brave")
+}
+
+func TestTextInput_ShiftArrows(t *testing.T) {
+	is := is.New(t)
+
+	ti := newTextInput(t)
+	ti.SetText("hello")
+	ti.cursorPosition = 1
+
+	ti.moveCursor(ti.CursorMoveRight, false, true)
+	ti.moveCursor(ti.CursorMoveRight, false, true)
+	is.Equal(ti.SelectedText(), "el")
+
+	ti.moveCursor(ti.CursorMoveLeft, true, false)
+	is.Equal(ti.SelectedText(), "")
+	is.Equal(ti.cursorPosition, 1) // cursor lands on the start of the old selection
+
+	ti.moveCursor(ti.CursorMoveRight, false, false)
+	is.Equal(ti.cursorPosition, 2)
 }
 
 func newTextInput(t *testing.T, opts ...TextInputOpt) *TextInput {
