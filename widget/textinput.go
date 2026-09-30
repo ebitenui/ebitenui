@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+	"unicode"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/image"
@@ -60,6 +61,11 @@ type TextInput struct {
 	lastInputText         string
 	previousSubmittedText *string
 	dragStartIndex        int
+
+	// Used for double-click word selection.
+	lastClickTime  time.Time
+	lastClickIndex int
+	wordSelected   bool
 
 	tabOrder int
 	focused  bool
@@ -140,10 +146,10 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 	}
 	t.state = t.idleState(true)
 
-	t.commandToFunc[textInputGoLeft] = t.CursorMoveLeft
-	t.commandToFunc[textInputGoRight] = t.CursorMoveRight
-	t.commandToFunc[textInputGoStart] = t.CursorMoveStart
-	t.commandToFunc[textInputGoEnd] = t.CursorMoveEnd
+	t.commandToFunc[textInputGoLeft] = t.selectingMove(t.CursorMoveLeft, true)
+	t.commandToFunc[textInputGoRight] = t.selectingMove(t.CursorMoveRight, false)
+	t.commandToFunc[textInputGoStart] = t.selectingMove(t.CursorMoveStart, true)
+	t.commandToFunc[textInputGoEnd] = t.selectingMove(t.CursorMoveEnd, false)
 	t.commandToFunc[textInputBackspace] = t.Backspace
 	t.commandToFunc[textInputDelete] = t.Delete
 	t.commandToFunc[textInputEnter] = t.submitWithEnter
@@ -564,8 +570,9 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 		textSize := tr.Dx() - fontAdvance(t.inputText, t.computedParams.Face)
 
 		if input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, t.widget.EffectiveInputLayer()) {
-			t.dragStartIndex = curIdx
-			t.cursorPosition = curIdx
+			t.press(curIdx, shiftPressed(), time.Now())
+		} else if t.wordSelected {
+			// Keep the double-clicked word selected.
 		} else if input.MouseButtonPressed(ebiten.MouseButtonLeft) {
 			if t.dragStartIndex == -1 {
 				t.dragStartIndex = curIdx
@@ -578,7 +585,10 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 			}
 		}
 
-		if input.MouseButtonJustReleasedLayer(ebiten.MouseButtonLeft, t.widget.EffectiveInputLayer()) {
+		if input.MouseButtonJustReleasedLayer(ebiten.MouseButtonLeft, t.widget.EffectiveInputLayer()) && t.wordSelected {
+			t.wordSelected = false
+			t.caret.ResetBlinking()
+		} else if input.MouseButtonJustReleasedLayer(ebiten.MouseButtonLeft, t.widget.EffectiveInputLayer()) {
 			t.cursorPosition = curIdx
 			t.caret.ResetBlinking()
 
@@ -1061,4 +1071,101 @@ loop:
 	}
 
 	return p
+}
+
+// Maximum time between two clicks for them to count as a double-click.
+const textInputDoubleClickTime = 500 * time.Millisecond
+
+func shiftPressed() bool {
+	return ebiten.IsKeyPressed(ebiten.KeyShift)
+}
+
+// press handles a left mouse press at index. Shift extends the selection and a
+// double-click selects the word under the cursor.
+func (t *TextInput) press(index int, extend bool, now time.Time) {
+	doubleClick := !t.lastClickTime.IsZero() &&
+		now.Sub(t.lastClickTime) <= textInputDoubleClickTime &&
+		index >= t.lastClickIndex-1 && index <= t.lastClickIndex+1
+
+	switch {
+	case extend:
+		if t.dragStartIndex == -1 {
+			t.dragStartIndex = t.cursorPosition
+		}
+		t.cursorPosition = index
+		t.lastClickTime = time.Time{}
+	case doubleClick:
+		t.dragStartIndex, t.cursorPosition = wordBounds([]rune(t.inputText), index)
+		t.wordSelected = true
+		// A third click starts over.
+		t.lastClickTime = time.Time{}
+	default:
+		t.dragStartIndex = index
+		t.cursorPosition = index
+		t.lastClickTime = now
+		t.lastClickIndex = index
+	}
+}
+
+// selectingMove extends the selection when shift is held.
+func (t *TextInput) selectingMove(move func(), towardStart bool) textInputCommandFunc {
+	return func() {
+		t.moveCursor(move, towardStart, shiftPressed())
+	}
+}
+
+// moveCursor runs move, extending the selection if extend is set. Otherwise it
+// clears the selection and leaves the cursor at its start or end.
+func (t *TextInput) moveCursor(move func(), towardStart bool, extend bool) {
+	if extend {
+		if t.dragStartIndex == -1 {
+			t.dragStartIndex = t.cursorPosition
+		}
+		move()
+		return
+	}
+	if t.dragStartIndex != -1 && t.dragStartIndex != t.cursorPosition {
+		edge := max(t.dragStartIndex, t.cursorPosition)
+		if towardStart {
+			edge = min(t.dragStartIndex, t.cursorPosition)
+		}
+		t.DeselectText()
+		t.cursorPosition = edge
+		t.caret.ResetBlinking()
+		return
+	}
+	t.DeselectText()
+	move()
+}
+
+// wordBounds returns the start and end of the word at index. Runs of spaces
+// and of punctuation count as words.
+func wordBounds(runes []rune, index int) (int, int) {
+	if len(runes) == 0 {
+		return 0, 0
+	}
+	index = min(max(index, 0), len(runes))
+	if index == len(runes) {
+		index--
+	}
+	class := runeClass(runes[index])
+	start, end := index, index+1
+	for start > 0 && runeClass(runes[start-1]) == class {
+		start--
+	}
+	for end < len(runes) && runeClass(runes[end]) == class {
+		end++
+	}
+	return start, end
+}
+
+func runeClass(r rune) int {
+	switch {
+	case unicode.IsLetter(r), unicode.IsDigit(r), r == '_':
+		return 0
+	case unicode.IsSpace(r):
+		return 1
+	default:
+		return 2
+	}
 }
