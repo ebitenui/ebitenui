@@ -1,0 +1,22 @@
+<!doctype html>
+<div id="menu" data-layout="column" data-spacing="16" data-padding="24">
+  <p>Declarative HTML &amp; ebitenui</p>
+  <p>The layout comes from HTML. The behavior comes from Go.</p>
+
+  <div data-layout="row" data-spacing="12">
+    <label>Your name:</label>
+    <input id="name" type="text" placeholder="Enter your name" width="240">
+  </div>
+
+  <div data-layout="row" data-spacing="12">
+    <input id="enthusiastic" type="checkbox" checked>
+    <label>Enthusiastic greeting</label>
+  </div>
+
+  <div data-layout="grid" data-columns="2" data-spacing="12">
+    <button id="greet" width="140" height="40">Say hello</button>
+    <button id="reset" width="140" height="40">Reset</button>
+  </div>
+
+  <p id="message">Enter your name, then click Say hello.</p>
+</div>
