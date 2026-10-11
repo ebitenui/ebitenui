@@ -5,7 +5,7 @@ import (
 	"math"
 )
 
-// GridLayout layouts widgets in a grid fashion, with columns or rows optionally being stretched.
+// GridLayout layouts widgets in a grid fashion, with columns or rows optionally being stretched or weighted.
 //
 // Widget.LayoutData of widgets being layouted by GridLayout need to be of type GridLayoutData.
 type GridLayout struct {
@@ -15,6 +15,8 @@ type GridLayout struct {
 	rowSpacing    int
 	columnStretch []bool
 	rowStretch    []bool
+	columnWeights []float64
+	rowWeights    []float64
 
 	defaultColumnStretch bool
 	defaultRowStretch    bool
@@ -76,8 +78,15 @@ func NewGridLayout(opts ...GridLayoutOpt) *GridLayout {
 }
 
 func (gl *GridLayout) validate() {
-	if gl.columns == 0 {
-		panic("GridLayout: columns is required.")
+	if gl.columns <= 0 {
+		panic("GridLayout: columns must be positive.")
+	}
+	for _, weights := range [][]float64{gl.columnWeights, gl.rowWeights} {
+		for _, weight := range weights {
+			if weight < 0 || math.IsNaN(weight) || math.IsInf(weight, 0) {
+				panic("GridLayout: weights must be finite and non-negative.")
+			}
+		}
 	}
 }
 
@@ -113,6 +122,22 @@ func (o GridLayoutOptions) Stretch(c []bool, r []bool) GridLayoutOpt {
 	}
 }
 
+// Weights configures relative column and row sizes. Positive weights divide the
+// available space proportionally, after padding, spacing, and fixed cells are
+// deducted. For example, []float64{20, 50, 30} gives three columns 20%, 50%, and
+// 30% of that space. Weights need not sum to 100.
+//
+// A zero weight keeps the preferred size. Supplied weights override Stretch and
+// DefaultStretch for those indices. Unspecified columns and rows use their
+// stretch settings (stretched cells have weight 1). Pass nil to leave an axis
+// governed entirely by its stretch settings. PreferredSize is unaffected.
+func (o GridLayoutOptions) Weights(c []float64, r []float64) GridLayoutOpt {
+	return func(g *GridLayout) {
+		g.columnWeights = append([]float64(nil), c...)
+		g.rowWeights = append([]float64(nil), r...)
+	}
+}
+
 // DefaultStretch will set the stretch value to the columns/rows that are
 // extra not defined on the main Stretch.
 func (o GridLayoutOptions) DefaultStretch(c bool, r bool) GridLayoutOpt {
@@ -134,31 +159,15 @@ func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.
 	rect = g.padding.Apply(rect)
 
 	colWidths, rowHeights := g.preferredColumnWidthsAndRowHeights(widgets)
-	stretchedColWidth, stretchedRowHeight, firstStretchedColWidth, firstStretchedRowHeight := g.stretchedCellSizes(colWidths, rowHeights, rect)
+	colWidths = g.weightedCellSizes(colWidths, rect.Dx(), g.columnSpacing, g.columnWeights, g.columnStretched)
+	rowHeights = g.weightedCellSizes(rowHeights, rect.Dy(), g.rowSpacing, g.rowWeights, g.rowStretched)
 
 	c, r := 0, 0
 	x, y := 0, 0
-	firstStretchedCol, firstStretchedRow := true, true
 	for _, w := range widgets {
 		cw := colWidths[c]
 		ch := rowHeights[r]
 		if w.GetWidget().GetVisibility() != Visibility_Hide {
-			if g.columnStretched(c) {
-				cw = stretchedColWidth
-				if firstStretchedCol {
-					cw = firstStretchedColWidth
-					firstStretchedCol = false
-				}
-			}
-
-			if g.rowStretched(r) {
-				ch = stretchedRowHeight
-				if firstStretchedRow {
-					ch = firstStretchedRowHeight
-					firstStretchedRow = false
-				}
-			}
-
 			ww, wh := cw, ch
 			wx, wy := x, y
 
@@ -178,45 +187,61 @@ func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.
 			r++
 			x = 0
 			y += ch + g.rowSpacing
-			firstStretchedCol = true
 		}
 	}
 }
 
-func (g *GridLayout) stretchedCellSizes(colWidths []int, rowHeights []int, rect image.Rectangle) (int, int, int, int) {
-	stretchedColWidth, stretchedRowHeight := 0, 0
-
-	remainingWidth := rect.Dx() - g.columnSpacing*(len(colWidths)-1)
-	remainingHeight := rect.Dy() - g.rowSpacing*(len(rowHeights)-1)
-	stretchedCols, stretchedRows := 0, 0
-
-	for c, cw := range colWidths {
-		if g.columnStretched(c) {
-			stretchedCols++
+// weightedCellSizes distributes the remaining space, giving rounding leftovers
+// to the first weighted cell, as with equal stretching.
+func (g *GridLayout) weightedCellSizes(sizes []int, available int, spacing int, weights []float64, stretched func(int) bool) []int {
+	if len(sizes) == 0 {
+		return sizes
+	}
+	cellWeights := make([]float64, len(sizes))
+	remaining := available - spacing*(len(sizes)-1)
+	maxWeight := 0.0
+	first := -1
+	for i, size := range sizes {
+		weight := 0.0
+		if i < len(weights) {
+			weight = weights[i]
+		} else if stretched(i) {
+			weight = 1
+		}
+		cellWeights[i] = weight
+		if weight > 0 {
+			if first < 0 {
+				first = i
+			}
+			maxWeight = math.Max(maxWeight, weight)
 		} else {
-			remainingWidth -= cw
+			remaining -= size
 		}
 	}
-
-	for r, rh := range rowHeights {
-		if g.rowStretched(r) {
-			stretchedRows++
-		} else {
-			remainingHeight -= rh
+	if first < 0 {
+		return sizes
+	}
+	// Normalize before summing to avoid overflow with large finite weights.
+	totalWeight := 0.0
+	for i := range cellWeights {
+		cellWeights[i] /= maxWeight
+		totalWeight += cellWeights[i]
+	}
+	if remaining < 0 {
+		remaining = 0
+	}
+	leftover := remaining
+	for i, weight := range cellWeights {
+		if weight > 0 {
+			sizes[i] = int(math.Floor(float64(remaining) * (weight / totalWeight)))
+			leftover -= sizes[i]
+		} else if i < len(weights) && weights[i] > 0 {
+			// An extremely small relative weight may underflow to zero.
+			sizes[i] = 0
 		}
 	}
-
-	if stretchedCols > 0 {
-		stretchedColWidth = int(math.Floor(float64(remainingWidth) / float64(stretchedCols)))
-	}
-	if stretchedRows > 0 {
-		stretchedRowHeight = int(math.Floor(float64(remainingHeight) / float64(stretchedRows)))
-	}
-
-	firstStretchedColWidth := stretchedColWidth + (remainingWidth - stretchedColWidth*stretchedCols)
-	firstStretchedRowHeight := stretchedRowHeight + (remainingHeight - stretchedRowHeight*stretchedRows)
-
-	return stretchedColWidth, stretchedRowHeight, firstStretchedColWidth, firstStretchedRowHeight
+	sizes[first] += leftover
+	return sizes
 }
 
 func (g *GridLayout) columnStretched(c int) bool {
