@@ -16,7 +16,16 @@ type game struct {
 }
 
 /*
-The Grid Layout is built to position children in a rows and columns.
+The Grid Layout is built to position children in rows and columns.
+
+For relative sizes that follow the container when it is resized, use:
+
+	widget.GridLayoutOpts.Columns(3),
+	widget.GridLayoutOpts.Weights([]float64{20, 50, 30}, nil),
+
+This allocates 20%, 50%, and 30% of the available width after padding and
+spacing. Row weights can be supplied as the second argument. A zero weight
+keeps the preferred size; unspecified weights use the stretch settings.
 */
 func main() {
 
