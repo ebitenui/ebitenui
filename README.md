@@ -43,6 +43,12 @@ The examples can also be tested as WASM by running the following commands and op
 * Ebiten UI complete demo: `go run github.com/hajimehoshi/wasmserve@latest -http=:6262 ./_examples/demo`
 * Ebiten UI widget: `go run github.com/hajimehoshi/wasmserve@latest -http=:6262 ./_examples/widget_demos/<folder_name>`
 
+Declarative HTML layouts
+------
+Layouts can also be loaded from a restricted HTML subset using the [`html` package](html/README.md). It creates ebitenui containers, text, buttons, and inputs, with concrete widget lookup by HTML `id`. Unsupported browser features are rejected.
+
+Try the [HTML layout example](_examples/html/README.md): `go run ./_examples/html`.
+
 Used By
 ------
 * [Roboden by quasilyte](https://quasilyte.itch.io/roboden)
