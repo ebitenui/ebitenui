@@ -46,7 +46,7 @@ func NewMaskedRenderBuffer() *MaskedRenderBuffer {
 // Draw calls d to draw onto screen, using the mask drawn by dm. The buffer images passed
 // to d and dm are of the same size as screen.
 func (m *MaskedRenderBuffer) Draw(screen *ebiten.Image, d DrawFunc, dm DrawFunc) {
-	w, h := screen.Size()
+	w, h := screen.Bounds().Dx(), screen.Bounds().Dy()
 
 	m.renderBuf.Width, m.renderBuf.Height = w, h
 	renderBuf := m.renderBuf.Image()
@@ -60,7 +60,7 @@ func (m *MaskedRenderBuffer) Draw(screen *ebiten.Image, d DrawFunc, dm DrawFunc)
 	dm(maskedBuf)
 
 	maskedBuf.DrawImage(renderBuf, &ebiten.DrawImageOptions{
-		CompositeMode: ebiten.CompositeModeSourceIn,
+		Blend: ebiten.BlendSourceIn,
 	})
 
 	screen.DrawImage(maskedBuf, nil)
