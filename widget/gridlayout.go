@@ -134,31 +134,15 @@ func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.
 	rect = g.padding.Apply(rect)
 
 	colWidths, rowHeights := g.preferredColumnWidthsAndRowHeights(widgets)
-	stretchedColWidth, stretchedRowHeight, firstStretchedColWidth, firstStretchedRowHeight := g.stretchedCellSizes(colWidths, rowHeights, rect)
+	stretch(colWidths, rect.Dx()-g.columnSpacing*(len(colWidths)-1), g.columnStretched)
+	stretch(rowHeights, rect.Dy()-g.rowSpacing*(len(rowHeights)-1), g.rowStretched)
 
 	c, r := 0, 0
 	x, y := 0, 0
-	firstStretchedCol, firstStretchedRow := true, true
 	for _, w := range widgets {
 		cw := colWidths[c]
 		ch := rowHeights[r]
 		if w.GetWidget().GetVisibility() != Visibility_Hide {
-			if g.columnStretched(c) {
-				cw = stretchedColWidth
-				if firstStretchedCol {
-					cw = firstStretchedColWidth
-					firstStretchedCol = false
-				}
-			}
-
-			if g.rowStretched(r) {
-				ch = stretchedRowHeight
-				if firstStretchedRow {
-					ch = firstStretchedRowHeight
-					firstStretchedRow = false
-				}
-			}
-
 			ww, wh := cw, ch
 			wx, wy := x, y
 
@@ -178,45 +162,38 @@ func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.
 			r++
 			x = 0
 			y += ch + g.rowSpacing
-			firstStretchedCol = true
 		}
 	}
 }
 
-func (g *GridLayout) stretchedCellSizes(colWidths []int, rowHeights []int, rect image.Rectangle) (int, int, int, int) {
-	stretchedColWidth, stretchedRowHeight := 0, 0
-
-	remainingWidth := rect.Dx() - g.columnSpacing*(len(colWidths)-1)
-	remainingHeight := rect.Dy() - g.rowSpacing*(len(rowHeights)-1)
-	stretchedCols, stretchedRows := 0, 0
-
-	for c, cw := range colWidths {
-		if g.columnStretched(c) {
-			stretchedCols++
+// stretch sets the stretched sizes to share what is left of space after the
+// sizes that are not stretched, the first stretched size taking what does
+// not divide evenly.
+func stretch(sizes []int, space int, stretched func(int) bool) {
+	n := 0
+	for i, size := range sizes {
+		if stretched(i) {
+			n++
 		} else {
-			remainingWidth -= cw
+			space -= size
 		}
 	}
+	if n == 0 {
+		return
+	}
 
-	for r, rh := range rowHeights {
-		if g.rowStretched(r) {
-			stretchedRows++
-		} else {
-			remainingHeight -= rh
+	each := int(math.Floor(float64(space) / float64(n)))
+	first := true
+	for i := range sizes {
+		if !stretched(i) {
+			continue
+		}
+		sizes[i] = each
+		if first {
+			sizes[i] += space - each*n
+			first = false
 		}
 	}
-
-	if stretchedCols > 0 {
-		stretchedColWidth = int(math.Floor(float64(remainingWidth) / float64(stretchedCols)))
-	}
-	if stretchedRows > 0 {
-		stretchedRowHeight = int(math.Floor(float64(remainingHeight) / float64(stretchedRows)))
-	}
-
-	firstStretchedColWidth := stretchedColWidth + (remainingWidth - stretchedColWidth*stretchedCols)
-	firstStretchedRowHeight := stretchedRowHeight + (remainingHeight - stretchedRowHeight*stretchedRows)
-
-	return stretchedColWidth, stretchedRowHeight, firstStretchedColWidth, firstStretchedRowHeight
 }
 
 func (g *GridLayout) columnStretched(c int) bool {
