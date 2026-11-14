@@ -284,6 +284,24 @@ func (w *Window) GetContainer() Containerer {
 	return w.container
 }
 
+// SetOpacity sets the opacity the window, its title bar and contents, is
+// drawn at, from 0, invisible, to 1, opaque.
+func (w *Window) SetOpacity(opacity float32) {
+	w.init.Do()
+	if c, ok := w.container.(*Container); ok {
+		c.SetOpacity(opacity)
+	}
+}
+
+// SetShader sets the shader the window, its title bar and contents, is drawn
+// through; nil draws it directly.
+func (w *Window) SetShader(shader *ContainerShader) {
+	w.init.Do()
+	if c, ok := w.container.(*Container); ok {
+		c.SetShader(shader)
+	}
+}
+
 // Typically used internally.
 func (w *Window) SetCloseFunction(removeWindowFunc RemoveWindowFunc) {
 	w.closeFunc = func() {
