@@ -539,54 +539,34 @@ func (s WidgetState) Advance(triState bool) WidgetState {
 	return WidgetUnchecked
 }
 
+// currentImage returns the image for the checkbox's state: the disabled one
+// when disabled, the hovered one when hovered or focused, and the normal one
+// otherwise or when that image is not set.
 func (c *Checkbox) currentImage() *image.NineSlice {
-	// Handle disabled
-	if c.widget.Disabled {
-		switch c.state {
-		case WidgetChecked:
-			if c.computedParams.Image.CheckedDisabled != nil {
-				return c.computedParams.Image.CheckedDisabled
-			}
-		case WidgetUnchecked:
-			if c.computedParams.Image.UncheckedDisabled != nil {
-				return c.computedParams.Image.UncheckedDisabled
-			}
-		case WidgetGreyed:
-			if c.computedParams.Image.UncheckedDisabled != nil {
-				return c.computedParams.Image.GreyedDisabled
-			}
-		}
-	}
-	// Handle hovered
-	if c.hovering || c.focused {
-		switch c.state {
-		case WidgetChecked:
-			if c.computedParams.Image.CheckedHovered != nil {
-				return c.computedParams.Image.CheckedHovered
-			}
-		case WidgetUnchecked:
-			if c.computedParams.Image.UncheckedHovered != nil {
-				return c.computedParams.Image.UncheckedHovered
-			}
-		case WidgetGreyed:
-			if c.computedParams.Image.GreyedHovered != nil {
-				return c.computedParams.Image.GreyedHovered
-			}
-		}
-	}
-	// Fallback to default images
+	i := c.computedParams.Image
 	switch c.state {
-	case WidgetChecked:
-		return c.computedParams.Image.Checked
-
 	case WidgetUnchecked:
-		return c.computedParams.Image.Unchecked
-
+		return c.imageOf(i.Unchecked, i.UncheckedDisabled, i.UncheckedHovered)
+	case WidgetChecked:
+		return c.imageOf(i.Checked, i.CheckedDisabled, i.CheckedHovered)
 	case WidgetGreyed:
-		return c.computedParams.Image.Greyed
+		return c.imageOf(i.Greyed, i.GreyedDisabled, i.GreyedHovered)
 	}
+	return i.Unchecked
+}
 
-	return c.computedParams.Image.Unchecked
+func (c *Checkbox) imageOf(normal, disabled, hovered *image.NineSlice) *image.NineSlice {
+	switch {
+	case c.widget.Disabled:
+		if disabled != nil {
+			return disabled
+		}
+	case c.hovering || c.focused:
+		if hovered != nil {
+			return hovered
+		}
+	}
+	return normal
 }
 
 func (c *Checkbox) setChildComputedParams() {
