@@ -244,3 +244,51 @@ func (c *fixedCursor) MouseButtonJustReleased(ebiten.MouseButton) bool { return 
 func (c *fixedCursor) CursorPosition() (int, int)                      { return c.x, c.y }
 func (c *fixedCursor) GetCursorImage(string) *ebiten.Image             { return nil }
 func (c *fixedCursor) GetCursorOffset(string) image.Point              { return image.Point{} }
+
+// A link scrolled out of a scroll container's view is neither hovered nor
+// clicked, though the cursor is where it is laid out.
+func TestText_LinkOutOfViewTakesNoInput(t *testing.T) {
+	is := is.New(t)
+
+	var entered, clicked []string
+	tw := NewText(
+		TextOpts.Text("[link=away]there[/link]", loadFont(t), color.White),
+		TextOpts.ProcessBBCode(true),
+		TextOpts.LinkCursorEnteredHandler(func(args *LinkEventArgs) { entered = append(entered, args.Id) }),
+		TextOpts.LinkClickedHandler(func(args *LinkEventArgs) { clicked = append(clicked, args.Id) }),
+	)
+	content := NewContainer(ContainerOpts.Layout(NewRowLayout(RowLayoutOpts.Direction(DirectionVertical))))
+	content.AddChild(newSimpleWidget(100, 200, nil), tw)
+	scroll := NewScrollContainer(
+		ScrollContainerOpts.Content(content),
+		ScrollContainerOpts.Image(&ScrollContainerImage{Idle: newNineSliceEmpty(t), Mask: newNineSliceEmpty(t)}),
+	)
+	scroll.SetLocation(image.Rect(0, 0, 100, 50))
+	render(scroll, t)
+	input.SetupInputLayersWithDeferred([]input.Layerer{scroll})
+
+	press := func() {
+		r := tw.GetWidget().Rect
+		input.SetCursorUpdater(&pressingCursor{fixedCursor{x: r.Min.X + 5, y: r.Min.Y + r.Dy()/2}})
+		t.Cleanup(func() { input.SetCursorUpdater(nil) })
+		tw.Update(&UpdateObject{})
+		event.ExecuteDeferred()
+	}
+
+	press()
+	is.Equal(entered, nil) // out of view: not hovered
+	is.Equal(clicked, nil) // out of view: not clicked
+
+	scroll.ScrollTop = 1
+	render(scroll, t)
+	press()
+	is.Equal(entered, []string{"away"}) // in view: hovered
+	is.Equal(clicked, []string{"away"}) // in view: clicked
+}
+
+// pressingCursor is a fixedCursor whose left button has just been pressed.
+type pressingCursor struct{ fixedCursor }
+
+func (c *pressingCursor) MouseButtonJustPressed(b ebiten.MouseButton) bool {
+	return b == ebiten.MouseButtonLeft
+}
