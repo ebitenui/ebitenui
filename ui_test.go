@@ -49,6 +49,20 @@ func TestUI_WindowContentsTakeTheThemeBeforeBeingAdded(t *testing.T) {
 	is.True(x > 0 && y > 0) // measured with the theme's face
 }
 
+// A window added before the UI's first update takes the UI's theme: its
+// contents are validated as it is added.
+func TestUI_WindowAddedBeforeTheFirstUpdate(t *testing.T) {
+	is := is.New(t)
+	t.Cleanup(func() { widget.SetUITheme(nil) })
+
+	theme := textTheme(t, color.White)
+	ui := &UI{Container: widget.NewContainer(), PrimaryTheme: theme}
+	w, label := newTextWindow()
+	ui.AddWindow(w)
+
+	is.Equal(label.GetWidget().GetTheme(), theme)
+}
+
 // An open window follows the UI's theme when it changes (#307).
 func TestUI_WindowsFollowThemeChanges(t *testing.T) {
 	is := is.New(t)
