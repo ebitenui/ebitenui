@@ -457,8 +457,12 @@ func (t *Text) handleLinkEvents() {
 	if t.widget.parent != nil {
 		drawnRectangle = t.widget.parent.Rect
 	}
+	// Links take the cursor only where the text's input layer is active, as
+	// other widgets do: not outside a scroll container's view, nor under a
+	// window.
+	layer := t.widget.EffectiveInputLayer()
 
-	if cursorPoint.In(drawnRectangle) {
+	if cursorPoint.In(drawnRectangle) && layer.ActiveFor(cursorX, cursorY, input.LayerEventTypeAny) {
 		for linesIdx := range t.measurements.processedLines {
 			ly := float64(p.Y) + t.measurements.lineHeight*float64(linesIdx)
 			lx := float64(p.X)
@@ -517,7 +521,7 @@ func (t *Text) handleLinkEvents() {
 		}
 	}
 
-	if t.currentLink != nil && input.MouseButtonJustPressed(ebiten.MouseButton0) {
+	if t.currentLink != nil && input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, layer) {
 		if t.LinkClickedEvent != nil {
 			off := t.getCursorOffset()
 			t.LinkClickedEvent.Fire(&LinkEventArgs{
