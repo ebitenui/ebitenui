@@ -322,6 +322,38 @@ func (s *ScrollContainer) ContentRect() img.Rectangle {
 	return s.content.GetWidget().Rect
 }
 
+// ScrollVisible scrolls vertically so w, a widget inside the content, shows
+// a fraction p of the way down the view: at its top for 0, in its middle for
+// 0.5, at its bottom for 1. Content shorter than the view doesn't scroll, and
+// near the content's ends the scroll stops at them. It uses the content's
+// layout from when it was last drawn; a w outside the content changes
+// nothing.
+func (s *ScrollContainer) ScrollVisible(w HasWidget, p float64) {
+	s.init.Do()
+	if s.content == nil || !s.contains(w.GetWidget()) {
+		return
+	}
+	view, content, target := s.ViewRect(), s.content.GetWidget().Rect, w.GetWidget().Rect
+	scrollable := content.Dy() - view.Dy()
+	if scrollable <= 0 {
+		s.ScrollTop = 0
+		return
+	}
+	offset := float64(target.Min.Y-content.Min.Y) - p*float64(view.Dy()-target.Dy())
+	s.ScrollTop = offset / float64(scrollable)
+	s.clampScroll()
+}
+
+// contains reports whether w is the content or lies inside it.
+func (s *ScrollContainer) contains(w *Widget) bool {
+	for ; w != nil; w = w.parent {
+		if w == s.content.GetWidget() {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *ScrollContainer) clampScroll() {
 	if s.ScrollTop < 0 {
 		s.ScrollTop = 0
