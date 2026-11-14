@@ -19,6 +19,7 @@ type NineSlice struct {
 
 	init  sync.Once
 	tiles [9]*ebiten.Image
+	op    ebiten.DrawImageOptions // reused by drawTile
 }
 
 type borders struct {
@@ -184,13 +185,29 @@ func NewImageColor(c color.Color) *ebiten.Image {
 }
 
 // Draw draws n onto screen, with the size specified by width and height. If optsFunc is not nil, it is used to set
-// DrawImageOptions for each tile drawn.
+// DrawImageOptions for each tile drawn. Nothing is drawn when n would land wholly outside screen's bounds.
 func (n *NineSlice) Draw(screen *ebiten.Image, width int, height int, optsFunc DrawImageOptionsFunc) {
-	if n.transparent {
+	if n.transparent || !n.lands(screen, width, height, optsFunc) {
 		return
 	}
 
 	n.drawTiles(screen, width, height, optsFunc)
+}
+
+// lands reports whether n, drawn width by height with optsFunc, covers any of screen's bounds.
+func (n *NineSlice) lands(screen *ebiten.Image, width int, height int, optsFunc DrawImageOptionsFunc) bool {
+	n.op = ebiten.DrawImageOptions{}
+	if optsFunc != nil {
+		optsFunc(&n.op)
+	}
+	g := &n.op.GeoM
+	x0, y0 := g.Apply(0, 0)
+	x1, y1 := g.Apply(float64(width), 0)
+	x2, y2 := g.Apply(0, float64(height))
+	x3, y3 := g.Apply(float64(width), float64(height))
+	b := screen.Bounds()
+	return max(x0, x1, x2, x3) > float64(b.Min.X) && min(x0, x1, x2, x3) < float64(b.Max.X) &&
+		max(y0, y1, y2, y3) > float64(b.Min.Y) && min(y0, y1, y2, y3) < float64(b.Max.Y)
 }
 
 func (n *NineSlice) drawTiles(screen *ebiten.Image, width int, height int, optsFunc DrawImageOptionsFunc) {
@@ -233,9 +250,10 @@ func (n *NineSlice) drawTile(screen *ebiten.Image, tile *ebiten.Image, tx int, t
 		return
 	}
 
-	opts := ebiten.DrawImageOptions{
+	n.op = ebiten.DrawImageOptions{
 		Filter: ebiten.FilterNearest,
 	}
+	opts := &n.op
 
 	if tw != sw || th != sh {
 		opts.GeoM.Scale(float64(tw)/float64(sw), float64(th)/float64(sh))
@@ -244,10 +262,10 @@ func (n *NineSlice) drawTile(screen *ebiten.Image, tile *ebiten.Image, tx int, t
 	opts.GeoM.Translate(float64(tx), float64(ty))
 
 	if optsFunc != nil {
-		optsFunc(&opts)
+		optsFunc(opts)
 	}
 
-	screen.DrawImage(tile, &opts)
+	screen.DrawImage(tile, opts)
 }
 
 func (n *NineSlice) createTiles() {

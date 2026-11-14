@@ -350,7 +350,7 @@ func (c *Container) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 		if v, ok := ch.(Focuser); ok {
 			if ch.GetWidget().ElevateLayer {
 				ch.GetWidget().ElevateToNewInputLayer(&input.Layer{
-					DebugLabel: fmt.Sprintf("Container %p - Widget %d", &c, idx),
+					DebugLabel: fmt.Sprintf("Container %p - Widget %d", c, idx),
 					EventTypes: input.LayerEventTypeAll,
 					BlockLower: true,
 					FullScreen: false,
