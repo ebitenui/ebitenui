@@ -433,9 +433,25 @@ func (t *Text) Render(screen *ebiten.Image) {
 func (t *Text) Update(updObj *UpdateObject) {
 	t.init.Do()
 
+	t.relayoutIfResized()
 	t.widget.Update(updObj)
 	if t.ProcessBBCode {
 		t.handleLinkEvents()
+	}
+}
+
+// relayoutIfResized asks the text's parents to lay out again when its
+// size is no longer the one it was measured at, such as after a change of
+// label, face or wrapping width. A text not yet validated has no face to
+// measure with, and waits.
+func (t *Text) relayoutIfResized() {
+	if t.computedParams.Face == nil {
+		return
+	}
+	w, h := t.measurements.boundingBoxWidth, t.measurements.boundingBoxHeight
+	t.measure()
+	if t.measurements.boundingBoxWidth != w || t.measurements.boundingBoxHeight != h {
+		t.widget.relayoutParent = true
 	}
 }
 
