@@ -31,7 +31,7 @@ Documentation on how to use and extend Ebiten UI is available at [ebitenui.githu
 
 Quick Start
 ------
-Ebiten UI is written in Go 1.19 which is available at [https://go.dev/](https://go.dev/).
+Ebiten UI is written in Go 1.25 which is available at [https://go.dev/](https://go.dev/).
 
 There are Ebiten UI examples that can be found in the `_examples/` folder.
 
