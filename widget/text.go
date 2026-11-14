@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"math"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/ebitenui/ebitenui/event"
@@ -46,6 +47,8 @@ type Text struct {
 	linkStack    *datastructures.Stack[linkData]
 	currentLink  *bbCodeText
 	previousLink *bbCodeText
+	glyphOp      ebiten.DrawImageOptions
+	glyphs       []text.Glyph // every line's or piece's glyphs, reused by each measure
 
 	LinkClickedEvent       *event.Event
 	LinkCursorEnteredEvent *event.Event
@@ -60,7 +63,9 @@ type textMeasurements struct {
 
 	processedLines      [][]*bbCodeText
 	processedLineWidths []float64
-	processedLineTexts  []string // each line's text, when not processing BBCode
+	processedLineTexts  []string       // each line's text, when not processing BBCode
+	processedLineGlyphs [][]text.Glyph // each line's glyphs, when not processing BBCode
+	processedLinesLaid  []bool         // whether each line's glyphs are laid out
 	lineHeight          float64
 	ascent              float64
 	boundingBoxWidth    float64
@@ -69,7 +74,8 @@ type textMeasurements struct {
 
 type bbCodeText struct {
 	text      string
-	width     float64 // measured when processing BBCode
+	width     float64      // measured when processing BBCode
+	glyphs    []text.Glyph // laid out when processing BBCode and first drawn
 	color     color.Color
 	linkValue *linkData
 	hovered   bool
@@ -531,30 +537,65 @@ func (t *Text) draw(screen *ebiten.Image) {
 			lx += float64(t.computedParams.Padding.Left)
 		}
 
+		if !t.measurements.processedLinesLaid[linesIdx] {
+			t.layOutLine(linesIdx)
+		}
 		if t.ProcessBBCode {
 			for _, piece := range t.measurements.processedLines[linesIdx] {
-				op := &text.DrawOptions{}
-				op.GeoM.Translate(lx, ly)
+				clr := piece.color
 				if piece.linkValue != nil {
 					if piece.hovered && t.computedParams.LinkColor.Hover != nil {
-						op.ColorScale.ScaleWithColor(t.computedParams.LinkColor.Hover)
+						clr = t.computedParams.LinkColor.Hover
 					} else {
-						op.ColorScale.ScaleWithColor(t.computedParams.LinkColor.Idle)
+						clr = t.computedParams.LinkColor.Idle
 					}
-				} else {
-					op.ColorScale.ScaleWithColor(piece.color)
 				}
-				text.Draw(screen, piece.text, *t.computedParams.Face, op)
+				t.drawGlyphs(screen, piece.glyphs, lx, ly, clr)
 				lx += piece.width
 			}
 
 		} else {
-			op := &text.DrawOptions{}
-			op.GeoM.Translate(lx, ly)
-			op.ColorScale.ScaleWithColor(t.computedParams.Color)
-			text.Draw(screen, t.measurements.processedLineTexts[linesIdx], *t.computedParams.Face, op)
+			t.drawGlyphs(screen, t.measurements.processedLineGlyphs[linesIdx], lx, ly, t.computedParams.Color)
 		}
 	}
+}
+
+// drawGlyphs draws glyphs laid out by layOutGlyphs as text.Draw would draw
+// their text at (x, y).
+func (t *Text) drawGlyphs(screen *ebiten.Image, glyphs []text.Glyph, x, y float64, clr color.Color) {
+	op := &t.glyphOp
+	op.ColorScale.Reset()
+	op.ColorScale.ScaleWithColor(clr)
+	for _, g := range glyphs {
+		op.GeoM.Reset()
+		op.GeoM.Translate(g.X, g.Y)
+		op.GeoM.Translate(x, y)
+		screen.DrawImage(g.Image, op)
+	}
+}
+
+// layOutLine lays out a line's glyphs, the first time the line is drawn
+// after measure.
+func (t *Text) layOutLine(i int) {
+	face := *t.computedParams.Face
+	if t.ProcessBBCode {
+		for _, piece := range t.measurements.processedLines[i] {
+			piece.glyphs = t.layOutGlyphs(piece.text, face)
+		}
+	} else {
+		t.measurements.processedLineGlyphs[i] = t.layOutGlyphs(t.measurements.processedLineTexts[i], face)
+	}
+	t.measurements.processedLinesLaid[i] = true
+}
+
+// layOutGlyphs lays out the glyphs of s that have an image at the end of
+// t.glyphs and returns them.
+func (t *Text) layOutGlyphs(s string, face text.Face) []text.Glyph {
+	start := len(t.glyphs)
+	t.glyphs = text.AppendGlyphs(t.glyphs, s, face, nil)
+	kept := slices.DeleteFunc(t.glyphs[start:], func(g text.Glyph) bool { return g.Image == nil })
+	t.glyphs = t.glyphs[:start+len(kept)]
+	return t.glyphs[start:len(t.glyphs):len(t.glyphs)]
 }
 
 func (t *Text) handleBBCodeColor(line string) ([]*bbCodeText, color.Color, *linkData) {
@@ -763,7 +804,10 @@ func (t *Text) measure() {
 		}
 	}
 
-	// Measure each piece and join each line once here, not on every draw.
+	// Measure each piece and join each line once here, not on every draw;
+	// draw lays out each line's glyphs when it first draws the line.
+	t.glyphs = t.glyphs[:0]
+	t.measurements.processedLinesLaid = make([]bool, len(t.measurements.processedLines))
 	for _, pieces := range t.measurements.processedLines {
 		if t.ProcessBBCode {
 			for _, piece := range pieces {
@@ -772,6 +816,9 @@ func (t *Text) measure() {
 			continue
 		}
 		t.measurements.processedLineTexts = append(t.measurements.processedLineTexts, joinPieces(pieces))
+	}
+	if !t.ProcessBBCode {
+		t.measurements.processedLineGlyphs = make([][]text.Glyph, len(t.measurements.processedLines))
 	}
 
 	t.measurements.boundingBoxHeight = float64(len(t.measurements.processedLines))*t.measurements.lineHeight - ld

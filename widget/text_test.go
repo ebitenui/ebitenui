@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"image"
 	"image/color"
+	"slices"
 	"strings"
 	"testing"
 
@@ -65,6 +66,68 @@ func TestText_LinkHover(t *testing.T) {
 	event.ExecuteDeferred()
 
 	is.Equal(entered, []string{"home"}) // link entered
+}
+
+func TestText_GlyphsFollowText(t *testing.T) {
+	is := is.New(t)
+
+	small := *loadFont(t)
+	goFace, ok := small.(*text.GoTextFace)
+	is.True(ok)
+	var big text.Face = &text.GoTextFace{Source: goFace.Source, Size: 30}
+
+	screen := ebiten.NewImage(400, 200)
+	draw := func(tw *Text) {
+		tw.Validate()
+		tw.Render(screen)
+	}
+
+	plain := newText(t, "first line\nsecond line")
+	bbcode := newText(t, "a [color=#ff0000]red[/color] word", TextOpts.ProcessBBCode(true))
+	for _, change := range []func(tw *Text){
+		func(*Text) {},
+		func(tw *Text) { tw.Label = "another label\nwith [color=#00ff00]two[/color] lines" },
+		func(tw *Text) { tw.SetFace(&big) },
+	} {
+		change(plain)
+		draw(plain)
+		total := 0
+		for i, line := range plain.measurements.processedLineTexts {
+			want := visibleGlyphs(line, *plain.computedParams.Face)
+			is.True(slices.Equal(plain.measurements.processedLineGlyphs[i], want)) // line glyphs
+			total += len(want)
+		}
+		is.Equal(len(plain.glyphs), total) // the buffer holds only the current glyphs
+
+		change(bbcode)
+		draw(bbcode)
+		for _, pieces := range bbcode.measurements.processedLines {
+			for _, piece := range pieces {
+				is.True(slices.Equal(piece.glyphs, visibleGlyphs(piece.text, *bbcode.computedParams.Face))) // piece glyphs
+			}
+		}
+	}
+}
+
+func TestText_LaysOutOnlyLinesDrawn(t *testing.T) {
+	is := is.New(t)
+
+	tw := newText(t, "first line\nsecond line") // drawn on a 1x1 screen
+
+	is.Equal(tw.measurements.processedLinesLaid, []bool{true, false})
+	is.Equal(tw.measurements.processedLineGlyphs[1], nil) // the line below the screen
+}
+
+// visibleGlyphs returns the glyphs text.AppendGlyphs lays out for s, without
+// those that have no image.
+func visibleGlyphs(s string, face text.Face) []text.Glyph {
+	var glyphs []text.Glyph
+	for _, g := range text.AppendGlyphs(nil, s, face, nil) {
+		if g.Image != nil {
+			glyphs = append(glyphs, g)
+		}
+	}
+	return glyphs
 }
 
 func newText(t *testing.T, label string, opts ...TextOpt) *Text {
