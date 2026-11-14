@@ -91,6 +91,27 @@ func TestColorPicker_Drag(t *testing.T) {
 	is.Equal(last.Color, p.Color())
 }
 
+// Pressing a swatch picks its color, done at once, and the swatch of the
+// color picked is the one framed.
+func TestColorPicker_Swatches(t *testing.T) {
+	is := is.New(t)
+
+	red, green := color.NRGBA{255, 0, 0, 255}, color.NRGBA{0, 255, 0, 255}
+	p, changes := newColorPicker(t, ColorPickerOpts.InitialColor(red), ColorPickerOpts.Swatches(20, red, green))
+	swatches := p.container.children[2].(*Container).children                        //nolint:forcetypeassert // the swatch row
+	redSwatch, greenSwatch := swatches[0].(*colorSwatch), swatches[1].(*colorSwatch) //nolint:forcetypeassert // swatches
+	is.True(redSwatch.chosen())
+
+	greenSwatch.widget.MouseButtonPressedEvent.Fire(&WidgetMouseButtonPressedEventArgs{Widget: greenSwatch.widget, Button: ebiten.MouseButtonLeft})
+	event.ExecuteDeferred()
+	render(p, t)
+
+	is.Equal(p.Color(), green)
+	is.Equal(len(*changes), 1)       // reported once, the slider's move included
+	is.True(!(*changes)[0].Dragging) // done at once
+	is.True(greenSwatch.chosen() && !redSwatch.chosen())
+}
+
 func newColorPicker(t *testing.T, opts ...ColorPickerOpt) (*ColorPicker, *[]ColorPickerChangedEventArgs) {
 	t.Helper()
 

@@ -14,8 +14,9 @@ import (
 
 // ColorPicker picks an opaque color: a wheel of every hue around, red to the
 // right, and every saturation outward, white at the middle, and under it a
-// slider of the color's brightness, from black to full. The color can be
-// picked by pressing the wheel or dragging across it.
+// slider of the color's brightness, from black to full, and optionally a row
+// of preset swatches. The color can be picked by pressing the wheel or
+// dragging across it, or by pressing a swatch.
 type ColorPicker struct {
 	ChangedEvent *event.Event
 
@@ -24,6 +25,8 @@ type ColorPicker struct {
 	spacing     int
 	handleImage *ButtonImage
 	handleSize  int
+	swatchSize  int
+	presets     []color.NRGBA
 
 	init      *MultiOnce
 	container *Container
@@ -96,6 +99,18 @@ func (o ColorPickerOptions) Spacing(spacing int) ColorPickerOpt {
 func (o ColorPickerOptions) InitialColor(c color.Color) ColorPickerOpt {
 	return func(p *ColorPicker) {
 		p.h, p.s, p.v = rgbToHSV(color.NRGBAModel.Convert(c).(color.NRGBA)) //nolint:forcetypeassert // NRGBAModel returns color.NRGBA
+	}
+}
+
+// Swatches adds a row of square swatches, size pixels wide, of preset
+// colors under the slider. Pressing one picks its color; the one of the
+// color picked is framed in white over black.
+func (o ColorPickerOptions) Swatches(size int, colors ...color.Color) ColorPickerOpt {
+	return func(p *ColorPicker) {
+		p.swatchSize = size
+		for _, c := range colors {
+			p.presets = append(p.presets, color.NRGBAModel.Convert(c).(color.NRGBA)) //nolint:forcetypeassert // NRGBAModel returns color.NRGBA
+		}
 	}
 }
 
@@ -198,6 +213,14 @@ func (p *ColorPicker) createWidget() {
 	}
 	p.slider = NewSlider(sliderOpts...)
 	p.container.AddChild(p.slider)
+
+	if len(p.presets) > 0 {
+		row := NewContainer(ContainerOpts.Layout(NewRowLayout(RowLayoutOpts.Spacing(p.spacing))))
+		for _, c := range p.presets {
+			row.AddChild(newColorSwatch(p, c))
+		}
+		p.container.AddChild(row)
+	}
 }
 
 // sliderValue is the slider's place for the color's brightness.
@@ -228,6 +251,14 @@ func (p *ColorPicker) pick(h, s float64, dragging bool) {
 	}
 	p.updateTrack()
 	p.fireChanged(dragging)
+}
+
+// choose picks a swatch's color.
+func (p *ColorPicker) choose(c color.NRGBA) {
+	p.h, p.s, p.v = rgbToHSV(c)
+	p.updateTrack()
+	p.slider.Current = p.sliderValue()
+	p.fireChanged(false)
 }
 
 func (p *ColorPicker) fireChanged(dragging bool) {
@@ -321,6 +352,58 @@ func (w *colorWheel) pickAt(x, y int, dragging bool) {
 	dx, dy := float64(x)+0.5-r, r-(float64(y)+0.5)
 	h := math.Atan2(dy, dx) / (2 * math.Pi)
 	w.picker.pick(h-math.Floor(h), min(1, math.Hypot(dx, dy)/r), dragging)
+}
+
+// colorSwatch is a square of a preset color, framed in white over black
+// while it is the color picked and in gray otherwise.
+type colorSwatch struct {
+	widget *Widget
+	picker *ColorPicker
+	color  color.NRGBA
+}
+
+func newColorSwatch(p *ColorPicker, c color.NRGBA) *colorSwatch {
+	s := &colorSwatch{widget: NewWidget(), picker: p, color: c}
+	s.widget.MouseButtonPressedEvent.AddHandler(func(args any) {
+		a, ok := args.(*WidgetMouseButtonPressedEventArgs)
+		if !ok || a.Button != ebiten.MouseButtonLeft || s.widget.Disabled {
+			return
+		}
+		p.choose(s.color)
+	})
+	return s
+}
+
+func (s *colorSwatch) GetWidget() *Widget { return s.widget }
+
+func (s *colorSwatch) PreferredSize() (int, int) { return s.picker.swatchSize, s.picker.swatchSize }
+
+func (s *colorSwatch) SetLocation(rect image.Rectangle) { s.widget.Rect = rect }
+
+func (s *colorSwatch) Validate() {}
+
+func (s *colorSwatch) Update(updObj *UpdateObject) { s.widget.Update(updObj) }
+
+// chosen reports whether the swatch's color is the color picked.
+func (s *colorSwatch) chosen() bool { return s.picker.Color() == s.color }
+
+func (s *colorSwatch) Render(screen *ebiten.Image) {
+	s.widget.Render(screen)
+	outer, inner := color.NRGBA{0x60, 0x60, 0x60, 0xff}, color.NRGBA{0x60, 0x60, 0x60, 0xff}
+	if s.chosen() {
+		outer, inner = color.NRGBA{0xff, 0xff, 0xff, 0xff}, color.NRGBA{A: 0xff}
+	}
+	r := s.widget.Rect
+	fill := func(inset int, c color.NRGBA) {
+		x, y := float32(r.Min.X+inset), float32(r.Min.Y+inset)
+		w, h := float32(r.Dx()-2*inset), float32(r.Dy()-2*inset)
+		if w > 0 && h > 0 {
+			vector.FillRect(screen, x, y, w, h, c, false)
+		}
+	}
+	fill(0, outer)
+	fill(2, inner)
+	fill(4, s.color)
 }
 
 // wheelDisc draws a disc size pixels wide of every hue around and every

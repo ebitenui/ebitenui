@@ -44,6 +44,10 @@ func main() {
 		widget.ColorPickerOpts.WheelSize(200),
 		// Set the color the picker starts with
 		widget.ColorPickerOpts.InitialColor(color.NRGBA{0x40, 0xa0, 0xff, 0xff}),
+		// Add a row of preset colors under the slider
+		widget.ColorPickerOpts.Swatches(24,
+			color.NRGBA{0x40, 0xa0, 0xff, 0xff}, color.NRGBA{0xff, 0x9f, 0x43, 0xff}, color.NRGBA{0x5f, 0xd3, 0x8d, 0xff},
+			color.NRGBA{0xff, 0x6a, 0xd5, 0xff}, color.NRGBA{0xff, 0xd7, 0x5e, 0xff}, color.White),
 		// Set the brightness slider's handle image and size
 		widget.ColorPickerOpts.SliderHandle(&widget.ButtonImage{
 			Idle:    image.NewNineSliceColor(color.NRGBA{200, 200, 200, 255}),
