@@ -834,7 +834,7 @@ func (t *TextInput) renderImage(screen *ebiten.Image) {
 }
 
 func (t *TextInput) renderTextAndCaret(screen *ebiten.Image) {
-	t.renderBuf.Draw(screen,
+	t.renderBuf.DrawIn(screen, t.computedParams.Padding.Apply(t.widget.Rect),
 		func(buf *ebiten.Image) {
 			t.drawTextAndCaret(buf)
 		},

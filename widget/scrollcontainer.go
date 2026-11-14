@@ -301,7 +301,7 @@ func (s *ScrollContainer) renderContent(screen *ebiten.Image) {
 		}
 	}
 
-	s.renderBuf.Draw(screen,
+	s.renderBuf.DrawIn(screen, s.ViewRect(),
 		func(buf *ebiten.Image) {
 			r.Render(buf)
 		},
