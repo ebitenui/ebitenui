@@ -71,6 +71,14 @@ type Window struct {
 	blockLower     bool
 	originalSize   image.Point
 	init           *MultiOnce
+
+	// The transition in and out, if any (see window_transition.go).
+	transition      *WindowTransition
+	transitionEnded *event.Event
+	progress        int         // updates of the way in run, from 0 to the duration
+	closing         bool        // running the way out
+	shownAt         image.Point // the offset the window shows at, from its place
+	remove          func()      // removes the window from its UI, once out
 }
 
 type WindowOpt func(w *Window)
@@ -244,7 +252,8 @@ func (o WindowOptions) DrawLayer(layer int) WindowOpt {
 	}
 }
 
-// This method is used to be able to close the window.
+// This method is used to be able to close the window. A window with a
+// transition closes once it has run its way out.
 func (w *Window) Close() {
 	if w.closeFunc != nil {
 		w.closeFunc()
@@ -253,8 +262,10 @@ func (w *Window) Close() {
 
 // This method will set the size and location of this window.
 // This method will account for specified MinSize and MaxSize values.
+// During a transition, the window shows off this place by the transition's
+// offset.
 func (w *Window) SetLocation(rect image.Rectangle) {
-	if rect != w.container.GetWidget().Rect {
+	if rect != w.placeRect() {
 		if w.MinSize != nil {
 			if rect.Dx() < w.MinSize.X {
 				rect.Max.X = rect.Min.X + w.MinSize.X
@@ -273,7 +284,7 @@ func (w *Window) SetLocation(rect image.Rectangle) {
 			}
 		}
 
-		w.container.SetLocation(rect)
+		w.container.SetLocation(rect.Add(w.shownAt))
 	}
 }
 
@@ -304,11 +315,16 @@ func (w *Window) SetShader(shader *ContainerShader) {
 
 // Typically used internally.
 func (w *Window) SetCloseFunction(removeWindowFunc RemoveWindowFunc) {
-	w.closeFunc = func() {
+	remove := func() {
 		removeWindowFunc()
 		w.ClosedEvent.Fire(&WindowClosedEventArgs{
 			Window: w,
 		})
+	}
+	w.closeFunc = remove
+	if w.transition != nil {
+		w.closeFunc = func() { w.closing = true }
+		w.startTransition(remove)
 	}
 }
 
@@ -342,7 +358,7 @@ func (w *Window) Render(screen *ebiten.Image) {
 
 	if w.dragging {
 		if w.startingPoint.X != x || w.startingPoint.Y != y {
-			newRect := w.container.GetWidget().Rect.Add(image.Point{x - w.startingPoint.X, y - w.startingPoint.Y})
+			newRect := w.placeRect().Add(image.Point{x - w.startingPoint.X, y - w.startingPoint.Y})
 			w.SetLocation(newRect)
 			w.startingPoint = image.Point{x, y}
 		}
@@ -350,12 +366,12 @@ func (w *Window) Render(screen *ebiten.Image) {
 	if w.resizing {
 		if w.startingPoint.X != x || w.startingPoint.Y != y {
 			if w.resizingWidth {
-				newRect := w.container.GetWidget().Rect
+				newRect := w.placeRect()
 				newRect.Max.X = w.originalSize.X - (w.startingPoint.X - x)
 				w.SetLocation(newRect)
 			}
 			if w.resizingHeight {
-				newRect := w.container.GetWidget().Rect
+				newRect := w.placeRect()
 				newRect.Max.Y = w.originalSize.Y - (w.startingPoint.Y - y)
 				w.SetLocation(newRect)
 			}
@@ -388,7 +404,7 @@ func (w *Window) Render(screen *ebiten.Image) {
 
 	if w.Dynamic && !w.Resizeable {
 		x, y := w.container.PreferredSize()
-		rec := w.container.GetWidget().Rect
+		rec := w.placeRect()
 		if rec.Dx() != x || rec.Dy() != y {
 			newRect := image.Rect(0, 0, x, y)
 			newRect = newRect.Add(rec.Min)
@@ -401,6 +417,9 @@ func (w *Window) Render(screen *ebiten.Image) {
 func (w *Window) Update(updObj *UpdateObject) {
 	w.init.Do()
 	w.container.Update(updObj)
+	if w.transition != nil {
+		w.updateTransition()
+	}
 }
 
 func (w *Window) createWidget() {

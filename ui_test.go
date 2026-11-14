@@ -65,3 +65,36 @@ func TestUI_WindowsFollowThemeChanges(t *testing.T) {
 	is.Equal(w.GetContainer().GetWidget().GetTheme(), dark) // the window's
 	is.Equal(label.GetWidget().GetTheme(), dark)            // its contents'
 }
+
+// A window with a transition stays in the UI on its way out and leaves at
+// the end; added again on its way out, it comes back instead.
+func TestUI_WindowTransition(t *testing.T) {
+	is := is.New(t)
+
+	ui := newThemedUI(t, textTheme(t, color.White))
+	w := widget.NewWindow(
+		widget.WindowOpts.Contents(widget.NewContainer()),
+		widget.WindowOpts.Transition(widget.WindowTransition{Duration: 4, Offset: image.Pt(0, 40)}),
+	)
+	w.SetLocation(image.Rect(0, 0, 100, 50))
+	update := func(n int) {
+		for range n {
+			ui.Update()
+		}
+	}
+
+	closeWindow := ui.AddWindow(w)
+	update(4)
+	closeWindow()
+	update(2)
+	is.True(ui.IsWindowOpen(w)) // on its way out
+
+	ui.AddWindow(w)
+	update(4)
+	is.True(ui.IsWindowOpen(w)) // came back
+	is.True(!w.Closing())
+
+	w.Close()
+	update(4)
+	is.True(!ui.IsWindowOpen(w)) // out
+}
