@@ -404,7 +404,9 @@ func (u *UI) addWindow(w *widget.Window) bool {
 	}
 
 	// A window without a theme of its own takes the UI's, through
-	// widget.SetUITheme, and so follows it when it changes.
+	// widget.SetUITheme, and so follows it when it changes. The UI hands
+	// its theme out here too, for windows added before its first update.
+	u.setTheme()
 	w.GetContainer().Validate()
 
 	closeFunc := func() {
