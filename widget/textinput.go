@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+	"unicode/utf8"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/image"
@@ -561,7 +562,7 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 				curIdx = len([]rune(t.inputText))
 			}
 		}
-		textSize := tr.Dx() - fontAdvance(t.inputText, t.computedParams.Face)
+		textSize := tr.Dx() - fontAdvanceAt(t.inputText, utf8.RuneCountInString(t.inputText), t.computedParams.Face)
 
 		if input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, t.widget.EffectiveInputLayer()) {
 			t.dragStartIndex = curIdx
@@ -842,7 +843,7 @@ func (t *TextInput) renderTextAndCaret(screen *ebiten.Image) {
 			t.mask.Draw(buf, rect.Dx()-t.computedParams.Padding.Left-t.computedParams.Padding.Right, rect.Dy()-t.computedParams.Padding.Top-t.computedParams.Padding.Bottom,
 				func(opts *ebiten.DrawImageOptions) {
 					opts.GeoM.Translate(float64(rect.Min.X+t.computedParams.Padding.Left), float64(rect.Min.Y+t.computedParams.Padding.Top))
-					opts.CompositeMode = ebiten.CompositeModeCopy
+					opts.Blend = ebiten.BlendCopy
 				})
 		})
 }
@@ -859,8 +860,7 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image) {
 
 	cx := 0
 	if t.focused {
-		sub := string([]rune(inputStr)[:t.cursorPosition])
-		cx = fontAdvance(sub, t.computedParams.Face)
+		cx = fontAdvanceAt(inputStr, t.cursorPosition, t.computedParams.Face)
 
 		dx := tr.Min.X + t.scrollOffset + cx + t.caret.Width + t.computedParams.Padding.Right - rect.Max.X
 		if dx > 0 {
@@ -872,8 +872,7 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image) {
 			t.scrollOffset -= dx
 		}
 		if t.dragStartIndex != -1 {
-			dragString := string([]rune(inputStr)[:t.dragStartIndex])
-			dragXStart := fontAdvance(dragString, t.computedParams.Face)
+			dragXStart := fontAdvanceAt(inputStr, t.dragStartIndex, t.computedParams.Face)
 
 			dragStartDraw := min(dragXStart, cx)
 			dragEndDraw := max(dragXStart, cx)
@@ -1012,22 +1011,35 @@ func (t *TextInput) initWidget() {
 	t.text.Validate()
 }
 
-func fontAdvance(s string, f *text.Face) int {
-	a := text.Advance(s, *f)
-	return int(math.Round(a))
+// fontAdvanceAt returns the distance, rounded to a pixel, from the start of s
+// to the caret before its rune p, measured within s as it is drawn using f.
+func fontAdvanceAt(s string, p int, f *text.Face) int {
+	return int(math.Round(text.AdvanceAt(s, runeOffset(s, p), *f)))
+}
+
+// runeOffset returns the byte index of the rune p of s, or len(s) if s has
+// no more than p runes.
+func runeOffset(s string, p int) int {
+	for i := range s {
+		if p == 0 {
+			return i
+		}
+		p--
+	}
+	return len(s)
 }
 
 // fontStringIndex returns an index into r that corresponds closest to pixel position x
 // when string(r) is drawn using f. Pixel position x==0 corresponds to r[0].
 func fontStringIndex(r []rune, f *text.Face, x int) int {
+	s := string(r)
 	start := 0
 	end := len(r)
 	p := 0
 loop:
 	for {
 		p = start + (end-start)/2
-		sub := string(r[:p])
-		a := fontAdvance(sub, f)
+		a := fontAdvanceAt(s, p, f)
 
 		switch {
 		// x is right of advance
@@ -1053,8 +1065,8 @@ loop:
 	}
 
 	if len(r) > 0 {
-		a1 := fontAdvance(string(r[:p]), f)
-		a2 := fontAdvance(string(r[:p+1]), f)
+		a1 := fontAdvanceAt(s, p, f)
+		a2 := fontAdvanceAt(s, p+1, f)
 		if math.Abs(float64(x-a2)) < math.Abs(float64(x-a1)) {
 			p++
 		}

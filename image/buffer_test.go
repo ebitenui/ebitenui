@@ -13,13 +13,13 @@ func TestBufferedImage_Image(t *testing.T) {
 	b := &BufferedImage{}
 	b.Width, b.Height = 100, 100
 	i := b.Image()
-	w, h := i.Size()
+	w, h := i.Bounds().Dx(), i.Bounds().Dy()
 	is.Equal(w, 100)
 	is.Equal(h, 100)
 
 	b.Width, b.Height = 150, 70
 	i = b.Image()
-	w, h = i.Size()
+	w, h = i.Bounds().Dx(), i.Bounds().Dy()
 	is.Equal(w, 150)
 	is.Equal(h, 70)
 }
