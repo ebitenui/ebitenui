@@ -292,3 +292,28 @@ type pressingCursor struct{ fixedCursor }
 func (c *pressingCursor) MouseButtonJustPressed(b ebiten.MouseButton) bool {
 	return b == ebiten.MouseButtonLeft
 }
+
+// A text whose label changes its size asks for the layout to be done
+// again, through its parent's update; one whose size stays does not.
+func TestText_RelayoutWhenResized(t *testing.T) {
+	is := is.New(t)
+
+	tw := newText(t, "short")
+	parent := NewContainer(ContainerOpts.Layout(NewRowLayout()))
+	parent.AddChild(tw)
+	parent.Validate()
+	relayout := func() bool {
+		u := &UpdateObject{}
+		parent.Update(u)
+		return u.RelayoutRequested
+	}
+	relayout() // added: lays out anyway
+
+	tw.Label = "a much longer label"
+	is.True(relayout())  // grown
+	is.True(!relayout()) // the same since
+	tw.Label = "a much longer label"
+	is.True(!relayout()) // set to what it was
+	tw.MaxWidth = 60
+	is.True(relayout()) // wrapped onto more lines
+}
