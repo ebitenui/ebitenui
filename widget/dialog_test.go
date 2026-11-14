@@ -74,6 +74,21 @@ func TestDialog_KeepOpen(t *testing.T) {
 	is.True(!*closed)
 }
 
+// A dialog's window takes the options given through WindowOpts: with a
+// transition, a choice starts it on its way out.
+func TestDialog_WindowOpts(t *testing.T) {
+	is := is.New(t)
+
+	d, _, closed := newDialog(t, DialogOpts.WindowOpts(
+		WindowOpts.Transition(WindowTransition{Duration: 4, Offset: img.Pt(0, 20)}),
+	))
+	render(d.contents, t)
+	leftMouseButtonClick(d.contents.children[2].(*Button), t) //nolint:forcetypeassert // the first choice
+
+	is.True(d.Window().Closing()) // easing out
+	is.True(!*closed)             // not yet removed
+}
+
 // CenterIn places the dialog at its preferred size in the middle of an area.
 func TestDialog_CenterIn(t *testing.T) {
 	is := is.New(t)

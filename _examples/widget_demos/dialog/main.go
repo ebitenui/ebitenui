@@ -66,6 +66,12 @@ func main() {
 					TextPadding: widget.NewInsetsSimple(8),
 				}),
 				widget.DialogOpts.BackgroundImage(eimage.NewNineSliceColor(color.NRGBA{R: 16, G: 20, B: 32, A: 255})),
+				// Ease the dialog in from below, fading in, and back out when it closes
+				widget.DialogOpts.WindowOpts(widget.WindowOpts.Transition(widget.WindowTransition{
+					Duration: 15,
+					Offset:   image.Pt(0, 40),
+					Fade:     true,
+				})),
 				// Set the callback to call when a choice is made; the dialog then closes
 				widget.DialogOpts.ChoiceHandler(func(args *widget.DialogChoiceEventArgs) {
 					fmt.Println("chose", args.Choice, args.Label)
