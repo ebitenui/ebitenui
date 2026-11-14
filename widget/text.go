@@ -1,7 +1,6 @@
 package widget
 
 import (
-	"bufio"
 	"image"
 	"image/color"
 	"math"
@@ -61,6 +60,7 @@ type textMeasurements struct {
 
 	processedLines      [][]*bbCodeText
 	processedLineWidths []float64
+	processedLineTexts  []string // each line's text, when not processing BBCode
 	lineHeight          float64
 	ascent              float64
 	boundingBoxWidth    float64
@@ -69,6 +69,7 @@ type textMeasurements struct {
 
 type bbCodeText struct {
 	text      string
+	width     float64 // measured when processing BBCode
 	color     color.Color
 	linkValue *linkData
 	hovered   bool
@@ -423,7 +424,7 @@ func (t *Text) handleLinkEvents() {
 			}
 			hoverLX := lx
 			for idx := range t.measurements.processedLines[linesIdx] {
-				wordWidth, _ := text.Measure(t.measurements.processedLines[linesIdx][idx].text, *t.computedParams.Face, 0)
+				wordWidth := t.measurements.processedLines[linesIdx][idx].width
 
 				if t.measurements.processedLines[linesIdx][idx].linkValue != nil {
 					if cursorPoint.In(image.Rect(int(hoverLX), int(ly), int(hoverLX+wordWidth), int(ly+t.measurements.lineHeight))) {
@@ -435,7 +436,7 @@ func (t *Text) handleLinkEvents() {
 						}
 					}
 				}
-				hoverLX += float64(wordWidth)
+				hoverLX += wordWidth
 			}
 		}
 	}
@@ -532,8 +533,6 @@ func (t *Text) draw(screen *ebiten.Image) {
 
 		if t.ProcessBBCode {
 			for _, piece := range t.measurements.processedLines[linesIdx] {
-				wordWidth, _ := text.Measure(piece.text, *t.computedParams.Face, 0)
-
 				op := &text.DrawOptions{}
 				op.GeoM.Translate(lx, ly)
 				if piece.linkValue != nil {
@@ -546,20 +545,14 @@ func (t *Text) draw(screen *ebiten.Image) {
 					op.ColorScale.ScaleWithColor(piece.color)
 				}
 				text.Draw(screen, piece.text, *t.computedParams.Face, op)
-				lx += float64(wordWidth)
+				lx += piece.width
 			}
 
 		} else {
 			op := &text.DrawOptions{}
 			op.GeoM.Translate(lx, ly)
 			op.ColorScale.ScaleWithColor(t.computedParams.Color)
-			lineStr := ""
-
-			for _, piece := range t.measurements.processedLines[linesIdx] {
-				lineStr += piece.text
-			}
-
-			text.Draw(screen, lineStr, *t.computedParams.Face, op)
+			text.Draw(screen, t.measurements.processedLineTexts[linesIdx], *t.computedParams.Face, op)
 		}
 	}
 }
@@ -692,13 +685,16 @@ func (t *Text) measure() {
 	t.measurements.lineHeight = sHeight
 	ld := t.measurements.lineHeight - fh
 
-	s := bufio.NewScanner(strings.NewReader(t.Label))
-	for s.Scan() {
+	for rest := t.Label; rest != ""; {
+		var line string
+		line, rest, _ = strings.Cut(rest, "\n")
+		line = strings.TrimSuffix(line, "\r")
+
 		if t.MaxWidth > 0 || t.ProcessBBCode {
 			var newLine []*bbCodeText
 			newLineWidth := float64(t.computedParams.Padding.Left + t.computedParams.Padding.Right)
 
-			blocks, _, _ := t.handleBBCodeColor(s.Text())
+			blocks, _, _ := t.handleBBCodeColor(line)
 
 			for idx := range blocks {
 				words := strings.Split(blocks[idx].text, " ")
@@ -756,7 +752,6 @@ func (t *Text) measure() {
 				}
 			}
 		} else {
-			line := s.Text()
 			t.measurements.processedLines = append(t.measurements.processedLines, []*bbCodeText{{text: line}})
 			lw, _ := text.Measure(line, *t.computedParams.Face, 0)
 			lw += float64(t.computedParams.Padding.Left + t.computedParams.Padding.Right)
@@ -768,7 +763,29 @@ func (t *Text) measure() {
 		}
 	}
 
+	// Measure each piece and join each line once here, not on every draw.
+	for _, pieces := range t.measurements.processedLines {
+		if t.ProcessBBCode {
+			for _, piece := range pieces {
+				piece.width, _ = text.Measure(piece.text, *t.computedParams.Face, 0)
+			}
+			continue
+		}
+		t.measurements.processedLineTexts = append(t.measurements.processedLineTexts, joinPieces(pieces))
+	}
+
 	t.measurements.boundingBoxHeight = float64(len(t.measurements.processedLines))*t.measurements.lineHeight - ld
+}
+
+func joinPieces(pieces []*bbCodeText) string {
+	if len(pieces) == 1 {
+		return pieces[0].text
+	}
+	var b strings.Builder
+	for _, piece := range pieces {
+		b.WriteString(piece.text)
+	}
+	return b.String()
 }
 
 func (t *Text) getCursorOffset() image.Point {
