@@ -30,19 +30,18 @@ func getLightCheckbox() *widget.CheckboxImage {
 	checkmark.LineTo(14, 24)
 	checkmark.LineTo(6, 15)
 
-	vertices := []ebiten.Vertex{}
-	indices := []uint16{}
-	vertices, indices = checkmark.AppendVerticesAndIndicesForStroke(vertices, indices, &vector.StrokeOptions{
+	strokeOp := &vector.StrokeOptions{
 		Width:    3,
 		LineJoin: vector.LineJoinBevel,
-	})
-	blackImg := image.NewImageColor(color.Black)
-	checked.DrawTriangles(vertices, indices, blackImg, &ebiten.DrawTrianglesOptions{AntiAlias: true})
+	}
+	drawOp := &vector.DrawPathOptions{AntiAlias: true}
+	drawOp.ColorScale.ScaleWithColor(color.Black)
+	vector.StrokePath(checked, &checkmark, strokeOp, drawOp)
 	checked9s := image.NewFixedNineSlice(checked)
 
 	checked_hover := ebiten.NewImage(32, 32)
 	hover_border.Draw(checked_hover, 32, 32, nil)
-	checked_hover.DrawTriangles(vertices, indices, blackImg, &ebiten.DrawTrianglesOptions{AntiAlias: true})
+	vector.StrokePath(checked_hover, &checkmark, strokeOp, drawOp)
 	checked_hover9s := image.NewFixedNineSlice(checked_hover)
 
 	// Create greyed image
