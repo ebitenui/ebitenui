@@ -58,6 +58,7 @@ type Text struct {
 type textMeasurements struct {
 	label         string
 	face          *text.Face
+	metrics       text.Metrics // the face's metrics when measured
 	maxWidth      float64
 	ProcessBBCode bool
 
@@ -341,10 +342,14 @@ func (t *Text) SetColor(color color.Color) {
 	t.computedParams.Color = color
 }
 
+// SetFace sets the face the text is drawn in. Text lays itself out again
+// when the face's metrics change, as when its size changes in place; call
+// SetFace after other changes to the same face, such as its variations,
+// features or Unicode ranges.
 func (t *Text) SetFace(face *text.Face) {
 	t.definedParams.Face = face
 	t.computedParams.Face = face
-
+	t.measurements.face = nil
 }
 
 func (t *Text) SetPadding(padding *Insets) {
@@ -714,13 +719,15 @@ func (t *Text) processTree(node *bbcode.BBCodeNode, newColor color.Color, linkVa
 }
 
 func (t *Text) measure() {
-	if t.Label == t.measurements.label && t.computedParams.Face == t.measurements.face && t.MaxWidth == t.measurements.maxWidth && t.ProcessBBCode == t.measurements.ProcessBBCode {
+	m := (*t.computedParams.Face).Metrics()
+	if t.Label == t.measurements.label && t.computedParams.Face == t.measurements.face && m == t.measurements.metrics &&
+		t.MaxWidth == t.measurements.maxWidth && t.ProcessBBCode == t.measurements.ProcessBBCode {
 		return
 	}
-	m := (*t.computedParams.Face).Metrics()
 	t.measurements = textMeasurements{
 		label:         t.Label,
 		face:          t.computedParams.Face,
+		metrics:       m,
 		ProcessBBCode: t.ProcessBBCode,
 		ascent:        m.HAscent,
 		maxWidth:      t.MaxWidth,

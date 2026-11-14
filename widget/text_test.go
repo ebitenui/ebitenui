@@ -118,6 +118,43 @@ func TestText_LaysOutOnlyLinesDrawn(t *testing.T) {
 	is.Equal(tw.measurements.processedLineGlyphs[1], nil) // the line below the screen
 }
 
+func TestText_FaceChangedInPlace(t *testing.T) {
+	is := is.New(t)
+
+	goFace, ok := (*loadFont(t)).(*text.GoTextFace)
+	is.True(ok)
+	face := *goFace
+	var tf text.Face = &face
+	tw := NewText(TextOpts.Text("Hello", &tf, color.White))
+	render(tw, t)
+	before := tw.measurements.boundingBoxWidth
+
+	face.Size *= 2 // a new size, without SetFace
+	render(tw, t)
+
+	is.True(tw.measurements.boundingBoxWidth > 1.5*before)                                    // measured again
+	is.True(slices.Equal(tw.measurements.processedLineGlyphs[0], visibleGlyphs("Hello", tf))) // laid out again
+}
+
+func TestText_SetFaceLaysOutAgain(t *testing.T) {
+	is := is.New(t)
+
+	limited := text.NewLimitedFace(*loadFont(t))
+	limited.AddUnicodeRange('a', 'b') // 'c' falls back to the missing glyph
+	var tf text.Face = limited
+	tw := NewText(TextOpts.Text("abc", &tf, color.White))
+	render(tw, t)
+	before := slices.Clone(tw.measurements.processedLineGlyphs[0])
+
+	limited.AddUnicodeRange('c', 'c') // the same metrics
+	tw.SetFace(&tf)
+	render(tw, t)
+
+	got := tw.measurements.processedLineGlyphs[0]
+	is.True(slices.Equal(got, visibleGlyphs("abc", tf))) // laid out again
+	is.True(!slices.Equal(got, before))                  // with the real 'c'
+}
+
 // visibleGlyphs returns the glyphs text.AppendGlyphs lays out for s, without
 // those that have no image.
 func visibleGlyphs(s string, face text.Face) []text.Glyph {
