@@ -155,6 +155,40 @@ func TestText_SetFaceLaysOutAgain(t *testing.T) {
 	is.True(!slices.Equal(got, before))                  // with the real 'c'
 }
 
+// A link and the punctuation after it move to the next line together (#271).
+func TestText_WrapKeepsALinkWithItsPunctuation(t *testing.T) {
+	is := is.New(t)
+
+	face := *loadFont(t)
+	fits, _ := text.Measure("Something about a very important thing", face, 0)
+	dot, _ := text.Measure(".", face, 0)
+	tw := newText(t, "Something about a very important [link=foo]thing[/link].",
+		TextOpts.ProcessBBCode(true), TextOpts.MaxWidth(fits+dot/2))
+
+	lines := make([]string, 0, len(tw.measurements.processedLines))
+	for _, pieces := range tw.measurements.processedLines {
+		lines = append(lines, joinPieces(pieces))
+	}
+	is.Equal(lines, []string{"Something about a very important ", "thing."})
+}
+
+// Text without spaces, as Chinese and Japanese are written, wraps between
+// its characters, within MaxWidth, keeping every one.
+func TestText_WrapWithoutSpaces(t *testing.T) {
+	is := is.New(t)
+
+	const label = "日本語の文章は空白なしで折り返します"
+	face := *loadFont(t)
+	five, _ := text.Measure("日本語の文", face, 0)
+	tw := newText(t, label, TextOpts.MaxWidth(five+1))
+
+	is.True(len(tw.measurements.processedLineTexts) > 2) // wrapped
+	for _, w := range tw.measurements.processedLineWidths {
+		is.True(w < five+1) // line within MaxWidth
+	}
+	is.Equal(strings.Join(tw.measurements.processedLineTexts, ""), label) // every character kept
+}
+
 // visibleGlyphs returns the glyphs text.AppendGlyphs lays out for s, without
 // those that have no image.
 func visibleGlyphs(s string, face text.Face) []text.Glyph {

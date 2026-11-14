@@ -13,6 +13,7 @@ import (
 	"github.com/ebitenui/ebitenui/utilities/colorutil"
 	"github.com/ebitenui/ebitenui/utilities/datastructures"
 	"github.com/frustra/bbcode"
+	"github.com/go-text/typesetting/segmenter"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
@@ -48,7 +49,14 @@ type Text struct {
 	currentLink  *bbCodeText
 	previousLink *bbCodeText
 	glyphOp      ebiten.DrawImageOptions
-	glyphs       []text.Glyph // every line's or piece's glyphs, reused by each measure
+	segmenter    segmenter.Segmenter // finds where a wrapped line may break
+	glyphs       []text.Glyph        // every line's or piece's glyphs, reused by each measure
+
+	// Reused by wrapBlocks: a line's runes, where its blocks end, and the
+	// pieces of one segment.
+	wrapRunes  []rune
+	wrapEnds   []int
+	wrapPieces []*bbCodeText
 
 	LinkClickedEvent       *event.Event
 	LinkCursorEnteredEvent *event.Event
@@ -75,7 +83,7 @@ type textMeasurements struct {
 
 type bbCodeText struct {
 	text      string
-	width     float64      // measured when processing BBCode
+	width     float64      // measured when wrapped
 	glyphs    []text.Glyph // laid out when processing BBCode and first drawn
 	color     color.Color
 	linkValue *linkData
@@ -733,7 +741,7 @@ func (t *Text) measure() {
 		maxWidth:      t.MaxWidth,
 	}
 
-	sWidth, sHeight := text.Measure(" ", *t.measurements.face, 0)
+	_, sHeight := text.Measure(" ", *t.measurements.face, 0)
 
 	fh := m.HAscent + m.HDescent
 	t.measurements.lineHeight = sHeight
@@ -745,66 +753,8 @@ func (t *Text) measure() {
 		line = strings.TrimSuffix(line, "\r")
 
 		if t.MaxWidth > 0 || t.ProcessBBCode {
-			var newLine []*bbCodeText
-			newLineWidth := float64(t.computedParams.Padding.Left + t.computedParams.Padding.Right)
-
 			blocks, _, _ := t.handleBBCodeColor(line)
-
-			for idx := range blocks {
-				words := strings.Split(blocks[idx].text, " ")
-				for i, word := range words {
-					var wordWidth float64
-					wordWidth, _ = text.Measure(word, *t.computedParams.Face, 0)
-
-					// Don't add the space to the last chunk.
-					if i != len(words)-1 {
-						wordWidth += sWidth
-					}
-
-					// If the new word doesn't push this past the max width continue adding to the current line
-					if t.MaxWidth == 0 || newLineWidth+wordWidth < t.MaxWidth {
-						wordBlock := bbCodeText{text: word, color: blocks[idx].color, linkValue: blocks[idx].linkValue}
-						if i != len(words)-1 {
-							wordBlock.text += " "
-						}
-						if wordBlock.linkValue != nil {
-							wordBlock.linkValue.textBlocks = append(wordBlock.linkValue.textBlocks, &wordBlock)
-						}
-						newLine = append(newLine, &wordBlock)
-
-						newLineWidth += wordWidth
-					} else {
-						// If the new word would push this past the max width save off the current line and start a new one
-						if len(newLine) != 0 {
-							t.measurements.processedLines = append(t.measurements.processedLines, newLine)
-							t.measurements.processedLineWidths = append(t.measurements.processedLineWidths, newLineWidth)
-
-							if newLineWidth > t.measurements.boundingBoxWidth {
-								t.measurements.boundingBoxWidth = newLineWidth
-							}
-						}
-						wordBlock := bbCodeText{text: word, color: blocks[idx].color, linkValue: blocks[idx].linkValue}
-						if wordBlock.linkValue != nil {
-							wordBlock.linkValue.textBlocks = append(wordBlock.linkValue.textBlocks, &wordBlock)
-						}
-						if i != len(words)-1 {
-							wordBlock.text += " "
-						}
-						newLine = []*bbCodeText{&wordBlock}
-						newLineWidth = wordWidth + float64(t.computedParams.Padding.Left+t.computedParams.Padding.Right)
-					}
-				}
-			}
-
-			// Save the final line
-			if len(newLine) != 0 {
-				t.measurements.processedLines = append(t.measurements.processedLines, newLine)
-				t.measurements.processedLineWidths = append(t.measurements.processedLineWidths, newLineWidth)
-
-				if newLineWidth > t.measurements.boundingBoxWidth {
-					t.measurements.boundingBoxWidth = newLineWidth
-				}
-			}
+			t.wrapBlocks(blocks)
 		} else {
 			t.measurements.processedLines = append(t.measurements.processedLines, []*bbCodeText{{text: line}})
 			lw, _ := text.Measure(line, *t.computedParams.Face, 0)
@@ -822,19 +772,82 @@ func (t *Text) measure() {
 	t.glyphs = t.glyphs[:0]
 	t.measurements.processedLinesLaid = make([]bool, len(t.measurements.processedLines))
 	for _, pieces := range t.measurements.processedLines {
-		if t.ProcessBBCode {
-			for _, piece := range pieces {
-				piece.width, _ = text.Measure(piece.text, *t.computedParams.Face, 0)
-			}
-			continue
+		if !t.ProcessBBCode { // pieces were measured as they were wrapped
+			t.measurements.processedLineTexts = append(t.measurements.processedLineTexts, joinPieces(pieces))
 		}
-		t.measurements.processedLineTexts = append(t.measurements.processedLineTexts, joinPieces(pieces))
 	}
 	if !t.ProcessBBCode {
 		t.measurements.processedLineGlyphs = make([][]text.Glyph, len(t.measurements.processedLines))
 	}
 
 	t.measurements.boundingBoxHeight = float64(len(t.measurements.processedLines))*t.measurements.lineHeight - ld
+}
+
+// wrapBlocks lays out one line of the label, given as its BBCode blocks, on
+// as many lines as MaxWidth needs. It breaks the line only where the Unicode
+// line breaking rules allow (after spaces, between ideographs, after
+// hyphens...), looking across the blocks, so a block's edge is no break by
+// itself. Each piece of a wrapped line lies within one block.
+func (t *Text) wrapBlocks(blocks []*bbCodeText) {
+	face := *t.computedParams.Face
+	padding := float64(t.computedParams.Padding.Left + t.computedParams.Padding.Right)
+
+	ends := t.wrapEnds[:0] // where each block ends, in runes
+	runes := t.wrapRunes[:0]
+	for _, b := range blocks {
+		for _, r := range b.text {
+			runes = append(runes, r)
+		}
+		ends = append(ends, len(runes))
+	}
+	t.wrapEnds, t.wrapRunes = ends, runes
+	t.segmenter.Init(runes)
+
+	var line []*bbCodeText
+	width := padding
+	block := 0
+	for it := t.segmenter.LineIterator(); it.Next(); {
+		seg := it.Line()
+		start, end := seg.Offset, seg.Offset+len(seg.Text)
+
+		// The segment, cut where the blocks change.
+		pieces := t.wrapPieces[:0]
+		var segWidth float64
+		for start < end {
+			for ends[block] <= start {
+				block++
+			}
+			pieceEnd := min(end, ends[block])
+			piece := &bbCodeText{text: string(runes[start:pieceEnd]), color: blocks[block].color, linkValue: blocks[block].linkValue}
+			piece.width, _ = text.Measure(piece.text, face, 0)
+			segWidth += piece.width
+			pieces = append(pieces, piece)
+			start = pieceEnd
+		}
+		t.wrapPieces = pieces
+
+		if t.MaxWidth > 0 && len(line) > 0 && width+segWidth >= t.MaxWidth {
+			t.addLine(line, width)
+			line, width = nil, padding
+		}
+		for _, piece := range pieces {
+			if piece.linkValue != nil {
+				piece.linkValue.textBlocks = append(piece.linkValue.textBlocks, piece)
+			}
+		}
+		line = append(line, pieces...)
+		width += segWidth
+	}
+	if len(line) > 0 {
+		t.addLine(line, width)
+	}
+}
+
+// addLine adds a laid out line of pieces, width wide with the padding.
+func (t *Text) addLine(pieces []*bbCodeText, width float64) {
+	t.measurements.processedLines = append(t.measurements.processedLines, pieces)
+	t.measurements.processedLineWidths = append(t.measurements.processedLineWidths, width)
+	t.measurements.boundingBoxWidth = max(t.measurements.boundingBoxWidth, width)
 }
 
 func joinPieces(pieces []*bbCodeText) string {
