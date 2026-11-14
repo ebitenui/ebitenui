@@ -400,6 +400,7 @@ func (u *UI) AddWindowQuietly(w *widget.Window, closeEphemeralWindows bool) widg
 
 func (u *UI) addWindow(w *widget.Window) bool {
 	if u.IsWindowOpen(w) {
+		w.Reopen() // a window still on its way out comes back
 		return false
 	}
 

@@ -29,6 +29,7 @@ type Dialog struct {
 	padding        *Insets
 	spacing        int
 	keepOpen       bool
+	windowOpts     []WindowOpt
 
 	window   *Window
 	contents *Container
@@ -123,6 +124,13 @@ func (o DialogOptions) BackgroundImage(i *eimage.NineSlice) DialogOpt {
 	}
 }
 
+// WindowOpts adds options to the dialog's window, such as a Transition.
+func (o DialogOptions) WindowOpts(opts ...WindowOpt) DialogOpt {
+	return func(d *Dialog) {
+		d.windowOpts = append(d.windowOpts, opts...)
+	}
+}
+
 // Padding sets the space between the dialog's edge and its contents; 16
 // pixels by default.
 func (o DialogOptions) Padding(p *Insets) DialogOpt {
@@ -192,7 +200,7 @@ func (d *Dialog) build() {
 	for i, label := range d.choices {
 		d.contents.AddChild(d.choiceButton(i, label))
 	}
-	d.window = NewWindow(WindowOpts.Contents(d.contents), WindowOpts.Modal())
+	d.window = NewWindow(append([]WindowOpt{WindowOpts.Contents(d.contents), WindowOpts.Modal()}, d.windowOpts...)...)
 }
 
 func (d *Dialog) text(label string, face *text.Face, c color.Color) *Text {
