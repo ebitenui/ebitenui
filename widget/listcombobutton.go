@@ -34,6 +34,7 @@ type ListComboButton struct {
 	list            *List
 	buttonLabelFunc SelectComboButtonEntryLabelFunc
 	listLabelFunc   ListEntryLabelFunc
+	listWidgetFunc  ListEntryWidgetFunc
 
 	selectedEntry any
 
@@ -267,6 +268,15 @@ func (o ListComboButtonOptions) EntryLabelFunc(button SelectComboButtonEntryLabe
 	}
 }
 
+// EntryWidgetFunc shows each entry of the open list as a widget f returns,
+// in place of the list's label (see ListOptions.EntryWidgetFunc). The button
+// still shows its label for the selected entry.
+func (o ListComboButtonOptions) EntryWidgetFunc(f ListEntryWidgetFunc) ListComboButtonOpt {
+	return func(l *ListComboButton) {
+		l.listWidgetFunc = f
+	}
+}
+
 func (o ListComboButtonOptions) EntrySelectedHandler(f ListComboButtonEntrySelectedHandlerFunc) ListComboButtonOpt {
 	return func(l *ListComboButton) {
 		l.EntrySelectedEvent.AddHandler(func(args interface{}) {
@@ -395,7 +405,7 @@ func (l *ListComboButton) createWidget() {
 
 func (l *ListComboButton) initWidget() {
 
-	l.list = NewList(ListOpts.HideHorizontalSlider(), ListOpts.Entries(l.entries), ListOpts.EntryLabelFunc(l.listLabelFunc))
+	l.list = NewList(ListOpts.HideHorizontalSlider(), ListOpts.Entries(l.entries), ListOpts.EntryLabelFunc(l.listLabelFunc), ListOpts.EntryWidgetFunc(l.listWidgetFunc))
 	l.list.definedParams = *l.computedParams.List
 	l.list.definedParams.DisableDefaultKeys = l.computedParams.DisableDefaultKeys
 	l.list.definedParams.AllowReselect = constantutil.ConstantToPointer(true)

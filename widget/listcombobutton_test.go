@@ -208,3 +208,22 @@ func listComboButtonContentList(l *ListComboButton) *List {
 	result, _ := l.button.button.content.(*List)
 	return result
 }
+
+// The open list of a ListComboButton shows its entries as the widgets
+// EntryWidgetFunc builds.
+func TestListComboButton_EntryWidgets(t *testing.T) {
+	is := is.New(t)
+
+	var built []any
+	l := newListComboButton(t,
+		ListComboButtonOpts.Entries([]any{"a", "b"}),
+		ListComboButtonOpts.EntryLabelFunc(func(e any) string { return e.(string) }, nil), //nolint:forcetypeassert // strings
+		ListComboButtonOpts.EntryWidgetFunc(func(e any) PreferredSizeLocateableWidget {
+			built = append(built, e)
+			return newSimpleWidget(30, 15, nil)
+		}),
+	)
+
+	is.Equal(built, []any{"a", "b"})
+	is.True(listEntryButtons(l.list)[0].content != nil) // a widget in place of a label
+}

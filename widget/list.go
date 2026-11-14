@@ -49,9 +49,10 @@ type List struct {
 	hideHorizontalSlider bool
 	hideVerticalSlider   bool
 
-	entries        []any
-	entryLabelFunc ListEntryLabelFunc
-	entrySortFunc  ListEntrySortFunc
+	entries         []any
+	entryLabelFunc  ListEntryLabelFunc
+	entryWidgetFunc ListEntryWidgetFunc
+	entrySortFunc   ListEntrySortFunc
 
 	init            *MultiOnce
 	container       *Container
@@ -76,6 +77,9 @@ type List struct {
 type ListOpt func(l *List)
 
 type ListEntryLabelFunc func(e any) string
+
+// ListEntryWidgetFunc returns the widget an entry shows, in place of a label.
+type ListEntryWidgetFunc func(e any) PreferredSizeLocateableWidget
 type ListEntrySortFunc func(a, b any) int
 
 type ListEntryColor struct {
@@ -127,10 +131,10 @@ func (l *List) Validate() {
 	l.init.Do()
 	l.populateComputedParams()
 
-	if l.computedParams.EntryFace == nil {
+	if l.entryWidgetFunc == nil && l.computedParams.EntryFace == nil {
 		panic("List: EntryFontFace is required.")
 	}
-	if l.entryLabelFunc == nil {
+	if l.entryWidgetFunc == nil && l.entryLabelFunc == nil {
 		panic("List: EntryLabelFunc is required.")
 	}
 	l.initWidget()
@@ -346,6 +350,17 @@ func (o ListOptions) Entries(e []any) ListOpt {
 func (o ListOptions) EntryLabelFunc(f ListEntryLabelFunc) ListOpt {
 	return func(l *List) {
 		l.entryLabelFunc = f
+	}
+}
+
+// EntryWidgetFunc shows each entry as a widget f returns, such as a
+// container of an icon and texts, in place of a label: the list draws its
+// selected and unselected backgrounds behind it and selects the entry when
+// it is pressed. UpdateEntry asks f for the entry's widget again. With it,
+// neither EntryLabelFunc nor EntryFontFace is required.
+func (o ListOptions) EntryWidgetFunc(f ListEntryWidgetFunc) ListOpt {
+	return func(l *List) {
+		l.entryWidgetFunc = f
 	}
 }
 
@@ -891,15 +906,22 @@ func (l *List) insertListContentChild(index int, child PreferredSizeLocateableWi
 }
 
 func (l *List) createEntry(entry any) *Button {
-	but := NewButton(
+	opts := []ButtonOpt{
 		ButtonOpts.WidgetOpts(WidgetOpts.LayoutData(RowLayoutData{
 			Stretch: true,
 		})),
 		ButtonOpts.Image(l.computedParams.entryUnselectedColor),
-		ButtonOpts.Text(l.entryLabelFunc(entry), l.computedParams.EntryFace, l.computedParams.entryUnselectedTextColor),
 		ButtonOpts.TextPadding(l.computedParams.EntryTextPadding),
-		ButtonOpts.TextPosition(*l.computedParams.EntryTextHorizontalPosition, *l.computedParams.EntryTextVerticalPosition),
-	)
+	}
+	if l.entryWidgetFunc != nil {
+		opts = append(opts, ButtonOpts.Content(l.entryWidgetFunc(entry)))
+	} else {
+		opts = append(opts,
+			ButtonOpts.Text(l.entryLabelFunc(entry), l.computedParams.EntryFace, l.computedParams.entryUnselectedTextColor),
+			ButtonOpts.TextPosition(*l.computedParams.EntryTextHorizontalPosition, *l.computedParams.EntryTextVerticalPosition),
+		)
+	}
+	but := NewButton(opts...)
 	events := but.ClickedEvent
 	if *l.computedParams.SelectPressed {
 		events = but.PressedEvent

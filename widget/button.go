@@ -50,6 +50,7 @@ type Button struct {
 	graphic           *Graphic
 	text              *Text
 	textLabel         string
+	content           PreferredSizeLocateableWidget
 	textProcessBBCode bool
 	hovering          bool
 	pressing          bool
@@ -360,6 +361,15 @@ func (o ButtonOptions) Text(label string, face *text.Face, color *ButtonTextColo
 		b.textLabel = label
 		b.definedParams.TextFace = face
 		b.definedParams.TextColor = color
+	}
+}
+
+// Content puts w in the button in place of a text and a graphic: the button
+// draws its images behind w and is pressed over it. TextPadding pads it, and
+// w is stretched to the button unless it has layout data of its own.
+func (o ButtonOptions) Content(w PreferredSizeLocateableWidget) ButtonOpt {
+	return func(b *Button) {
+		b.content = w
 	}
 }
 
@@ -909,6 +919,14 @@ func (b *Button) initWidget() {
 		ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(b.computedParams.TextPadding))),
 		ContainerOpts.AutoDisableChildren(),
 	)
+	if b.content != nil {
+		if b.content.GetWidget().LayoutData == nil {
+			b.content.GetWidget().LayoutData = AnchorLayoutData{StretchHorizontal: true, StretchVertical: true}
+		}
+		b.container.AddChild(b.content)
+		b.container.Validate()
+		return
+	}
 	var textLayoutData any = AnchorLayoutData{
 		StretchHorizontal: true,
 		StretchVertical:   true,
