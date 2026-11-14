@@ -26,6 +26,13 @@ type Container struct {
 	init     *MultiOnce
 	widget   *Widget
 	children []PreferredSizeLocateableWidget
+
+	// Drawing at an opacity or through a shader (see container_effect.go).
+	opacity        float32
+	shader         *ContainerShader
+	effectBuffer   *ebiten.Image
+	effectImageOp  ebiten.DrawImageOptions
+	effectShaderOp ebiten.DrawRectShaderOptions
 }
 
 type ContainerOpt func(c *Container)
@@ -46,7 +53,8 @@ type PreferredSizeLocateableWidget interface {
 
 func NewContainer(opts ...ContainerOpt) *Container {
 	c := &Container{
-		init: &MultiOnce{},
+		init:    &MultiOnce{},
+		opacity: 1,
 	}
 
 	c.init.Append(c.createWidget)
@@ -279,6 +287,15 @@ func (c *Container) Render(screen *ebiten.Image) {
 		}
 	}
 
+	if c.hasEffect() {
+		c.renderWithEffect(screen)
+		return
+	}
+	c.renderContent(screen)
+}
+
+// renderContent renders the container and its children onto screen.
+func (c *Container) renderContent(screen *ebiten.Image) {
 	c.widget.Render(screen)
 
 	c.doLayout()
