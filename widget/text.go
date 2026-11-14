@@ -561,15 +561,21 @@ func (t *Text) draw(screen *ebiten.Image) {
 }
 
 // drawGlyphs draws glyphs laid out by layOutGlyphs as text.Draw would draw
-// their text at (x, y).
+// their text at (x, y): in clr, except color glyphs such as emoji, which keep
+// their own colors and take only clr's alpha.
 func (t *Text) drawGlyphs(screen *ebiten.Image, glyphs []text.Glyph, x, y float64, clr color.Color) {
+	var tint, colored ebiten.ColorScale
+	tint.ScaleWithColor(clr)
+	colored.ScaleAlpha(tint.A())
 	op := &t.glyphOp
-	op.ColorScale.Reset()
-	op.ColorScale.ScaleWithColor(clr)
 	for _, g := range glyphs {
 		op.GeoM.Reset()
 		op.GeoM.Translate(g.X, g.Y)
 		op.GeoM.Translate(x, y)
+		op.ColorScale = tint
+		if g.Colored {
+			op.ColorScale = colored
+		}
 		screen.DrawImage(g.Image, op)
 	}
 }
