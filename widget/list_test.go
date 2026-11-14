@@ -1,6 +1,7 @@
 package widget
 
 import (
+	img "image"
 	"image/color"
 	"strconv"
 	"testing"
@@ -325,4 +326,43 @@ func newList(t *testing.T, opts ...ListOpt) *List {
 
 func listEntryButtons(l *List) []*Button {
 	return l.buttons
+}
+
+// Entries can be widgets, built per entry, with neither a label function nor
+// a font: each shows inside its entry's button, clicking the button selects
+// the entry, and UpdateEntry builds the widget again.
+func TestList_EntryWidgets(t *testing.T) {
+	is := is.New(t)
+
+	built := map[any]int{}
+	widgets := map[any]*simpleWidget{}
+	var selected any
+	l := NewList(
+		ListOpts.Entries([]any{"a", "b"}),
+		ListOpts.EntryWidgetFunc(func(e any) PreferredSizeLocateableWidget {
+			built[e]++
+			widgets[e] = newSimpleWidget(30, 15, nil)
+			return widgets[e]
+		}),
+		ListOpts.EntrySelectedHandler(func(args *ListEntrySelectedEventArgs) { selected = args.Entry }),
+		ListOpts.ScrollContainerImage(&ScrollContainerImage{Idle: newNineSliceEmpty(t), Mask: newNineSliceEmpty(t)}),
+		ListOpts.SliderParams(&SliderParams{TrackImage: &SliderTrackImage{}, HandleImage: &ButtonImage{Idle: newNineSliceEmpty(t), Pressed: newNineSliceEmpty(t)}}),
+		ListOpts.EntryColor(&ListEntryColor{
+			Unselected: color.Transparent, Selected: color.Transparent, DisabledUnselected: color.Transparent,
+			DisabledSelected: color.Transparent, SelectedBackground: color.Transparent, DisabledSelectedBackground: color.Transparent,
+		}),
+	)
+	l.SetLocation(img.Rect(0, 0, 100, 100))
+	event.ExecuteDeferred()
+	render(l, t)
+
+	buttons := listEntryButtons(l)
+	is.Equal(len(buttons), 2)
+	is.True(!widgets["b"].GetWidget().Rect.Empty() && widgets["b"].GetWidget().Rect.In(buttons[1].GetWidget().Rect)) // inside its button
+
+	leftMouseButtonClick(buttons[1], t)
+	is.Equal(selected, "b") // selected by clicking
+
+	l.UpdateEntry("b")
+	is.Equal(built["b"], 2) // built again
 }
