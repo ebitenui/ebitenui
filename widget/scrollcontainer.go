@@ -261,7 +261,7 @@ func (s *ScrollContainer) draw(screen *ebiten.Image) {
 
 func (s *ScrollContainer) drawImageOptions(opts *ebiten.DrawImageOptions) {
 	if s.widget.Disabled && s.image.Disabled == nil {
-		opts.ColorM.Scale(1, 1, 1, 0.35)
+		opts.ColorScale.ScaleAlpha(0.35)
 	}
 }
 
@@ -308,7 +308,7 @@ func (s *ScrollContainer) renderContent(screen *ebiten.Image) {
 		func(buf *ebiten.Image) {
 			s.image.Mask.Draw(buf, s.widget.Rect.Dx()-s.padding.Dx(), s.widget.Rect.Dy()-s.padding.Dy(), func(opts *ebiten.DrawImageOptions) {
 				opts.GeoM.Translate(float64(s.widget.Rect.Min.X+s.padding.Left), float64(s.widget.Rect.Min.Y+s.padding.Top))
-				opts.CompositeMode = ebiten.CompositeModeCopy
+				opts.Blend = ebiten.BlendCopy
 			})
 		})
 }

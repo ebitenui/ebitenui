@@ -851,7 +851,7 @@ func (b *Button) handleSubmit() {
 
 func (b *Button) drawImageOptions(opts *ebiten.DrawImageOptions) {
 	if b.widget.Disabled && b.computedParams.Image.Disabled == nil {
-		opts.ColorM.Scale(1, 1, 1, 0.35)
+		opts.ColorScale.ScaleAlpha(0.35)
 	}
 }
 

@@ -2,11 +2,27 @@ package widget
 
 import (
 	"image/color"
+	"math"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/ebitenui/ebitenui/event"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/matryer/is"
 )
+
+// The caret before each rune sits where that rune is drawn, kerning against
+// the rune before it included.
+func TestTextInput_CaretAtDrawnGlyphs(t *testing.T) {
+	is := is.New(t)
+
+	face := loadFont(t)
+	s := "To Wa AV"
+	for _, g := range text.AppendLazyGlyphs(nil, s, *face, nil) {
+		p := utf8.RuneCountInString(s[:g.StartIndexInBytes])
+		is.Equal(fontAdvanceAt(s, p, face), int(math.Round(g.OriginX))) // caret before the rune
+	}
+}
 
 func TestTextInput_ChangedEvent(t *testing.T) {
 	is := is.New(t)
