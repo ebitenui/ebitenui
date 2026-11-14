@@ -956,11 +956,24 @@ func (widget *Widget) SetTheme(theme *Theme) {
 	widget.theme = theme
 }
 
+// GetTheme returns the widget's theme: its own, or else its parent's, or
+// else, for a widget with no theme above it, such as a window's contents
+// before the window is added, the UI's PrimaryTheme.
 func (widget *Widget) GetTheme() *Theme {
 	if widget.theme != nil {
 		return widget.theme
 	} else if widget.parent != nil {
 		return widget.parent.GetTheme()
 	}
-	return nil
+	return uiTheme
+}
+
+// uiTheme is the UI's PrimaryTheme, for widgets with no theme above them.
+// An application has one UI, which sets it with SetUITheme.
+var uiTheme *Theme
+
+// SetUITheme sets the theme widgets with no theme above them take. The UI
+// calls it with its PrimaryTheme; applications don't need to.
+func SetUITheme(theme *Theme) {
+	uiTheme = theme
 }

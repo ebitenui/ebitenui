@@ -197,11 +197,15 @@ func (u *UI) setTheme() {
 	// Handle the user setting a new theme.
 	if u.Container != nil {
 		if (u.PrimaryTheme != nil && u.Container.GetWidget().GetTheme() == nil) || u.PrimaryTheme != u.previousTheme {
+			widget.SetUITheme(u.PrimaryTheme)
 			u.Container.GetWidget().SetTheme(u.PrimaryTheme)
 			u.previousTheme = u.PrimaryTheme
 
-			// Validate the main container with the new theme.
+			// Validate the main container and the open windows with the new theme.
 			u.Container.Validate()
+			for _, w := range u.windows {
+				w.GetContainer().Validate()
+			}
 		} else if !u.Container.IsValidated() {
 			u.Container.Validate()
 		}
@@ -399,9 +403,8 @@ func (u *UI) addWindow(w *widget.Window) bool {
 		return false
 	}
 
-	if w.GetContainer().GetWidget().GetTheme() == nil {
-		w.GetContainer().GetWidget().SetTheme(u.PrimaryTheme)
-	}
+	// A window without a theme of its own takes the UI's, through
+	// widget.SetUITheme, and so follows it when it changes.
 	w.GetContainer().Validate()
 
 	closeFunc := func() {
