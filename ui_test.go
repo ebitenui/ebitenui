@@ -88,7 +88,7 @@ func TestUI_WindowTransition(t *testing.T) {
 	ui := newThemedUI(t, textTheme(t, color.White))
 	w := widget.NewWindow(
 		widget.WindowOpts.Contents(widget.NewContainer()),
-		widget.WindowOpts.Transition(widget.WindowTransition{Duration: 4, Offset: image.Pt(0, 40)}),
+		widget.WindowOpts.Transition(widget.WindowTransition{Duration: 4, In: widget.WindowMotion{Offset: image.Pt(0, 40)}}),
 	)
 	w.SetLocation(image.Rect(0, 0, 100, 50))
 	update := func(n int) {

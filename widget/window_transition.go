@@ -8,24 +8,34 @@ import (
 )
 
 // WindowTransition makes a window ease into place when it is added to a
-// UI, and back out when it closes, before the UI removes it.
+// UI, and out when it closes, before the UI removes it: in by its In
+// motion, out by its Out motion.
 type WindowTransition struct {
-	// Duration is how many updates the transition takes.
+	// Duration is how many updates each way takes.
 	Duration int
-	// Offset is where the window comes from and goes back to, relative to
-	// its place, in pixels.
-	Offset image.Point
-	// Fade fades the window in and out as it moves, through its opacity.
-	Fade bool
+	// In is how the window comes in, Out how it goes out.
+	In, Out WindowMotion
 	// Ease maps the transition's progress, from 0 to 1, to how far the
 	// window has come; nil eases out cubically. Closing plays it backward.
 	Ease func(t float64) float64
 }
 
+// WindowMotion is one way of a window's transition: from or to an offset
+// from its place, fading or not. The zero motion keeps the window in place,
+// opaque: it shows at once, or goes at once.
+type WindowMotion struct {
+	// Offset is where the window comes from, or goes to, relative to its
+	// place, in pixels: (0, 40) from below, (-40, 0) from the left.
+	Offset image.Point
+	// Fade fades the window in, or out, through its opacity.
+	Fade bool
+}
+
 // Transition makes the window ease in when it is added to a UI and out when
 // it closes: Close, or the function AddWindow returns, starts the way out,
 // and the UI removes the window, firing ClosedEvent, once it is over. A
-// transition of no duration does nothing.
+// window turned back on its way takes the other motion from where it is.
+// A transition of no duration does nothing.
 func (o WindowOptions) Transition(t WindowTransition) WindowOpt {
 	return func(w *Window) {
 		if t.Duration <= 0 {
@@ -49,7 +59,12 @@ func (w *Window) Closing() bool { return w.closing }
 
 // Reopen turns a window on its way out back toward its place. AddWindow
 // does it for a window still closing.
-func (w *Window) Reopen() { w.closing = false }
+func (w *Window) Reopen() {
+	if w.closing {
+		w.closing = false
+		w.applyTransition()
+	}
+}
 
 // startTransition puts the window at the start of its way in, as it is
 // added to a UI that removes it with remove.
@@ -76,23 +91,32 @@ func (w *Window) updateTransition() {
 	}
 }
 
-// applyTransition shows the window where its transition has it: off its
-// place by the part of the offset still to go, and faded as far.
+// applyTransition shows the window where its transition has it, by the
+// motion of the way it goes: off its place by the part of the motion's
+// offset still to go, and faded as far if the motion fades.
 func (w *Window) applyTransition() {
 	t := w.transition
+	m := t.In
+	if w.closing {
+		m = t.Out
+	}
 	ease := t.Ease
 	if ease == nil {
 		ease = easeOutCubic
 	}
 	v := ease(float64(w.progress) / float64(t.Duration))
-	off := image.Pt(int(math.Round((1-v)*float64(t.Offset.X))), int(math.Round((1-v)*float64(t.Offset.Y))))
+	off := image.Pt(int(math.Round((1-v)*float64(m.Offset.X))), int(math.Round((1-v)*float64(m.Offset.Y))))
 	if off != w.shownAt {
 		place := w.placeRect()
 		w.shownAt = off
 		w.container.SetLocation(place.Add(off))
 	}
-	if t.Fade {
-		w.SetOpacity(float32(v))
+	opacity := float32(1)
+	if m.Fade {
+		opacity = float32(v)
+	}
+	if c, ok := w.container.(*Container); ok && c.Opacity() != opacity {
+		c.SetOpacity(opacity)
 	}
 }
 
