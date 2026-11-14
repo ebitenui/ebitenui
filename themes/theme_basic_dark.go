@@ -27,14 +27,13 @@ func getDarkCheckbox() *widget.CheckboxImage {
 	checkmark.LineTo(14, 24)
 	checkmark.LineTo(6, 15)
 
-	vertices := []ebiten.Vertex{}
-	indices := []uint16{}
-	vertices, indices = checkmark.AppendVerticesAndIndicesForStroke(vertices, indices, &vector.StrokeOptions{
+	strokeOp := &vector.StrokeOptions{
 		Width:    3,
 		LineJoin: vector.LineJoinBevel,
-	})
-	whiteImg := image.NewImageColor(color.White)
-	checked.DrawTriangles(vertices, indices, whiteImg, &ebiten.DrawTrianglesOptions{AntiAlias: true})
+	}
+	drawOp := &vector.DrawPathOptions{AntiAlias: true}
+	drawOp.ColorScale.ScaleWithColor(color.White)
+	vector.StrokePath(checked, &checkmark, strokeOp, drawOp)
 	checked9s := image.NewFixedNineSlice(checked)
 
 	// Create greyed image
