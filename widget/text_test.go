@@ -189,6 +189,28 @@ func TestText_WrapWithoutSpaces(t *testing.T) {
 	is.Equal(strings.Join(tw.measurements.processedLineTexts, ""), label) // every character kept
 }
 
+// A text takes its theme's shadow unless it sets its own, and SetShadow
+// replaces it.
+func TestText_Shadow(t *testing.T) {
+	is := is.New(t)
+
+	themed := &TextShadow{Color: color.Black, OffsetX: 1, OffsetY: 1}
+	parent := NewContainer()
+	parent.GetWidget().SetTheme(&Theme{TextTheme: &TextParams{Shadow: themed}})
+
+	plain := newText(t, "a")
+	own := newText(t, "b", TextOpts.Shadow(color.White, 2, 3))
+	parent.AddChild(plain, own)
+	plain.Validate()
+	own.Validate()
+
+	is.Equal(plain.computedParams.Shadow, themed) // the theme's
+	is.Equal(*own.computedParams.Shadow, TextShadow{Color: color.White, OffsetX: 2, OffsetY: 3})
+
+	own.SetShadow(nil)
+	is.Equal(own.computedParams.Shadow, nil) // removed
+}
+
 // visibleGlyphs returns the glyphs text.AppendGlyphs lays out for s, without
 // those that have no image.
 func visibleGlyphs(s string, face text.Face) []text.Glyph {

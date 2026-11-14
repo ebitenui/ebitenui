@@ -29,6 +29,17 @@ type TextParams struct {
 	Padding   *Insets
 	LinkColor *TextLinkColor
 	Position  *TextPositioning
+	Shadow    *TextShadow
+}
+
+// TextShadow is a copy of the text drawn under it, in Color, moved by
+// OffsetX and OffsetY pixels: a drop shadow, or with no offset and a
+// slightly larger look, a halo. It doesn't change the text's size in a
+// layout.
+type TextShadow struct {
+	Color   color.Color
+	OffsetX float64
+	OffsetY float64
 }
 
 type Text struct {
@@ -176,6 +187,7 @@ func (t *Text) populateComputedParams() {
 			txtParams.Padding = theme.TextTheme.Padding
 			txtParams.LinkColor = theme.TextTheme.LinkColor
 			txtParams.Position = theme.TextTheme.Position
+			txtParams.Shadow = theme.TextTheme.Shadow
 		}
 	}
 	if t.definedParams.Face != nil {
@@ -192,6 +204,9 @@ func (t *Text) populateComputedParams() {
 	}
 	if t.definedParams.LinkColor != nil {
 		txtParams.LinkColor = t.definedParams.LinkColor
+	}
+	if t.definedParams.Shadow != nil {
+		txtParams.Shadow = t.definedParams.Shadow
 	}
 
 	if txtParams.Padding == nil {
@@ -250,6 +265,14 @@ func (o TextOptions) TextColor(color color.Color) TextOpt {
 func (o TextOptions) Padding(padding *Insets) TextOpt {
 	return func(t *Text) {
 		t.definedParams.Padding = padding
+	}
+}
+
+// Shadow draws the text over a copy of itself in c, moved by dx and dy
+// pixels.
+func (o TextOptions) Shadow(c color.Color, dx, dy float64) TextOpt {
+	return func(t *Text) {
+		t.definedParams.Shadow = &TextShadow{Color: c, OffsetX: dx, OffsetY: dy}
 	}
 }
 
@@ -358,6 +381,12 @@ func (t *Text) SetFace(face *text.Face) {
 	t.definedParams.Face = face
 	t.computedParams.Face = face
 	t.measurements.face = nil
+}
+
+// SetShadow sets the text's shadow; nil draws none.
+func (t *Text) SetShadow(shadow *TextShadow) {
+	t.definedParams.Shadow = shadow
+	t.computedParams.Shadow = shadow
 }
 
 func (t *Text) SetPadding(padding *Insets) {
@@ -553,30 +582,43 @@ func (t *Text) draw(screen *ebiten.Image) {
 		if !t.measurements.processedLinesLaid[linesIdx] {
 			t.layOutLine(linesIdx)
 		}
-		if t.ProcessBBCode {
-			for _, piece := range t.measurements.processedLines[linesIdx] {
-				clr := piece.color
-				if piece.linkValue != nil {
-					if piece.hovered && t.computedParams.LinkColor.Hover != nil {
-						clr = t.computedParams.LinkColor.Hover
-					} else {
-						clr = t.computedParams.LinkColor.Idle
-					}
-				}
-				t.drawGlyphs(screen, piece.glyphs, lx, ly, clr)
-				lx += piece.width
-			}
-
-		} else {
-			t.drawGlyphs(screen, t.measurements.processedLineGlyphs[linesIdx], lx, ly, t.computedParams.Color)
+		if shadow := t.computedParams.Shadow; shadow != nil && shadow.Color != nil {
+			t.drawLine(screen, linesIdx, lx+shadow.OffsetX, ly+shadow.OffsetY, shadow.Color)
 		}
+		t.drawLine(screen, linesIdx, lx, ly, nil)
+	}
+}
+
+// drawLine draws a laid out line at (x, y), in its own colors, or all in
+// shadow, color glyphs included, when shadow is not nil.
+func (t *Text) drawLine(screen *ebiten.Image, linesIdx int, x, y float64, shadow color.Color) {
+	if !t.ProcessBBCode {
+		clr := t.computedParams.Color
+		if shadow != nil {
+			clr = shadow
+		}
+		t.drawGlyphs(screen, t.measurements.processedLineGlyphs[linesIdx], x, y, clr, shadow != nil)
+		return
+	}
+	for _, piece := range t.measurements.processedLines[linesIdx] {
+		clr := piece.color
+		switch {
+		case shadow != nil:
+			clr = shadow
+		case piece.linkValue != nil && piece.hovered && t.computedParams.LinkColor.Hover != nil:
+			clr = t.computedParams.LinkColor.Hover
+		case piece.linkValue != nil:
+			clr = t.computedParams.LinkColor.Idle
+		}
+		t.drawGlyphs(screen, piece.glyphs, x, y, clr, shadow != nil)
+		x += piece.width
 	}
 }
 
 // drawGlyphs draws glyphs laid out by layOutGlyphs as text.Draw would draw
 // their text at (x, y): in clr, except color glyphs such as emoji, which keep
-// their own colors and take only clr's alpha.
-func (t *Text) drawGlyphs(screen *ebiten.Image, glyphs []text.Glyph, x, y float64, clr color.Color) {
+// their own colors and take only clr's alpha unless tintColored.
+func (t *Text) drawGlyphs(screen *ebiten.Image, glyphs []text.Glyph, x, y float64, clr color.Color, tintColored bool) {
 	var tint, colored ebiten.ColorScale
 	tint.ScaleWithColor(clr)
 	colored.ScaleAlpha(tint.A())
@@ -586,7 +628,7 @@ func (t *Text) drawGlyphs(screen *ebiten.Image, glyphs []text.Glyph, x, y float6
 		op.GeoM.Translate(g.X, g.Y)
 		op.GeoM.Translate(x, y)
 		op.ColorScale = tint
-		if g.Colored {
+		if g.Colored && !tintColored {
 			op.ColorScale = colored
 		}
 		screen.DrawImage(g.Image, op)
