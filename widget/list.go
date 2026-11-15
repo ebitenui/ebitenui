@@ -342,9 +342,6 @@ func (o ListOptions) HideVerticalSlider() ListOpt {
 	}
 }
 
-// SlidersWhenNeeded shows each slider only while the entries overflow the
-// list its way, so a list whose entries fit shows none; a hidden slider
-// keeps its room, so the entries do not move when it shows.
 // DragToScroll lets the pointer scroll the entries by dragging them, as
 // ScrollContainerOpts.DragToScroll does; the sliders follow.
 func (o ListOptions) DragToScroll() ListOpt {
@@ -353,6 +350,9 @@ func (o ListOptions) DragToScroll() ListOpt {
 	}
 }
 
+// SlidersWhenNeeded shows each slider only while the entries overflow the
+// list its way, so a list whose entries fit shows none; a hidden slider
+// keeps its room, so the entries do not move when it shows.
 func (o ListOptions) SlidersWhenNeeded() ListOpt {
 	return func(l *List) {
 		l.slidersWhenNeeded = true
