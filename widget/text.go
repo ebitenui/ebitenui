@@ -55,6 +55,8 @@ type Text struct {
 	init         *MultiOnce
 	widget       *Widget
 	measurements textMeasurements
+	measured     int        // measurements made, so an image of the text knows when it is stale
+	cache        *textCache // the text as an image, with SetTextCache
 	colorList    *datastructures.Stack[color.Color]
 	linkStack    *datastructures.Stack[linkData]
 	currentLink  *bbCodeText
@@ -571,6 +573,10 @@ func (t *Text) draw(screen *ebiten.Image) {
 		p = p.Add(image.Point{0, int(float64(r.Dy())-t.measurements.boundingBoxHeight) - t.computedParams.Padding.Bottom})
 	}
 
+	if textCacheOn && t.drawCached(screen, p) {
+		return
+	}
+
 	// Draw text
 	for linesIdx := range t.measurements.processedLines {
 		ly := float64(p.Y) + t.measurements.lineHeight*float64(linesIdx)
@@ -589,15 +595,7 @@ func (t *Text) draw(screen *ebiten.Image) {
 			}
 		}
 
-		lx := float64(p.X)
-		switch t.computedParams.Position.HTextPosition {
-		case TextPositionCenter:
-			lx += ((float64(w) - t.measurements.processedLineWidths[linesIdx]) / 2) + float64(t.computedParams.Padding.Left)
-		case TextPositionEnd:
-			lx += float64(w) - t.measurements.processedLineWidths[linesIdx] - float64(t.computedParams.Padding.Right)
-		case TextPositionStart:
-			lx += float64(t.computedParams.Padding.Left)
-		}
+		lx := float64(p.X) + t.lineX(linesIdx, w)
 
 		if !t.measurements.processedLinesLaid[linesIdx] {
 			t.layOutLine(linesIdx)
@@ -607,6 +605,19 @@ func (t *Text) draw(screen *ebiten.Image) {
 		}
 		t.drawLine(screen, linesIdx, lx, ly, nil)
 	}
+}
+
+// lineX returns where line i starts, from the left of a text w pixels wide.
+func (t *Text) lineX(i, w int) float64 {
+	switch t.computedParams.Position.HTextPosition {
+	case TextPositionCenter:
+		return (float64(w)-t.measurements.processedLineWidths[i])/2 + float64(t.computedParams.Padding.Left)
+	case TextPositionEnd:
+		return float64(w) - t.measurements.processedLineWidths[i] - float64(t.computedParams.Padding.Right)
+	case TextPositionStart:
+		return float64(t.computedParams.Padding.Left)
+	}
+	return 0
 }
 
 // drawLine draws a laid out line at (x, y), in its own colors, or all in
@@ -794,6 +805,7 @@ func (t *Text) measure() {
 		t.MaxWidth == t.measurements.maxWidth && t.ProcessBBCode == t.measurements.ProcessBBCode {
 		return
 	}
+	t.measured++
 	t.measurements = textMeasurements{
 		label:         t.Label,
 		face:          t.computedParams.Face,
