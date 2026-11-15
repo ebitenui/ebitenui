@@ -25,6 +25,10 @@ type MaskedRenderBuffer struct {
 	op                 ebiten.DrawImageOptions
 }
 
+// coveringMargin is how far, in pixels, an image covering an area reaches
+// past it once the area has moved, so that it can keep sliding inside.
+const coveringMargin = 64
+
 // DrawFunc is a function that draws something into buf.
 type DrawFunc func(buf *ebiten.Image)
 
@@ -80,15 +84,16 @@ func (m *MaskedRenderBuffer) Draw(screen *ebiten.Image, d DrawFunc, dm DrawFunc)
 // DrawIn calls d to draw, and dm to draw the mask, onto images covering only
 // rect, in the same coordinates as screen, then draws what d drew through
 // the mask onto screen. Widgets drawn by d that lie outside rect can skip
-// drawing. The images are as big as rect, not screen, and are kept while
-// rect stays the same.
+// drawing. The images are as big as rect, not screen, while rect stays put;
+// once it moves they reach coveringMargin past it, and are kept while it
+// slides inside them, as in a window easing in.
 func (m *MaskedRenderBuffer) DrawIn(screen *ebiten.Image, rect img.Rectangle, d DrawFunc, dm DrawFunc) {
 	rect = rect.Intersect(screen.Bounds())
 	if rect.Empty() {
 		return
 	}
-	renderBuf := imageCovering(&m.renderIn, rect)
-	maskedBuf := imageCovering(&m.maskedIn, rect)
+	renderBuf := imageCovering(&m.renderIn, rect, screen.Bounds())
+	maskedBuf := imageCovering(&m.maskedIn, rect, screen.Bounds())
 
 	d(renderBuf)
 	dm(maskedBuf)
@@ -101,16 +106,24 @@ func (m *MaskedRenderBuffer) DrawIn(screen *ebiten.Image, rect img.Rectangle, d 
 	screen.DrawImage(maskedBuf, &m.op)
 }
 
-// imageCovering returns a cleared image whose bounds are rect, reusing *i
-// when it has them and replacing it otherwise.
-func imageCovering(i **ebiten.Image, rect img.Rectangle) *ebiten.Image {
-	if *i != nil && (*i).Bounds() == rect {
-		(*i).Clear()
-		return *i
+// imageCovering returns a cleared image whose bounds are rect: the part of
+// *i covering rect while rect lies inside it (Ebitengine keeps one sub-image
+// per area, so an area that stays gets the same one), else part of a new
+// image, exactly rect the first time and reaching coveringMargin past it,
+// within screen, once rect has moved.
+func imageCovering(i **ebiten.Image, rect, screen img.Rectangle) *ebiten.Image {
+	if *i == nil || !rect.In((*i).Bounds()) {
+		margin := 0
+		if *i != nil {
+			margin = coveringMargin
+			(*i).Deallocate()
+		}
+		*i = ebiten.NewImageWithOptions(rect.Inset(-margin).Intersect(screen), nil)
 	}
-	if *i != nil {
-		(*i).Deallocate()
+	part, ok := (*i).SubImage(rect).(*ebiten.Image)
+	if !ok {
+		part = *i
 	}
-	*i = ebiten.NewImageWithOptions(rect, nil)
-	return *i
+	part.Clear()
+	return part
 }

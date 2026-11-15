@@ -63,8 +63,39 @@ func TestMaskedRenderBuffer_DrawIn(t *testing.T) {
 	first := drawnOn
 
 	draw(img.Rect(20, 30, 70, 90))
-	is.Equal(drawnOn, first) // kept
+	is.True(drawnOn == first) // kept, not another image of the same bounds
 
 	draw(img.Rect(150, 150, 250, 250))
 	is.Equal(drawnOn.Bounds(), img.Rect(150, 150, 200, 200)) // moved, and cut to the screen
+}
+
+// An area that stays has images of its size; once it moves, they get a
+// margin, so that it can slide, as a window easing in, keeping them.
+func TestMaskedRenderBuffer_DrawInMovingArea(t *testing.T) {
+	is := is.New(t)
+
+	screen := ebiten.NewImage(800, 600)
+	m := NewMaskedRenderBuffer()
+	draw := func(r img.Rectangle) {
+		m.DrawIn(screen, r, func(*ebiten.Image) {}, func(*ebiten.Image) {})
+	}
+
+	draw(img.Rect(100, 100, 300, 200))
+	is.Equal(m.renderIn.Bounds(), img.Rect(100, 100, 300, 200)) // the area alone while it stays
+	is.Equal(m.maskedIn.Bounds(), img.Rect(100, 100, 300, 200))
+
+	draw(img.Rect(105, 100, 305, 200))
+	moved, movedMask := m.renderIn, m.maskedIn
+	is.Equal(moved.Bounds(), img.Rect(41, 36, 369, 264)) // 64 px around it from then on
+
+	for x := 110; x <= 165; x += 5 {
+		draw(img.Rect(x, 100, x+200, 200))
+	}
+	is.True(m.renderIn == moved && m.maskedIn == movedMask) // kept while sliding inside them
+
+	draw(img.Rect(400, 300, 600, 400))
+	is.True(m.renderIn != moved) // past them: new images
+
+	draw(img.Rect(650, 500, 850, 650))
+	is.Equal(m.renderIn.Bounds(), img.Rect(586, 436, 800, 600)) // the margin stops at the screen's edge
 }
