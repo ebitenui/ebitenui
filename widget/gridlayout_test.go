@@ -86,3 +86,29 @@ func TestGridLayout_StretchedColumnsShareTheRest(t *testing.T) {
 	is.Equal(cells[1].GetWidget().Rect, image.Rect(25, 0, 61, 10))
 	is.Equal(cells[2].GetWidget().Rect, image.Rect(66, 0, 101, 10))
 }
+
+// A grid layout measures and lays out without allocating once it has
+// measured, and a layout shared by nested containers measures each right.
+func TestGridLayout_MeasuresWithoutAllocating(t *testing.T) {
+	is := is.New(t)
+
+	l := NewGridLayout(GridLayoutOpts.Columns(2))
+	cells := []PreferredSizeLocateableWidget{
+		newSimpleWidget(20, 10, nil),
+		newSimpleWidget(10, 10, nil),
+		newSimpleWidget(10, 30, nil),
+	}
+	w, h := l.PreferredSize(cells)
+	is.Equal(w, 30)
+	is.Equal(h, 40)
+	is.Equal(testing.AllocsPerRun(10, func() { l.PreferredSize(cells) }), 0.0)
+	is.Equal(testing.AllocsPerRun(10, func() { l.Layout(cells, image.Rect(0, 0, 30, 40)) }), 0.0)
+
+	inner := NewContainer(ContainerOpts.Layout(l))
+	inner.AddChild(newSimpleWidget(10, 10, nil), newSimpleWidget(10, 10, nil))
+	outer := NewContainer(ContainerOpts.Layout(l))
+	outer.AddChild(newSimpleWidget(40, 10, nil), inner)
+	w, h = outer.PreferredSize()
+	is.Equal(w, 60) // 40, and the inner container's 20 measured with the same layout
+	is.Equal(h, 10)
+}

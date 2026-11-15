@@ -18,6 +18,10 @@ type GridLayout struct {
 
 	defaultColumnStretch bool
 	defaultRowStretch    bool
+
+	// The column widths and row heights of the last measure, for the next
+	// to reuse; nil while a measure holds them.
+	spareWidths, spareHeights []int
 }
 
 // GridLayoutOpt is a function that configures g.
@@ -125,6 +129,7 @@ func (o GridLayoutOptions) DefaultStretch(c bool, r bool) GridLayoutOpt {
 // PreferredSize implements Layouter.
 func (g *GridLayout) PreferredSize(widgets []PreferredSizeLocateableWidget) (int, int) {
 	colWidths, rowHeights := g.preferredColumnWidthsAndRowHeights(widgets)
+	defer g.keep(colWidths, rowHeights)
 	return g.padding.Dx() + g.columnSpacing*(len(colWidths)-1) + sumInts(colWidths),
 		g.padding.Dy() + g.rowSpacing*(len(rowHeights)-1) + sumInts(rowHeights)
 }
@@ -134,6 +139,7 @@ func (g *GridLayout) Layout(widgets []PreferredSizeLocateableWidget, rect image.
 	rect = g.padding.Apply(rect)
 
 	colWidths, rowHeights := g.preferredColumnWidthsAndRowHeights(widgets)
+	defer g.keep(colWidths, rowHeights)
 	stretch(colWidths, rect.Dx()-g.columnSpacing*(len(colWidths)-1), g.columnStretched)
 	stretch(rowHeights, rect.Dy()-g.rowSpacing*(len(rowHeights)-1), g.rowStretched)
 
@@ -218,8 +224,8 @@ func (g *GridLayout) preferredColumnWidthsAndRowHeights(widgets []PreferredSizeL
 	if len(widgets) < g.columns {
 		colLen = len(widgets)
 	}
-	colWidths := make([]int, colLen)
-	rowHeights := make([]int, int(math.Ceil(float64(len(widgets))/float64(g.columns))))
+	colWidths := take(&g.spareWidths, colLen)
+	rowHeights := take(&g.spareHeights, int(math.Ceil(float64(len(widgets))/float64(g.columns))))
 
 	c := 0
 	r := 0
@@ -247,6 +253,25 @@ func (g *GridLayout) preferredColumnWidthsAndRowHeights(widgets []PreferredSizeL
 	}
 
 	return colWidths, rowHeights
+}
+
+// take returns n zeroed ints from *spare, emptying it so that a layout
+// shared by nested containers doesn't measure into them twice, or new ints
+// when *spare is short or held.
+func take(spare *[]int, n int) []int {
+	s := *spare
+	*spare = nil
+	if cap(s) < n {
+		return make([]int, n)
+	}
+	s = s[:n]
+	clear(s)
+	return s
+}
+
+// keep keeps a measure's column widths and row heights for the next.
+func (g *GridLayout) keep(colWidths, rowHeights []int) {
+	g.spareWidths, g.spareHeights = colWidths, rowHeights
 }
 
 func (g *GridLayout) applyLayoutData(ld GridLayoutData, wx int, wy int, ww int, wh int, x int, y int, cw int, ch int) (int, int, int, int) {
