@@ -4,6 +4,7 @@ import (
 	"image"
 	"image/color"
 	"testing"
+	"time"
 
 	"github.com/ebitenui/ebitenui/event"
 	eimage "github.com/ebitenui/ebitenui/image"
@@ -74,4 +75,50 @@ func TestUI_FocusedWidgetTakesActions(t *testing.T) {
 
 	press(ebiten.StandardGamepadButtonLeftBottom)
 	is.True(ui.GetFocusedWidget() == below) // a gamepad's: the focus moves
+}
+
+// A direction held repeats, from a key as from the D-pad: once as it goes
+// down, then after the delay once every interval, counted in updates at
+// Ebitengine's TPS (60 when the TPS follows the display); let go, it stops.
+// Unset, the delay is 0.4 s and the interval 0.08 s.
+func TestUI_DirectionsRepeatWhileHeld(t *testing.T) {
+	is := is.New(t)
+
+	s := focusSlider(image.Rect(0, 0, 100, 20))
+	s.Max = 1000
+	ui, d, _ := navigationUI(t, s)
+	ui.SetFocusedWidget(s)
+	// steps holds a direction for some updates, lets go, and returns how
+	// many steps the slider took.
+	steps := func(hold func(bool), updates int) int {
+		start := s.Current
+		hold(true)
+		for range updates {
+			ui.Update()
+		}
+		hold(false)
+		ui.Update()
+		return (s.Current - start) / 10
+	}
+	key := func(down bool) { d.Keys[ebiten.KeyArrowRight] = down }
+	pad := func(down bool) { d.Pads[0].Buttons[ebiten.StandardGamepadButtonLeftRight] = down }
+
+	ui.NavigationRepeatDelay = 100 * time.Millisecond   // 6 updates
+	ui.NavigationRepeatInterval = 50 * time.Millisecond // 3
+
+	is.Equal(steps(key, 6), 1)  // within the delay
+	is.Equal(steps(key, 7), 2)  // past it
+	is.Equal(steps(pad, 13), 4) // and twice the interval more
+
+	ui.NavigationRepeatInterval = time.Millisecond // under an update: every update
+	is.Equal(steps(key, 9), 4)
+
+	ui.NavigationRepeatDelay, ui.NavigationRepeatInterval = 0, 0 // 24 updates, then 5
+	is.Equal(steps(key, 24), 1)
+	is.Equal(steps(key, 25), 2)
+	is.Equal(steps(key, 30), 3)
+
+	ebiten.SetTPS(ebiten.SyncWithFPS)
+	t.Cleanup(func() { ebiten.SetTPS(ebiten.DefaultTPS) })
+	is.Equal(steps(key, 24), 1)
 }

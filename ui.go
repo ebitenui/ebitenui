@@ -3,6 +3,7 @@ package ebitenui
 import (
 	"image"
 	"sort"
+	"time"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
@@ -30,6 +31,13 @@ type UI struct {
 	// the arrow keys never move the focus. A button pressed on two gamepads
 	// at once acts once.
 	GamepadFocus bool
+
+	// A direction held, from a key or a gamepad, acts as it goes down, then
+	// after NavigationRepeatDelay once every NavigationRepeatInterval;
+	// unset, 0.4 s and 0.08 s. They count in updates at Ebitengine's TPS,
+	// 60 a second when the TPS follows the display.
+	NavigationRepeatDelay    time.Duration
+	NavigationRepeatInterval time.Duration
 
 	// If true the default relayering of Windows will be disabled
 	DisableWindowRelayering bool
