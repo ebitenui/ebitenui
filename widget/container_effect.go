@@ -58,10 +58,16 @@ func (c *Container) hasEffect() bool {
 	return c.opacity < 1 || c.shader != nil
 }
 
+// effectMargin is how far, in pixels, the off-screen image reaches past the
+// container on each side, so that a container sliding a little, such as a
+// window easing in, keeps its image.
+const effectMargin = 64
+
 // releaseEffectBuffer frees the off-screen image once the container no
-// longer needs it.
+// longer needs it: drawn directly again, or invisible, as a window faded out
+// as it closes.
 func (c *Container) releaseEffectBuffer() {
-	if c.effectBuffer != nil && !c.hasEffect() {
+	if c.effectBuffer != nil && (!c.hasEffect() || c.opacity <= 0) {
 		c.effectBuffer.Deallocate()
 		c.effectBuffer = nil
 	}
@@ -69,20 +75,23 @@ func (c *Container) releaseEffectBuffer() {
 
 // renderWithEffect renders the container and its children into an
 // off-screen image, then draws that image onto screen at the container's
-// opacity, through its shader if it has one. The image covers screen and is
-// kept until screen's bounds change, so a container that moves, such as a
-// window sliding in, does not allocate a new one.
+// opacity, through its shader if it has one. The image covers the container
+// and effectMargin pixels around it, within screen, in screen's coordinates,
+// and is kept while the container stays inside it. It is a texture of its
+// own, outside Ebitengine's atlases, so freeing it gives its memory back;
+// on an atlas it would grow pages that stay grown.
 func (c *Container) renderWithEffect(screen *ebiten.Image) {
 	r := c.widget.Rect.Intersect(screen.Bounds())
 	if r.Empty() || c.opacity <= 0 {
 		c.doLayout()
 		return
 	}
-	if c.effectBuffer == nil || c.effectBuffer.Bounds() != screen.Bounds() {
+	if c.effectBuffer == nil || !r.In(c.effectBuffer.Bounds()) {
 		if c.effectBuffer != nil {
 			c.effectBuffer.Deallocate()
 		}
-		c.effectBuffer = ebiten.NewImageWithOptions(screen.Bounds(), nil)
+		bounds := r.Inset(-effectMargin).Intersect(screen.Bounds())
+		c.effectBuffer = ebiten.NewImageWithOptions(bounds, &ebiten.NewImageOptions{Unmanaged: true})
 	}
 	target, ok := c.effectBuffer.SubImage(r).(*ebiten.Image)
 	if !ok {
