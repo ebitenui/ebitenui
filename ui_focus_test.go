@@ -175,6 +175,10 @@ func TestUI_GamepadFocus(t *testing.T) {
 
 	tap(ebiten.StandardGamepadButtonLeftRight, 0)
 	is.True(ui.GetFocusedWidget() == left) // off by default
+	ui.SetFocusedWidget(middle)
+	tap(ebiten.StandardGamepadButtonRightBottom, 0)
+	is.Equal(clicks, 0) // nor activates
+	ui.SetFocusedWidget(left)
 
 	ui.GamepadFocus = true
 	tap(ebiten.StandardGamepadButtonLeftRight, 0, 1)

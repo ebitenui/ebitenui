@@ -21,10 +21,14 @@ type UI struct {
 	DisableDefaultFocus bool
 
 	// GamepadFocus, when true, lets the gamepads with the standard layout
-	// move the focus with their D-pad (ChangeFocus) and activate the focused
-	// widget with their bottom face button, A on an Xbox pad or cross on a
-	// PlayStation one (ActivateFocused). A button pressed on two gamepads at
-	// once acts once.
+	// navigate: their D-pad gives the direction actions, as the arrow keys
+	// do, and their bottom face button, A on an Xbox pad or cross on a
+	// PlayStation one, the Activate action (widget.Action). The focused
+	// widget takes those it acts on: a list moves through its entries, a
+	// slider its handle. A gamepad's direction it leaves moves the focus
+	// (ChangeFocus), an Activate it leaves activates it (ActivateFocused);
+	// the arrow keys never move the focus. A button pressed on two gamepads
+	// at once acts once.
 	GamepadFocus bool
 
 	// If true the default relayering of Windows will be disabled
@@ -51,6 +55,7 @@ type UI struct {
 	previousContainer          widget.Containerer
 	previousRemoveHandlerFuncs []event.RemoveHandlerFunc
 	tabWasPressed              bool
+	navigation                 navigation
 	updObj                     *widget.UpdateObject
 
 	debugMode bool
@@ -77,7 +82,7 @@ func (u *UI) Update() {
 	}
 	u.setTheme()
 	u.handleFocusChangeRequest()
-	u.handleGamepadFocus()
+	u.giveActions()
 
 	// If widget is not visible or disabled, change focus to next widget.
 	if u.focusedWidget != nil && (u.focusedWidget.GetWidget().Disabled || !u.focusedWidget.GetWidget().IsVisible()) {
@@ -129,6 +134,7 @@ func (u *UI) Update() {
 		u.windows = sliceutil.ShiftEnd(u.windows, u.focusedWindowIndex)
 	}
 
+	u.actOnActionsLeft()
 	event.ExecuteDeferred()
 }
 
@@ -141,6 +147,7 @@ func (u *UI) resetUpdateObject() {
 	u.updObj.RelayoutRequested = false
 	u.updObj.CloseEphemeralWindows = false
 	u.updObj.DebugMode = u.debugMode
+	u.updObj.Actions = &u.navigation.actions
 }
 
 // Draw renders u onto screen. This function should be called in the Ebiten Draw function.

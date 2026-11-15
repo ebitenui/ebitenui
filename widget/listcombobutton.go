@@ -387,16 +387,26 @@ func (l *ListComboButton) Update(updObj *UpdateObject) {
 	l.init.Do()
 
 	l.button.GetWidget().Disabled = l.widget.Disabled
-	l.button.Update(updObj)
+	l.button.Update(updObj) // the open list takes its actions here
+	l.handleActions(updObj.Actions)
+}
 
-	if l.button.button.button.focused {
-		if !*l.computedParams.DisableDefaultKeys {
-			if input.KeyPressed(ebiten.KeyDown) || input.KeyPressed(ebiten.KeyUp) {
-				l.SetContentVisible(true)
-			}
-		}
+// handleActions opens the focused combo with Activate, or the Down or Up
+// key, and keeps the directions its open list leaves, so the focus stays
+// in it while it is open.
+func (l *ListComboButton) handleActions(actions *Actions) {
+	if !l.button.button.button.focused || *l.computedParams.DisableDefaultKeys {
+		return
 	}
-
+	if !l.ContentVisible() {
+		if actions.Take(ActionActivate) || input.KeyJustPressed(ebiten.KeyArrowDown) || input.KeyJustPressed(ebiten.KeyArrowUp) {
+			l.SetContentVisible(true)
+		}
+		return
+	}
+	for _, d := range [...]Action{ActionUp, ActionDown, ActionLeft, ActionRight} {
+		actions.Take(d)
+	}
 }
 
 func (l *ListComboButton) createWidget() {

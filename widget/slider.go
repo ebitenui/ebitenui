@@ -50,9 +50,8 @@ type Slider struct {
 	handlePressedOffsetY         int
 	handlePressedInternalCurrent float64
 
-	tabOrder  int
-	justMoved bool
-	focusMap  map[FocusDirection]Focuser
+	tabOrder int
+	focusMap map[FocusDirection]Focuser
 }
 
 type SliderTrackImage struct {
@@ -360,7 +359,6 @@ func (s *Slider) SetupInputLayer(def input.DeferredSetupInputLayerFunc) {
 func (s *Slider) Render(screen *ebiten.Image) {
 	s.init.Do()
 
-	s.handleOrientation()
 	s.clampCurrentMinMax()
 
 	s.handle.GetWidget().Disabled = s.widget.Disabled
@@ -387,6 +385,7 @@ func (s *Slider) Update(updObj *UpdateObject) {
 
 	s.widget.Update(updObj)
 	s.handle.Update(updObj)
+	s.handleActions(updObj.Actions)
 }
 
 func (s *Slider) drawTrack(screen *ebiten.Image) {
@@ -414,36 +413,24 @@ func (s *Slider) drawTrack(screen *ebiten.Image) {
 	}
 }
 
-func (s *Slider) handleOrientation() {
-	if !s.disableDefaultKeys {
-		if *s.computedParams.Orientation == DirectionHorizontal {
-			if input.KeyPressed(ebiten.KeyLeft) || input.KeyPressed(ebiten.KeyRight) {
-				if !s.justMoved && s.handle.focused {
-					changeDir := 1
-					if input.KeyPressed(ebiten.KeyLeft) {
-						changeDir = -1
-					}
-					s.Current += (changeDir * s.computedParams.PageSizeFunc())
-					s.justMoved = true
-				}
-			} else {
-				s.justMoved = false
-			}
-		} else {
-			if input.KeyPressed(ebiten.KeyUp) || input.KeyPressed(ebiten.KeyDown) {
-				if !s.justMoved && s.handle.focused {
-					changeDir := 1
-					if input.KeyPressed(ebiten.KeyUp) {
-						changeDir = -1
-					}
-					s.Current += (changeDir * s.computedParams.PageSizeFunc())
-					s.justMoved = true
-				}
-			} else {
-				s.justMoved = false
-			}
-		}
+// handleActions moves the handle of the focused slider a page with the two
+// directions of its orientation, Left and Right or Up and Down, also at its
+// ends, so the focus stays on it.
+func (s *Slider) handleActions(actions *Actions) {
+	if s.disableDefaultKeys || !s.handle.focused || s.computedParams.Orientation == nil { // laid out yet
+		return
 	}
+	less, more := ActionLeft, ActionRight
+	if *s.computedParams.Orientation == DirectionVertical {
+		less, more = ActionUp, ActionDown
+	}
+	if actions.Take(less) {
+		s.Current -= s.computedParams.PageSizeFunc()
+	}
+	if actions.Take(more) {
+		s.Current += s.computedParams.PageSizeFunc()
+	}
+	s.clampCurrentMinMax()
 }
 
 func (s *Slider) fireEvents() {

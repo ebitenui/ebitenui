@@ -147,6 +147,9 @@ type UpdateObject struct {
 	RelayoutRequested     bool
 	CloseEphemeralWindows bool
 	DebugMode             bool
+	// Actions are the update's navigation actions; the focused widget
+	// takes those it acts on.
+	Actions *Actions
 }
 
 // Updater may be implemented by concrete widget types that should be updated.
