@@ -30,23 +30,34 @@ const (
 	defaultRepeatInterval = 80 * time.Millisecond
 )
 
+// The left stick points a way once pushed past stickPress along it, and
+// keeps pointing it until it falls under stickRelease.
+const (
+	stickPress   = 0.5
+	stickRelease = 0.33
+)
+
 // navigation turns the keys and the gamepads into each update's actions.
 type navigation struct {
 	actions widget.Actions
 	held    [len(directions)]int  // the updates each direction has been held
 	byPad   [len(directions)]bool // whether a gamepad gave each direction when last given
+	stick   int                   // the direction the left stick points, its index plus one; 0 for none
 }
 
 // giveActions gives the update's actions: the directions from the arrow
-// keys, and from the D-pad with GamepadFocus on, repeating while held, and
-// Activate from a gamepad's bottom face button. The input package merges
-// the gamepads, so a button pressed on two at once gives one action.
+// keys, and from the D-pad and the left stick with GamepadFocus on,
+// repeating while held, and Activate from a gamepad's bottom face button.
+// The input package merges the gamepads, so a button pressed on two at once
+// gives one action.
 func (u *UI) giveActions() {
 	n := &u.navigation
 	n.actions.Reset()
+	n.stick = stickDirection(input.GamepadAxis(ebiten.StandardGamepadAxisLeftStickHorizontal),
+		input.GamepadAxis(ebiten.StandardGamepadAxisLeftStickVertical), n.stick)
 	delay, interval := u.repeatUpdates()
 	for i, d := range directions {
-		byPad := u.GamepadFocus && input.GamepadButtonPressed(d.button)
+		byPad := u.GamepadFocus && (input.GamepadButtonPressed(d.button) || n.stick == i+1)
 		if !byPad && !input.KeyPressed(d.key) {
 			n.held[i] = 0
 			continue
@@ -60,6 +71,23 @@ func (u *UI) giveActions() {
 	if u.GamepadFocus && input.GamepadButtonJustPressed(ebiten.StandardGamepadButtonRightBottom) {
 		n.actions.Give(widget.ActionActivate)
 	}
+}
+
+// stickDirection returns the direction a stick at x, y points, as an index
+// into directions plus one, or 0 for none: the way it is pushed furthest,
+// past stickPress, or past stickRelease for the way it pointed (last).
+func stickDirection(x, y float64, last int) int {
+	pointed, along := 0, 0.0
+	for i, v := range [len(directions)]float64{-y, y, -x, x} { // up, down, left, right
+		threshold := stickPress
+		if i+1 == last {
+			threshold = stickRelease
+		}
+		if v >= threshold && v > along {
+			pointed, along = i+1, v
+		}
+	}
+	return pointed
 }
 
 // repeatUpdates returns the repeat's delay and interval in updates, at

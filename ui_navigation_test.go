@@ -122,3 +122,59 @@ func TestUI_DirectionsRepeatWhileHeld(t *testing.T) {
 	t.Cleanup(func() { ebiten.SetTPS(ebiten.DefaultTPS) })
 	is.Equal(steps(key, 24), 1)
 }
+
+// With GamepadFocus on, the left stick is a D-pad: it points the way it is
+// pushed furthest, once past half its travel, and keeps pointing until it
+// falls under a third, so a stick resting near half doesn't press again and
+// again.
+func TestUI_LeftStickNavigates(t *testing.T) {
+	is := is.New(t)
+
+	above := focusButton(image.Rect(0, 0, 100, 20))
+	s := focusSlider(image.Rect(0, 40, 100, 60))
+	s.Max = 1000
+	below := focusButton(image.Rect(0, 80, 100, 100))
+	ui, d, _ := navigationUI(t, above, s, below)
+	ui.SetFocusedWidget(s)
+	// stick holds the stick at x, y for an update and returns the steps
+	// the slider took.
+	stick := func(x, y float64) int {
+		start := s.Current
+		d.Pads[0].Axes[ebiten.StandardGamepadAxisLeftStickHorizontal] = x
+		d.Pads[0].Axes[ebiten.StandardGamepadAxisLeftStickVertical] = y
+		ui.Update()
+		return (s.Current - start) / 10
+	}
+
+	for i, c := range []struct {
+		x     float64
+		steps int
+	}{
+		{0.45, 0}, // under half
+		{0.55, 1}, // past it: Right
+		{0.4, 0},  // back over a third: held
+		{0.55, 0}, // so no new press
+		{0.3, 0},  // under a third: let go
+		{0.55, 1},
+		{0, 0},
+		{-0.9, -1}, // Left
+		{0, 0},
+	} {
+		is.Equal([]any{i, stick(c.x, 0)}, []any{i, c.steps})
+	}
+
+	is.Equal(stick(0.8, 0.6), 1) // a diagonal: the way it is pushed furthest
+	stick(0, 0)
+	stick(0.6, 0.8) // Down, which the slider leaves
+	is.True(ui.GetFocusedWidget() == below)
+
+	ui.SetFocusedWidget(s)
+	stick(0, 0)
+	stick(0, -0.9)
+	is.True(ui.GetFocusedWidget() == above) // Up
+
+	ui.SetFocusedWidget(s)
+	ui.GamepadFocus = false
+	stick(0, 0)
+	is.Equal(stick(0.9, 0), 0) // GamepadFocus off: nothing
+}
