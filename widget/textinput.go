@@ -16,6 +16,7 @@ import (
 	"github.com/ebitenui/ebitenui/internal/jsUtil"
 	"github.com/ebitenui/ebitenui/utilities/mobile"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/exp/textinput"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
@@ -65,6 +66,14 @@ type TextInput struct {
 	tabOrder int
 	focused  bool
 	focusMap map[FocusDirection]Focuser
+
+	ime              bool // text through the platform's text input; see TextInputOptions.IME
+	composer         textinput.Composer
+	composition      string        // the IME's text being composed, shown at the caret
+	compositionCaret int           // the IME's caret within composition, in bytes
+	caretRect        img.Rectangle // the caret as last drawn, where the IME puts its window
+	shownFor         shownKey      // what shownText was made from
+	shownText        string        // the text as drawn
 }
 
 type TextInputOpt func(t *TextInput)
@@ -154,6 +163,9 @@ func NewTextInput(opts ...TextInputOpt) *TextInput {
 
 	for _, o := range opts {
 		o(t)
+	}
+	if t.ime {
+		t.initIME()
 	}
 
 	return t
@@ -528,8 +540,11 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 			return t.idleState(true), false
 		}
 
-		chars := input.InputChars()
-		if len(chars) > 0 {
+		if t.ime {
+			if t.updateIME() {
+				return t.idleState(true), false
+			}
+		} else if chars := input.InputChars(); len(chars) > 0 {
 			if !ebiten.IsKeyPressed(ebiten.KeyControl) && !ebiten.IsKeyPressed(ebiten.KeyControlLeft) && !ebiten.IsKeyPressed(ebiten.KeyControlRight) {
 				t.DeleteSelectedText()
 				return t.charsInputState(string(chars)), true
@@ -565,6 +580,7 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 		textSize := tr.Dx() - fontAdvanceAt(t.inputText, utf8.RuneCountInString(t.inputText), t.computedParams.Face)
 
 		if input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, t.widget.EffectiveInputLayer()) {
+			t.endIME(true)
 			t.dragStartIndex = curIdx
 			t.cursorPosition = curIdx
 		} else if input.MouseButtonPressed(ebiten.MouseButtonLeft) {
@@ -641,6 +657,7 @@ func (t *TextInput) commandState(cmd textInputControlCommand, key ebiten.Key, de
 		}
 
 		if timer == nil {
+			t.endIME(true)
 			t.commandToFunc[cmd]()
 
 			expired = &atomic.Value{}
@@ -853,14 +870,11 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image) {
 	tr := rect
 	tr = tr.Add(img.Point{t.computedParams.Padding.Left, t.computedParams.Padding.Top})
 
-	inputStr := t.inputText
-	if *t.computedParams.Secure {
-		inputStr = strings.Repeat("*", len([]rune(t.inputText)))
-	}
+	inputStr := t.shown()
 
 	cx := 0
 	if t.focused {
-		cx = fontAdvanceAt(inputStr, t.cursorPosition, t.computedParams.Face)
+		cx = fontAdvanceAt(inputStr, t.shownCaret(), t.computedParams.Face)
 
 		dx := tr.Min.X + t.scrollOffset + cx + t.caret.Width + t.computedParams.Padding.Right - rect.Max.X
 		if dx > 0 {
@@ -883,7 +897,14 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image) {
 					opts.GeoM.Translate(float64(tr.Min.X+dragStartDraw+t.scrollOffset), float64(tr.Min.Y))
 				})
 		}
-
+		if t.composition != "" {
+			start := fontAdvanceAt(inputStr, t.cursorPosition, t.computedParams.Face)
+			end := fontAdvanceAt(inputStr, t.cursorPosition+utf8.RuneCountInString(t.composition), t.computedParams.Face)
+			t.computedParams.Image.Highlight.Draw(screen, end-start, tr.Dy(),
+				func(opts *ebiten.DrawImageOptions) {
+					opts.GeoM.Translate(float64(tr.Min.X+start+t.scrollOffset), float64(tr.Min.Y))
+				})
+		}
 	}
 	tr = tr.Add(img.Point{t.scrollOffset, 0})
 
@@ -909,6 +930,7 @@ func (t *TextInput) drawTextAndCaret(screen *ebiten.Image) {
 
 		tr = tr.Add(img.Point{cx, 0})
 		t.caret.SetLocation(tr)
+		t.caretRect = img.Rect(tr.Min.X, tr.Min.Y, tr.Min.X+max(1, t.caret.Width), tr.Min.Y+t.caret.Height)
 
 		t.caret.Render(screen)
 	}
@@ -929,6 +951,7 @@ func (t *TextInput) setJSText(text string) string {
 
 func (t *TextInput) setText(text string, isJS bool) {
 	t.init.Do()
+	t.endIME(false)
 	t.DeselectText()
 	t.inputText = text
 	if t.validationFunc != nil {
@@ -965,10 +988,11 @@ func (t *TextInput) Focus(focused bool) {
 	t.caret.resetBlinking()
 	t.focused = focused
 
-	if focused && runtime.GOOS == jsUtil.JS && runtime.GOARCH == jsUtil.WASM {
+	if focused && !t.ime && runtime.GOOS == jsUtil.JS && runtime.GOARCH == jsUtil.WASM {
 		jsUtil.Prompt(t.mobileInputMode, "Please enter a value.", t.inputText, t.cursorPosition, t.widget.Rect.Min.Y, t.setJSText, t.SelectAll)
 	}
 	if !focused {
+		t.endIME(true)
 		t.dragStartIndex = -1
 	}
 }

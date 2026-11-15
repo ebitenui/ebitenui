@@ -184,6 +184,39 @@ func main() {
 
 	rootContainer.AddChild(secureTextInput)
 
+	// construct a textinput widget taking its text through the platform's text input
+	imeTextInput := widget.NewTextInput(
+		widget.TextInputOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Position: widget.RowLayoutPositionCenter,
+				Stretch:  true,
+			}),
+		),
+		widget.TextInputOpts.Image(&widget.TextInputImage{
+			Idle:     image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
+			Disabled: image.NewNineSliceColor(color.NRGBA{R: 100, G: 100, B: 100, A: 255}),
+		}),
+		widget.TextInputOpts.Face(&face),
+		widget.TextInputOpts.Color(&widget.TextInputColor{
+			Idle:          color.NRGBA{254, 255, 255, 255},
+			Disabled:      color.NRGBA{R: 200, G: 200, B: 200, A: 255},
+			Caret:         color.NRGBA{254, 255, 255, 255},
+			DisabledCaret: color.NRGBA{R: 200, G: 200, B: 200, A: 255},
+		}),
+		widget.TextInputOpts.Padding(widget.NewInsetsSimple(5)),
+
+		// An IME composes in place (Japanese, Chinese, Korean...), and on
+		// iOS and Android a virtual keyboard shows while the input has focus.
+		widget.TextInputOpts.IME(),
+
+		widget.TextInputOpts.Placeholder("IME and virtual keyboard Textbox"),
+		widget.TextInputOpts.SubmitHandler(func(args *widget.TextInputChangedEventArgs) {
+			fmt.Println("Text Submitted: ", args.InputText)
+		}),
+	)
+
+	rootContainer.AddChild(imeTextInput)
+
 	maxLenTextInput := widget.NewTextInput(
 		widget.TextInputOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
