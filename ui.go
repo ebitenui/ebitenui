@@ -332,6 +332,7 @@ func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 							u.focusedWidget.Focus(false)
 							if i == 0 {
 								focusableWidgets[fwLen-1].Focus(true)
+								u.focusedWidget = focusableWidgets[fwLen-1]
 							} else {
 								focusableWidgets[i-1].Focus(true)
 								u.focusedWidget = focusableWidgets[i-1]
