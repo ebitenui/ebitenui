@@ -15,7 +15,8 @@ import (
 // The arrow keys and a gamepad navigate the same way: the D-pad or the left
 // stick moves through the list and the slider while they have the focus,
 // and a gamepad moves the focus on past them; A activates, B or Escape goes
-// back. A direction held repeats.
+// back. A direction held repeats. On the name, A opens a keyboard to type
+// with the gamepad.
 func main() {
 	stretch := widget.WidgetOpts.LayoutData(widget.RowLayoutData{Stretch: true})
 	root := widget.NewContainer(
@@ -61,6 +62,14 @@ func main() {
 			status.Label = "Difficulty " + label(args.Entry)
 		}),
 	)
+	// A gamepad's A on the name opens the on-screen keyboard.
+	name := widget.NewTextInput(
+		widget.TextInputOpts.WidgetOpts(stretch),
+		widget.TextInputOpts.Placeholder("Name"),
+		widget.TextInputOpts.SubmitHandler(func(args *widget.TextInputChangedEventArgs) {
+			status.Label = "Hello, " + args.InputText
+		}),
+	)
 	subtitles := widget.NewCheckbox(
 		widget.CheckboxOpts.TextLabel("Subtitles"),
 		widget.CheckboxOpts.StateChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
@@ -74,13 +83,15 @@ func main() {
 			widget.ButtonOpts.ClickedHandler(func(*widget.ButtonClickedEventArgs) { status.Label = name }),
 		))
 	}
-	root.AddChild(help, list, slider, combo, subtitles, buttons, status)
+	root.AddChild(help, list, slider, combo, name, subtitles, buttons, status)
 
 	backs := 0
 	ui := &ebitenui.UI{
 		Container:    root,
 		PrimaryTheme: themes.GetBasicDarkTheme(),
 		GamepadFocus: true,
+		OnScreenKeyboard: widget.NewOnScreenKeyboard(widget.OnScreenKeyboardOpts.ContainerOpts(
+			widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x24, 0x2e, 0x3a, 0xff})))),
 		// Back no widget takes: a game closes its menu here.
 		BackHandler: func() {
 			backs++
