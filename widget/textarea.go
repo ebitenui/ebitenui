@@ -37,6 +37,7 @@ type TextArea struct {
 	horizontalScrollMode ScrollMode
 	showHorizontalSlider bool
 	showVerticalSlider   bool
+	dragToScroll         bool
 
 	linkClickedFunc       LinkHandlerFunc
 	linkCursorEnteredFunc LinkHandlerFunc
@@ -266,6 +267,14 @@ func (o TextAreaOptions) ShowHorizontalScrollbar() TextAreaOpt {
 }
 
 // Show the vertical scrollbar.
+// DragToScroll lets the pointer scroll the text by dragging it, as
+// ScrollContainerOpts.DragToScroll does; the scrollbars follow.
+func (o TextAreaOptions) DragToScroll() TextAreaOpt {
+	return func(l *TextArea) {
+		l.dragToScroll = true
+	}
+}
+
 func (o TextAreaOptions) ShowVerticalScrollbar() TextAreaOpt {
 	return func(l *TextArea) {
 		l.showVerticalSlider = true
@@ -491,12 +500,29 @@ func (l *TextArea) initWidget() {
 	content.AddChild(l.text)
 	l.text.widget.parent = l.container.GetWidget()
 
-	l.scrollContainer = NewScrollContainer(
+	scrollOpts := []ScrollContainerOpt{
 		ScrollContainerOpts.Content(content),
 		ScrollContainerOpts.StretchContentWidth(),
 		ScrollContainerOpts.Image(l.computedParams.ScrollContainerImage),
 		ScrollContainerOpts.Padding(l.computedParams.ScrollContainerPadding),
-	)
+	}
+	if l.dragToScroll {
+		scrollOpts = append(scrollOpts, ScrollContainerOpts.DragToScroll())
+	}
+	l.scrollContainer = NewScrollContainer(scrollOpts...)
+
+	if l.dragToScroll {
+		l.scrollContainer.ScrollMovedEvent.AddHandler(func(args any) {
+			if a, ok := args.(*ScrollContainerScrollMovedEventArgs); ok {
+				if l.vSlider != nil {
+					l.vSlider.Current = int(math.Round(a.Top * 1000))
+				}
+				if l.hSlider != nil {
+					l.hSlider.Current = int(math.Round(a.Left * 1000))
+				}
+			}
+		})
+	}
 	l.container.AddChild(l.scrollContainer)
 
 	var sliderOpts []SliderOpt

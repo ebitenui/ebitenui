@@ -106,6 +106,7 @@ type Widget struct {
 	lastUpdateMouseRightPressed bool
 	mouseLeftPressedInside      bool
 	mouseRightPressedInside     bool
+	pressedAt                   uint64 // pressCancels when the left button went down on it
 	inputLayer                  *input.Layer
 	focusable                   Focuser
 	theme                       *Theme
@@ -679,6 +680,15 @@ func (w *Widget) GetVisibility() Visibility {
 	return w.visibility
 }
 
+// pressCancels counts the presses taken over, as by a scroll container
+// dragging its content: a widget clicks on release only when none was since
+// the button went down on it.
+var pressCancels uint64
+
+// cancelPresses takes over the left button's press in progress: released,
+// it clicks nothing.
+func cancelPresses() { pressCancels++ }
+
 func (w *Widget) fireEvents() {
 	x, y := input.CursorPosition()
 	p := image.Point{x, y}
@@ -778,6 +788,7 @@ func (w *Widget) fireEvents() {
 	if input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, layer) {
 		if inside {
 			w.mouseLeftPressedInside = inside
+			w.pressedAt = pressCancels
 
 			if w.focusable != nil && !w.Disabled {
 				w.focusable.Focus(true)
@@ -806,7 +817,7 @@ func (w *Widget) fireEvents() {
 			OffsetX: off.X,
 			OffsetY: off.Y,
 		})
-		if w.mouseLeftPressedInside && inside {
+		if w.mouseLeftPressedInside && inside && w.pressedAt == pressCancels {
 			w.MouseButtonClickedEvent.Fire(&WidgetMouseButtonClickedEventArgs{
 				Widget:  w,
 				Button:  ebiten.MouseButtonLeft,

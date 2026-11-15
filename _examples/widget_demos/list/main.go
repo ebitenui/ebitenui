@@ -86,6 +86,8 @@ func main() {
 		}),
 		// Hide the horizontal slider
 		widget.ListOpts.HideHorizontalSlider(),
+		// Scroll by dragging the entries too, as on a touch screen
+		widget.ListOpts.DragToScroll(),
 		// Set the font for the list options
 		widget.ListOpts.EntryFontFace(&face),
 		// Set the colors for the list
