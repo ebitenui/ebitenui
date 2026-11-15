@@ -28,6 +28,11 @@ type ColorPicker struct {
 	swatchSize  int
 	presets     []color.NRGBA
 
+	// With rounded swatches, their frames: plain and chosen, outer then
+	// inner.
+	swatchRadius int
+	swatchFrames [2][2]*eimage.NineSlice
+
 	init      *MultiOnce
 	container *Container
 	wheel     *colorWheel
@@ -111,6 +116,14 @@ func (o ColorPickerOptions) Swatches(size int, colors ...color.Color) ColorPicke
 		for _, c := range colors {
 			p.presets = append(p.presets, color.NRGBAModel.Convert(c).(color.NRGBA)) //nolint:forcetypeassert // NRGBAModel returns color.NRGBA
 		}
+	}
+}
+
+// SwatchRadius rounds the swatches' corners by radius pixels; they are
+// square by default.
+func (o ColorPickerOptions) SwatchRadius(radius int) ColorPickerOpt {
+	return func(p *ColorPicker) {
+		p.swatchRadius = radius
 	}
 }
 
@@ -215,6 +228,15 @@ func (p *ColorPicker) createWidget() {
 	p.container.AddChild(p.slider)
 
 	if len(p.presets) > 0 {
+		if r := p.swatchRadius; r > 0 {
+			for chosen, colors := range [2][2]color.NRGBA{
+				{{0x60, 0x60, 0x60, 0xff}, {0x60, 0x60, 0x60, 0xff}},
+				{{0xff, 0xff, 0xff, 0xff}, {A: 0xff}},
+			} {
+				p.swatchFrames[chosen][0] = eimage.NewNineSliceRounded(colors[0], r, nil, 0)
+				p.swatchFrames[chosen][1] = eimage.NewNineSliceRounded(colors[1], max(r-2, 0), nil, 0)
+			}
+		}
 		row := NewContainer(ContainerOpts.Layout(NewRowLayout(RowLayoutOpts.Spacing(p.spacing))))
 		for _, c := range p.presets {
 			row.AddChild(newColorSwatch(p, c))
@@ -360,10 +382,14 @@ type colorSwatch struct {
 	widget *Widget
 	picker *ColorPicker
 	color  color.NRGBA
+	fill   *eimage.NineSlice // the color, rounded; nil for square swatches
 }
 
 func newColorSwatch(p *ColorPicker, c color.NRGBA) *colorSwatch {
 	s := &colorSwatch{widget: NewWidget(), picker: p, color: c}
+	if p.swatchRadius > 0 {
+		s.fill = eimage.NewNineSliceRounded(c, max(p.swatchRadius-4, 0), nil, 0)
+	}
 	s.widget.MouseButtonPressedEvent.AddHandler(func(args any) {
 		a, ok := args.(*WidgetMouseButtonPressedEventArgs)
 		if !ok || a.Button != ebiten.MouseButtonLeft || s.widget.Disabled {
@@ -389,6 +415,16 @@ func (s *colorSwatch) chosen() bool { return s.picker.Color() == s.color }
 
 func (s *colorSwatch) Render(screen *ebiten.Image) {
 	s.widget.Render(screen)
+	if s.fill != nil {
+		chosen := 0
+		if s.chosen() {
+			chosen = 1
+		}
+		s.drawRounded(screen, s.picker.swatchFrames[chosen][0], 0)
+		s.drawRounded(screen, s.picker.swatchFrames[chosen][1], 2)
+		s.drawRounded(screen, s.fill, 4)
+		return
+	}
 	outer, inner := color.NRGBA{0x60, 0x60, 0x60, 0xff}, color.NRGBA{0x60, 0x60, 0x60, 0xff}
 	if s.chosen() {
 		outer, inner = color.NRGBA{0xff, 0xff, 0xff, 0xff}, color.NRGBA{A: 0xff}
@@ -404,6 +440,18 @@ func (s *colorSwatch) Render(screen *ebiten.Image) {
 	fill(0, outer)
 	fill(2, inner)
 	fill(4, s.color)
+}
+
+// drawRounded draws a rounded layer of the swatch, inset pixels inside its
+// edge.
+func (s *colorSwatch) drawRounded(screen *ebiten.Image, n *eimage.NineSlice, inset int) {
+	r := s.widget.Rect.Inset(inset)
+	if r.Empty() {
+		return
+	}
+	n.Draw(screen, r.Dx(), r.Dy(), func(opts *ebiten.DrawImageOptions) {
+		opts.GeoM.Translate(float64(r.Min.X), float64(r.Min.Y))
+	})
 }
 
 // wheelDisc draws a disc size pixels wide of every hue around and every

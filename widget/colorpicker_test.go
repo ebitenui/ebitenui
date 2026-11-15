@@ -160,3 +160,37 @@ func (c *pickerCursor) MouseButtonJustReleased(ebiten.MouseButton) bool { return
 func (c *pickerCursor) CursorPosition() (int, int)                      { return c.x, c.y }
 func (c *pickerCursor) GetCursorImage(string) *ebiten.Image             { return nil }
 func (c *pickerCursor) GetCursorOffset(string) image.Point              { return image.Point{} }
+
+// With a radius, swatches draw rounded layers: the frames the picker
+// shares, rounded by the radius and 2 pixels less, and each its color,
+// rounded by 4 pixels less; without one, none.
+func TestColorPicker_SwatchRadius(t *testing.T) {
+	is := is.New(t)
+
+	rounded, _ := newColorPicker(t, ColorPickerOpts.Swatches(24, color.White), ColorPickerOpts.SwatchRadius(6))
+	w, _ := rounded.swatchFrames[0][0].MinSize()
+	is.Equal(w, 12) // the outer frame: radius 6
+	w, _ = rounded.swatchFrames[1][1].MinSize()
+	is.Equal(w, 8) // the inner frame: radius 4
+	sw := swatchesOf(rounded)
+	w, _ = sw[0].fill.MinSize()
+	is.Equal(w, 4) // the color: radius 2
+
+	square, _ := newColorPicker(t, ColorPickerOpts.Swatches(24, color.White))
+	is.True(swatchesOf(square)[0].fill == nil)
+}
+
+// swatchesOf returns a picker's swatches.
+func swatchesOf(p *ColorPicker) []*colorSwatch {
+	var out []*colorSwatch
+	for _, ch := range p.container.Children() {
+		if row, ok := ch.(*Container); ok {
+			for _, s := range row.Children() {
+				if s, ok := s.(*colorSwatch); ok {
+					out = append(out, s)
+				}
+			}
+		}
+	}
+	return out
+}
