@@ -20,6 +20,12 @@ type UI struct {
 	// If true the default tab/shift-tab to focus will be disabled
 	DisableDefaultFocus bool
 
+	// GamepadFocus, when true, lets every gamepad with the standard layout
+	// move the focus with its D-pad (ChangeFocus) and activate the focused
+	// widget with its bottom face button, A on an Xbox pad or cross on a
+	// PlayStation one (ActivateFocused).
+	GamepadFocus bool
+
 	// If true the default relayering of Windows will be disabled
 	DisableWindowRelayering bool
 
@@ -44,6 +50,7 @@ type UI struct {
 	previousContainer          widget.Containerer
 	previousRemoveHandlerFuncs []event.RemoveHandlerFunc
 	tabWasPressed              bool
+	gamepads                   []ebiten.GamepadID // reused each update
 	updObj                     *widget.UpdateObject
 
 	debugMode bool
@@ -70,6 +77,7 @@ func (u *UI) Update() {
 	}
 	u.setTheme()
 	u.handleFocusChangeRequest()
+	u.handleGamepadFocus()
 
 	// If widget is not visible or disabled, change focus to next widget.
 	if u.focusedWidget != nil && (u.focusedWidget.GetWidget().Disabled || !u.focusedWidget.GetWidget().IsVisible()) {
@@ -298,6 +306,11 @@ func (u *UI) handleFocusChangeRequest() {
 	}
 }
 
+// ChangeFocus moves the focus. FOCUS_NEXT and FOCUS_PREVIOUS follow the tab
+// order. A direction follows the focused widget's link for it (AddFocus)
+// when it has one that can take the focus, and otherwise goes to the
+// nearest focusable widget that way, keeping the focus where it is when
+// there is none.
 func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 
 	focusableWidgets := u.Container.GetFocusers()
@@ -332,6 +345,7 @@ func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 							u.focusedWidget.Focus(false)
 							if i == 0 {
 								focusableWidgets[fwLen-1].Focus(true)
+								u.focusedWidget = focusableWidgets[fwLen-1]
 							} else {
 								focusableWidgets[i-1].Focus(true)
 								u.focusedWidget = focusableWidgets[i-1]
@@ -357,12 +371,14 @@ func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 		}
 	} else {
 		if u.focusedWidget != nil {
-			if next := u.focusedWidget.GetFocus(direction); next != nil {
-				if !next.GetWidget().Disabled && next.GetWidget().IsVisible() {
-					u.focusedWidget.Focus(false)
-					next.Focus(true)
-					u.focusedWidget = next
-				}
+			next := u.focusedWidget.GetFocus(direction)
+			if next == nil || next.GetWidget().Disabled || !next.GetWidget().IsVisible() {
+				next = nearestFocuser(u.focusedWidget, direction, focusableWidgets)
+			}
+			if next != nil {
+				u.focusedWidget.Focus(false)
+				next.Focus(true)
+				u.focusedWidget = next
 			}
 		} else if fwLen > 0 {
 			focusableWidgets[0].Focus(true)
