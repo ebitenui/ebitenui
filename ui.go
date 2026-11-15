@@ -45,6 +45,12 @@ type UI struct {
 	// the usual answer. An open list combo button takes Back and closes.
 	BackHandler func()
 
+	// OnScreenKeyboard, when set, opens for a gamepad's Activate on a focused
+	// text input instead of submitting it: in a modal window across the
+	// bottom of the screen, focused on its first key, typing into the input.
+	// Done or Back closes it and gives the focus back to the input.
+	OnScreenKeyboard *widget.OnScreenKeyboard
+
 	// If true the default relayering of Windows will be disabled
 	DisableWindowRelayering bool
 
@@ -70,6 +76,7 @@ type UI struct {
 	previousRemoveHandlerFuncs []event.RemoveHandlerFunc
 	tabWasPressed              bool
 	navigation                 navigation
+	keyboardWindow             *widget.Window // the window OnScreenKeyboard opens in
 	updObj                     *widget.UpdateObject
 
 	debugMode bool

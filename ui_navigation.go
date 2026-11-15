@@ -1,6 +1,7 @@
 package ebitenui
 
 import (
+	"image"
 	"math"
 	"time"
 
@@ -119,7 +120,9 @@ func repeats(held, delay, interval int) bool {
 }
 
 // actOnActionsLeft acts on the actions no widget took: a direction from a
-// gamepad moves the focus, Activate activates the focused widget.
+// gamepad moves the focus, Activate opens the on-screen keyboard for a text
+// input or activates the focused widget, Back closes the open keyboard or
+// calls BackHandler.
 func (u *UI) actOnActionsLeft() {
 	n := &u.navigation
 	for i, d := range directions {
@@ -127,10 +130,39 @@ func (u *UI) actOnActionsLeft() {
 			u.ChangeFocus(d.focus)
 		}
 	}
-	if n.actions.Left(widget.ActionActivate) {
+	if n.actions.Left(widget.ActionActivate) && !u.openKeyboard() {
 		u.ActivateFocused()
 	}
-	if n.actions.Left(widget.ActionBack) && u.BackHandler != nil {
-		u.BackHandler()
+	if n.actions.Left(widget.ActionBack) {
+		if k := u.OnScreenKeyboard; k != nil && k.IsOpen() {
+			k.Close()
+		} else if u.BackHandler != nil {
+			u.BackHandler()
+		}
 	}
+}
+
+// openKeyboard opens the OnScreenKeyboard for the focused text input, in a
+// modal window across the bottom of the screen, and focuses its first
+// key; closing it gives the focus back to the input. It reports whether it
+// opened.
+func (u *UI) openKeyboard() bool {
+	k := u.OnScreenKeyboard
+	t, ok := u.focusedWidget.(*widget.TextInput)
+	if k == nil || !ok || t.GetWidget().Disabled {
+		return false
+	}
+	if u.keyboardWindow == nil || u.keyboardWindow.Contents != k.GetContainer() {
+		u.keyboardWindow = widget.NewWindow(widget.WindowOpts.Contents(k.GetContainer()), widget.WindowOpts.Modal())
+	}
+	screen := input.GetWindowSize()
+	_, h := k.GetContainer().PreferredSize()
+	u.keyboardWindow.SetLocation(image.Rect(0, screen.Y-h, screen.X, screen.Y))
+	remove := u.AddWindow(u.keyboardWindow)
+	k.Open(t, func() {
+		remove()
+		u.SetFocusedWidget(t)
+	})
+	u.SetFocusedWidget(k.FirstKey())
+	return true
 }
