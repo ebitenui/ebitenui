@@ -919,6 +919,10 @@ func (b *Button) initWidget() {
 		ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(b.computedParams.TextPadding))),
 		ContainerOpts.AutoDisableChildren(),
 	)
+	// What the button holds is under the button: it takes the button's
+	// input layer and theme, so a widget in its content takes input where
+	// the button does, inside a scroll container or a window.
+	b.container.GetWidget().parent = b.widget
 	if b.content != nil {
 		if b.content.GetWidget().LayoutData == nil {
 			b.content.GetWidget().LayoutData = AnchorLayoutData{StretchHorizontal: true, StretchVertical: true}
