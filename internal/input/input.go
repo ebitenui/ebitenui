@@ -41,6 +41,9 @@ type DefaultInternalHandler struct {
 	// the last update.
 	GamepadButtonPressed     [ebiten.StandardGamepadButtonMax + 1]bool
 	GamepadButtonJustPressed [ebiten.StandardGamepadButtonMax + 1]bool
+	// GamepadAxis holds each axis as the gamepad pushing it furthest has it,
+	// from -1 to 1.
+	GamepadAxis [ebiten.StandardGamepadAxisMax + 1]float64
 
 	// Devices is where the keyboard and the gamepads are read.
 	Devices  Devices

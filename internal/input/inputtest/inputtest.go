@@ -19,6 +19,7 @@ type Devices struct {
 // Pad is a gamepad with the standard layout.
 type Pad struct {
 	Buttons [ebiten.StandardGamepadButtonMax + 1]bool
+	Axes    [ebiten.StandardGamepadAxisMax + 1]float64
 }
 
 // Use makes the input handler read the returned devices until the test
@@ -49,4 +50,11 @@ func (d *Devices) AppendGamepadIDs(ids []ebiten.GamepadID) []ebiten.GamepadID {
 
 func (d *Devices) IsStandardGamepadButtonPressed(id ebiten.GamepadID, b ebiten.StandardGamepadButton) bool {
 	return int(id) < len(d.Pads) && d.Pads[id].Buttons[b]
+}
+
+func (d *Devices) StandardGamepadAxisValue(id ebiten.GamepadID, a ebiten.StandardGamepadAxis) float64 {
+	if int(id) >= len(d.Pads) {
+		return 0
+	}
+	return d.Pads[id].Axes[a]
 }

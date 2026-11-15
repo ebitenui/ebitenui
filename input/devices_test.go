@@ -61,6 +61,30 @@ func TestGamepadButtons(t *testing.T) {
 	}
 }
 
+// An axis reads as the gamepad pushing it furthest, either way, so a pad
+// at rest or drifting a little doesn't hide another one in use; a gamepad
+// unplugged leaves its axes.
+func TestGamepadAxes(t *testing.T) {
+	is := is.New(t)
+
+	d := inputtest.Use(t)
+	d.Pads = make([]inputtest.Pad, 2)
+	a := ebiten.StandardGamepadAxisLeftStickHorizontal
+	for _, v := range [][2]float64{{0.2, -0.9}, {-0.9, 0.2}} {
+		d.Pads[0].Axes[a], d.Pads[1].Axes[a] = v[0], v[1]
+		Update()
+		is.Equal(GamepadAxis(a), -0.9)
+	}
+	is.Equal(GamepadAxis(ebiten.StandardGamepadAxisLeftStickVertical), 0.0)
+
+	d.Pads = d.Pads[1:] // the first, at -0.9, unplugged
+	Update()
+	is.Equal(GamepadAxis(a), 0.2)
+	for _, a := range []ebiten.StandardGamepadAxis{-1, ebiten.StandardGamepadAxisMax + 1} {
+		is.Equal(GamepadAxis(a), 0.0)
+	}
+}
+
 // Taking the keyboard and the gamepads allocates nothing, however many
 // updates run (a list growing by a little each update would only show over
 // many).
