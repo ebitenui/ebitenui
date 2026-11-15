@@ -1,9 +1,11 @@
 package widget
 
 import (
+	img "image"
 	"testing"
 
 	"github.com/ebitenui/ebitenui/event"
+	"github.com/ebitenui/ebitenui/input"
 	"github.com/matryer/is"
 )
 
@@ -79,4 +81,24 @@ func newButton(t *testing.T, opts ...ButtonOpt) *Button {
 	event.ExecuteDeferred()
 	render(b, t)
 	return b
+}
+
+// A widget in a button's content is under the button: it takes the
+// button's input layer, and the theme of what holds the button.
+func TestButton_ContentUnderTheButton(t *testing.T) {
+	is := is.New(t)
+
+	inner := NewButton(ButtonOpts.Image(&ButtonImage{Idle: newNineSliceEmpty(t), Pressed: newNineSliceEmpty(t)}))
+	b := NewButton(ButtonOpts.Image(&ButtonImage{Idle: newNineSliceEmpty(t), Pressed: newNineSliceEmpty(t)}), ButtonOpts.Content(inner))
+	theme := &Theme{}
+	holder := NewContainer()
+	holder.GetWidget().SetTheme(theme)
+	holder.AddChild(b)
+	holder.Validate()
+	layer := &input.Layer{DebugLabel: "button", EventTypes: input.LayerEventTypeAll, RectFunc: func() img.Rectangle { return b.GetWidget().Rect }}
+	t.Cleanup(func() { input.SetupInputLayersWithDeferred(nil) }) // the layers are the input package's
+	b.GetWidget().ElevateToNewInputLayer(layer)
+
+	is.Equal(inner.GetWidget().EffectiveInputLayer(), layer) // the button's layer
+	is.Equal(inner.GetWidget().GetTheme(), theme)            // its holder's theme
 }
