@@ -1,17 +1,9 @@
 package ebitenui
 
 import (
+	"github.com/ebitenui/ebitenui/input"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
-)
-
-// Ebitengine's gamepad state, reached through variables so tests can stand
-// in for a gamepad.
-var (
-	appendGamepadIDs   = ebiten.AppendGamepadIDs
-	isStandardGamepad  = ebiten.IsStandardGamepadLayoutAvailable
-	gamepadJustPressed = inpututil.IsStandardGamepadButtonJustPressed
 )
 
 // gamepadDirections are the D-pad's buttons and where each moves the focus.
@@ -25,25 +17,20 @@ var gamepadDirections = [...]struct {
 	{ebiten.StandardGamepadButtonLeftRight, widget.FOCUS_EAST},
 }
 
-// handleGamepadFocus moves the focus with the D-pad of each gamepad with the
-// standard layout, and activates the focused widget with its bottom face
-// button, while GamepadFocus is on.
+// handleGamepadFocus moves the focus with the gamepads' D-pad, and activates
+// the focused widget with their bottom face button, while GamepadFocus is
+// on. The input package merges the gamepads, so a button pressed on two at
+// once acts once.
 func (u *UI) handleGamepadFocus() {
 	if !u.GamepadFocus {
 		return
 	}
-	u.gamepads = appendGamepadIDs(u.gamepads[:0])
-	for _, id := range u.gamepads {
-		if !isStandardGamepad(id) {
-			continue
+	for _, g := range gamepadDirections {
+		if input.GamepadButtonJustPressed(g.button) {
+			u.ChangeFocus(g.direction)
 		}
-		for _, g := range gamepadDirections {
-			if gamepadJustPressed(id, g.button) {
-				u.ChangeFocus(g.direction)
-			}
-		}
-		if gamepadJustPressed(id, ebiten.StandardGamepadButtonRightBottom) {
-			u.ActivateFocused()
-		}
+	}
+	if input.GamepadButtonJustPressed(ebiten.StandardGamepadButtonRightBottom) {
+		u.ActivateFocused()
 	}
 }

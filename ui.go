@@ -20,10 +20,11 @@ type UI struct {
 	// If true the default tab/shift-tab to focus will be disabled
 	DisableDefaultFocus bool
 
-	// GamepadFocus, when true, lets every gamepad with the standard layout
-	// move the focus with its D-pad (ChangeFocus) and activate the focused
-	// widget with its bottom face button, A on an Xbox pad or cross on a
-	// PlayStation one (ActivateFocused).
+	// GamepadFocus, when true, lets the gamepads with the standard layout
+	// move the focus with their D-pad (ChangeFocus) and activate the focused
+	// widget with their bottom face button, A on an Xbox pad or cross on a
+	// PlayStation one (ActivateFocused). A button pressed on two gamepads at
+	// once acts once.
 	GamepadFocus bool
 
 	// If true the default relayering of Windows will be disabled
@@ -50,7 +51,6 @@ type UI struct {
 	previousContainer          widget.Containerer
 	previousRemoveHandlerFuncs []event.RemoveHandlerFunc
 	tabWasPressed              bool
-	gamepads                   []ebiten.GamepadID // reused each update
 	updObj                     *widget.UpdateObject
 
 	debugMode bool
