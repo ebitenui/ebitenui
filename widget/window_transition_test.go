@@ -79,11 +79,55 @@ func TestWindow_TransitionReopen(t *testing.T) {
 	is.Equal(removed, 0)
 }
 
+// A window comes in by its In motion and goes out by its Out motion: from
+// below fading in, then to the left without fading.
+func TestWindow_TransitionMotions(t *testing.T) {
+	is := is.New(t)
+
+	w := NewWindow(
+		WindowOpts.Contents(NewContainer()),
+		WindowOpts.Transition(WindowTransition{
+			Duration: 4,
+			In:       WindowMotion{Offset: image.Pt(0, 40), Fade: true},
+			Out:      WindowMotion{Offset: image.Pt(-60, 0)},
+		}),
+	)
+	w.SetLocation(transitionPlace)
+	w.SetCloseFunction(func() {})
+
+	stepWindow(w, 2)
+	r := shownRect(w)
+	is.True(r.Min.X == transitionPlace.Min.X && r.Min.Y > transitionPlace.Min.Y) // rising from below
+	is.True(shownOpacity(w) < 1)                                                 // fading in
+	stepWindow(w, 2)
+
+	w.Close()
+	stepWindow(w, 2)
+	r = shownRect(w)
+	is.True(r.Min.Y == transitionPlace.Min.Y && r.Min.X < transitionPlace.Min.X) // leaving to the left
+	is.Equal(shownOpacity(w), float32(1))                                        // without fading
+}
+
+// A window with a still transition shows in place, opaque, all the way.
+func TestWindow_TransitionStill(t *testing.T) {
+	is := is.New(t)
+
+	w := NewWindow(WindowOpts.Contents(NewContainer()), WindowOpts.Transition(WindowTransition{Duration: 4}))
+	w.SetLocation(transitionPlace)
+	w.SetCloseFunction(func() {})
+	is.Equal(shownRect(w), transitionPlace)
+	is.Equal(shownOpacity(w), float32(1))
+}
+
 func newTransitionWindow(t *testing.T) *Window {
 	t.Helper()
 	w := NewWindow(
 		WindowOpts.Contents(NewContainer()),
-		WindowOpts.Transition(WindowTransition{Duration: 4, Offset: image.Pt(0, 40), Fade: true}),
+		WindowOpts.Transition(WindowTransition{
+			Duration: 4,
+			In:       WindowMotion{Offset: image.Pt(0, 40), Fade: true},
+			Out:      WindowMotion{Offset: image.Pt(0, 40), Fade: true},
+		}),
 	)
 	w.SetLocation(transitionPlace)
 	return w

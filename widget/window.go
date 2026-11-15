@@ -323,7 +323,12 @@ func (w *Window) SetCloseFunction(removeWindowFunc RemoveWindowFunc) {
 	}
 	w.closeFunc = remove
 	if w.transition != nil {
-		w.closeFunc = func() { w.closing = true }
+		w.closeFunc = func() {
+			if !w.closing {
+				w.closing = true
+				w.applyTransition()
+			}
+		}
 		w.startTransition(remove)
 	}
 }

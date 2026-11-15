@@ -80,7 +80,7 @@ func TestDialog_WindowOpts(t *testing.T) {
 	is := is.New(t)
 
 	d, _, closed := newDialog(t, DialogOpts.WindowOpts(
-		WindowOpts.Transition(WindowTransition{Duration: 4, Offset: img.Pt(0, 20)}),
+		WindowOpts.Transition(WindowTransition{Duration: 4, Out: WindowMotion{Offset: img.Pt(0, 20)}}),
 	))
 	render(d.contents, t)
 	leftMouseButtonClick(d.contents.children[2].(*Button), t) //nolint:forcetypeassert // the first choice
