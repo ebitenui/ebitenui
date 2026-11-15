@@ -4,8 +4,10 @@ import (
 	"bytes"
 	img "image"
 	"image/color"
+	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -77,27 +79,78 @@ func TestText_CacheWidthAndLinks(t *testing.T) {
 	is.Equal(txt.cache.renders, 3)
 }
 
-// A shorter text draws into the image it has; a larger one gets a new image.
-func TestText_CacheKeepsItsImage(t *testing.T) {
+// A text keeps its slot while its box fits and fills more than half of it;
+// otherwise it moves to another slot, freeing the old one, and an empty text
+// gives its slot back.
+func TestText_CacheKeepsItsSlot(t *testing.T) {
 	is := is.New(t)
+	emptyTextPages(t)
 
 	txt := cachedText(t, "Hello")
 	screen := ebiten.NewImage(200, 100)
-	image := txt.cache.image
-	is.True(image != nil)
+	slot := txt.cache.slot
+	is.True(slot != nil)
 
 	txt.Label = "Hell"
 	txt.Render(screen)
-	is.True(txt.cache.image == image) // reused
+	is.True(txt.cache.slot == slot) // still fits
 
 	txt.Label = "Hello, world"
 	txt.Render(screen)
-	is.True(txt.cache.image != image) // too small, replaced
-	is.True(txt.cache.image.Bounds().Dx() > image.Bounds().Dx())
+	is.True(txt.cache.slot != slot) // outgrown
+	is.Equal(slot.page.used, 1)     // the old slot freed
+
+	txt.Label = "H"
+	txt.Render(screen)
+	is.True(txt.cache.slot.rect.Dx() < 40) // a slot its size again
 
 	txt.Label = ""
 	txt.Render(screen)
-	is.True(txt.cache.image == nil) // nothing left to draw
+	is.True(txt.cache.slot == nil && txt.cache.image == nil) // nothing to keep
+	is.Equal(textPages.pages[0].used, 0)
+}
+
+// Cached texts share a page; a text too tall for a page's slots gets a
+// texture of its own, and back on a page when it fits again.
+func TestText_CacheSharesPages(t *testing.T) {
+	is := is.New(t)
+	emptyTextPages(t)
+
+	a := cachedText(t, "Hello")
+	b := cachedText(t, "World")
+	is.True(a.cache.slot.page == b.cache.slot.page)
+	is.Equal(len(textPages.pages), 1)
+
+	tall := cachedText(t, strings.Repeat("line\n", 15)) // over 256 px, under 2048
+	is.True(tall.cache.slot == nil)
+	is.True(tall.cache.own != nil && tall.cache.image == tall.cache.own)
+
+	tall.Label = "short"
+	tall.Render(ebiten.NewImage(200, 100))
+	is.True(tall.cache.slot != nil && tall.cache.own == nil)
+}
+
+// A text the collector drops gives its slot back, freed by the next draw of
+// a cached text; a slot it gave up before is not freed again.
+func TestText_CacheSlotFreedWhenCollected(t *testing.T) {
+	is := is.New(t)
+	emptyTextPages(t)
+
+	kept := cachedText(t, "Kept")
+	screen := ebiten.NewImage(200, 100)
+	func() {
+		txt := cachedText(t, "Hello")
+		txt.Label = "Hello, world" // outgrows its first slot and frees it now
+		txt.Render(screen)
+	}()
+	page := kept.cache.slot.page
+	is.Equal(page.used, 2)
+	for deadline := time.Now().Add(5 * time.Second); page.used > 1 && time.Now().Before(deadline); {
+		runtime.GC()
+		kept.Render(screen) // draws free what the collector found
+		time.Sleep(10 * time.Millisecond)
+	}
+	is.Equal(page.used, 1) // the kept text's slot alone; each other slot freed once
 }
 
 // A text taller or wider than textCacheMaxSide draws glyph by glyph, without
