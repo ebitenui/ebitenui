@@ -201,27 +201,28 @@ func (g *Graphic) draw(screen *ebiten.Image) {
 		return
 	}
 
-	if g.Image != nil {
-		g.images = &GraphicImage{
-			Idle: g.Image,
-		}
-	} else if g.gif != nil {
-		g.images = &GraphicImage{
-			Idle: g.gifImages[g.gifCurrentImage],
-		}
-	}
-
-	i := g.images.Idle
-	if g.widget.Disabled && g.images.Disabled != nil {
-		i = g.images.Disabled
-	}
-
+	i := g.image()
 	opts := ebiten.DrawImageOptions{}
 	ib := i.Bounds()
 	w, h := ib.Dx(), ib.Dy()
 	opts.GeoM.Translate(float64((g.widget.Rect.Dx()-w)/2), float64((g.widget.Rect.Dy()-h)/2))
 	g.widget.drawImageOptions(&opts)
 	screen.DrawImage(i, &opts)
+}
+
+// image returns the image to draw: Image or the GIF's current frame while
+// set, otherwise the image of its images for the widget's state.
+func (g *Graphic) image() *ebiten.Image {
+	switch {
+	case g.Image != nil:
+		return g.Image
+	case g.gif != nil:
+		return g.gifImages[g.gifCurrentImage]
+	case g.widget.Disabled && g.images.Disabled != nil:
+		return g.images.Disabled
+	default:
+		return g.images.Idle
+	}
 }
 
 func (g *Graphic) createWidget() {
