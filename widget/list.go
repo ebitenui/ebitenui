@@ -48,6 +48,7 @@ type List struct {
 	containerOpts        []ContainerOpt
 	hideHorizontalSlider bool
 	hideVerticalSlider   bool
+	slidersWhenNeeded    bool
 
 	entries         []any
 	entryLabelFunc  ListEntryLabelFunc
@@ -341,6 +342,15 @@ func (o ListOptions) HideVerticalSlider() ListOpt {
 	}
 }
 
+// SlidersWhenNeeded shows each slider only while the entries overflow the
+// list its way, so a list whose entries fit shows none; a hidden slider
+// keeps its room, so the entries do not move when it shows.
+func (o ListOptions) SlidersWhenNeeded() ListOpt {
+	return func(l *List) {
+		l.slidersWhenNeeded = true
+	}
+}
+
 func (o ListOptions) Entries(e []any) ListOpt {
 	return func(l *List) {
 		l.entries = l.normalizeEntries(e)
@@ -485,7 +495,36 @@ func (l *List) Render(screen *ebiten.Image) {
 		l.SelectFocused()
 	}
 
+	if l.slidersWhenNeeded {
+		l.showSlidersWhenNeeded()
+	}
+
 	l.container.Render(screen)
+}
+
+// showSlidersWhenNeeded shows each slider while the entries overflow the
+// list its way, and hides it, keeping its room, while they fit. Before the
+// list is first laid out its view has no size, and the sliders stay as
+// they start, hidden.
+func (l *List) showSlidersWhenNeeded() {
+	view := l.scrollContainer.ViewRect()
+	if view.Empty() {
+		return
+	}
+	w, h := l.listContent.PreferredSize()
+	show := func(s *Slider, needed bool) {
+		v := Visibility_Hide_Blocking
+		if needed {
+			v = Visibility_Show
+		}
+		s.GetWidget().SetVisibility(v)
+	}
+	if l.vSlider != nil {
+		show(l.vSlider, h > view.Dy())
+	}
+	if l.hSlider != nil {
+		show(l.hSlider, w > view.Dx())
+	}
 }
 
 func (l *List) Update(updObj *UpdateObject) {
@@ -698,6 +737,9 @@ func (l *List) initWidget() {
 			}),
 		}...)...)
 		l.container.AddChild(l.vSlider)
+		if l.slidersWhenNeeded {
+			l.vSlider.GetWidget().SetVisibility(Visibility_Hide_Blocking)
+		}
 
 		l.scrollContainer.widget.ScrolledEvent.AddHandler(func(args any) {
 			if a, ok := args.(*WidgetScrolledEventArgs); ok {
@@ -722,6 +764,9 @@ func (l *List) initWidget() {
 			}),
 		}...)...)
 		l.container.AddChild(l.hSlider)
+		if l.slidersWhenNeeded {
+			l.hSlider.GetWidget().SetVisibility(Visibility_Hide_Blocking)
+		}
 	}
 
 	if l.selectedEntry != nil {

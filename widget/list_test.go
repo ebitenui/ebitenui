@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/ebitenui/ebitenui/event"
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
 )
 
@@ -365,4 +366,25 @@ func TestList_EntryWidgets(t *testing.T) {
 
 	l.UpdateEntry("b")
 	is.Equal(built["b"], 2) // built again
+}
+
+// With SlidersWhenNeeded, the vertical slider shows only while the entries
+// overflow the list, and keeps its room while hidden.
+func TestList_SlidersWhenNeeded(t *testing.T) {
+	is := is.New(t)
+
+	l := newList(t, ListOpts.SlidersWhenNeeded(), ListOpts.HideHorizontalSlider(),
+		ListOpts.Entries([]any{"first"}), ListOpts.EntryLabelFunc(func(e any) string { return e.(string) })) //nolint:forcetypeassert // strings
+	l.SetLocation(img.Rect(0, 0, 200, 120))
+	l.RequestRelayout() // as a parent laying it out does
+	screen := ebiten.NewImage(200, 120)
+	l.Render(screen) // laid out
+	l.Render(screen)
+	is.Equal(l.vSlider.GetWidget().GetVisibility(), Visibility_Hide_Blocking) // one entry fits
+
+	for i := range 20 {
+		l.AddEntry("entry " + strconv.Itoa(i))
+	}
+	l.Render(screen)
+	is.Equal(l.vSlider.GetWidget().GetVisibility(), Visibility_Show) // twenty-one do not
 }
