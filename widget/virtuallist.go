@@ -13,7 +13,8 @@ import (
 // rows it has to the entries now in view. A list of thousands of entries so
 // costs, in widgets, layout and drawing, what a screenful does. RowFunc
 // makes a row's widget and BindFunc fills it with an entry, by index; a
-// vertical slider and the mouse wheel scroll the list.
+// vertical slider, the mouse wheel, and with DragToScroll the pointer
+// scroll the list.
 type VirtualList struct {
 	count         int
 	rowHeight     int
@@ -22,6 +23,7 @@ type VirtualList struct {
 	sliderParams  *SliderParams
 	scrollImage   *ScrollContainerImage
 	containerOpts []ContainerOpt
+	dragToScroll  bool
 
 	init      *MultiOnce
 	container *Container
@@ -87,6 +89,12 @@ func (o VirtualListOptions) ScrollContainerImage(i *ScrollContainerImage) Virtua
 // ContainerOpts configures the list's outer container.
 func (o VirtualListOptions) ContainerOpts(opts ...ContainerOpt) VirtualListOpt {
 	return func(l *VirtualList) { l.containerOpts = append(l.containerOpts, opts...) }
+}
+
+// DragToScroll lets the pointer scroll the rows by dragging them, as
+// ScrollContainerOpts.DragToScroll does; the slider follows.
+func (o VirtualListOptions) DragToScroll() VirtualListOpt {
+	return func(l *VirtualList) { l.dragToScroll = true }
 }
 
 // Count returns how many entries the list shows.
@@ -194,7 +202,11 @@ func (l *VirtualList) createWidget() {
 			GridLayoutOpts.Columns(2),
 			GridLayoutOpts.Stretch([]bool{true, false}, []bool{true})))}, l.containerOpts...)...)
 	l.content = &virtualContent{list: l, widget: NewWidget()}
-	l.scroll = NewScrollContainer(ScrollContainerOpts.Content(l.content), ScrollContainerOpts.StretchContentWidth())
+	scrollOpts := []ScrollContainerOpt{ScrollContainerOpts.Content(l.content), ScrollContainerOpts.StretchContentWidth()}
+	if l.dragToScroll {
+		scrollOpts = append(scrollOpts, ScrollContainerOpts.DragToScroll())
+	}
+	l.scroll = NewScrollContainer(scrollOpts...)
 	// A page is the view's height in slider steps, scaled so the handle is
 	// to the track what the view is to the list.
 	pageSize := func() int {
@@ -216,6 +228,13 @@ func (l *VirtualList) createWidget() {
 	l.scroll.GetWidget().ScrolledEvent.AddHandler(func(args any) {
 		if a, ok := args.(*WidgetScrolledEventArgs); ok {
 			l.slider.Current -= int(math.Round(a.Y * float64(3*l.rowHeight)))
+		}
+	})
+	// A drag moves the view; the slider, which the view follows as the list
+	// draws, moves with it.
+	l.scroll.ScrollMovedEvent.AddHandler(func(args any) {
+		if a, ok := args.(*ScrollContainerScrollMovedEventArgs); ok {
+			l.slider.Current = int(math.Round(a.Top * float64(l.slider.Max)))
 		}
 	})
 	l.container.AddChild(l.scroll, l.slider)

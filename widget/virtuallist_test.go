@@ -39,11 +39,11 @@ func (v *virtualRows) at(y int) int {
 }
 
 // newVirtualList returns a list of count entries in rows of 20 px, 200 by
-// 100 px, drawn once.
-func newVirtualList(t *testing.T, count int, rows *virtualRows) *VirtualList {
+// 100 px, with opts, drawn once.
+func newVirtualList(t *testing.T, count int, rows *virtualRows, opts ...VirtualListOpt) *VirtualList {
 	t.Helper()
 	ns := newNineSliceEmpty(t)
-	l := NewVirtualList(
+	l := NewVirtualList(append([]VirtualListOpt{
 		VirtualListOpts.Count(count),
 		VirtualListOpts.RowHeight(20),
 		VirtualListOpts.RowFunc(rows.row),
@@ -53,7 +53,7 @@ func newVirtualList(t *testing.T, count int, rows *virtualRows) *VirtualList {
 			TrackImage:  &SliderTrackImage{},
 			HandleImage: &ButtonImage{Idle: ns, Pressed: ns},
 		}),
-	)
+	}, opts...)...)
 	l.SetLocation(img.Rect(0, 0, 200, 100))
 	render(l, t)
 	return l
@@ -250,5 +250,37 @@ func TestVirtualList_WheelAndTheme(t *testing.T) {
 
 	for r := range rows.shows {
 		is.Equal(r.GetWidget().GetTheme(), theme)
+	}
+}
+
+// With DragToScroll, dragging the rows scrolls the list and the slider
+// follows, so the rows stay where the drag leaves them; without it, a drag
+// scrolls nothing.
+func TestVirtualList_DragToScroll(t *testing.T) {
+	is := is.New(t)
+
+	c := useTestCursor(t)
+	for _, drag := range []bool{true, false} {
+		rows := &virtualRows{shows: map[*simpleWidget]int{}}
+		var opts []VirtualListOpt
+		if drag {
+			opts = append(opts, VirtualListOpts.DragToScroll())
+		}
+		l := newVirtualList(t, 1_000, rows, opts...)
+		input.SetupInputLayersWithDeferred([]input.Layerer{l}) // as the UI does, dropping other tests' layers
+		t.Cleanup(func() { input.SetupInputLayersWithDeferred(nil) })
+		top := l.scroll.ViewRect().Min.Y
+
+		pointerAt(t, l, l, c, top+80, true)
+		pointerAt(t, l, l, c, top+20, true) // dragged up 60 px, three rows
+		pointerAt(t, l, l, c, top+20, true) // held still
+		pointerAt(t, l, l, c, top+20, false)
+		drawAgain(l)
+		if !drag {
+			is.Equal(rows.at(top), 0) // not dragged
+			continue
+		}
+		is.Equal(l.slider.Current, 60)
+		is.Equal(rows.at(top), 3)
 	}
 }
