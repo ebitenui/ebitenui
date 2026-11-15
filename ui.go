@@ -39,6 +39,12 @@ type UI struct {
 	NavigationRepeatDelay    time.Duration
 	NavigationRepeatInterval time.Duration
 
+	// BackHandler, when set, is called for a Back action no widget takes:
+	// Escape, or with GamepadFocus on a gamepad's right face button, B on an
+	// Xbox pad or circle on a PlayStation one. Closing a menu or a window is
+	// the usual answer. An open list combo button takes Back and closes.
+	BackHandler func()
+
 	// If true the default relayering of Windows will be disabled
 	DisableWindowRelayering bool
 

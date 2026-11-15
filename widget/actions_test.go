@@ -149,6 +149,13 @@ func TestListComboButton_TakesActions(t *testing.T) {
 	is.Equal(l.SelectedEntry(), "c")
 	is.True(!l.ContentVisible()) // selected and closed
 
+	a = update(ActionBack)
+	is.True(a.Left(ActionBack)) // closed: Back is the UI's
+	update(ActionActivate)
+	a = update(ActionBack)
+	is.True(!a.Left(ActionBack) && !l.ContentVisible()) // open: Back closes it
+	is.Equal(l.SelectedEntry(), "c")                    // choosing nothing
+
 	d := inputtest.Use(t)
 	d.Keys[ebiten.KeyArrowDown] = true
 	for _, open := range []bool{true, false} {

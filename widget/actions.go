@@ -7,7 +7,7 @@ package widget
 type Action int
 
 const (
-	// The directions: arrow keys, and a gamepad's D-pad with
+	// The directions: arrow keys, and a gamepad's D-pad and left stick with
 	// ebitenui.UI.GamepadFocus on. Left by the focused widget, a gamepad's
 	// move the focus.
 	ActionUp Action = iota
@@ -19,6 +19,10 @@ const (
 	// (ebitenui.UI.ActivateFocused). Enter and Space activate widgets
 	// themselves.
 	ActionActivate
+	// ActionBack comes from Escape and a gamepad's right face button. An
+	// open list combo button takes it and closes; left, the UI calls its
+	// BackHandler.
+	ActionBack
 
 	actionCount
 )

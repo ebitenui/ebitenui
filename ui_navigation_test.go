@@ -9,6 +9,7 @@ import (
 	"github.com/ebitenui/ebitenui/event"
 	eimage "github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/internal/input/inputtest"
+	"github.com/ebitenui/ebitenui/themes"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
@@ -27,12 +28,20 @@ func focusSlider(rect image.Rectangle) *widget.Slider {
 }
 
 // navigationUI returns a UI with GamepadFocus on over widgets, drawn once so
-// they are laid out, and devices with one gamepad. press holds a key or a
-// gamepad button for two updates, then lets go for one.
+// they are laid out, with its devices (useDevices).
 func navigationUI(t *testing.T, widgets ...widget.PreferredSizeLocateableWidget) (ui *UI, d *inputtest.Devices, press func(any)) {
 	t.Helper()
 	ui = focusUI(widgets...)
 	ui.GamepadFocus = true
+	d, press = useDevices(t, ui)
+	return ui, d, press
+}
+
+// useDevices draws ui once, so its widgets are laid out, and returns
+// devices with one gamepad. press holds a key or a gamepad button for two
+// updates of ui, then lets go for one.
+func useDevices(t *testing.T, ui *UI) (d *inputtest.Devices, press func(any)) {
+	t.Helper()
 	ui.Draw(ebiten.NewImage(200, 200))
 	d = inputtest.Use(t)
 	d.Pads = make([]inputtest.Pad, 1)
@@ -48,7 +57,7 @@ func navigationUI(t *testing.T, widgets ...widget.PreferredSizeLocateableWidget)
 			event.ExecuteDeferred()
 		}
 	}
-	return ui, d, press
+	return d, press
 }
 
 // The focused widget takes the actions it acts on, and the UI acts on those
@@ -177,4 +186,36 @@ func TestUI_LeftStickNavigates(t *testing.T) {
 	ui.GamepadFocus = false
 	stick(0, 0)
 	is.Equal(stick(0.9, 0), 0) // GamepadFocus off: nothing
+}
+
+// Back, from Escape or, with GamepadFocus on, a gamepad's right face
+// button, calls BackHandler once a press, unless the focused widget takes
+// it: an open list combo button closes instead.
+func TestUI_Back(t *testing.T) {
+	is := is.New(t)
+
+	combo := widget.NewListComboButton(
+		widget.ListComboButtonOpts.Entries([]any{"a", "b"}),
+		widget.ListComboButtonOpts.EntryLabelFunc(func(e any) string { return e.(string) }, func(e any) string { return e.(string) }), //nolint:forcetypeassert // strings
+	)
+	combo.GetWidget().Rect = image.Rect(0, 0, 100, 20)
+	ui := focusUI(combo)
+	ui.PrimaryTheme = themes.GetBasicDarkTheme() // the combo's images and faces
+	backs := 0
+	ui.BackHandler = func() { backs++ }
+	_, press := useDevices(t, ui)
+
+	press(ebiten.KeyEscape)
+	is.Equal(backs, 1) // once, though held
+	press(ebiten.StandardGamepadButtonRightRight)
+	is.Equal(backs, 1) // GamepadFocus off
+	ui.GamepadFocus = true
+	press(ebiten.StandardGamepadButtonRightRight)
+	is.Equal(backs, 2)
+
+	ui.SetFocusedWidget(combo)
+	combo.SetContentVisible(true)
+	press(ebiten.KeyEscape)
+	is.True(!combo.ContentVisible()) // the open combo took it
+	is.Equal(backs, 2)
 }

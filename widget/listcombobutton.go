@@ -392,8 +392,8 @@ func (l *ListComboButton) Update(updObj *UpdateObject) {
 }
 
 // handleActions opens the focused combo with Activate, or the Down or Up
-// key, and keeps the directions its open list leaves, so the focus stays
-// in it while it is open.
+// key. Open, it keeps the directions its list leaves, so the focus stays in
+// it, and closes with Back.
 func (l *ListComboButton) handleActions(actions *Actions) {
 	if !l.button.button.button.focused || *l.computedParams.DisableDefaultKeys {
 		return
@@ -406,6 +406,9 @@ func (l *ListComboButton) handleActions(actions *Actions) {
 	}
 	for _, d := range [...]Action{ActionUp, ActionDown, ActionLeft, ActionRight} {
 		actions.Take(d)
+	}
+	if actions.Take(ActionBack) {
+		l.SetContentVisible(false)
 	}
 }
 

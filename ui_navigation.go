@@ -71,6 +71,10 @@ func (u *UI) giveActions() {
 	if u.GamepadFocus && input.GamepadButtonJustPressed(ebiten.StandardGamepadButtonRightBottom) {
 		n.actions.Give(widget.ActionActivate)
 	}
+	if input.KeyJustPressed(ebiten.KeyEscape) ||
+		u.GamepadFocus && input.GamepadButtonJustPressed(ebiten.StandardGamepadButtonRightRight) {
+		n.actions.Give(widget.ActionBack)
+	}
 }
 
 // stickDirection returns the direction a stick at x, y points, as an index
@@ -125,5 +129,8 @@ func (u *UI) actOnActionsLeft() {
 	}
 	if n.actions.Left(widget.ActionActivate) {
 		u.ActivateFocused()
+	}
+	if n.actions.Left(widget.ActionBack) && u.BackHandler != nil {
+		u.BackHandler()
 	}
 }
