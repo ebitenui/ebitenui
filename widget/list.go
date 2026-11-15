@@ -49,6 +49,7 @@ type List struct {
 	hideHorizontalSlider bool
 	hideVerticalSlider   bool
 	slidersWhenNeeded    bool
+	dragToScroll         bool
 
 	entries         []any
 	entryLabelFunc  ListEntryLabelFunc
@@ -345,6 +346,14 @@ func (o ListOptions) HideVerticalSlider() ListOpt {
 // SlidersWhenNeeded shows each slider only while the entries overflow the
 // list its way, so a list whose entries fit shows none; a hidden slider
 // keeps its room, so the entries do not move when it shows.
+// DragToScroll lets the pointer scroll the entries by dragging them, as
+// ScrollContainerOpts.DragToScroll does; the sliders follow.
+func (o ListOptions) DragToScroll() ListOpt {
+	return func(l *List) {
+		l.dragToScroll = true
+	}
+}
+
 func (o ListOptions) SlidersWhenNeeded() ListOpt {
 	return func(l *List) {
 		l.slidersWhenNeeded = true
@@ -683,12 +692,29 @@ func (l *List) initWidget() {
 		l.listContent.AddChild(but)
 	}
 
-	l.scrollContainer = NewScrollContainer(
+	scrollOpts := []ScrollContainerOpt{
 		ScrollContainerOpts.Content(l.listContent),
 		ScrollContainerOpts.StretchContentWidth(),
 		ScrollContainerOpts.Image(l.computedParams.ScrollContainerImage),
 		ScrollContainerOpts.Padding(l.computedParams.ScrollContainerPadding),
-	)
+	}
+	if l.dragToScroll {
+		scrollOpts = append(scrollOpts, ScrollContainerOpts.DragToScroll())
+	}
+	l.scrollContainer = NewScrollContainer(scrollOpts...)
+
+	if l.dragToScroll {
+		l.scrollContainer.ScrollMovedEvent.AddHandler(func(args any) {
+			if a, ok := args.(*ScrollContainerScrollMovedEventArgs); ok {
+				if l.vSlider != nil {
+					l.vSlider.Current = int(math.Round(a.Top * 1000))
+				}
+				if l.hSlider != nil {
+					l.hSlider.Current = int(math.Round(a.Left * 1000))
+				}
+			}
+		})
+	}
 
 	l.container.AddChild(l.scrollContainer)
 

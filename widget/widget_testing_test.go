@@ -10,6 +10,7 @@ import (
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/image"
+	"github.com/ebitenui/ebitenui/input"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -134,4 +135,35 @@ func render(r ValidatedRenderer, t *testing.T) {
 	screen := ebiten.NewImage(1, 1)
 	r.Render(screen)
 	event.ExecuteDeferred()
+}
+
+// testCursor stands in for the pointer: where it is, whether the left
+// button is down, and whether it went down this update.
+type testCursor struct {
+	x, y          int
+	pressed, just bool
+}
+
+func (c *testCursor) Update()                 {}
+func (c *testCursor) AfterUpdate()            {}
+func (c *testCursor) Draw(*ebiten.Image)      {}
+func (c *testCursor) AfterDraw(*ebiten.Image) {}
+func (c *testCursor) MouseButtonPressed(b ebiten.MouseButton) bool {
+	return c.pressed && b == ebiten.MouseButtonLeft
+}
+func (c *testCursor) MouseButtonJustPressed(b ebiten.MouseButton) bool {
+	return c.just && b == ebiten.MouseButtonLeft
+}
+func (c *testCursor) MouseButtonJustReleased(ebiten.MouseButton) bool { return false }
+func (c *testCursor) CursorPosition() (int, int)                      { return c.x, c.y }
+func (c *testCursor) GetCursorImage(string) *ebiten.Image             { return nil }
+func (c *testCursor) GetCursorOffset(string) img.Point                { return img.Point{} }
+
+// useTestCursor installs a stand-in pointer for the test, removed at its end.
+func useTestCursor(t *testing.T) *testCursor {
+	t.Helper()
+	c := &testCursor{}
+	input.SetCursorUpdater(c)
+	t.Cleanup(func() { input.SetCursorUpdater(nil) })
+	return c
 }

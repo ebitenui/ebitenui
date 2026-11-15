@@ -4,6 +4,7 @@ import (
 	img "image"
 	"math"
 
+	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
 
@@ -14,11 +15,17 @@ type ScrollContainer struct {
 	ScrollLeft float64
 	ScrollTop  float64
 
+	// ScrollMovedEvent fires when a drag, or the motion left after one,
+	// scrolls the content, with ScrollContainerScrollMovedEventArgs.
+	ScrollMovedEvent *event.Event
+
 	widgetOpts          []WidgetOpt
 	image               *ScrollContainerImage
 	content             PreferredSizeLocateableWidget
 	padding             *Insets
 	stretchContentWidth bool
+	dragToScroll        bool
+	drag                scrollDrag
 
 	init      *MultiOnce
 	widget    *Widget
@@ -27,6 +34,29 @@ type ScrollContainer struct {
 }
 
 type ScrollContainerOpt func(s *ScrollContainer)
+
+// ScrollContainerScrollMovedEventArgs are the arguments of ScrollMovedEvent:
+// where the content is scrolled to, as ScrollLeft and ScrollTop hold it.
+type ScrollContainerScrollMovedEventArgs struct {
+	ScrollContainer *ScrollContainer
+	Left, Top       float64
+}
+
+const (
+	dragThreshold = 8    // pixels a press moves before it drags the content
+	dragFriction  = 0.95 // the share of its speed the content keeps each update after a drag
+	dragStop      = 0.5  // pixels an update below which the content stops
+)
+
+// scrollDrag is a drag of the content in progress, or the motion left
+// after one.
+type scrollDrag struct {
+	pressed, dragging   bool
+	startX, startY      int     // where the press began
+	startLeft, startTop float64 // the scroll then, in pixels
+	lastX, lastY        int     // the pointer on the last update
+	vx, vy              float64 // the scroll's speed, in pixels an update
+}
 
 type ScrollContainerImage struct {
 	Idle     *image.NineSlice
@@ -41,6 +71,8 @@ var ScrollContainerOpts ScrollContainerOptions
 
 func NewScrollContainer(opts ...ScrollContainerOpt) *ScrollContainer {
 	s := &ScrollContainer{
+		ScrollMovedEvent: &event.Event{},
+
 		init: &MultiOnce{},
 
 		renderBuf: image.NewMaskedRenderBuffer(),
@@ -124,6 +156,16 @@ func (o ScrollContainerOptions) Padding(p *Insets) ScrollContainerOpt {
 	}
 }
 
+// DragToScroll lets the pointer scroll by dragging the content: a press in
+// the view that moves more than a few pixels drags the content along and
+// clicks nothing when released. Let go while moving, the content keeps
+// going and slows to a stop; a press catches it.
+func (o ScrollContainerOptions) DragToScroll() ScrollContainerOpt {
+	return func(s *ScrollContainer) {
+		s.dragToScroll = true
+	}
+}
+
 func (o ScrollContainerOptions) StretchContentWidth() ScrollContainerOpt {
 	return func(s *ScrollContainer) {
 		s.stretchContentWidth = true
@@ -197,6 +239,7 @@ func (s *ScrollContainer) Update(updObj *UpdateObject) {
 	if s.content == nil {
 		return
 	}
+	s.updateDrag()
 
 	r, ok := s.content.(Updater)
 	if !ok {
@@ -352,6 +395,86 @@ func (s *ScrollContainer) contains(w *Widget) bool {
 		}
 	}
 	return false
+}
+
+// updateDrag follows a drag of the content, or moves it on after one.
+func (s *ScrollContainer) updateDrag() {
+	if !s.dragToScroll {
+		return
+	}
+	d := &s.drag
+	x, y := input.CursorPosition()
+	spanX, spanY := s.scrollSpan()
+	if input.MouseButtonJustPressedLayer(ebiten.MouseButtonLeft, s.content.GetWidget().EffectiveInputLayer()) &&
+		img.Pt(x, y).In(s.ViewRect()) {
+		*d = scrollDrag{pressed: true, startX: x, startY: y, lastX: x, lastY: y,
+			startLeft: s.ScrollLeft * float64(spanX), startTop: s.ScrollTop * float64(spanY)}
+		return
+	}
+	if d.pressed && input.MouseButtonPressed(ebiten.MouseButtonLeft) {
+		dx, dy := x-d.startX, y-d.startY
+		if !d.dragging && (spanX > 0 && abs(dx) > dragThreshold || spanY > 0 && abs(dy) > dragThreshold) {
+			d.dragging = true
+			cancelPresses()
+		}
+		if d.dragging {
+			d.vx, d.vy = float64(d.lastX-x), float64(d.lastY-y)
+			s.scrollTo(d.startLeft-float64(dx), d.startTop-float64(dy), spanX, spanY)
+		}
+		d.lastX, d.lastY = x, y
+		return
+	}
+	if d.pressed {
+		if !d.dragging {
+			d.vx, d.vy = 0, 0
+		}
+		d.pressed, d.dragging = false, false
+	}
+	if d.vx == 0 && d.vy == 0 {
+		return
+	}
+	left, top := s.ScrollLeft*float64(spanX)+d.vx, s.ScrollTop*float64(spanY)+d.vy
+	if !s.scrollTo(left, top, spanX, spanY) {
+		d.vx, d.vy = 0, 0 // at an end
+		return
+	}
+	d.vx, d.vy = d.vx*dragFriction, d.vy*dragFriction
+	if math.Abs(d.vx) < dragStop {
+		d.vx = 0
+	}
+	if math.Abs(d.vy) < dragStop {
+		d.vy = 0
+	}
+}
+
+// scrollSpan returns how far the content scrolls each way, in pixels.
+func (s *ScrollContainer) scrollSpan() (int, int) {
+	view, content := s.ViewRect(), s.content.GetWidget().Rect
+	return max(0, content.Dx()-view.Dx()), max(0, content.Dy()-view.Dy())
+}
+
+// scrollTo scrolls left and top pixels into the content, as far as it
+// goes, firing ScrollMovedEvent; it reports whether the scroll moved.
+func (s *ScrollContainer) scrollTo(left, top float64, spanX, spanY int) bool {
+	l, t := s.ScrollLeft, s.ScrollTop
+	if spanX > 0 {
+		s.ScrollLeft = min(1, max(0, left/float64(spanX)))
+	}
+	if spanY > 0 {
+		s.ScrollTop = min(1, max(0, top/float64(spanY)))
+	}
+	if s.ScrollLeft == l && s.ScrollTop == t {
+		return false
+	}
+	s.ScrollMovedEvent.Fire(&ScrollContainerScrollMovedEventArgs{ScrollContainer: s, Left: s.ScrollLeft, Top: s.ScrollTop})
+	return true
+}
+
+func abs(v int) int {
+	if v < 0 {
+		return -v
+	}
+	return v
 }
 
 func (s *ScrollContainer) clampScroll() {
