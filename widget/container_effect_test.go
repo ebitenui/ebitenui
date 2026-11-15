@@ -56,11 +56,59 @@ func TestContainer_OpacityDrawsOffScreen(t *testing.T) {
 	buffer := c.effectBuffer
 	c.SetLocation(img.Rect(30, 20, 80, 50)) // sliding, as a window opening
 	c.Render(screen)
-	is.Equal(c.effectBuffer, buffer)                           // the same off-screen image
+	is.True(c.effectBuffer == buffer)                          // the same off-screen image
 	is.Equal(child.drawnOn.Bounds(), img.Rect(30, 20, 80, 50)) // at the new place
 
 	c.SetOpacity(1)
 	is.Equal(c.effectBuffer, nil) // released
+}
+
+// The off-screen image covers the container and a margin around it, within
+// the screen: a short slide keeps it, a move past the margin makes another.
+func TestContainer_EffectBufferFitsTheContainer(t *testing.T) {
+	is := is.New(t)
+
+	screen := ebiten.NewImage(1000, 600)
+	c, _ := newRecordingContainer(t)
+	c.SetLocation(img.Rect(300, 200, 500, 300))
+	c.SetOpacity(0.5)
+	c.Render(screen)
+	is.Equal(c.effectBuffer.Bounds(), img.Rect(236, 136, 564, 364)) // 64 px around it, not the screen
+
+	buffer := c.effectBuffer
+	c.SetLocation(img.Rect(340, 200, 540, 300)) // 40 px along, as a popup easing in
+	c.Render(screen)
+	is.True(c.effectBuffer == buffer) // kept
+
+	c.SetLocation(img.Rect(700, 200, 900, 300))
+	c.Render(screen)
+	is.True(c.effectBuffer != buffer) // made again around it
+	is.Equal(c.effectBuffer.Bounds(), img.Rect(636, 136, 964, 364))
+
+	c.SetLocation(img.Rect(950, 550, 1050, 650)) // partly off the screen
+	c.Render(screen)
+	is.Equal(c.effectBuffer.Bounds(), img.Rect(886, 486, 1000, 600)) // up to its edge
+}
+
+// A fading container keeps its off-screen image; an invisible one, such as
+// a window faded out as it closes, keeps none and makes none.
+func TestContainer_InvisibleKeepsNoBuffer(t *testing.T) {
+	is := is.New(t)
+
+	screen := ebiten.NewImage(100, 100)
+	c, _ := newRecordingContainer(t)
+	c.SetOpacity(0.5)
+	c.Render(screen)
+	buffer := c.effectBuffer
+	is.True(buffer != nil)
+	c.SetOpacity(0.25) // fading
+	c.Render(screen)
+	is.True(c.effectBuffer == buffer) // kept through the fade
+
+	c.SetOpacity(0)
+	is.Equal(c.effectBuffer, nil) // released
+	c.Render(screen)
+	is.Equal(c.effectBuffer, nil) // and none made
 }
 
 func TestWindow_SetOpacity(t *testing.T) {
