@@ -40,6 +40,79 @@ func focusGrid() (*UI, [3][3]*widget.Button) {
 	return focusUI(all...), g
 }
 
+// Without links of its own, a widget passes the focus to the nearest one in
+// the direction asked, diagonals included; at an edge it keeps it.
+func TestUI_ChangeFocusToTheNearestInADirection(t *testing.T) {
+	is := is.New(t)
+
+	ui, g := focusGrid()
+	for _, step := range []struct {
+		from *widget.Button
+		dir  widget.FocusDirection
+		want *widget.Button
+	}{
+		{g[1][1], widget.FOCUS_EAST, g[1][2]},
+		{g[1][0], widget.FOCUS_EAST, g[1][1]}, // the nearer of two in the row
+		{g[1][1], widget.FOCUS_WEST, g[1][0]},
+		{g[1][1], widget.FOCUS_NORTH, g[0][1]},
+		{g[1][1], widget.FOCUS_SOUTH, g[2][1]},
+		{g[1][1], widget.FOCUS_NORTHEAST, g[0][2]},
+		{g[1][1], widget.FOCUS_SOUTHWEST, g[2][0]},
+		{g[1][2], widget.FOCUS_EAST, g[1][2]}, // nothing further east
+		{g[0][0], widget.FOCUS_NORTHWEST, g[0][0]},
+	} {
+		ui.SetFocusedWidget(step.from)
+		ui.ChangeFocus(step.dir)
+		is.Equal(ui.GetFocusedWidget(), step.want)
+		is.True(step.want.IsFocused())
+	}
+}
+
+// A widget in the same row, or column, wins over a nearer one beside it.
+func TestUI_ChangeFocusKeepsToTheRow(t *testing.T) {
+	is := is.New(t)
+
+	from := focusButton(image.Rect(0, 0, 40, 20))
+	far := focusButton(image.Rect(300, 0, 340, 20))
+	beside := focusButton(image.Rect(50, 30, 90, 50)) // nearer, one row down
+	ui := focusUI(from, far, beside)
+
+	ui.SetFocusedWidget(from)
+	ui.ChangeFocus(widget.FOCUS_EAST)
+	is.Equal(ui.GetFocusedWidget(), far)
+
+	bottom := focusButton(image.Rect(0, 300, 40, 320))
+	above := focusButton(image.Rect(0, 0, 40, 20))
+	aside := focusButton(image.Rect(50, 250, 90, 270)) // nearer, one column across
+	ui = focusUI(bottom, above, aside)
+	ui.SetFocusedWidget(bottom)
+	ui.ChangeFocus(widget.FOCUS_NORTH)
+	is.Equal(ui.GetFocusedWidget(), above)
+}
+
+// A link set for a direction wins; a disabled widget is passed over.
+func TestUI_ChangeFocusFollowsLinksAndSkipsDisabled(t *testing.T) {
+	is := is.New(t)
+
+	ui, g := focusGrid()
+	g[1][1].AddFocus(widget.FOCUS_EAST, g[2][0])
+	ui.SetFocusedWidget(g[1][1])
+	ui.ChangeFocus(widget.FOCUS_EAST)
+	is.Equal(ui.GetFocusedWidget(), g[2][0]) // the link
+
+	g[1][0].GetWidget().Disabled = true
+	g[1][1].AddFocus(widget.FOCUS_WEST, g[1][0])
+	ui.SetFocusedWidget(g[1][1])
+	ui.ChangeFocus(widget.FOCUS_WEST)
+	is.True(ui.GetFocusedWidget() != g[1][0]) // a link to a disabled widget gives way to the search
+
+	g[0][1].GetWidget().Disabled = true
+	ui.SetFocusedWidget(g[1][1])
+	ui.ChangeFocus(widget.FOCUS_NORTH)
+	is.True(ui.GetFocusedWidget() != g[0][1])                                     // not the disabled one
+	is.True(ui.GetFocusedWidget() == g[0][0] || ui.GetFocusedWidget() == g[0][2]) // the row above
+}
+
 // Shift-Tab from the first widget wraps to the last and keeps track of it.
 func TestUI_ChangeFocusPreviousWraps(t *testing.T) {
 	is := is.New(t)

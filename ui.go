@@ -298,6 +298,11 @@ func (u *UI) handleFocusChangeRequest() {
 	}
 }
 
+// ChangeFocus moves the focus. FOCUS_NEXT and FOCUS_PREVIOUS follow the tab
+// order. A direction follows the focused widget's link for it (AddFocus)
+// when it has one that can take the focus, and otherwise goes to the
+// nearest focusable widget that way, keeping the focus where it is when
+// there is none.
 func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 
 	focusableWidgets := u.Container.GetFocusers()
@@ -358,12 +363,14 @@ func (u *UI) ChangeFocus(direction widget.FocusDirection) {
 		}
 	} else {
 		if u.focusedWidget != nil {
-			if next := u.focusedWidget.GetFocus(direction); next != nil {
-				if !next.GetWidget().Disabled && next.GetWidget().IsVisible() {
-					u.focusedWidget.Focus(false)
-					next.Focus(true)
-					u.focusedWidget = next
-				}
+			next := u.focusedWidget.GetFocus(direction)
+			if next == nil || next.GetWidget().Disabled || !next.GetWidget().IsVisible() {
+				next = nearestFocuser(u.focusedWidget, direction, focusableWidgets)
+			}
+			if next != nil {
+				u.focusedWidget.Focus(false)
+				next.Focus(true)
+				u.focusedWidget = next
 			}
 		} else if fwLen > 0 {
 			focusableWidgets[0].Focus(true)

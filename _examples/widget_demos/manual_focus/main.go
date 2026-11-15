@@ -73,6 +73,9 @@ func main() {
 	btn9 := createButton("Button 9")
 	rootContainer.AddChild(btn9)
 
+	// Links are optional: without one, ChangeFocus goes to the nearest
+	// focusable widget in the direction asked. A link chooses the widget
+	// itself, as these do for every direction.
 	btn1.AddFocus(widget.FOCUS_EAST, btn2)
 	btn1.AddFocus(widget.FOCUS_SOUTH, btn4)
 	btn1.AddFocus(widget.FOCUS_SOUTHEAST, btn5)
