@@ -17,7 +17,7 @@ type ContainerShader struct {
 // overlapping children don't show through each other.
 func (o ContainerOptions) Opacity(opacity float32) ContainerOpt {
 	return func(c *Container) {
-		c.opacity = opacity
+		c.opacity, c.hasOpacity = opacity, true
 	}
 }
 
@@ -30,13 +30,16 @@ func (o ContainerOptions) Shader(shader *ContainerShader) ContainerOpt {
 
 // Opacity returns the opacity the container is drawn at.
 func (c *Container) Opacity() float32 {
+	if !c.hasOpacity {
+		return 1
+	}
 	return c.opacity
 }
 
 // SetOpacity sets the opacity the container and its children are drawn at,
 // from 0, invisible, to 1, opaque.
 func (c *Container) SetOpacity(opacity float32) {
-	c.opacity = opacity
+	c.opacity, c.hasOpacity = opacity, true
 	c.releaseEffectBuffer()
 }
 
@@ -55,7 +58,7 @@ func (c *Container) SetShader(shader *ContainerShader) {
 // hasEffect reports whether the container is drawn through an off-screen
 // image.
 func (c *Container) hasEffect() bool {
-	return c.opacity < 1 || c.shader != nil
+	return c.Opacity() < 1 || c.shader != nil
 }
 
 // effectMargin is how far, in pixels, the off-screen image reaches past the
@@ -67,7 +70,7 @@ const effectMargin = 64
 // longer needs it: drawn directly again, or invisible, as a window faded out
 // as it closes.
 func (c *Container) releaseEffectBuffer() {
-	if c.effectBuffer != nil && (!c.hasEffect() || c.opacity <= 0) {
+	if c.effectBuffer != nil && (!c.hasEffect() || c.Opacity() <= 0) {
 		c.effectBuffer.Deallocate()
 		c.effectBuffer = nil
 	}
@@ -82,7 +85,7 @@ func (c *Container) releaseEffectBuffer() {
 // on an atlas it would grow pages that stay grown.
 func (c *Container) renderWithEffect(screen *ebiten.Image) {
 	r := c.widget.Rect.Intersect(screen.Bounds())
-	if r.Empty() || c.opacity <= 0 {
+	if r.Empty() || c.Opacity() <= 0 {
 		c.doLayout()
 		return
 	}
@@ -105,7 +108,7 @@ func (c *Container) renderWithEffect(screen *ebiten.Image) {
 		op.GeoM.Reset()
 		op.GeoM.Translate(float64(r.Min.X), float64(r.Min.Y))
 		op.ColorScale.Reset()
-		op.ColorScale.ScaleAlpha(c.opacity)
+		op.ColorScale.ScaleAlpha(c.Opacity())
 		screen.DrawImage(target, op)
 		return
 	}
@@ -113,7 +116,7 @@ func (c *Container) renderWithEffect(screen *ebiten.Image) {
 	op.GeoM.Reset()
 	op.GeoM.Translate(float64(r.Min.X), float64(r.Min.Y))
 	op.ColorScale.Reset()
-	op.ColorScale.ScaleAlpha(c.opacity)
+	op.ColorScale.ScaleAlpha(c.Opacity())
 	op.Uniforms = c.shader.Uniforms
 	op.Images[0] = target
 	screen.DrawRectShader(r.Dx(), r.Dy(), c.shader.Shader, op)
