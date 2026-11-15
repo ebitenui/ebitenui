@@ -653,9 +653,11 @@ func (b *Button) Render(screen *ebiten.Image) {
 
 	if b.container != nil {
 		w := b.container.GetWidget()
-		w.Rect = b.widget.Rect
+		if w.Rect != b.widget.Rect {
+			w.Rect = b.widget.Rect
+			b.container.RequestRelayout()
+		}
 		w.Disabled = b.widget.Disabled
-		b.container.RequestRelayout()
 	}
 
 	b.widget.Render(screen)
