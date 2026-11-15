@@ -545,7 +545,7 @@ func (t *TextInput) idleState(newKeyOrCommand bool) textInputState {
 				return t.idleState(true), false
 			}
 		} else if chars := input.InputChars(); len(chars) > 0 {
-			if !ebiten.IsKeyPressed(ebiten.KeyControl) && !ebiten.IsKeyPressed(ebiten.KeyControlLeft) && !ebiten.IsKeyPressed(ebiten.KeyControlRight) {
+			if !input.KeyPressed(ebiten.KeyControl) { // either Control key
 				t.DeleteSelectedText()
 				return t.charsInputState(string(chars)), true
 			}

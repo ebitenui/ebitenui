@@ -7,6 +7,9 @@ import (
 	"unicode/utf8"
 
 	"github.com/ebitenui/ebitenui/event"
+	"github.com/ebitenui/ebitenui/input"
+	"github.com/ebitenui/ebitenui/internal/input/inputtest"
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/matryer/is"
 )
@@ -135,6 +138,30 @@ func TestTextInput_DoInsert(t *testing.T) {
 
 	is.Equal(ti.GetText(), "fab€coo")
 	is.Equal(ti.cursorPosition, 5)
+}
+
+// Typed characters go in, except while Control is held, as the input package
+// reports the keys: then they belong to a shortcut.
+func TestTextInput_TypingWithControlHeld(t *testing.T) {
+	is := is.New(t)
+
+	d := inputtest.Use(t)
+	ti := newTextInput(t)
+	ti.Focus(true)
+	for i, s := range []struct {
+		control bool
+		text    string
+	}{
+		{true, ""},
+		{false, "a"},
+	} {
+		d.Keys[ebiten.KeyControl] = s.control
+		input.Update()
+		typeChars(t, "a")
+		ti.Update(&UpdateObject{})
+		input.AfterUpdate()
+		is.Equal([]any{i, ti.GetText()}, []any{i, s.text})
+	}
 }
 
 func newTextInput(t *testing.T, opts ...TextInputOpt) *TextInput {

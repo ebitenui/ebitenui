@@ -7,7 +7,6 @@ import (
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
@@ -450,7 +449,7 @@ func (c *Checkbox) Update(updObj *UpdateObject) {
 
 func (c *Checkbox) handleDefaultInput() {
 	if !c.DisableDefaultKeys && c.focused &&
-		(inpututil.IsKeyJustPressed(ebiten.KeyEnter) || inpututil.IsKeyJustPressed(ebiten.KeySpace)) {
+		(input.KeyJustPressed(ebiten.KeyEnter) || input.KeyJustPressed(ebiten.KeySpace)) {
 		c.Click()
 	}
 }

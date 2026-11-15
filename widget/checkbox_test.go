@@ -7,6 +7,8 @@ import (
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
+	"github.com/ebitenui/ebitenui/internal/input/inputtest"
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
 )
 
@@ -139,6 +141,33 @@ func TestCheckbox_State_Cycle_TriState(t *testing.T) {
 	is.Equal(c.State(), WidgetGreyed)
 	leftMouseButtonClick(c, t)
 	is.Equal(c.State(), WidgetUnchecked)
+}
+
+// A focused checkbox toggles once each time Enter or Space goes down, as the
+// input package reports the keys.
+func TestCheckbox_KeysToggleOncePerPress(t *testing.T) {
+	is := is.New(t)
+
+	d := inputtest.Use(t)
+	c := newCheckbox(t)
+	c.Focus(true)
+	for i, s := range []struct {
+		key   ebiten.Key
+		down  bool
+		state WidgetState
+	}{
+		{ebiten.KeyEnter, true, WidgetChecked},
+		{ebiten.KeyEnter, true, WidgetChecked}, // held
+		{ebiten.KeyEnter, false, WidgetChecked},
+		{ebiten.KeySpace, true, WidgetUnchecked},
+	} {
+		d.Keys[s.key] = s.down
+		input.Update()
+		c.Update(&UpdateObject{})
+		input.AfterUpdate()
+		event.ExecuteDeferred()
+		is.Equal([]any{i, c.State()}, []any{i, s.state})
+	}
 }
 
 func newCheckbox(t *testing.T, opts ...CheckboxOpt) *Checkbox {
