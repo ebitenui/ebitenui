@@ -128,6 +128,9 @@ func main() {
 	// construct the UI
 	ui := ebitenui.UI{
 		Container: rootContainer,
+		// A gamepad's D-pad moves the focus too, and its bottom face button
+		// presses the focused button.
+		GamepadFocus: true,
 	}
 
 	ui.SetFocusedWidget(btn5)

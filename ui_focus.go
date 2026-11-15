@@ -6,6 +6,25 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 )
 
+// ActivateFocused activates the focused widget as Enter does: it clicks a
+// button or a checkbox and submits a text input. It reports whether a
+// widget was activated; nothing is without a focus or for a disabled one.
+func (u *UI) ActivateFocused() bool {
+	f := u.focusedWidget
+	if f == nil || f.GetWidget().Disabled {
+		return false
+	}
+	switch w := f.(type) {
+	case interface{ Click() }:
+		w.Click()
+	case interface{ Submit() }:
+		w.Submit()
+	default:
+		return false
+	}
+	return true
+}
+
 // nearestFocuser returns the candidate nearest to from in direction d, or
 // nil when none lies that way. For the four sides it follows the rules of
 // Android's focus search: a candidate must lie beyond from's edge in that

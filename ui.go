@@ -20,6 +20,12 @@ type UI struct {
 	// If true the default tab/shift-tab to focus will be disabled
 	DisableDefaultFocus bool
 
+	// GamepadFocus, when true, lets every gamepad with the standard layout
+	// move the focus with its D-pad (ChangeFocus) and activate the focused
+	// widget with its bottom face button, A on an Xbox pad or cross on a
+	// PlayStation one (ActivateFocused).
+	GamepadFocus bool
+
 	// If true the default relayering of Windows will be disabled
 	DisableWindowRelayering bool
 
@@ -44,6 +50,7 @@ type UI struct {
 	previousContainer          widget.Containerer
 	previousRemoveHandlerFuncs []event.RemoveHandlerFunc
 	tabWasPressed              bool
+	gamepads                   []ebiten.GamepadID // reused each update
 	updObj                     *widget.UpdateObject
 
 	debugMode bool
@@ -70,6 +77,7 @@ func (u *UI) Update() {
 	}
 	u.setTheme()
 	u.handleFocusChangeRequest()
+	u.handleGamepadFocus()
 
 	// If widget is not visible or disabled, change focus to next widget.
 	if u.focusedWidget != nil && (u.focusedWidget.GetWidget().Disabled || !u.focusedWidget.GetWidget().IsVisible()) {
