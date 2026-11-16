@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ebitenui/ebitenui/event"
+	"github.com/ebitenui/ebitenui/image"
 	"github.com/matryer/is"
 )
 
@@ -35,12 +36,17 @@ func TestOnScreenKeyboard_KeyOptsWin(t *testing.T) {
 	is.True(wide >= narrow+40)
 }
 
+// withChildren is a container of any type.
+type withChildren interface {
+	Children() []PreferredSizeLocateableWidget
+}
+
 // key returns the keyboard's key labelled label.
 func key(t *testing.T, k *OnScreenKeyboard, label string) *Button {
 	t.Helper()
 	var found *Button
-	var walk func(c *Container)
-	walk = func(c *Container) {
+	var walk func(c withChildren)
+	walk = func(c withChildren) {
 		for _, ch := range c.Children() {
 			switch w := ch.(type) {
 			case *Button:
@@ -117,4 +123,32 @@ func TestOnScreenKeyboard_DoneAndClose(t *testing.T) {
 	event.ExecuteDeferred()
 	is.Equal(closes, 2)
 	is.Equal(submits, 1) // not submitted
+}
+
+// Without a background of its own, the keyboard takes its theme's panel
+// background and follows the theme when it changes; given one, it keeps it;
+// without either, it has none.
+func TestOnScreenKeyboard_ThemeBackground(t *testing.T) {
+	is := is.New(t)
+
+	dark := &Theme{PanelTheme: &PanelParams{BackgroundImage: newNineSliceEmpty(t)}}
+	light := &Theme{PanelTheme: &PanelParams{BackgroundImage: newNineSliceEmpty(t)}}
+	background := func(k *OnScreenKeyboard) any {
+		k.GetContainer().Validate()
+		return k.container.computedParams.BackgroundImage
+	}
+
+	k := newKeyboard(t)
+	k.GetContainer().GetWidget().SetTheme(dark)
+	is.True(background(k) == dark.PanelTheme.BackgroundImage)
+	k.GetContainer().GetWidget().SetTheme(light)
+	is.True(background(k) == light.PanelTheme.BackgroundImage)
+
+	own := newNineSliceEmpty(t)
+	k = newKeyboard(t, OnScreenKeyboardOpts.ContainerOpts(ContainerOpts.BackgroundImage(own)))
+	k.GetContainer().GetWidget().SetTheme(dark)
+	is.True(background(k) == own)
+
+	k = newKeyboard(t)
+	is.True(background(k) == (*image.NineSlice)(nil))
 }

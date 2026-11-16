@@ -19,11 +19,13 @@ var keyboardRows = [...]string{
 // A presses the focused one. Shift switches the letters between lower and
 // upper case, Space types a space, Erase deletes the character before the
 // caret, and Done submits the input and closes the keyboard. A line above
-// the keys shows the input's text, as stars for a secure input.
+// the keys shows the input's text, as stars for a secure input. The keys
+// take the theme's buttons, and the keyboard, without a background of its
+// own, the theme's panel background.
 // ebitenui.UI.OnScreenKeyboard opens it in a window for a focused text
 // input, and closes it on Back.
 type OnScreenKeyboard struct {
-	container *Container
+	container *keyboardContainer
 	keyOpts   []ButtonOpt
 	preview   *Text
 	letters   []*Button
@@ -75,9 +77,9 @@ func NewOnScreenKeyboard(opts ...OnScreenKeyboardOpt) *OnScreenKeyboard {
 		o(&cfg)
 	}
 	k := &OnScreenKeyboard{keyOpts: cfg.keyOpts}
-	k.container = NewContainer(append([]ContainerOpt{ContainerOpts.Layout(NewRowLayout(
+	k.container = &keyboardContainer{NewContainer(append([]ContainerOpt{ContainerOpts.Layout(NewRowLayout(
 		RowLayoutOpts.Direction(DirectionVertical), RowLayoutOpts.Spacing(6),
-		RowLayoutOpts.Padding(NewInsetsSimple(8))))}, cfg.containerOpts...)...)
+		RowLayoutOpts.Padding(NewInsetsSimple(8))))}, cfg.containerOpts...)...)}
 	stretch := WidgetOpts.LayoutData(RowLayoutData{Stretch: true})
 	k.preview = NewText(append(cfg.previewOpts, TextOpts.WidgetOpts(stretch))...)
 	k.preview.Label = " " // a line's height before it shows a text
@@ -126,7 +128,21 @@ func (k *OnScreenKeyboard) key(label string, press func()) *Button {
 
 // GetContainer returns the keyboard's widget: the preview line and the
 // keys.
-func (k *OnScreenKeyboard) GetContainer() *Container { return k.container }
+func (k *OnScreenKeyboard) GetContainer() Containerer { return k.container }
+
+// keyboardContainer is the keyboard's container: without a background of
+// its own, it draws its theme's panel background, and follows the theme as
+// it changes.
+type keyboardContainer struct{ *Container }
+
+func (c *keyboardContainer) Validate() {
+	c.Container.Validate()
+	if c.definedParams.BackgroundImage == nil {
+		if theme := c.widget.GetTheme(); theme != nil && theme.PanelTheme != nil {
+			c.computedParams.BackgroundImage = theme.PanelTheme.BackgroundImage
+		}
+	}
+}
 
 // Open makes the keyboard type into target until Done or Close, which call
 // onClose; ebitenui.UI opens it in a window and closes that window there.
