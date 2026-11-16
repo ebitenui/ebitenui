@@ -29,6 +29,8 @@ func main() {
 		widget.VirtualListOpts.BindFunc(func(row widget.PreferredSizeLocateableWidget, index int) {
 			row.(*widget.Text).Label = fmt.Sprintf("Entry %d", index) //nolint:forcetypeassert // made by RowFunc
 		}),
+		// Dragging the rows, with a mouse or a finger, scrolls them too.
+		widget.VirtualListOpts.DragToScroll(),
 	)
 	root.AddChild(list)
 

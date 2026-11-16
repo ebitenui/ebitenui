@@ -28,7 +28,10 @@ type Container struct {
 	children []PreferredSizeLocateableWidget
 
 	// Drawing at an opacity or through a shader (see container_effect.go).
+	// opacity counts once hasOpacity is set, so a Container's zero value,
+	// as types that embed one build it, is opaque.
 	opacity        float32
+	hasOpacity     bool
 	shader         *ContainerShader
 	effectBuffer   *ebiten.Image
 	effectImageOp  ebiten.DrawImageOptions
@@ -53,8 +56,7 @@ type PreferredSizeLocateableWidget interface {
 
 func NewContainer(opts ...ContainerOpt) *Container {
 	c := &Container{
-		init:    &MultiOnce{},
-		opacity: 1,
+		init: &MultiOnce{},
 	}
 
 	c.init.Append(c.createWidget)

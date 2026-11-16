@@ -121,3 +121,63 @@ func TestWindow_SetOpacity(t *testing.T) {
 	is.True(ok)
 	is.Equal(c.Opacity(), float32(0.25))
 }
+
+// Types that embed a Container, as Panel and TabBookTab do, draw their
+// children straight onto the screen: a Container's zero value is opaque.
+func TestContainer_EmbeddedDrawsDirectly(t *testing.T) {
+	is := is.New(t)
+
+	ns := newNineSliceEmpty(t)
+	for _, c := range []interface {
+		Containerer
+		Renderer
+	}{
+		NewPanel(ContainerOpts.Layout(NewAnchorLayout()), ContainerOpts.BackgroundImage(ns)),
+		NewTabBookTab(TabBookTabOpts.ContainerOpts(ContainerOpts.Layout(NewAnchorLayout()))),
+	} {
+		child := &recordingWidget{widget: NewWidget()}
+		c.AddChild(child)
+		c.Validate()
+		c.SetLocation(img.Rect(10, 10, 60, 40))
+		screen := ebiten.NewImage(100, 100)
+		c.Render(screen)
+		is.True(child.drawnOn == screen) // drawn, onto the screen
+	}
+}
+
+// Drawn through a shader without an opacity set, an embedded Container
+// draws its children, at full alpha.
+func TestContainer_EmbeddedShaderIsOpaque(t *testing.T) {
+	is := is.New(t)
+
+	s, err := ebiten.NewShader([]byte(`//kage:unit pixels
+package main
+
+func Fragment(dst vec4, src vec2, color vec4) vec4 {
+	return imageSrc0At(src) * color
+}`))
+	is.NoErr(err)
+	p := NewPanel(ContainerOpts.Layout(NewAnchorLayout()), ContainerOpts.BackgroundImage(newNineSliceEmpty(t)),
+		ContainerOpts.Shader(&ContainerShader{Shader: s}))
+	child := &recordingWidget{widget: NewWidget()}
+	p.AddChild(child)
+	p.Validate()
+	p.SetLocation(img.Rect(10, 10, 60, 40))
+	p.Render(ebiten.NewImage(100, 100))
+	is.True(child.drawnOn != nil) // drawn, off screen
+	is.Equal(p.effectShaderOp.ColorScale.A(), float32(1))
+}
+
+// A container made with an opacity below 1 draws off screen.
+func TestContainer_OpacityOptionDrawsOffScreen(t *testing.T) {
+	is := is.New(t)
+
+	child := &recordingWidget{widget: NewWidget()}
+	c := NewContainer(ContainerOpts.Layout(NewAnchorLayout()), ContainerOpts.Opacity(0.5))
+	c.AddChild(child)
+	c.Validate()
+	c.SetLocation(img.Rect(10, 10, 60, 40))
+	screen := ebiten.NewImage(100, 100)
+	c.Render(screen)
+	is.True(child.drawnOn != nil && child.drawnOn != screen)
+}

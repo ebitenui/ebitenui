@@ -2,9 +2,7 @@ package input
 
 import (
 	"image"
-	"runtime"
 
-	"github.com/ebitenui/ebitenui/internal/jsUtil"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -45,55 +43,52 @@ type DefaultInternalHandler struct {
 	// from -1 to 1.
 	GamepadAxis [ebiten.StandardGamepadAxisMax + 1]float64
 
-	// Devices is where the keyboard and the gamepads are read.
+	// Devices is where the keyboard, the gamepads and the touches are read.
 	Devices  Devices
 	gamepads []ebiten.GamepadID // reused each update
+
+	// TouchCount is the number of fingers on the screen. TouchGesture is
+	// whether the touch going on, or the one that just lifted, has had two
+	// fingers or more: a gesture, not a tap.
+	TouchCount   int
+	TouchGesture bool
+	// TouchPinch is how much the first two fingers spread apart since the
+	// last update, as a ratio (1 without two fingers on the screen in both),
+	// TouchPanX and TouchPanY how far their midpoint moved.
+	TouchPinch           float64
+	TouchPanX, TouchPanY float64
+	pair                 [2]image.Point    // where the first two fingers were
+	pairIDs              [2]ebiten.TouchID // which fingers they were
+	paired               bool              // whether two fingers were down
+	// KeepTouchHover, set while a touch is down, keeps the pointer where the
+	// touch lifts, as a hover; otherwise on a touch screen it leaves the
+	// screen the update after, so a tap leaves nothing hovered. A long press
+	// sets it.
+	KeepTouchHover bool
+	lifted         bool // a touch lifted in the last update
 
 	isTouched    bool
 	cursorImages map[string]*ebiten.Image
 	cursorOffset map[string]image.Point
 
-	touchscreenPlatform bool
-	touchIDs            []ebiten.TouchID
+	touchIDs []ebiten.TouchID
 }
 
 var InternalUIHovered = false
 
 var InputHandler *DefaultInternalHandler = &DefaultInternalHandler{
-	// A touchscreenPlatform is defined as a device that doesn't have a mouse pointer,
-	// but has a touchscreen input instead.
-	// For native builds, there are Android and IOS; Ebitengine defines a mobile platform
-	// as these two build tags (they will always return {0,0} from ebiten.CursorPosition).
-	// Then we add web builds that are running on a mobile browser.
-	//
-	// TODO: maybe move this platform-detection code to somewhere else?
-	// There should be a context-like object that would infer the preferred platform
-	// input options.
-	touchscreenPlatform: jsUtil.IsMobileBrowser() || runtime.GOOS == "android" || runtime.GOOS == "ios",
-
 	Devices:      Ebitengine{},
+	TouchPinch:   1,
 	cursorImages: make(map[string]*ebiten.Image),
 	cursorOffset: make(map[string]image.Point),
 }
 
 // Update updates the input system. This is called by the UI.
 func (handler *DefaultInternalHandler) Update() {
-	handler.touchIDs = ebiten.AppendTouchIDs(handler.touchIDs[:0])
-	if len(handler.touchIDs) > 0 {
-		handler.isTouched = true
-	}
-	if handler.isTouched {
-		if len(handler.touchIDs) > 0 {
-			handler.LeftMouseButtonPressed = true
-			handler.CursorX, handler.CursorY = ebiten.TouchPosition(handler.touchIDs[0])
-		} else {
-			handler.LeftMouseButtonPressed = false
-			handler.isTouched = false
-		}
-	} else if !handler.touchscreenPlatform {
-		// Only execute this branch on non-mobile platforms.
-		// This is a workaround to keep the touch position intact,
-		// as ebiten.CursorPosition() would set it to (0, 0).
+	if !handler.updateTouches() && !handler.Devices.IsTouchscreen() {
+		// Only on platforms with a mouse pointer: on touch screens
+		// ebiten.CursorPosition() reports (0, 0), and the pointer stays
+		// where the touches put it.
 		//
 		// TODO: maybe get rid of this special condition when fireEvents are
 		// moved to the Update() tree.
