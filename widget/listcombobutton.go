@@ -386,6 +386,7 @@ func (l *ListComboButton) Render(screen *ebiten.Image) {
 func (l *ListComboButton) Update(updObj *UpdateObject) {
 	l.init.Do()
 
+	l.widget.Update(updObj) // its own widget: tooltips, hover and the events set on it
 	l.button.GetWidget().Disabled = l.widget.Disabled
 	l.button.Update(updObj) // the open list takes its actions here
 	l.handleActions(updObj.Actions)
