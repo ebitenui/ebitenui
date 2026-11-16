@@ -52,6 +52,14 @@ type DefaultInternalHandler struct {
 	// fingers or more: a gesture, not a tap.
 	TouchCount   int
 	TouchGesture bool
+	// TouchPinch is how much the first two fingers spread apart since the
+	// last update, as a ratio (1 without two fingers on the screen in both),
+	// TouchPanX and TouchPanY how far their midpoint moved.
+	TouchPinch           float64
+	TouchPanX, TouchPanY float64
+	pair                 [2]image.Point    // where the first two fingers were
+	pairIDs              [2]ebiten.TouchID // which fingers they were
+	paired               bool              // whether two fingers were down
 	// KeepTouchHover, set while a touch is down, keeps the pointer where the
 	// touch lifts, as a hover; otherwise on a touch screen it leaves the
 	// screen the update after, so a tap leaves nothing hovered. A long press
@@ -70,6 +78,7 @@ var InternalUIHovered = false
 
 var InputHandler *DefaultInternalHandler = &DefaultInternalHandler{
 	Devices:      Ebitengine{},
+	TouchPinch:   1,
 	cursorImages: make(map[string]*ebiten.Image),
 	cursorOffset: make(map[string]image.Point),
 }

@@ -217,6 +217,20 @@ func TouchCount() int {
 	return internalinput.InputHandler.TouchCount
 }
 
+// TouchPinch returns how much the first two fingers on the screen spread
+// apart since the last update, as a ratio: above 1 they spread, below 1
+// they pinch; 1 unless the same two fingers were down then too.
+func TouchPinch() float64 {
+	return internalinput.InputHandler.TouchPinch
+}
+
+// TouchPan returns how far the midpoint of the first two fingers on the
+// screen moved since the last update, in pixels; nothing unless the same
+// two fingers were down then too.
+func TouchPan() (float64, float64) {
+	return internalinput.InputHandler.TouchPanX, internalinput.InputHandler.TouchPanY
+}
+
 // TouchGesture returns whether the touch going on, or the one that just
 // lifted, has had two fingers or more: a gesture, which clicks nothing.
 func TouchGesture() bool {

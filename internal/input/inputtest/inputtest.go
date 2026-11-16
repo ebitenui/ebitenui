@@ -16,10 +16,12 @@ type Devices struct {
 	// Pads are the gamepads connected, all with the standard layout; pad i
 	// has the ID i.
 	Pads []Pad
-	// Touches are the fingers on the screen, where each is; the first has
-	// the ID 0. Touchscreen makes the platform one without a mouse pointer.
-	Touches     []image.Point
-	Touchscreen bool
+	// Touches are the fingers on the screen, where each is; their IDs count
+	// up from FirstTouchID, so changing it puts down other fingers.
+	// Touchscreen makes the platform one without a mouse pointer.
+	Touches      []image.Point
+	FirstTouchID ebiten.TouchID
+	Touchscreen  bool
 }
 
 // Pad is a gamepad with the standard layout.
@@ -67,16 +69,17 @@ func (d *Devices) StandardGamepadAxisValue(id ebiten.GamepadID, a ebiten.Standar
 
 func (d *Devices) AppendTouchIDs(ids []ebiten.TouchID) []ebiten.TouchID {
 	for i := range d.Touches {
-		ids = append(ids, ebiten.TouchID(i))
+		ids = append(ids, d.FirstTouchID+ebiten.TouchID(i))
 	}
 	return ids
 }
 
 func (d *Devices) TouchPosition(id ebiten.TouchID) (int, int) {
-	if int(id) >= len(d.Touches) {
+	i := int(id - d.FirstTouchID)
+	if i < 0 || i >= len(d.Touches) {
 		return 0, 0
 	}
-	return d.Touches[id].X, d.Touches[id].Y
+	return d.Touches[i].X, d.Touches[i].Y
 }
 
 func (d *Devices) IsTouchscreen() bool { return d.Touchscreen }
