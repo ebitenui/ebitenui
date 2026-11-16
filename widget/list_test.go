@@ -422,33 +422,47 @@ func TestList_EntryImages(t *testing.T) {
 	is.True(partial.computedParams.entryUnselectedColor.Idle == image.NewNineSliceColor(color.Transparent))
 }
 
-// A theme's entry images reach a list, and its combo button entry images a
-// list combo button's list, unless images are given.
+// A theme's entry images reach a list given neither colors nor images, and
+// its combo button entry images such a list combo button's list. Images
+// given show in their place, and so do colors given: not the theme's images
+// over them.
 func TestList_EntryImagesFromTheTheme(t *testing.T) {
 	is := is.New(t)
 
-	themed, comboThemed := newEntryImages(t), newEntryImages(t)
-	theme := &Theme{ListTheme: &ListParams{EntryImage: themed}, ListComboButtonTheme: &ListComboButtonParams{List: &ListParams{EntryImage: comboThemed}}}
 	label := func(e any) string { return e.(string) } //nolint:forcetypeassert // strings
-
 	l := newList(t, ListOpts.Entries([]any{"a"}), ListOpts.EntryLabelFunc(label))
+	c := newListComboButton(t, ListComboButtonOpts.Entries([]any{"a"}), ListComboButtonOpts.EntryLabelFunc(label, label))
+	colors := *l.definedParams.EntryColor // the theme's, none given
+	l.definedParams.EntryColor, c.definedParams.List.EntryColor = nil, nil
+
+	themed, comboThemed := newEntryImages(t), newEntryImages(t)
+	theme := &Theme{
+		ListTheme:            &ListParams{EntryColor: &colors, EntryImage: themed},
+		ListComboButtonTheme: &ListComboButtonParams{List: &ListParams{EntryColor: &colors, EntryImage: comboThemed}},
+	}
 	l.GetWidget().SetTheme(theme)
 	l.Validate()
 	isEntryImages(is, l, themed)
-
-	given := newEntryImages(t)
-	l.definedParams.EntryImage = given
-	l.Validate()
-	isEntryImages(is, l, given)
-
-	c := newListComboButton(t, ListComboButtonOpts.Entries([]any{"a"}), ListComboButtonOpts.EntryLabelFunc(label, label))
 	c.GetWidget().SetTheme(theme)
 	c.Validate()
 	isEntryImages(is, c.list, comboThemed) // a combo's list takes the combo's
 
-	c.definedParams.List.EntryImage = given
+	given := newEntryImages(t)
+	l.definedParams.EntryImage, c.definedParams.List.EntryImage = given, given
+	l.Validate()
 	c.Validate()
+	isEntryImages(is, l, given)
 	isEntryImages(is, c.list, given)
+
+	selected := color.NRGBA{1, 2, 3, 255}
+	givenColors := colors
+	givenColors.SelectedBackground = selected
+	l.definedParams.EntryImage, l.definedParams.EntryColor = nil, &givenColors
+	c.definedParams.List.EntryImage, c.definedParams.List.EntryColor = nil, &givenColors
+	l.Validate()
+	c.Validate()
+	is.True(l.computedParams.entrySelectedColor.Idle == image.NewNineSliceColor(selected)) // the colors given
+	is.True(c.list.computedParams.entrySelectedColor.Idle == image.NewNineSliceColor(selected))
 }
 
 // With SlidersWhenNeeded, the vertical slider shows only while the entries

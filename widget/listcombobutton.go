@@ -178,8 +178,8 @@ func (t *ListComboButton) populateComputedParams() {
 		if t.definedParams.List.EntryColor != nil {
 			params.List.EntryColor = t.definedParams.List.EntryColor
 		}
-		if t.definedParams.List.EntryImage != nil {
-			params.List.EntryImage = t.definedParams.List.EntryImage
+		if t.definedParams.List.EntryImage != nil || t.definedParams.List.EntryColor != nil {
+			params.List.EntryImage = t.definedParams.List.EntryImage // colors given show, not the theme's images
 		}
 
 		if t.definedParams.List.EntryTextHorizontalPosition != nil {

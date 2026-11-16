@@ -100,7 +100,8 @@ type ListEntryColor struct {
 // ListEntryImage draws the entries' backgrounds, such as rounded or
 // bordered ones, each in place of its color in ListEntryColor; a state
 // without an image keeps its color. Unselected entries have no color: without
-// an image they stay clear.
+// an image they stay clear. A theme's images apply to a list given neither
+// colors nor images.
 type ListEntryImage struct {
 	Unselected         *image.NineSlice
 	DisabledUnselected *image.NineSlice
@@ -205,8 +206,8 @@ func (t *List) populateComputedParams() {
 	if t.definedParams.EntryColor != nil {
 		params.EntryColor = t.definedParams.EntryColor
 	}
-	if t.definedParams.EntryImage != nil {
-		params.EntryImage = t.definedParams.EntryImage
+	if t.definedParams.EntryImage != nil || t.definedParams.EntryColor != nil {
+		params.EntryImage = t.definedParams.EntryImage // colors given show, not the theme's images
 	}
 	if t.definedParams.EntryTextHorizontalPosition != nil {
 		params.EntryTextHorizontalPosition = t.definedParams.EntryTextHorizontalPosition
