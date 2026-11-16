@@ -4,6 +4,8 @@ import (
 	img "image"
 	"math"
 
+	"github.com/ebitenui/ebitenui/event"
+	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/input"
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -15,21 +17,54 @@ import (
 // makes a row's widget and BindFunc fills it with an entry, by index; a
 // vertical slider, the mouse wheel, and with DragToScroll the pointer
 // scroll the list.
+//
+// Entries are selected as in a List: a click on a row selects its entry,
+// and focused, the list moves through its entries with Up and Down, keeping
+// the one it is on in view, and selects it with Activate, Enter or Space,
+// as a List's focused entry does. Each row is drawn
+// on the background of its state, from EntryImage or EntryColor, or else
+// from the theme's lists.
 type VirtualList struct {
-	count         int
-	rowHeight     int
-	rowFunc       func() PreferredSizeLocateableWidget
-	bindFunc      func(row PreferredSizeLocateableWidget, index int)
-	sliderParams  *SliderParams
-	scrollImage   *ScrollContainerImage
-	containerOpts []ContainerOpt
-	dragToScroll  bool
+	EntrySelectedEvent *event.Event
+
+	count              int
+	rowHeight          int
+	rowFunc            func() PreferredSizeLocateableWidget
+	bindFunc           func(row PreferredSizeLocateableWidget, index int)
+	sliderParams       *SliderParams
+	scrollImage        *ScrollContainerImage
+	entryColor         *ListEntryColor
+	entryImage         *ListEntryImage
+	containerOpts      []ContainerOpt
+	dragToScroll       bool
+	disableDefaultKeys bool
+	tabOrder           int
 
 	init      *MultiOnce
 	container *Container
 	scroll    *ScrollContainer
 	content   *virtualContent
 	slider    *Slider
+
+	// The rows' backgrounds, unselected and selected, set as the list
+	// validates.
+	unselectedImage, selectedImage *ButtonImage
+
+	selected   int // the selected entry, -1 for none
+	focusIndex int // the entry the keys are on
+	focused    bool
+	focusMap   map[FocusDirection]Focuser
+	pressed    int // the entry the pointer went down on, -1 for none
+	hovering   bool
+	hoverY     int // where the pointer is, while hovering
+}
+
+// VirtualListEntrySelectedEventArgs tell which entry was selected, and which
+// was before, by index; -1 for none.
+type VirtualListEntrySelectedEventArgs struct {
+	List          *VirtualList
+	Index         int
+	PreviousIndex int
 }
 
 // VirtualListOpt configures a VirtualList.
@@ -43,7 +78,13 @@ var VirtualListOpts VirtualListOptions
 // NewVirtualList returns a VirtualList; RowHeight, RowFunc and BindFunc are
 // required.
 func NewVirtualList(opts ...VirtualListOpt) *VirtualList {
-	l := &VirtualList{init: &MultiOnce{}}
+	l := &VirtualList{
+		EntrySelectedEvent: &event.Event{},
+		init:               &MultiOnce{},
+		selected:           -1,
+		pressed:            -1,
+		focusMap:           map[FocusDirection]Focuser{},
+	}
 	l.init.Append(l.createWidget)
 	for _, o := range opts {
 		o(l)
@@ -97,15 +138,157 @@ func (o VirtualListOptions) DragToScroll() VirtualListOpt {
 	return func(l *VirtualList) { l.dragToScroll = true }
 }
 
+// EntrySelectedHandler adds f to the handlers of EntrySelectedEvent.
+func (o VirtualListOptions) EntrySelectedHandler(f func(args *VirtualListEntrySelectedEventArgs)) VirtualListOpt {
+	return func(l *VirtualList) {
+		l.EntrySelectedEvent.AddHandler(func(args any) {
+			if a, ok := args.(*VirtualListEntrySelectedEventArgs); ok {
+				f(a)
+			}
+		})
+	}
+}
+
+// EntryColor sets the colors of the rows' backgrounds, in place of the
+// theme's lists' colors and images. A List's text colors don't apply: the
+// rows draw their text.
+func (o VirtualListOptions) EntryColor(c *ListEntryColor) VirtualListOpt {
+	return func(l *VirtualList) { l.entryColor = c }
+}
+
+// EntryImage sets images for the rows' backgrounds, each in place of its
+// color; the theme's lists' otherwise. See ListEntryImage.
+func (o VirtualListOptions) EntryImage(i *ListEntryImage) VirtualListOpt {
+	return func(l *VirtualList) { l.entryImage = i }
+}
+
+// DisableDefaultKeys keeps the focused list from taking Up, Down and
+// Activate, and from selecting with Enter and Space.
+func (o VirtualListOptions) DisableDefaultKeys(val bool) VirtualListOpt {
+	return func(l *VirtualList) { l.disableDefaultKeys = val }
+}
+
+// TabOrder sets the list's place in the focus order.
+func (o VirtualListOptions) TabOrder(tabOrder int) VirtualListOpt {
+	return func(l *VirtualList) { l.tabOrder = tabOrder }
+}
+
 // Count returns how many entries the list shows.
 func (l *VirtualList) Count() int { return l.count }
 
 // SetCount changes how many entries the list shows and binds the rows in
-// view again.
+// view again. A selection past the new count is dropped, without the event,
+// and the focus moves to the last entry if it was past it.
 func (l *VirtualList) SetCount(n int) {
 	l.init.Do()
 	l.count = n
+	if l.selected >= n {
+		l.selected = -1
+	}
+	l.focusIndex = max(0, min(l.focusIndex, n-1))
 	l.content.unbind()
+}
+
+// Selected returns the selected entry's index, or -1 for none.
+func (l *VirtualList) Selected() int { return l.selected }
+
+// SetSelected selects the entry at index, or none with -1, and fires
+// EntrySelectedEvent if that changes the selection; an index past the
+// entries changes nothing. The keys go on from the entry selected.
+func (l *VirtualList) SetSelected(index int) {
+	if index < -1 || index >= l.count || index == l.selected {
+		return
+	}
+	previous := l.selected
+	l.selected = index
+	if index >= 0 {
+		l.focusIndex = index
+	}
+	l.EntrySelectedEvent.Fire(&VirtualListEntrySelectedEventArgs{List: l, Index: index, PreviousIndex: previous})
+}
+
+// Focus focuses the list, or not, and tells the UI.
+func (l *VirtualList) Focus(focused bool) {
+	l.init.Do()
+	l.GetWidget().FireFocusEvent(l, focused, img.Point{-1, -1})
+	l.focused = focused
+}
+
+func (l *VirtualList) IsFocused() bool { return l.focused }
+
+func (l *VirtualList) TabOrder() int { return l.tabOrder }
+
+func (l *VirtualList) GetFocus(direction FocusDirection) Focuser { return l.focusMap[direction] }
+
+func (l *VirtualList) AddFocus(direction FocusDirection, focus Focuser) {
+	l.focusMap[direction] = focus
+}
+
+// handleActions moves the focused list through its entries with Up and
+// Down, leaving them at its ends so a gamepad moves the focus on from there,
+// and selects the entry it is on with Activate, Enter or Space.
+func (l *VirtualList) handleActions(actions *Actions) {
+	if !l.focused || l.disableDefaultKeys || l.GetWidget().Disabled || l.count == 0 {
+		return
+	}
+	if l.focusIndex < l.count-1 && actions.Take(ActionDown) {
+		l.focusIndex++
+		l.scrollToFocus()
+	}
+	if l.focusIndex > 0 && actions.Take(ActionUp) {
+		l.focusIndex--
+		l.scrollToFocus()
+	}
+	if actions.Take(ActionActivate) || input.KeyJustPressed(ebiten.KeyEnter) || input.KeyJustPressed(ebiten.KeySpace) {
+		l.SetSelected(l.focusIndex)
+	}
+}
+
+// scrollToFocus scrolls as little as shows the focused entry's row whole.
+func (l *VirtualList) scrollToFocus() {
+	top, view := l.focusIndex*l.rowHeight, l.scroll.ViewRect().Dy()
+	switch {
+	case top < l.slider.Current:
+		l.slider.Current = top
+	case top+l.rowHeight > l.slider.Current+view:
+		l.slider.Current = top + l.rowHeight - view
+	}
+}
+
+// entryAt returns the entry whose row holds the content's y, -1 for none.
+func (l *VirtualList) entryAt(y int) int {
+	i := (y - l.content.widget.Rect.Min.Y) / l.rowHeight
+	if y < l.content.widget.Rect.Min.Y || i >= l.count {
+		return -1
+	}
+	return i
+}
+
+// hovered returns the entry under the pointer, -1 for none.
+func (l *VirtualList) hovered() int {
+	if !l.hovering {
+		return -1
+	}
+	return l.entryAt(l.hoverY)
+}
+
+// background returns what the row of entry i is drawn on, hover being the
+// entry under the pointer: the selected or unselected background in the
+// row's state.
+func (l *VirtualList) background(i int, hover int) *image.NineSlice {
+	set := l.unselectedImage
+	if i == l.selected {
+		set = l.selectedImage
+	}
+	switch {
+	case l.container.GetWidget().Disabled:
+		return set.Disabled
+	case i == l.pressed:
+		return set.Pressed
+	case i == hover || l.focused && i == l.focusIndex:
+		return set.Hover
+	}
+	return set.Idle
 }
 
 // Refresh binds the rows in view again, after the entries they show changed.
@@ -177,6 +360,16 @@ func (l *VirtualList) Validate() {
 	if slider != nil {
 		l.slider.definedParams.TrackImage, l.slider.definedParams.HandleImage = slider.TrackImage, slider.HandleImage
 	}
+	colors, images := l.entryColor, l.entryImage
+	if theme := l.container.GetWidget().GetTheme(); theme != nil && theme.ListTheme != nil {
+		if colors == nil {
+			colors = theme.ListTheme.EntryColor
+		}
+		if images == nil && l.entryColor == nil {
+			images = theme.ListTheme.EntryImage // colors given show, not the theme's images
+		}
+	}
+	l.unselectedImage, l.selectedImage = entryBackgrounds(colors, images)
 	l.container.Validate()
 }
 
@@ -188,6 +381,7 @@ func (l *VirtualList) Render(screen *ebiten.Image) {
 
 func (l *VirtualList) Update(updObj *UpdateObject) {
 	l.init.Do()
+	l.handleActions(updObj.Actions)
 	l.container.Update(updObj)
 }
 
@@ -197,6 +391,7 @@ func (l *VirtualList) createWidget() {
 			GridLayoutOpts.Columns(2),
 			GridLayoutOpts.Stretch([]bool{true, false}, []bool{true})))}, l.containerOpts...)...)
 	l.content = &virtualContent{list: l, widget: NewWidget()}
+	l.watchPointer()
 	scrollOpts := []ScrollContainerOpt{ScrollContainerOpts.Content(l.content), ScrollContainerOpts.StretchContentWidth()}
 	if l.dragToScroll {
 		scrollOpts = append(scrollOpts, ScrollContainerOpts.DragToScroll())
@@ -233,6 +428,41 @@ func (l *VirtualList) createWidget() {
 		}
 	})
 	l.container.AddChild(l.scroll, l.slider)
+}
+
+// watchPointer follows the pointer over the rows: the entry it is over, the
+// one it goes down on, and a click, which selects the entry clicked unless
+// the list is disabled.
+func (l *VirtualList) watchPointer() {
+	w := l.content.widget
+	w.CursorEnterEvent.AddHandler(func(args any) {
+		if a, ok := args.(*WidgetCursorEnterEventArgs); ok {
+			l.hovering, l.hoverY = true, w.Rect.Min.Y+a.OffsetY
+		}
+	})
+	w.CursorMoveEvent.AddHandler(func(args any) {
+		if a, ok := args.(*WidgetCursorMoveEventArgs); ok {
+			l.hoverY = w.Rect.Min.Y + a.OffsetY
+		}
+	})
+	w.CursorExitEvent.AddHandler(func(any) { l.hovering = false })
+	w.MouseButtonPressedEvent.AddHandler(func(args any) {
+		if a, ok := args.(*WidgetMouseButtonPressedEventArgs); ok && a.Button == ebiten.MouseButtonLeft {
+			l.pressed = l.entryAt(w.Rect.Min.Y + a.OffsetY)
+		}
+	})
+	w.MouseButtonReleasedEvent.AddHandler(func(args any) {
+		if a, ok := args.(*WidgetMouseButtonReleasedEventArgs); ok && a.Button == ebiten.MouseButtonLeft {
+			l.pressed = -1
+		}
+	})
+	w.MouseButtonClickedEvent.AddHandler(func(args any) {
+		if a, ok := args.(*WidgetMouseButtonClickedEventArgs); ok && a.Button == ebiten.MouseButtonLeft && !l.GetWidget().Disabled {
+			if i := l.entryAt(w.Rect.Min.Y + a.OffsetY); i >= 0 {
+				l.SetSelected(i)
+			}
+		}
+	})
 }
 
 // virtualContent is a VirtualList's scrolled content: as tall as every row,
@@ -297,8 +527,12 @@ func (c *virtualContent) layOut() {
 func (c *virtualContent) Render(screen *ebiten.Image) {
 	c.widget.Render(screen)
 	c.layOut()
+	hover := c.list.hovered()
 	for i := c.first; i < c.last; i++ {
-		if r, ok := c.rows[i%len(c.rows)].widget.(Renderer); ok {
+		row := c.rows[i%len(c.rows)].widget
+		rect := row.GetWidget().Rect
+		c.list.background(i, hover).Draw(screen, rect.Dx(), rect.Dy(), row.GetWidget().drawImageOptions)
+		if r, ok := row.(Renderer); ok {
 			r.Render(screen)
 		}
 	}

@@ -291,23 +291,7 @@ func (t *List) populateComputedParams() {
 		params.ScrollContainerPadding = &Insets{}
 	}
 
-	images := params.EntryImage
-	if images == nil {
-		images = &ListEntryImage{}
-	}
-	params.entryUnselectedColor = &ButtonImage{
-		Idle:     entryBackground(images.Unselected, color.Transparent),
-		Disabled: entryBackground(images.DisabledUnselected, color.Transparent),
-		Hover:    entryBackground(images.Focused, params.EntryColor.FocusedBackground),
-		Pressed:  entryBackground(images.Selecting, params.EntryColor.SelectingBackground),
-	}
-
-	params.entrySelectedColor = &ButtonImage{
-		Idle:     entryBackground(images.Selected, params.EntryColor.SelectedBackground),
-		Disabled: entryBackground(images.DisabledSelected, params.EntryColor.DisabledSelectedBackground),
-		Hover:    entryBackground(images.SelectedFocused, params.EntryColor.SelectedFocusedBackground),
-		Pressed:  entryBackground(images.SelectingFocused, params.EntryColor.SelectingFocusedBackground),
-	}
+	params.entryUnselectedColor, params.entrySelectedColor = entryBackgrounds(params.EntryColor, params.EntryImage)
 
 	params.entryUnselectedTextColor = &ButtonTextColor{
 		Idle:     params.EntryColor.Unselected,
@@ -320,6 +304,31 @@ func (t *List) populateComputedParams() {
 	}
 
 	t.computedParams = params
+}
+
+// entryBackgrounds returns the backgrounds of unselected and of selected
+// entries, idle, disabled, focused (Hover) and being selected (Pressed):
+// each state's image, or else its color. Either may be nil.
+func entryBackgrounds(colors *ListEntryColor, images *ListEntryImage) (unselected, selected *ButtonImage) {
+	if colors == nil {
+		colors = &ListEntryColor{}
+	}
+	if images == nil {
+		images = &ListEntryImage{}
+	}
+	unselected = &ButtonImage{
+		Idle:     entryBackground(images.Unselected, color.Transparent),
+		Disabled: entryBackground(images.DisabledUnselected, color.Transparent),
+		Hover:    entryBackground(images.Focused, colors.FocusedBackground),
+		Pressed:  entryBackground(images.Selecting, colors.SelectingBackground),
+	}
+	selected = &ButtonImage{
+		Idle:     entryBackground(images.Selected, colors.SelectedBackground),
+		Disabled: entryBackground(images.DisabledSelected, colors.DisabledSelectedBackground),
+		Hover:    entryBackground(images.SelectedFocused, colors.SelectedFocusedBackground),
+		Pressed:  entryBackground(images.SelectingFocused, colors.SelectingFocusedBackground),
+	}
+	return unselected, selected
 }
 
 // entryBackground returns an entry's background in one state: its image, or

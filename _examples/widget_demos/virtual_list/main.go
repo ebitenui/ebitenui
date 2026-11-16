@@ -11,7 +11,9 @@ import (
 )
 
 // A list of a hundred thousand entries: the VirtualList keeps widgets only
-// for the rows in view, and binds them to the entries as it scrolls.
+// for the rows in view, and binds them to the entries as it scrolls. A click
+// selects an entry; with the list focused (Tab), Up and Down move through the
+// entries and Enter selects one. The window's title shows the selection.
 func main() {
 	root := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewAnchorLayout(
 		widget.AnchorLayoutOpts.Padding(widget.NewInsetsSimple(30)))))
@@ -31,6 +33,9 @@ func main() {
 		}),
 		// Dragging the rows, with a mouse or a finger, scrolls them too.
 		widget.VirtualListOpts.DragToScroll(),
+		widget.VirtualListOpts.EntrySelectedHandler(func(args *widget.VirtualListEntrySelectedEventArgs) {
+			ebiten.SetWindowTitle(fmt.Sprintf("Ebiten UI - Virtual List: entry %d", args.Index))
+		}),
 	)
 	root.AddChild(list)
 
