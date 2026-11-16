@@ -1,6 +1,7 @@
 package input
 
 import (
+	"image"
 	"testing"
 
 	"github.com/ebitenui/ebitenui/internal/input/inputtest"
@@ -100,4 +101,37 @@ func TestUpdate_DoesNotAllocate(t *testing.T) {
 			AfterUpdate()
 		}
 	}), 0.0)
+}
+
+// Two fingers pinch and pan: each update reports how much they spread
+// apart, as a ratio, and how far their midpoint moved, from the update
+// before; with one finger, two that just landed, or other fingers than in
+// the update before, nothing.
+func TestTouchPinchAndPan(t *testing.T) {
+	is := is.New(t)
+
+	d := inputtest.Use(t)
+	for i, s := range []struct {
+		first   ebiten.TouchID
+		fingers []image.Point
+		pinch   float64
+		panX    float64
+		panY    float64
+	}{
+		{0, []image.Point{{0, 0}}, 1, 0, 0},
+		{0, []image.Point{{0, 0}, {100, 0}}, 1, 0, 0}, // just landed
+		{0, []image.Point{{-50, 0}, {150, 0}}, 2, 0, 0},
+		{0, []image.Point{{-40, 20}, {160, 20}}, 1, 10, 20},
+		{0, []image.Point{{0, 0}, {100, 0}}, 0.5, -10, -20},
+		{0, []image.Point{{0, 0}}, 1, 0, 0},           // one lifts
+		{0, []image.Point{{0, 0}, {0, 100}}, 1, 0, 0}, // two again, just landed
+		{0, []image.Point{{0, -50}, {0, 150}}, 2, 0, 0},
+		{5, []image.Point{{0, 0}, {0, 100}}, 1, 0, 0}, // other fingers
+	} {
+		d.FirstTouchID, d.Touches = s.first, s.fingers
+		Update()
+		x, y := TouchPan()
+		is.Equal([]any{i, TouchPinch(), x, y}, []any{i, s.pinch, s.panX, s.panY})
+		AfterUpdate()
+	}
 }
