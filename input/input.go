@@ -175,8 +175,25 @@ func InputChars() []rune { //nolint:golint
 
 // KeyPressed returns whether key k is currently pressed.
 func KeyPressed(k ebiten.Key) bool {
-	p, ok := internalinput.InputHandler.KeyPressed[k]
-	return ok && p
+	return k >= 0 && k <= ebiten.KeyMax && internalinput.InputHandler.KeyPressed[k]
+}
+
+// KeyJustPressed returns whether key k went down since the last update.
+func KeyJustPressed(k ebiten.Key) bool {
+	return k >= 0 && k <= ebiten.KeyMax && internalinput.InputHandler.KeyJustPressed[k]
+}
+
+// GamepadButtonPressed returns whether button b is down on any gamepad with
+// the standard layout.
+func GamepadButtonPressed(b ebiten.StandardGamepadButton) bool {
+	return b >= 0 && b <= ebiten.StandardGamepadButtonMax && internalinput.InputHandler.GamepadButtonPressed[b]
+}
+
+// GamepadButtonJustPressed returns whether button b went down since the last
+// update. A button is down while any gamepad with the standard layout holds
+// it, so two gamepads pressing it together press it once.
+func GamepadButtonJustPressed(b ebiten.StandardGamepadButton) bool {
+	return b >= 0 && b <= ebiten.StandardGamepadButtonMax && internalinput.InputHandler.GamepadButtonJustPressed[b]
 }
 
 // AnyKeyPressed returns whether any key is currently pressed.

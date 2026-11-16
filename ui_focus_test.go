@@ -7,6 +7,7 @@ import (
 
 	"github.com/ebitenui/ebitenui/event"
 	eimage "github.com/ebitenui/ebitenui/image"
+	"github.com/ebitenui/ebitenui/internal/input/inputtest"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
@@ -147,45 +148,38 @@ func TestUI_ActivateFocused(t *testing.T) {
 	is.Equal(clicks, 1)
 }
 
-// fakeGamepads stands in for Ebitengine's gamepads during a test: one pad
-// with the standard layout, whose buttons in pressed were just pressed.
-func fakeGamepads(t *testing.T, pressed map[ebiten.StandardGamepadButton]bool) {
-	t.Helper()
-	ids, standard, just := appendGamepadIDs, isStandardGamepad, gamepadJustPressed
-	t.Cleanup(func() { appendGamepadIDs, isStandardGamepad, gamepadJustPressed = ids, standard, just })
-	appendGamepadIDs = func(dst []ebiten.GamepadID) []ebiten.GamepadID { return append(dst, 0) }
-	isStandardGamepad = func(ebiten.GamepadID) bool { return true }
-	gamepadJustPressed = func(_ ebiten.GamepadID, b ebiten.StandardGamepadButton) bool { return pressed[b] }
-}
-
-// With GamepadFocus on, a gamepad's D-pad moves the focus and its bottom
-// face button activates the focused widget; off, the gamepad does nothing.
+// With GamepadFocus on, the gamepads' D-pad moves the focus and their bottom
+// face button activates the focused widget; off, gamepads do nothing. Two
+// gamepads pressing together act once.
 func TestUI_GamepadFocus(t *testing.T) {
 	is := is.New(t)
 
 	clicks := 0
 	left := focusButton(image.Rect(0, 0, 40, 20))
-	right := focusButton(image.Rect(50, 0, 90, 20), widget.ButtonOpts.ClickedHandler(func(*widget.ButtonClickedEventArgs) { clicks++ }))
-	ui := focusUI(left, right)
+	middle := focusButton(image.Rect(50, 0, 90, 20), widget.ButtonOpts.ClickedHandler(func(*widget.ButtonClickedEventArgs) { clicks++ }))
+	right := focusButton(image.Rect(100, 0, 140, 20))
+	ui := focusUI(left, middle, right)
 	ui.SetFocusedWidget(left)
-	pressed := map[ebiten.StandardGamepadButton]bool{ebiten.StandardGamepadButtonLeftRight: true}
-	fakeGamepads(t, pressed)
+	d := inputtest.Use(t)
+	d.Pads = make([]inputtest.Pad, 2)
+	// tap holds b on the pads given for two updates, then lets go.
+	tap := func(b ebiten.StandardGamepadButton, pads ...int) {
+		for _, down := range []bool{true, true, false} {
+			for _, p := range pads {
+				d.Pads[p].Buttons[b] = down
+			}
+			ui.Update()
+			event.ExecuteDeferred()
+		}
+	}
 
-	ui.Update()
-	is.Equal(ui.GetFocusedWidget(), left) // off by default
+	tap(ebiten.StandardGamepadButtonLeftRight, 0)
+	is.True(ui.GetFocusedWidget() == left) // off by default
 
 	ui.GamepadFocus = true
-	isStandardGamepad = func(ebiten.GamepadID) bool { return false }
-	ui.Update()
-	is.Equal(ui.GetFocusedWidget(), left) // a pad without the standard layout is left alone
+	tap(ebiten.StandardGamepadButtonLeftRight, 0, 1)
+	is.True(ui.GetFocusedWidget() == middle) // both pads at once: one step
 
-	isStandardGamepad = func(ebiten.GamepadID) bool { return true }
-	ui.Update()
-	is.Equal(ui.GetFocusedWidget(), right) // the D-pad's right
-
-	pressed[ebiten.StandardGamepadButtonLeftRight] = false
-	pressed[ebiten.StandardGamepadButtonRightBottom] = true
-	ui.Update()
-	event.ExecuteDeferred()
-	is.Equal(clicks, 1) // the bottom face button
+	tap(ebiten.StandardGamepadButtonRightBottom, 1)
+	is.Equal(clicks, 1) // the bottom face button, on either pad
 }

@@ -29,12 +29,26 @@ type DefaultInternalHandler struct {
 	LastMiddleMouseButtonPressed bool
 	LastRightMouseButtonPressed  bool
 
-	InputChars    []rune
-	KeyPressed    map[ebiten.Key]bool
-	AnyKeyPressed bool
-	isTouched     bool
-	cursorImages  map[string]*ebiten.Image
-	cursorOffset  map[string]image.Point
+	InputChars []rune
+	// KeyPressed holds the keys down, KeyJustPressed those that went down
+	// since the last update.
+	KeyPressed     [ebiten.KeyMax + 1]bool
+	KeyJustPressed [ebiten.KeyMax + 1]bool
+	AnyKeyPressed  bool
+
+	// GamepadButtonPressed holds the buttons down on any gamepad with the
+	// standard layout, GamepadButtonJustPressed those that went down since
+	// the last update.
+	GamepadButtonPressed     [ebiten.StandardGamepadButtonMax + 1]bool
+	GamepadButtonJustPressed [ebiten.StandardGamepadButtonMax + 1]bool
+
+	// Devices is where the keyboard and the gamepads are read.
+	Devices  Devices
+	gamepads []ebiten.GamepadID // reused each update
+
+	isTouched    bool
+	cursorImages map[string]*ebiten.Image
+	cursorOffset map[string]image.Point
 
 	touchscreenPlatform bool
 	touchIDs            []ebiten.TouchID
@@ -54,7 +68,7 @@ var InputHandler *DefaultInternalHandler = &DefaultInternalHandler{
 	// input options.
 	touchscreenPlatform: jsUtil.IsMobileBrowser() || runtime.GOOS == "android" || runtime.GOOS == "ios",
 
-	KeyPressed:   make(map[ebiten.Key]bool),
+	Devices:      Ebitengine{},
 	cursorImages: make(map[string]*ebiten.Image),
 	cursorOffset: make(map[string]image.Point),
 }
@@ -92,14 +106,8 @@ func (handler *DefaultInternalHandler) Update() {
 	handler.WheelY += wy
 
 	handler.InputChars = ebiten.AppendInputChars(handler.InputChars)
-	handler.AnyKeyPressed = false
-	for k := ebiten.Key(0); k <= ebiten.KeyMax; k++ {
-		p := ebiten.IsKeyPressed(k)
-		handler.KeyPressed[k] = p
-		if p {
-			handler.AnyKeyPressed = true
-		}
-	}
+	handler.updateKeys()
+	handler.updateGamepads()
 	handler.LeftMouseButtonJustPressed = handler.LeftMouseButtonPressed && handler.LeftMouseButtonPressed != handler.LastLeftMouseButtonPressed
 	handler.MiddleMouseButtonJustPressed = handler.MiddleMouseButtonPressed && handler.MiddleMouseButtonPressed != handler.LastMiddleMouseButtonPressed
 	handler.RightMouseButtonJustPressed = handler.RightMouseButtonPressed && handler.RightMouseButtonPressed != handler.LastRightMouseButtonPressed
