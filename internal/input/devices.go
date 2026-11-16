@@ -2,12 +2,14 @@ package input
 
 import (
 	"math"
+	"runtime"
 
+	"github.com/ebitenui/ebitenui/internal/jsUtil"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// Devices is where the handler reads the keyboard and the gamepads:
-// Ebitengine, or a stand-in in tests (package inputtest).
+// Devices is where the handler reads the keyboard, the gamepads and the
+// touches: Ebitengine, or a stand-in in tests (package inputtest).
 type Devices interface {
 	IsKeyPressed(k ebiten.Key) bool
 	AppendGamepadIDs(ids []ebiten.GamepadID) []ebiten.GamepadID
@@ -15,10 +17,27 @@ type Devices interface {
 	// nothing for a gamepad without the standard layout, as Ebitengine does.
 	IsStandardGamepadButtonPressed(id ebiten.GamepadID, b ebiten.StandardGamepadButton) bool
 	StandardGamepadAxisValue(id ebiten.GamepadID, a ebiten.StandardGamepadAxis) float64
+	AppendTouchIDs(ids []ebiten.TouchID) []ebiten.TouchID
+	TouchPosition(id ebiten.TouchID) (int, int)
+	// IsTouchscreen reports whether the platform has a touch screen and no
+	// mouse pointer: Android, iOS, or a browser on one of them.
+	IsTouchscreen() bool
 }
 
-// Ebitengine reads the keyboard and the gamepads from Ebitengine.
+// touchscreen is whether the platform has a touch screen and no mouse
+// pointer. Ebitengine reports no cursor position on Android and iOS.
+var touchscreen = jsUtil.IsMobileBrowser() || runtime.GOOS == "android" || runtime.GOOS == "ios"
+
+// Ebitengine reads the devices from Ebitengine.
 type Ebitengine struct{}
+
+func (Ebitengine) AppendTouchIDs(ids []ebiten.TouchID) []ebiten.TouchID {
+	return ebiten.AppendTouchIDs(ids)
+}
+
+func (Ebitengine) TouchPosition(id ebiten.TouchID) (int, int) { return ebiten.TouchPosition(id) }
+
+func (Ebitengine) IsTouchscreen() bool { return touchscreen }
 
 func (Ebitengine) IsKeyPressed(k ebiten.Key) bool { return ebiten.IsKeyPressed(k) }
 
@@ -32,6 +51,37 @@ func (Ebitengine) IsStandardGamepadButtonPressed(id ebiten.GamepadID, b ebiten.S
 
 func (Ebitengine) StandardGamepadAxisValue(id ebiten.GamepadID, a ebiten.StandardGamepadAxis) float64 {
 	return ebiten.StandardGamepadAxisValue(id, a)
+}
+
+// updateTouches makes the first finger on the screen the pointer, its left
+// button down while the finger is. It reports whether touches placed the
+// pointer this update, the update a touch lifts in included. The update
+// after a touch lifts, the pointer leaves the screen, unless KeepTouchHover;
+// on a platform with a mouse, the mouse then places it.
+func (handler *DefaultInternalHandler) updateTouches() bool {
+	handler.touchIDs = handler.Devices.AppendTouchIDs(handler.touchIDs[:0])
+	handler.TouchCount = len(handler.touchIDs)
+	switch {
+	case handler.TouchCount > 0:
+		if !handler.isTouched { // a new touch
+			handler.TouchGesture, handler.KeepTouchHover = false, false
+		}
+		handler.isTouched = true
+		handler.TouchGesture = handler.TouchGesture || handler.TouchCount > 1
+		handler.LeftMouseButtonPressed = true
+		handler.CursorX, handler.CursorY = handler.Devices.TouchPosition(handler.touchIDs[0])
+		return true
+	case handler.isTouched: // lifted: released where it was
+		handler.isTouched = false
+		handler.LeftMouseButtonPressed = false
+		handler.lifted = true
+		return true
+	}
+	if handler.lifted && !handler.KeepTouchHover {
+		handler.CursorX, handler.CursorY = -1, -1 // with a mouse, the mouse puts it back
+	}
+	handler.lifted = false
+	return false
 }
 
 // updateKeys takes the state of every key, and which went down since the

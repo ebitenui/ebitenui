@@ -211,6 +211,18 @@ func AnyKeyPressed() bool {
 	return internalinput.InputHandler.AnyKeyPressed
 }
 
+// TouchCount returns the number of fingers on the screen. The first one is
+// the pointer, its left button down while the finger is.
+func TouchCount() int {
+	return internalinput.InputHandler.TouchCount
+}
+
+// TouchGesture returns whether the touch going on, or the one that just
+// lifted, has had two fingers or more: a gesture, which clicks nothing.
+func TouchGesture() bool {
+	return internalinput.InputHandler.TouchGesture
+}
+
 // This method returns the drawable screen size whether it is fullscreen or not.
 func GetWindowSize() image.Point {
 	return windowSize

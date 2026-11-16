@@ -692,6 +692,18 @@ var pressCancels uint64
 // it clicks nothing.
 func cancelPresses() { pressCancels++ }
 
+// touchLongPress makes a touch's long press on w what a right click and a
+// hover are to a mouse: it opens w's context menu, the touch clicks nothing
+// when it lifts, and the pointer stays where it lifts, so w's tooltip
+// shows, until the next touch.
+func (w *Widget) touchLongPress(p image.Point) {
+	if w.ContextMenu != nil {
+		w.FireContextMenuEvent(nil, p)
+	}
+	cancelPresses()
+	internalinput.InputHandler.KeepTouchHover = true
+}
+
 func (w *Widget) fireEvents() {
 	x, y := input.CursorPosition()
 	p := image.Point{x, y}
@@ -820,7 +832,7 @@ func (w *Widget) fireEvents() {
 			OffsetX: off.X,
 			OffsetY: off.Y,
 		})
-		if w.mouseLeftPressedInside && inside && w.pressedAt == pressCancels {
+		if w.mouseLeftPressedInside && inside && w.pressedAt == pressCancels && !input.TouchGesture() {
 			w.MouseButtonClickedEvent.Fire(&WidgetMouseButtonClickedEventArgs{
 				Widget:  w,
 				Button:  ebiten.MouseButtonLeft,
@@ -833,7 +845,7 @@ func (w *Widget) fireEvents() {
 	}
 
 	if w.longPressButton != -1 {
-		if input.MouseButtonPressed(w.longPressButton) && inside {
+		if input.MouseButtonPressed(w.longPressButton) && inside && !input.TouchGesture() {
 			w.longPressCurrent += 1
 		} else {
 			w.longPressCurrent = 0
@@ -847,6 +859,9 @@ func (w *Widget) fireEvents() {
 				OffsetX: off.X,
 				OffsetY: off.Y,
 			})
+			if input.TouchCount() > 0 {
+				w.touchLongPress(p)
+			}
 			w.longPressButton = -1
 			w.longPressCurrent = 0
 		}

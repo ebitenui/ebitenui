@@ -1,19 +1,25 @@
-// Package inputtest stands in for the keyboard and the gamepads in tests.
+// Package inputtest stands in for the keyboard, the gamepads and the
+// touches in tests.
 package inputtest
 
 import (
+	"image"
 	"testing"
 
 	internalinput "github.com/ebitenui/ebitenui/internal/input"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// Devices is a keyboard and gamepads a test presses.
+// Devices is a keyboard, gamepads and a screen a test presses.
 type Devices struct {
 	Keys [ebiten.KeyMax + 1]bool
 	// Pads are the gamepads connected, all with the standard layout; pad i
 	// has the ID i.
 	Pads []Pad
+	// Touches are the fingers on the screen, where each is; the first has
+	// the ID 0. Touchscreen makes the platform one without a mouse pointer.
+	Touches     []image.Point
+	Touchscreen bool
 }
 
 // Pad is a gamepad with the standard layout.
@@ -58,3 +64,19 @@ func (d *Devices) StandardGamepadAxisValue(id ebiten.GamepadID, a ebiten.Standar
 	}
 	return d.Pads[id].Axes[a]
 }
+
+func (d *Devices) AppendTouchIDs(ids []ebiten.TouchID) []ebiten.TouchID {
+	for i := range d.Touches {
+		ids = append(ids, ebiten.TouchID(i))
+	}
+	return ids
+}
+
+func (d *Devices) TouchPosition(id ebiten.TouchID) (int, int) {
+	if int(id) >= len(d.Touches) {
+		return 0, 0
+	}
+	return d.Touches[id].X, d.Touches[id].Y
+}
+
+func (d *Devices) IsTouchscreen() bool { return d.Touchscreen }
