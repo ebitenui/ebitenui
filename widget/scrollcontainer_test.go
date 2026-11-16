@@ -4,6 +4,7 @@ import (
 	img "image"
 	"testing"
 
+	"github.com/ebitenui/ebitenui/event"
 	"github.com/matryer/is"
 )
 
@@ -46,4 +47,49 @@ func TestScrollContainer_ScrollVisible(t *testing.T) {
 	outside.SetLocation(img.Rect(0, 120, 50, 140))
 	s.ScrollVisible(outside, 0) // not in the content
 	is.Equal(s.ScrollTop, 0.0)
+}
+
+// Without images of its own, a scroll container takes its theme's list
+// scroll images and follows the theme; given images, it keeps them; with
+// neither, it can't be laid out.
+func TestScrollContainer_ThemeImages(t *testing.T) {
+	is := is.New(t)
+
+	ns := newNineSliceEmpty(t)
+	dark := &Theme{ListTheme: &ListParams{ScrollContainerImage: &ScrollContainerImage{Idle: ns, Mask: ns}}}
+	light := &Theme{ListTheme: &ListParams{ScrollContainerImage: &ScrollContainerImage{Idle: ns, Mask: ns}}}
+	images := func(s *ScrollContainer, theme *Theme) *ScrollContainerImage {
+		s.GetWidget().SetTheme(theme)
+		s.Validate()
+		return s.image
+	}
+
+	s := NewScrollContainer(ScrollContainerOpts.Content(NewContainer()))
+	is.True(images(s, dark) == dark.ListTheme.ScrollContainerImage)
+	is.True(images(s, light) == light.ListTheme.ScrollContainerImage)
+
+	own := &ScrollContainerImage{Idle: ns, Mask: ns}
+	s = NewScrollContainer(ScrollContainerOpts.Content(NewContainer()), ScrollContainerOpts.Image(own))
+	is.True(images(s, dark) == own)
+
+	defer func() { is.True(recover() != nil) }() // neither
+	NewScrollContainer(ScrollContainerOpts.Content(NewContainer())).Validate()
+}
+
+// Validated again, as on a theme change, a scroll container still forwards
+// each event of its content once.
+func TestScrollContainer_ForwardsEventsOnce(t *testing.T) {
+	is := is.New(t)
+
+	ns := newNineSliceEmpty(t)
+	content := NewContainer()
+	s := NewScrollContainer(ScrollContainerOpts.Content(content), ScrollContainerOpts.Image(&ScrollContainerImage{Idle: ns, Mask: ns}))
+	forwarded := 0
+	s.GetWidget().ToolTipEvent.AddHandler(func(any) { forwarded++ })
+	for range 3 {
+		s.Validate()
+	}
+	content.GetWidget().FireToolTipEvent(nil, true)
+	event.ExecuteDeferred()
+	is.Equal(forwarded, 1)
 }
