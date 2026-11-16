@@ -166,21 +166,16 @@ func (l *VirtualList) Validate() {
 	if l.rowHeight <= 0 || l.rowFunc == nil || l.bindFunc == nil {
 		panic("VirtualList: RowHeight, RowFunc and BindFunc are required.")
 	}
-	theme := l.container.GetWidget().GetTheme()
-	if l.scrollImage == nil && theme != nil && theme.ListTheme != nil {
-		l.scrollImage = theme.ListTheme.ScrollContainerImage
+	// The images given, or else the theme's lists', taken again on each
+	// validation so that a theme switch shows: the scroll container falls
+	// back to the theme's list images itself.
+	l.scroll.definedImage = l.scrollImage
+	slider := l.sliderParams
+	if theme := l.container.GetWidget().GetTheme(); slider == nil && theme != nil && theme.ListTheme != nil {
+		slider = theme.ListTheme.Slider
 	}
-	if l.sliderParams == nil && theme != nil && theme.ListTheme != nil {
-		l.sliderParams = theme.ListTheme.Slider
-	}
-	l.scroll.image = l.scrollImage
-	if p := l.sliderParams; p != nil {
-		if l.slider.definedParams.TrackImage == nil {
-			l.slider.definedParams.TrackImage = p.TrackImage
-		}
-		if l.slider.definedParams.HandleImage == nil {
-			l.slider.definedParams.HandleImage = p.HandleImage
-		}
+	if slider != nil {
+		l.slider.definedParams.TrackImage, l.slider.definedParams.HandleImage = slider.TrackImage, slider.HandleImage
 	}
 	l.container.Validate()
 }

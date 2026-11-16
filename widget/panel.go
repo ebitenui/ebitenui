@@ -42,3 +42,18 @@ func (p *Panel) Validate() {
 	}
 
 }
+
+// themedPanel is a container that, without a background of its own, draws
+// its theme's panel background and follows the theme as it changes, as a
+// Panel does, but draws none without a theme where a Panel panics. The
+// on-screen keyboard and the dialog are drawn on one.
+type themedPanel struct{ *Container }
+
+func (c *themedPanel) Validate() {
+	c.Container.Validate()
+	if c.definedParams.BackgroundImage == nil {
+		if theme := c.widget.GetTheme(); theme != nil && theme.PanelTheme != nil {
+			c.computedParams.BackgroundImage = theme.PanelTheme.BackgroundImage
+		}
+	}
+}

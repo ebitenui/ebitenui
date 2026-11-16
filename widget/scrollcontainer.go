@@ -20,8 +20,10 @@ type ScrollContainer struct {
 	ScrollMovedEvent *event.Event
 
 	widgetOpts          []WidgetOpt
+	definedImage        *ScrollContainerImage // given; image is it or the theme's
 	image               *ScrollContainerImage
 	content             PreferredSizeLocateableWidget
+	forwarding          PreferredSizeLocateableWidget // the content whose events it forwards
 	padding             *Insets
 	stretchContentWidth bool
 	dragToScroll        bool
@@ -95,8 +97,16 @@ func (s *ScrollContainer) Validate() {
 	if s.content == nil {
 		panic("ScrollContainer: Content is required.")
 	}
+	// Without images of its own, a scroll container looks like its
+	// theme's lists.
+	s.image = s.definedImage
 	if s.image == nil {
-		panic("ScrollContainer: Image is required.")
+		if theme := s.GetWidget().GetTheme(); theme != nil && theme.ListTheme != nil {
+			s.image = theme.ListTheme.ScrollContainerImage
+		}
+	}
+	if s.image == nil {
+		panic("ScrollContainer: Image is required, given or in the theme's lists.")
 	}
 	if s.image.Idle == nil {
 		panic("ScrollContainer: Image.Idle is required.")
@@ -107,6 +117,19 @@ func (s *ScrollContainer) Validate() {
 
 	s.content.GetWidget().parent = s.widget
 	s.content.GetWidget().self = s.content
+	if s.forwarding != s.content {
+		s.forwardContentEvents()
+	}
+
+	s.content.Validate()
+	s.validated = true
+}
+
+// forwardContentEvents passes the content's context menu, focus, tooltip
+// and drag and drop events on as the scroll container's, once however
+// often it is validated.
+func (s *ScrollContainer) forwardContentEvents() {
+	s.forwarding = s.content
 	s.content.GetWidget().ContextMenuEvent.AddHandler(func(args interface{}) {
 		if a, ok := args.(*WidgetContextMenuEventArgs); ok {
 			s.GetWidget().FireContextMenuEvent(a.Widget, a.Location)
@@ -127,9 +150,6 @@ func (s *ScrollContainer) Validate() {
 			s.GetWidget().FireDragAndDropEvent(a.Window, a.Show, a.DnD)
 		}
 	})
-
-	s.content.Validate()
-	s.validated = true
 }
 
 func (o ScrollContainerOptions) WidgetOpts(opts ...WidgetOpt) ScrollContainerOpt {
@@ -138,9 +158,11 @@ func (o ScrollContainerOptions) WidgetOpts(opts ...WidgetOpt) ScrollContainerOpt
 	}
 }
 
+// Image sets the scroll container's images; without them, it takes its
+// theme's list images.
 func (o ScrollContainerOptions) Image(i *ScrollContainerImage) ScrollContainerOpt {
 	return func(s *ScrollContainer) {
-		s.image = i
+		s.definedImage = i
 	}
 }
 

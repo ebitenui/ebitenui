@@ -284,3 +284,34 @@ func TestVirtualList_DragToScroll(t *testing.T) {
 		is.Equal(rows.at(top), 3)
 	}
 }
+
+// Without images of its own, the list takes its theme's list images, for
+// its view and its slider, and follows the theme as it changes; given
+// images win.
+func TestVirtualList_FollowsTheTheme(t *testing.T) {
+	is := is.New(t)
+
+	theme := func() *Theme {
+		ns := newNineSliceEmpty(t)
+		return &Theme{ListTheme: &ListParams{
+			ScrollContainerImage: &ScrollContainerImage{Idle: ns, Mask: ns},
+			Slider:               &SliderParams{TrackImage: &SliderTrackImage{Idle: ns}, HandleImage: &ButtonImage{Idle: ns, Pressed: ns}},
+		}}
+	}
+	dark, light := theme(), theme()
+	rows := &virtualRows{shows: map[*simpleWidget]int{}}
+	l := NewVirtualList(VirtualListOpts.Count(10), VirtualListOpts.RowHeight(20),
+		VirtualListOpts.RowFunc(rows.row), VirtualListOpts.BindFunc(rows.bind))
+	for _, th := range []*Theme{dark, light} {
+		l.GetWidget().SetTheme(th)
+		l.Validate()
+		is.True(l.scroll.image == th.ListTheme.ScrollContainerImage)
+		is.True(l.slider.definedParams.TrackImage == th.ListTheme.Slider.TrackImage)
+	}
+
+	given := newVirtualList(t, 10, rows)
+	given.GetWidget().SetTheme(dark)
+	given.Validate()
+	is.True(given.scroll.image != dark.ListTheme.ScrollContainerImage)
+	is.True(given.slider.definedParams.TrackImage != dark.ListTheme.Slider.TrackImage)
+}
