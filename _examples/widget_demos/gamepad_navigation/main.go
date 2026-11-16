@@ -2,11 +2,9 @@ package main
 
 import (
 	"fmt"
-	"image/color"
 	"log"
 
 	"github.com/ebitenui/ebitenui"
-	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/themes"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -19,8 +17,8 @@ import (
 // with the gamepad.
 func main() {
 	stretch := widget.WidgetOpts.LayoutData(widget.RowLayoutData{Stretch: true})
-	root := widget.NewContainer(
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
+	// A panel: the theme's background.
+	root := widget.NewPanel(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 			widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(20)),
@@ -87,11 +85,10 @@ func main() {
 
 	backs := 0
 	ui := &ebitenui.UI{
-		Container:    root,
-		PrimaryTheme: themes.GetBasicDarkTheme(),
-		GamepadFocus: true,
-		OnScreenKeyboard: widget.NewOnScreenKeyboard(widget.OnScreenKeyboardOpts.ContainerOpts(
-			widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x24, 0x2e, 0x3a, 0xff})))),
+		Container:        root,
+		PrimaryTheme:     themes.GetBasicDarkTheme(),
+		GamepadFocus:     true,
+		OnScreenKeyboard: widget.NewOnScreenKeyboard(), // the theme's keys and panel
 		// Back no widget takes: a game closes its menu here.
 		BackHandler: func() {
 			backs++
