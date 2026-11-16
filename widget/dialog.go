@@ -32,7 +32,7 @@ type Dialog struct {
 	windowOpts     []WindowOpt
 
 	window   *Window
-	contents *Container
+	contents *themedPanel // the theme's panel background, without one of its own
 }
 
 // DialogChoiceEventArgs reports a choice: its index among the choices and
@@ -117,7 +117,8 @@ func (o DialogOptions) ButtonParams(params *ButtonParams) DialogOpt {
 	}
 }
 
-// BackgroundImage sets the dialog's background.
+// BackgroundImage sets the dialog's background; without one, the dialog
+// draws its theme's panel background.
 func (o DialogOptions) BackgroundImage(i *eimage.NineSlice) DialogOpt {
 	return func(d *Dialog) {
 		d.background = i
@@ -189,7 +190,7 @@ func (d *Dialog) build() {
 	if d.background != nil {
 		containerOpts = append(containerOpts, ContainerOpts.BackgroundImage(d.background))
 	}
-	d.contents = NewContainer(containerOpts...)
+	d.contents = &themedPanel{NewContainer(containerOpts...)}
 
 	if d.title != "" {
 		d.contents.AddChild(d.text(d.title, d.titleFace, d.titleColor))

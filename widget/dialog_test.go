@@ -101,3 +101,26 @@ func TestDialog_CenterIn(t *testing.T) {
 	is.Equal(r.Size(), img.Pt(w, h))
 	is.Equal(r.Min.Add(r.Max), img.Pt(600, 500)) // centered: twice the area's middle
 }
+
+// Without a background of its own, the dialog draws its theme's panel
+// background and follows the theme; given one, it keeps it.
+func TestDialog_ThemeBackground(t *testing.T) {
+	is := is.New(t)
+
+	dark := &Theme{PanelTheme: &PanelParams{BackgroundImage: newNineSliceEmpty(t)}}
+	light := &Theme{PanelTheme: &PanelParams{BackgroundImage: newNineSliceEmpty(t)}}
+	background := func(d *Dialog, theme *Theme) any { // validated through its window, as the UI does
+		w := d.Window().GetContainer()
+		w.GetWidget().SetTheme(theme)
+		w.Validate()
+		return d.contents.computedParams.BackgroundImage
+	}
+
+	d, _, _ := newDialog(t)
+	is.True(background(d, dark) == dark.PanelTheme.BackgroundImage)
+	is.True(background(d, light) == light.PanelTheme.BackgroundImage)
+
+	own := newNineSliceEmpty(t)
+	d, _, _ = newDialog(t, DialogOpts.BackgroundImage(own))
+	is.True(background(d, dark) == own)
+}

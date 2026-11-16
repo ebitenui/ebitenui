@@ -25,7 +25,7 @@ var keyboardRows = [...]string{
 // ebitenui.UI.OnScreenKeyboard opens it in a window for a focused text
 // input, and closes it on Back.
 type OnScreenKeyboard struct {
-	container *keyboardContainer
+	container *themedPanel
 	keyOpts   []ButtonOpt
 	preview   *Text
 	letters   []*Button
@@ -77,7 +77,7 @@ func NewOnScreenKeyboard(opts ...OnScreenKeyboardOpt) *OnScreenKeyboard {
 		o(&cfg)
 	}
 	k := &OnScreenKeyboard{keyOpts: cfg.keyOpts}
-	k.container = &keyboardContainer{NewContainer(append([]ContainerOpt{ContainerOpts.Layout(NewRowLayout(
+	k.container = &themedPanel{NewContainer(append([]ContainerOpt{ContainerOpts.Layout(NewRowLayout(
 		RowLayoutOpts.Direction(DirectionVertical), RowLayoutOpts.Spacing(6),
 		RowLayoutOpts.Padding(NewInsetsSimple(8))))}, cfg.containerOpts...)...)}
 	stretch := WidgetOpts.LayoutData(RowLayoutData{Stretch: true})
@@ -129,20 +129,6 @@ func (k *OnScreenKeyboard) key(label string, press func()) *Button {
 // GetContainer returns the keyboard's widget: the preview line and the
 // keys.
 func (k *OnScreenKeyboard) GetContainer() Containerer { return k.container }
-
-// keyboardContainer is the keyboard's container: without a background of
-// its own, it draws its theme's panel background, and follows the theme as
-// it changes.
-type keyboardContainer struct{ *Container }
-
-func (c *keyboardContainer) Validate() {
-	c.Container.Validate()
-	if c.definedParams.BackgroundImage == nil {
-		if theme := c.widget.GetTheme(); theme != nil && theme.PanelTheme != nil {
-			c.computedParams.BackgroundImage = theme.PanelTheme.BackgroundImage
-		}
-	}
-}
 
 // Open makes the keyboard type into target until Done or Close, which call
 // onClose; ebitenui.UI opens it in a window and closes that window there.
