@@ -18,6 +18,7 @@ import (
 type ListParams struct {
 	EntryFace                   *text.Face
 	EntryColor                  *ListEntryColor
+	EntryImage                  *ListEntryImage
 	EntryTextPadding            *Insets
 	EntryTextHorizontalPosition *TextPosition
 	EntryTextVerticalPosition   *TextPosition
@@ -96,6 +97,21 @@ type ListEntryColor struct {
 	DisabledSelectedBackground color.Color
 }
 
+// ListEntryImage draws the entries' backgrounds, such as rounded or
+// bordered ones, each in place of its color in ListEntryColor; a state
+// without an image keeps its color. Unselected entries have no color: without
+// an image they stay clear.
+type ListEntryImage struct {
+	Unselected         *image.NineSlice
+	DisabledUnselected *image.NineSlice
+	Focused            *image.NineSlice
+	Selecting          *image.NineSlice
+	Selected           *image.NineSlice
+	DisabledSelected   *image.NineSlice
+	SelectedFocused    *image.NineSlice
+	SelectingFocused   *image.NineSlice
+}
+
 type ListEntrySelectedEventArgs struct {
 	List          *List
 	Entry         any
@@ -160,6 +176,7 @@ func (t *List) populateComputedParams() {
 				params.EntryFace = theme.DefaultFace
 			}
 			params.EntryColor = theme.ListTheme.EntryColor
+			params.EntryImage = theme.ListTheme.EntryImage
 			params.EntryTextHorizontalPosition = theme.ListTheme.EntryTextHorizontalPosition
 			params.EntryTextPadding = theme.ListTheme.EntryTextPadding
 			params.EntryTextVerticalPosition = theme.ListTheme.EntryTextVerticalPosition
@@ -187,6 +204,9 @@ func (t *List) populateComputedParams() {
 	}
 	if t.definedParams.EntryColor != nil {
 		params.EntryColor = t.definedParams.EntryColor
+	}
+	if t.definedParams.EntryImage != nil {
+		params.EntryImage = t.definedParams.EntryImage
 	}
 	if t.definedParams.EntryTextHorizontalPosition != nil {
 		params.EntryTextHorizontalPosition = t.definedParams.EntryTextHorizontalPosition
@@ -270,18 +290,22 @@ func (t *List) populateComputedParams() {
 		params.ScrollContainerPadding = &Insets{}
 	}
 
+	images := params.EntryImage
+	if images == nil {
+		images = &ListEntryImage{}
+	}
 	params.entryUnselectedColor = &ButtonImage{
-		Idle:     image.NewNineSliceColor(color.Transparent),
-		Disabled: image.NewNineSliceColor(color.Transparent),
-		Hover:    image.NewNineSliceColor(params.EntryColor.FocusedBackground),
-		Pressed:  image.NewNineSliceColor(params.EntryColor.SelectingBackground),
+		Idle:     entryBackground(images.Unselected, color.Transparent),
+		Disabled: entryBackground(images.DisabledUnselected, color.Transparent),
+		Hover:    entryBackground(images.Focused, params.EntryColor.FocusedBackground),
+		Pressed:  entryBackground(images.Selecting, params.EntryColor.SelectingBackground),
 	}
 
 	params.entrySelectedColor = &ButtonImage{
-		Idle:     image.NewNineSliceColor(params.EntryColor.SelectedBackground),
-		Disabled: image.NewNineSliceColor(params.EntryColor.DisabledSelectedBackground),
-		Hover:    image.NewNineSliceColor(params.EntryColor.SelectedFocusedBackground),
-		Pressed:  image.NewNineSliceColor(params.EntryColor.SelectingFocusedBackground),
+		Idle:     entryBackground(images.Selected, params.EntryColor.SelectedBackground),
+		Disabled: entryBackground(images.DisabledSelected, params.EntryColor.DisabledSelectedBackground),
+		Hover:    entryBackground(images.SelectedFocused, params.EntryColor.SelectedFocusedBackground),
+		Pressed:  entryBackground(images.SelectingFocused, params.EntryColor.SelectingFocusedBackground),
 	}
 
 	params.entryUnselectedTextColor = &ButtonTextColor{
@@ -295,6 +319,15 @@ func (t *List) populateComputedParams() {
 	}
 
 	t.computedParams = params
+}
+
+// entryBackground returns an entry's background in one state: its image, or
+// else its color.
+func entryBackground(i *image.NineSlice, c color.Color) *image.NineSlice {
+	if i != nil {
+		return i
+	}
+	return image.NewNineSliceColor(c)
 }
 
 func (o ListOptions) ContainerOpts(opts ...ContainerOpt) ListOpt {
@@ -404,6 +437,14 @@ func (o ListOptions) DisableDefaultKeys(val bool) ListOpt {
 func (o ListOptions) EntryColor(c *ListEntryColor) ListOpt {
 	return func(l *List) {
 		l.definedParams.EntryColor = c
+	}
+}
+
+// EntryImage draws the entries' backgrounds with images, such as rounded or
+// bordered ones, in place of their colors; see ListEntryImage.
+func (o ListOptions) EntryImage(i *ListEntryImage) ListOpt {
+	return func(l *List) {
+		l.definedParams.EntryImage = i
 	}
 }
 

@@ -115,6 +115,7 @@ func (t *ListComboButton) populateComputedParams() {
 					params.List.EntryFace = theme.DefaultFace
 				}
 				params.List.EntryColor = theme.ListComboButtonTheme.List.EntryColor
+				params.List.EntryImage = theme.ListComboButtonTheme.List.EntryImage
 				params.List.EntryTextHorizontalPosition = theme.ListComboButtonTheme.List.EntryTextHorizontalPosition
 				params.List.EntryTextPadding = theme.ListComboButtonTheme.List.EntryTextPadding
 				params.List.EntryTextVerticalPosition = theme.ListComboButtonTheme.List.EntryTextVerticalPosition
@@ -176,6 +177,9 @@ func (t *ListComboButton) populateComputedParams() {
 		}
 		if t.definedParams.List.EntryColor != nil {
 			params.List.EntryColor = t.definedParams.List.EntryColor
+		}
+		if t.definedParams.List.EntryImage != nil {
+			params.List.EntryImage = t.definedParams.List.EntryImage
 		}
 
 		if t.definedParams.List.EntryTextHorizontalPosition != nil {
