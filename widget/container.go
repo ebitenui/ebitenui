@@ -380,6 +380,9 @@ func (c *Container) createWidget() {
 	c.widget.self = c
 }
 
+// GetFocusers returns the widgets in c that can take the focus, those in
+// its containers included: any child with focusable widgets of its own, as
+// a Panel or a caller's type embedding a Container.
 func (c *Container) GetFocusers() []Focuser {
 	var result []Focuser
 	for _, child := range c.children {
@@ -390,17 +393,9 @@ func (c *Container) GetFocusers() []Focuser {
 					result = append(result, v)
 				}
 			}
-		case *Container:
-			result = append(result, v.GetFocusers()...)
-		case *FlipBook:
-			result = append(result, v.GetFocusers()...)
 		case *TabBook:
 			result = append(result, v.container.GetFocusers()...)
-		case *TabBookTab:
-			result = append(result, v.GetFocusers()...)
-		case *ScrollContainer:
-			result = append(result, v.GetFocusers()...)
-		case *TextArea:
+		case interface{ GetFocusers() []Focuser }:
 			result = append(result, v.GetFocusers()...)
 		}
 	}

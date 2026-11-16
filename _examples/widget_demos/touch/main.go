@@ -28,8 +28,8 @@ import (
 func main() {
 	face := loadFace(18)
 	stretch := widget.WidgetOpts.LayoutData(widget.RowLayoutData{Stretch: true})
-	root := widget.NewContainer(
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
+	// A panel: the theme's background.
+	root := widget.NewPanel(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 			widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(16)),

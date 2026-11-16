@@ -219,3 +219,51 @@ func TestUI_Back(t *testing.T) {
 	is.True(!combo.ContentVisible()) // the open combo took it
 	is.Equal(backs, 2)
 }
+
+// Without an OnScreenKeyboard, a gamepad's A submits a focused text input.
+// With one, A opens it in a window across the bottom of the screen,
+// focused on its first key; the D-pad moves between its keys and A types
+// the focused one; Back closes it, rather than calling BackHandler, and
+// gives the focus back to the input, unsubmitted.
+func TestUI_OnScreenKeyboard(t *testing.T) {
+	is := is.New(t)
+
+	ti := widget.NewTextInput()
+	ti.GetWidget().Rect = image.Rect(0, 0, 100, 20)
+	submits, backs := 0, 0
+	ti.SubmitEvent.AddHandler(func(any) { submits++ })
+	ui := focusUI(ti)
+	ui.PrimaryTheme = themes.GetBasicDarkTheme() // the keys' and the input's images and faces
+	ui.GamepadFocus = true
+	ui.BackHandler = func() { backs++ }
+	_, press := useDevices(t, ui)
+	ui.Draw(ebiten.NewImage(800, 600)) // the screen's size
+	ui.SetFocusedWidget(ti)
+
+	press(ebiten.StandardGamepadButtonRightBottom)
+	is.Equal(submits, 1) // no keyboard: A submits
+
+	k := widget.NewOnScreenKeyboard()
+	ui.OnScreenKeyboard = k
+	press(ebiten.StandardGamepadButtonRightBottom)
+	is.True(ui.GetFocusedWidget() == k.FirstKey()) // opened, on "1"
+	ui.Draw(ebiten.NewImage(800, 600))             // laid out
+	r := k.GetContainer().GetWidget().Rect
+	is.True(r.Max.Y == 600 && r.Min.X == 0 && r.Max.X == 800) // across the bottom
+	rows := k.GetContainer().Children()
+	is.True(rows[len(rows)-1].GetWidget().Rect.Max.Y <= r.Max.Y) // every key inside it
+
+	press(ebiten.StandardGamepadButtonLeftRight) // to "2"
+	press(ebiten.StandardGamepadButtonRightBottom)
+	is.Equal(ti.GetText(), "2")
+
+	press(ebiten.StandardGamepadButtonRightRight)
+	is.True(ui.GetFocusedWidget() == ti) // closed, the focus back
+	is.True(!k.IsOpen() && !ui.IsWindowOpen(ui.keyboardWindow))
+	is.Equal(submits, 1)
+	is.Equal(backs, 0)
+
+	ti.GetWidget().Disabled = true // still focused, nothing else to take it
+	press(ebiten.StandardGamepadButtonRightBottom)
+	is.True(!k.IsOpen()) // a disabled input opens nothing
+}

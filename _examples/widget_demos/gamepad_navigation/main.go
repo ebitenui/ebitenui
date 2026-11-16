@@ -2,11 +2,9 @@ package main
 
 import (
 	"fmt"
-	"image/color"
 	"log"
 
 	"github.com/ebitenui/ebitenui"
-	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/themes"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -15,11 +13,12 @@ import (
 // The arrow keys and a gamepad navigate the same way: the D-pad or the left
 // stick moves through the list and the slider while they have the focus,
 // and a gamepad moves the focus on past them; A activates, B or Escape goes
-// back. A direction held repeats.
+// back. A direction held repeats. On the name, A opens a keyboard to type
+// with the gamepad.
 func main() {
 	stretch := widget.WidgetOpts.LayoutData(widget.RowLayoutData{Stretch: true})
-	root := widget.NewContainer(
-		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
+	// A panel: the theme's background.
+	root := widget.NewPanel(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 			widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(20)),
@@ -61,6 +60,14 @@ func main() {
 			status.Label = "Difficulty " + label(args.Entry)
 		}),
 	)
+	// A gamepad's A on the name opens the on-screen keyboard.
+	name := widget.NewTextInput(
+		widget.TextInputOpts.WidgetOpts(stretch),
+		widget.TextInputOpts.Placeholder("Name"),
+		widget.TextInputOpts.SubmitHandler(func(args *widget.TextInputChangedEventArgs) {
+			status.Label = "Hello, " + args.InputText
+		}),
+	)
 	subtitles := widget.NewCheckbox(
 		widget.CheckboxOpts.TextLabel("Subtitles"),
 		widget.CheckboxOpts.StateChangedHandler(func(args *widget.CheckboxChangedEventArgs) {
@@ -74,13 +81,14 @@ func main() {
 			widget.ButtonOpts.ClickedHandler(func(*widget.ButtonClickedEventArgs) { status.Label = name }),
 		))
 	}
-	root.AddChild(help, list, slider, combo, subtitles, buttons, status)
+	root.AddChild(help, list, slider, combo, name, subtitles, buttons, status)
 
 	backs := 0
 	ui := &ebitenui.UI{
-		Container:    root,
-		PrimaryTheme: themes.GetBasicDarkTheme(),
-		GamepadFocus: true,
+		Container:        root,
+		PrimaryTheme:     themes.GetBasicDarkTheme(),
+		GamepadFocus:     true,
+		OnScreenKeyboard: widget.NewOnScreenKeyboard(), // the theme's keys and panel
 		// Back no widget takes: a game closes its menu here.
 		BackHandler: func() {
 			backs++
