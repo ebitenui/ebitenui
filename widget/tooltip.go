@@ -108,15 +108,11 @@ func (t *ToolTip) Validate() {
 //   - Offset = 0, 20
 //   - ContentOriginHorizontal = TOOLTIP_ANCHOR_END
 //   - ContentOriginVertical = TOOLTIP_ANCHOR_START
+//
+// face, color and background may be nil: the tooltip then takes its theme's
+// text face and color and its theme's panel background.
 func NewTextToolTip(label string, face *text.Face, color color.Color, background *e_image.NineSlice) *ToolTip {
-	if color == nil {
-		panic("TextToolTip: color is required.")
-	}
-	if face == nil {
-		panic("TextToolTip: face is required.")
-	}
-
-	c := NewContainer(
+	c := &themedPanel{NewContainer(
 		ContainerOpts.BackgroundImage(background),
 		ContainerOpts.AutoDisableChildren(),
 		ContainerOpts.Layout(NewAnchorLayout(AnchorLayoutOpts.Padding(&Insets{
@@ -125,9 +121,16 @@ func NewTextToolTip(label string, face *text.Face, color color.Color, background
 			Left:   10,
 			Right:  10,
 		}))),
-	)
+	)}
 
-	c.AddChild(NewText(TextOpts.ProcessBBCode(true), TextOpts.Text(label, face, color)))
+	textOpts := []TextOpt{TextOpts.ProcessBBCode(true), TextOpts.TextLabel(label)}
+	if face != nil {
+		textOpts = append(textOpts, TextOpts.TextFace(face))
+	}
+	if color != nil {
+		textOpts = append(textOpts, TextOpts.TextColor(color))
+	}
+	c.AddChild(NewText(textOpts...))
 
 	return NewToolTip(
 		ToolTipOpts.Content(c),
