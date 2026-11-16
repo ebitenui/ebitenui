@@ -278,8 +278,8 @@ func checkboxImagesFor(i *CheckboxImage, state WidgetState) (normal, disabled, h
 // cursor enter or leave.
 func moveCursor(w Updater, x, y int, t *testing.T) {
 	t.Helper()
-	input.SetCursorUpdater(&fixedCursor{x: x, y: y})
-	t.Cleanup(func() { input.SetCursorUpdater(nil) })
+	c := useTestCursor(t)
+	c.x, c.y = x, y
 	w.Update(&UpdateObject{})
 	event.ExecuteDeferred()
 }

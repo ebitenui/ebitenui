@@ -58,9 +58,8 @@ func TestText_LinkHover(t *testing.T) {
 	face := *loadFont(t)
 	before, _ := text.Measure("go further ", face, 0)
 	link, _ := text.Measure("there", face, 0)
-	cursor := &fixedCursor{x: int(before + link/2), y: int(tw.measurements.lineHeight / 2)}
-	input.SetCursorUpdater(cursor)
-	t.Cleanup(func() { input.SetCursorUpdater(nil) })
+	cursor := useTestCursor(t)
+	cursor.x, cursor.y = int(before+link/2), int(tw.measurements.lineHeight/2)
 
 	tw.Update(&UpdateObject{})
 	event.ExecuteDeferred()
@@ -231,20 +230,6 @@ func newText(t *testing.T, label string, opts ...TextOpt) *Text {
 	return tw
 }
 
-// fixedCursor is a cursor that stays at one position, with no buttons pressed.
-type fixedCursor struct{ x, y int }
-
-func (c *fixedCursor) Update()                                         {}
-func (c *fixedCursor) AfterUpdate()                                    {}
-func (c *fixedCursor) Draw(*ebiten.Image)                              {}
-func (c *fixedCursor) AfterDraw(*ebiten.Image)                         {}
-func (c *fixedCursor) MouseButtonPressed(ebiten.MouseButton) bool      { return false }
-func (c *fixedCursor) MouseButtonJustPressed(ebiten.MouseButton) bool  { return false }
-func (c *fixedCursor) MouseButtonJustReleased(ebiten.MouseButton) bool { return false }
-func (c *fixedCursor) CursorPosition() (int, int)                      { return c.x, c.y }
-func (c *fixedCursor) GetCursorImage(string) *ebiten.Image             { return nil }
-func (c *fixedCursor) GetCursorOffset(string) image.Point              { return image.Point{} }
-
 // A link scrolled out of a scroll container's view is neither hovered nor
 // clicked, though the cursor is where it is laid out.
 func TestText_LinkOutOfViewTakesNoInput(t *testing.T) {
@@ -270,8 +255,8 @@ func TestText_LinkOutOfViewTakesNoInput(t *testing.T) {
 
 	press := func() {
 		r := tw.GetWidget().Rect
-		input.SetCursorUpdater(&pressingCursor{fixedCursor{x: r.Min.X + 5, y: r.Min.Y + r.Dy()/2}})
-		t.Cleanup(func() { input.SetCursorUpdater(nil) })
+		c := useTestCursor(t)
+		c.x, c.y, c.just = r.Min.X+5, r.Min.Y+r.Dy()/2, true
 		tw.Update(&UpdateObject{})
 		event.ExecuteDeferred()
 	}
@@ -285,13 +270,6 @@ func TestText_LinkOutOfViewTakesNoInput(t *testing.T) {
 	press()
 	is.Equal(entered, []string{"away"}) // in view: hovered
 	is.Equal(clicked, []string{"away"}) // in view: clicked
-}
-
-// pressingCursor is a fixedCursor whose left button has just been pressed.
-type pressingCursor struct{ fixedCursor }
-
-func (c *pressingCursor) MouseButtonJustPressed(b ebiten.MouseButton) bool {
-	return b == ebiten.MouseButtonLeft
 }
 
 // A text whose label changes its size asks for the layout to be done
