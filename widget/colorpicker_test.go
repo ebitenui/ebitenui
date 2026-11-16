@@ -80,6 +80,7 @@ func TestColorPicker_Drag(t *testing.T) {
 	p.Update(&UpdateObject{})
 	event.ExecuteDeferred()
 	is.True(near(p.Color(), color.NRGBA{255, 0, 0, 255})) // followed to the rim
+	is.True((*changes)[len(*changes)-1].Dragging)         // still held
 
 	cursor.pressed = false
 	p.Update(&UpdateObject{})
