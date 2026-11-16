@@ -181,6 +181,9 @@ func TestText_CacheOff(t *testing.T) {
 // the game runs, Ebitengine allocates as it queues each draw).
 func TestText_CacheDrawsWithoutAllocating(t *testing.T) {
 	is := is.New(t)
+	if raceEnabled {
+		t.Skip("Ebitengine's allocations per draw vary under the race detector")
+	}
 
 	txt := cachedText(t, "Hello\nworld", TextOpts.Shadow(color.Black, 1, 1))
 	screen := ebiten.NewImage(200, 100)

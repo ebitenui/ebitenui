@@ -266,6 +266,7 @@ func TestText_LinkOutOfViewTakesNoInput(t *testing.T) {
 	scroll.SetLocation(image.Rect(0, 0, 100, 50))
 	render(scroll, t)
 	input.SetupInputLayersWithDeferred([]input.Layerer{scroll})
+	t.Cleanup(func() { input.SetupInputLayersWithDeferred(nil) }) // the layers are the input package's
 
 	press := func() {
 		r := tw.GetWidget().Rect
