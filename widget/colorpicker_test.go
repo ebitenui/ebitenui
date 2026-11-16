@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/ebitenui/ebitenui/event"
-	"github.com/ebitenui/ebitenui/input"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/matryer/is"
 )
@@ -76,9 +75,8 @@ func TestColorPicker_Drag(t *testing.T) {
 	p, changes := newColorPicker(t)
 	pressWheel(p, 50, 50)
 
-	cursor := &pickerCursor{x: 99, y: 50, pressed: true}
-	input.SetCursorUpdater(cursor)
-	t.Cleanup(func() { input.SetCursorUpdater(nil) })
+	cursor := useTestCursor(t)
+	cursor.x, cursor.y, cursor.pressed = 99, 50, true
 	p.Update(&UpdateObject{})
 	event.ExecuteDeferred()
 	is.True(near(p.Color(), color.NRGBA{255, 0, 0, 255})) // followed to the rim
@@ -141,25 +139,6 @@ func near(a, b color.NRGBA) bool {
 	d := func(x, y uint8) bool { return int(x)-int(y) <= 6 && int(y)-int(x) <= 6 }
 	return d(a.R, b.R) && d(a.G, b.G) && d(a.B, b.B) && a.A == b.A
 }
-
-// pickerCursor is a pointer at one place, its left button down or up.
-type pickerCursor struct {
-	x, y    int
-	pressed bool
-}
-
-func (c *pickerCursor) Update()                 {}
-func (c *pickerCursor) AfterUpdate()            {}
-func (c *pickerCursor) Draw(*ebiten.Image)      {}
-func (c *pickerCursor) AfterDraw(*ebiten.Image) {}
-func (c *pickerCursor) MouseButtonPressed(b ebiten.MouseButton) bool {
-	return c.pressed && b == ebiten.MouseButtonLeft
-}
-func (c *pickerCursor) MouseButtonJustPressed(ebiten.MouseButton) bool  { return false }
-func (c *pickerCursor) MouseButtonJustReleased(ebiten.MouseButton) bool { return false }
-func (c *pickerCursor) CursorPosition() (int, int)                      { return c.x, c.y }
-func (c *pickerCursor) GetCursorImage(string) *ebiten.Image             { return nil }
-func (c *pickerCursor) GetCursorOffset(string) image.Point              { return image.Point{} }
 
 // With a radius, swatches draw rounded layers: the frames the picker
 // shares, rounded by the radius and 2 pixels less, and each its color,

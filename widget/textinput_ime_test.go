@@ -169,14 +169,14 @@ func TestTextInput_IMESessionEnds(t *testing.T) {
 	ime := stubIME(t)
 	r := ti.GetWidget().Rect
 	input.SetupInputLayersWithDeferred(nil) // drops layers other tests left
-	input.SetCursorUpdater(&pressingCursor{fixedCursor{x: r.Min.X + 1, y: r.Min.Y + r.Dy()/2}})
-	t.Cleanup(func() { input.SetCursorUpdater(nil) })
+	c := useTestCursor(t)
+	c.x, c.y, c.just = r.Min.X+1, r.Min.Y+r.Dy()/2, true // a press in the input
 
 	ti.Update(&UpdateObject{})
 	is.Equal(ime.ends, []bool{true}) // before the caret moved
 	is.Equal(ti.cursorPosition, 0)
 
-	input.SetCursorUpdater(&fixedCursor{})
+	c.x, c.y, c.just = 0, 0, false
 	ti.GetWidget().Disabled = true
 	ti.Update(&UpdateObject{})
 	is.Equal(ime.updates, 1)                // not asked while disabled
