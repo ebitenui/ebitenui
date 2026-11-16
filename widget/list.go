@@ -69,7 +69,6 @@ type List struct {
 
 	focused        bool
 	tabOrder       int
-	justMoved      bool
 	focusIndex     int
 	prevFocusIndex int
 
@@ -343,9 +342,6 @@ func (o ListOptions) HideVerticalSlider() ListOpt {
 	}
 }
 
-// SlidersWhenNeeded shows each slider only while the entries overflow the
-// list its way, so a list whose entries fit shows none; a hidden slider
-// keeps its room, so the entries do not move when it shows.
 // DragToScroll lets the pointer scroll the entries by dragging them, as
 // ScrollContainerOpts.DragToScroll does; the sliders follow.
 func (o ListOptions) DragToScroll() ListOpt {
@@ -354,6 +350,9 @@ func (o ListOptions) DragToScroll() ListOpt {
 	}
 }
 
+// SlidersWhenNeeded shows each slider only while the entries overflow the
+// list its way, so a list whose entries fit shows none; a hidden slider
+// keeps its room, so the entries do not move when it shows.
 func (o ListOptions) SlidersWhenNeeded() ListOpt {
 	return func(l *List) {
 		l.slidersWhenNeeded = true
@@ -539,7 +538,7 @@ func (l *List) showSlidersWhenNeeded() {
 func (l *List) Update(updObj *UpdateObject) {
 	l.init.Do()
 
-	l.handleInput()
+	l.handleInput(updObj.Actions)
 	l.container.Update(updObj)
 }
 
@@ -569,18 +568,21 @@ func (l *List) AddFocus(direction FocusDirection, focus Focuser) {
 
 /** Focuser Interface - End **/
 
-func (l *List) handleInput() {
+// handleInput moves the focused list through its entries with Up and Down,
+// leaving them at its ends so a gamepad moves the focus on from there, and
+// selects the entry it is on with Activate.
+func (l *List) handleInput(actions *Actions) {
 	if l.focused && !l.GetWidget().Disabled && len(l.buttons) > 0 {
-		if !*l.computedParams.DisableDefaultKeys && (input.KeyPressed(ebiten.KeyUp) || input.KeyPressed(ebiten.KeyDown)) {
-			if !l.justMoved {
-				if input.KeyPressed(ebiten.KeyDown) {
-					l.FocusNext()
-				} else {
-					l.FocusPrevious()
-				}
+		if !*l.computedParams.DisableDefaultKeys {
+			if l.focusIndex < len(l.buttons)-1 && actions.Take(ActionDown) {
+				l.FocusNext()
 			}
-		} else {
-			l.justMoved = false
+			if l.focusIndex > 0 && actions.Take(ActionUp) {
+				l.FocusPrevious()
+			}
+			if actions.Take(ActionActivate) {
+				l.SelectFocused()
+			}
 		}
 		l.buttons[l.focusIndex].focused = true
 	} else if len(l.buttons) > 0 && l.focusIndex <= len(l.buttons) {
@@ -600,7 +602,6 @@ func (l *List) FocusNext() {
 		if l.focusIndex >= len(l.buttons) {
 			l.focusIndex = 0
 		}
-		l.justMoved = true
 		l.buttons[l.focusIndex].focused = true
 	}
 }
@@ -617,7 +618,6 @@ func (l *List) FocusPrevious() {
 		if l.focusIndex >= len(l.buttons) {
 			l.focusIndex = 0
 		}
-		l.justMoved = true
 		l.buttons[l.focusIndex].focused = true
 	}
 }

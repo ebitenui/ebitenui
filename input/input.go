@@ -196,6 +196,16 @@ func GamepadButtonJustPressed(b ebiten.StandardGamepadButton) bool {
 	return b >= 0 && b <= ebiten.StandardGamepadButtonMax && internalinput.InputHandler.GamepadButtonJustPressed[b]
 }
 
+// GamepadAxis returns axis a, from -1 to 1, as the gamepad with the
+// standard layout pushing it furthest has it, so a gamepad at rest doesn't
+// hide one in use.
+func GamepadAxis(a ebiten.StandardGamepadAxis) float64 {
+	if a < 0 || a > ebiten.StandardGamepadAxisMax {
+		return 0
+	}
+	return internalinput.InputHandler.GamepadAxis[a]
+}
+
 // AnyKeyPressed returns whether any key is currently pressed.
 func AnyKeyPressed() bool {
 	return internalinput.InputHandler.AnyKeyPressed

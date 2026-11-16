@@ -3,6 +3,7 @@ package ebitenui
 import (
 	"image"
 	"sort"
+	"time"
 
 	"github.com/ebitenui/ebitenui/event"
 	"github.com/ebitenui/ebitenui/input"
@@ -21,11 +22,28 @@ type UI struct {
 	DisableDefaultFocus bool
 
 	// GamepadFocus, when true, lets the gamepads with the standard layout
-	// move the focus with their D-pad (ChangeFocus) and activate the focused
-	// widget with their bottom face button, A on an Xbox pad or cross on a
-	// PlayStation one (ActivateFocused). A button pressed on two gamepads at
-	// once acts once.
+	// navigate: their D-pad and left stick give the direction actions, as
+	// the arrow keys do, and their bottom face button, A on an Xbox pad or
+	// cross on a PlayStation one, the Activate action (widget.Action). The
+	// focused widget takes those it acts on: a list moves through its
+	// entries, a slider its handle. A gamepad's direction it leaves moves
+	// the focus (ChangeFocus), an Activate it leaves activates it
+	// (ActivateFocused); the arrow keys never move the focus. A button
+	// pressed on two gamepads at once acts once.
 	GamepadFocus bool
+
+	// A direction held, from a key or a gamepad, acts as it goes down, then
+	// after NavigationRepeatDelay once every NavigationRepeatInterval;
+	// unset, 0.4 s and 0.08 s. They count in updates at Ebitengine's TPS,
+	// 60 a second when the TPS follows the display.
+	NavigationRepeatDelay    time.Duration
+	NavigationRepeatInterval time.Duration
+
+	// BackHandler, when set, is called for a Back action no widget takes:
+	// Escape, or with GamepadFocus on a gamepad's right face button, B on an
+	// Xbox pad or circle on a PlayStation one. Closing a menu or a window is
+	// the usual answer. An open list combo button takes Back and closes.
+	BackHandler func()
 
 	// If true the default relayering of Windows will be disabled
 	DisableWindowRelayering bool
@@ -51,6 +69,7 @@ type UI struct {
 	previousContainer          widget.Containerer
 	previousRemoveHandlerFuncs []event.RemoveHandlerFunc
 	tabWasPressed              bool
+	navigation                 navigation
 	updObj                     *widget.UpdateObject
 
 	debugMode bool
@@ -77,7 +96,7 @@ func (u *UI) Update() {
 	}
 	u.setTheme()
 	u.handleFocusChangeRequest()
-	u.handleGamepadFocus()
+	u.giveActions()
 
 	// If widget is not visible or disabled, change focus to next widget.
 	if u.focusedWidget != nil && (u.focusedWidget.GetWidget().Disabled || !u.focusedWidget.GetWidget().IsVisible()) {
@@ -129,6 +148,7 @@ func (u *UI) Update() {
 		u.windows = sliceutil.ShiftEnd(u.windows, u.focusedWindowIndex)
 	}
 
+	u.actOnActionsLeft()
 	event.ExecuteDeferred()
 }
 
@@ -141,6 +161,7 @@ func (u *UI) resetUpdateObject() {
 	u.updObj.RelayoutRequested = false
 	u.updObj.CloseEphemeralWindows = false
 	u.updObj.DebugMode = u.debugMode
+	u.updObj.Actions = &u.navigation.actions
 }
 
 // Draw renders u onto screen. This function should be called in the Ebiten Draw function.
